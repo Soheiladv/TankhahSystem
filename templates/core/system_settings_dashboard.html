@@ -1,0 +1,246 @@
+{% extends 'base_ld.html' %}
+{% load i18n static humanize %}
+
+{% block page_title %}{% trans "داشبورد تنظیمات سیستم" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="page-header d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="header-icon bg-primary bg-opacity-10 rounded-circle p-3">
+                        <i class="fas fa-cogs text-primary fa-2x"></i>
+                    </div>
+                    <div>
+                        <h1 class="h3 mb-1">{% trans "تنظیمات سیستم" %}</h1>
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb mb-0">
+                                {% for breadcrumb in breadcrumbs %}
+                                    {% if breadcrumb.active %}
+                                        <li class="breadcrumb-item active">{{ breadcrumb.name }}</li>
+                                    {% else %}
+                                        <li class="breadcrumb-item"><a href="{{ breadcrumb.url }}">{{ breadcrumb.name }}</a></li>
+                                    {% endif %}
+                                {% endfor %}
+                            </ol>
+                        </nav>
+                    </div>
+                </div>
+                <div class="d-flex gap-2">
+                    {% if has_settings and settings %}
+                        <a href="{% url 'system_settings_update' settings.pk %}" class="btn btn-primary">
+                            <i class="fas fa-edit me-2"></i>{% trans "ویرایش تنظیمات" %}
+                        </a>
+                        <a href="{% url 'system_settings_reset' %}" class="btn btn-outline-danger">
+                            <i class="fas fa-refresh me-2"></i>{% trans "بازنشانی" %}
+                        </a>
+                    {% else %}
+                        <a href="{% url 'system_settings_create' %}" class="btn btn-success">
+                            <i class="fas fa-plus-circle me-2"></i>{% trans "ایجاد تنظیمات" %}
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card status-card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="status-indicator {% if has_settings %}bg-success{% else %}bg-warning{% endif %}"></div>
+                                <div>
+                                    <h4 class="mb-1">
+                                        {% if has_settings %}
+                                            {% trans "تنظیمات سیستم فعال" %}
+                                        {% else %}
+                                            {% trans "تنظیمات سیستم تعریف نشده" %}
+                                        {% endif %}
+                                    </h4>
+                                    <p class="text-muted mb-0">
+                                        {% if has_settings and last_modified %}
+                                            {% trans "آخرین تغییر:" %} {{ last_modified|date:"Y/m/d H:i" }}
+                                        {% else %}
+                                            {% trans "لطفاً تنظیمات سیستم را ایجاد کنید" %}
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-md-end">
+                            {% if has_settings %}
+                                <a href="{% url 'system_settings_reset' %}" class="btn btn-outline-danger">
+                                    <i class="fas fa-refresh me-2"></i>{% trans "بازنشانی" %}
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if has_settings and settings %}
+    <div class="row">
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card setting-category-card h-100">
+                <div class="card-header bg-budget">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-pie me-2"></i>
+                        {% trans "تنظیمات بودجه" %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="setting-item">
+                        <div class="setting-label">{% trans "درصد قفل پیش‌فرض" %}</div>
+                        <div class="setting-value">
+                            <span class="badge bg-secondary">{{ settings.budget_locked_percentage_default|default:0 }}%</span>
+                        </div>
+                    </div>
+                    <div class="setting-item">
+                        <div class="setting-label">{% trans "آستانه اخطار" %}</div>
+                        <div class="setting-value">
+                            <span class="badge bg-warning">{{ settings.budget_warning_threshold_default|default:0 }}%</span>
+                        </div>
+                    </div>
+                    <div class="setting-item">
+                        <div class="setting-label">{% trans "اقدام هشدار" %}</div>
+                        <div class="setting-value">
+                            <span class="badge bg-info">{{ settings.budget_warning_action_default|default:"NOTIFY" }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card setting-category-card h-100">
+                <div class="card-header bg-tankhah">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-wallet me-2"></i>
+                        {% trans "تنظیمات تنخواه" %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="setting-item">
+                        <div class="setting-label">{% trans "سقف پرداخت پیش‌فرض" %}</div>
+                        <div class="setting-value">
+                            <span class="text-primary">{{ settings.tankhah_payment_ceiling_default|default:0|floatformat:0|intcomma }} {% trans "ریال" %}</span>
+                        </div>
+                    </div>
+                    <div class="setting-item">
+                        <div class="setting-label">{% trans "فعال بودن سقف" %}</div>
+                        <div class="setting-value">
+                            {% if settings.tankhah_payment_ceiling_enabled_default %}
+                                <span class="badge bg-success">{% trans "فعال" %}</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{% trans "غیرفعال" %}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="setting-item">
+                        <div class="setting-label">{% trans "سازمان‌های دسترسی" %}</div>
+                        <div class="setting-value">
+                            <span class="badge bg-info">{{ settings.tankhah_accessible_organizations|length }} {% trans "سازمان" %}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card setting-category-card h-100">
+                <div class="card-header bg-workflow">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-project-diagram me-2"></i>
+                        {% trans "گردش کار" %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="setting-item">
+                        <div class="setting-label">{% trans "ترتیب دقیق تایید" %}</div>
+                        <div class="setting-value">
+                            {% if settings.enforce_strict_approval_order %}
+                                <span class="badge bg-success">{% trans "فعال" %}</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{% trans "غیرفعال" %}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="setting-item">
+                        <div class="setting-label">{% trans "اجازه عبور از چارت" %}</div>
+                        <div class="setting-value">
+                            {% if settings.allow_bypass_org_chart %}
+                                <span class="badge bg-warning">{% trans "مجاز" %}</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{% trans "ممنوع" %}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="setting-item">
+                        <div class="setting-label">{% trans "اقدام بدون چارت" %}</div>
+                        <div class="setting-value">
+                            {% if settings.allow_action_without_org_chart %}
+                                <span class="badge bg-warning">{% trans "مجاز" %}</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{% trans "ممنوع" %}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card empty-state-card text-center py-5">
+                <div class="card-body">
+                    <div class="empty-state-icon mb-3">
+                        <i class="fas fa-cogs fa-3x text-muted"></i>
+                    </div>
+                    <h4 class="text-muted mb-3">{% trans "تنظیمات سیستم تعریف نشده" %}</h4>
+                    <p class="text-muted mb-4">
+                        {% trans "برای شروع کار با سیستم، لطفاً تنظیمات اولیه را ایجاد کنید." %}
+                    </p>
+                    <a href="{% url 'system_settings_create' %}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-plus-circle me-2"></i>{% trans "ایجاد تنظیمات جدید" %}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.page-header { background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); padding: 2rem; border-radius: 1rem; }
+.header-icon { width: 70px; height: 70px; display: flex; align-items: center; justify-content: center; }
+.status-card { border-left: 4px solid #28a745; }
+.status-indicator { width: 12px; height: 12px; border-radius: 50%; }
+.setting-category-card { transition: transform 0.2s ease-in-out; border: none; box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075); }
+.setting-category-card:hover { transform: translateY(-2px); box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15); }
+.card-header.bg-budget { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important; color: white; }
+.card-header.bg-tankhah { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%) !important; color: white; }
+.card-header.bg-workflow { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%) !important; color: white; }
+.setting-item { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 0; border-bottom: 1px solid #f8f9fa; }
+.setting-item:last-child { border-bottom: none; }
+.setting-label { font-weight: 500; color: #6c757d; }
+.setting-value { font-weight: 600; }
+.empty-state-card { border: 2px dashed #dee2e6; background: #f8f9fa; }
+.empty-state-icon { opacity: 0.5; }
+@media (max-width: 768px) {
+    .page-header { padding: 1rem; text-align: center; }
+    .header-icon { margin: 0 auto 1rem; }
+    .setting-item { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+}
+</style>
+{% endblock %}
+
+

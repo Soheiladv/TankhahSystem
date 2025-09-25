@@ -16,7 +16,70 @@ from django import forms
 class SystemSettingsForm(forms.ModelForm):
     class Meta:
         model = SystemSettings
-        fields = '__all__'
+        fields = [
+            'budget_locked_percentage_default',
+            'budget_warning_threshold_default',
+            'budget_warning_action_default',
+            'allocation_locked_percentage_default',
+            'tankhah_used_statuses',
+            'tankhah_accessible_organizations',
+            'tankhah_payment_ceiling_default',
+            'tankhah_payment_ceiling_enabled_default',
+            'enforce_strict_approval_order',
+            'allow_bypass_org_chart',
+            'allow_action_without_org_chart',
+        ]
+        widgets = {
+            'budget_locked_percentage_default': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0', 'max': '100', 'placeholder': _('مثلاً 10') }),
+            'budget_warning_threshold_default': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0', 'max': '100', 'placeholder': _('مثلاً 20') }),
+            'budget_warning_action_default': forms.Select(attrs={'class': 'form-select'}),
+            'allocation_locked_percentage_default': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0', 'max': '100'}),
+            'tankhah_used_statuses': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': _('["PAID","APPROVED"]') }),
+            'tankhah_accessible_organizations': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': _('[1,2,3]') }),
+            'tankhah_payment_ceiling_default': forms.NumberInput(attrs={'class': 'form-control', 'step': '1', 'min': '0'}),
+            'tankhah_payment_ceiling_enabled_default': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'enforce_strict_approval_order': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'allow_bypass_org_chart': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'allow_action_without_org_chart': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
+        labels = {
+            'budget_locked_percentage_default': _('درصد قفل پیش‌فرض بودجه'),
+            'budget_warning_threshold_default': _('آستانه اخطار بودجه'),
+        }
+
+    def clean_tankhah_used_statuses(self):
+        # این متدها را به دلیل ماهیت JSONی آن‌ها نگه دارید.
+        val = self.cleaned_data.get('tankhah_used_statuses')
+        if not val: # چک کردن مقدار خالی بهتر از (None, '') است
+            return []
+        if isinstance(val, list):
+            return val
+        try:
+            import json
+            parsed = json.loads(val)
+            if not isinstance(parsed, list):
+                raise ValidationError(_('قالب وضعیت‌ها باید لیست JSON باشد.'))
+            return parsed
+        except Exception:
+            raise ValidationError(_('قالب وضعیت‌ها باید لیست JSON معتبر باشد.'))
+
+    def clean_tankhah_accessible_organizations(self):
+        val = self.cleaned_data.get('tankhah_accessible_organizations')
+        if not val: # چک کردن مقدار خالی بهتر از (None, '') است
+            return []
+        if isinstance(val, list):
+            return val
+        try:
+            import json
+            parsed = json.loads(val)
+            if not isinstance(parsed, list):
+                raise ValidationError(_('قالب سازمان‌های مجاز باید لیست JSON باشد.'))
+            return parsed
+        except Exception:
+            raise ValidationError(_('قالب سازمان‌های مجاز باید لیست JSON معتبر باشد.'))
+
+# ========================
+
 
 class TimeLockModelForm(forms.ModelForm):
     class Meta:
@@ -133,11 +196,10 @@ class ProjectForm(forms.ModelForm):
             # This might be redundant if field is required=True
             raise ValidationError(_('تاریخ تخصیص اجباری است.'))
         try:
-            # Use the utility function to parse
-            from BudgetsSystem.utils import parse_jalali_date
+            # استفاده از پارسر محلی که خروجی date می‌دهد
             parsed_date = parse_jalali_date(str(start_date), field_name=_('تاریخ شروع'))
             logger.debug(f"Parsed start_date: {parsed_date}")
-            return parsed_date  # Return the Python date object
+            return parsed_date
         except ValueError as e:  # Catch specific parsing errors
             logger.warning(f"Could not parse start_date '{start_date}': {e}")
             raise ValidationError(e)  # Show the specific error from parse_jalali_date
@@ -152,11 +214,9 @@ class ProjectForm(forms.ModelForm):
             # This might be redundant if field is required=True
             raise ValidationError(_('تاریخ خاتمه اجباری است.'))
         try:
-            # Use the utility function to parse
-            from BudgetsSystem.utils import parse_jalali_date
             parsed_date = parse_jalali_date(str(end_date), field_name=_('تاریخ خاتمه'))
             logger.debug(f"Parsed end_date: {parsed_date}")
-            return parsed_date  # Return the Python date object
+            return parsed_date
         except ValueError as e:  # Catch specific parsing errors
             logger.warning(f"Could not parse end_date '{end_date}': {e}")
             raise ValidationError(e)  # Show the specific error from parse_jalali_date
@@ -201,6 +261,26 @@ class ProjectForm(forms.ModelForm):
         organization = self.cleaned_data.get('organization')
 
         with transaction.atomic():
+            # توضیحات خودکار در صورت خالی بودن
+            try:
+                if not instance.description:
+                    org_name = getattr(organization, 'name', '')
+                    start_j = jdatetime.date.fromgregorian(date=instance.start_date).strftime('%Y/%m/%d') if instance.start_date else ''
+                    end_j = jdatetime.date.fromgregorian(date=instance.end_date).strftime('%Y/%m/%d') if instance.end_date else ''
+                    parts = [
+                        _("پروژه"), f"{instance.name}",
+                        _("با کد"), f"{instance.code}",
+                    ]
+                    if org_name:
+                        parts += [_("در شعبه"), org_name]
+                    if start_j:
+                        parts += [_("از تاریخ"), start_j]
+                    if end_j:
+                        parts += [_("تا"), end_j]
+                    instance.description = ' '.join([str(p) for p in parts if p])
+            except Exception as e:
+                logger.warning(f"Auto description generation failed: {e}")
+
             if commit:
                 instance.save()
                 instance.organizations.set([organization])

@@ -1,0 +1,158 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load static %} 
+    <title>Workflow Debug</title>
+    {% block extra_css %}
+    <style>
+        body { font-family: sans-serif; direction: rtl; }
+        code { background: #f5f5f5; padding: 2px 4px; }
+        table { border-collapse: collapse; width: 100%; margin-top: 1rem; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: right; }
+        th { background: #fafafa; }
+        .tag { display: inline-block; padding: 2px 6px; background: #eee; border-radius: 4px; }
+        .ok { color: #0a7; }
+        .no { color: #d33; }
+        .graph { margin-top: 1rem; padding: .5rem; background: #f9f9f9; border: 1px dashed #ccc; }
+        .node { display: inline-block; padding: .4rem .6rem; background: #fff; border: 1px solid #ccc; border-radius: 4px; margin: .2rem; }
+        .edge { margin: .2rem 0; }
+    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    {% endblock %}
+
+
+    
+{% block content %}
+    <h2>بررسی گردش کار (DB-driven)</h2>
+
+    {% if error %}
+        <p style="color:#d33">{{ error }}</p>
+        <p>نمونه شیء: <code>?entity_type=FACTOR&amp;id=123</code></p>
+        <p>نمونه نمای کلی: <code>?entity_type=FACTOR&amp;scope=branch&amp;org=SARAIN</code></p>
+    {% else %}
+        {% if mode == 'instance' %}
+            <p>
+                موجودیت: <code>{{ entity_type }}</code>
+                | شناسه: <code>{{ object_id }}</code>
+                | وضعیت: <code>{{ status }}</code>
+                | سازمان: <code>{{ organization }}</code>
+            </p>
+            <p>
+                وضعیت نهایی؟
+                {% if is_terminal %}
+                    <strong class="ok">بله</strong>
+                {% else %}
+                    <strong class="no">خیر</strong>
+                {% endif %}
+            </p>
+            <p>پست‌های فعال کاربر در این سازمان: <code>{{ user_posts|join:", " }}</code></p>
+
+            <h3>گذارهای خروجی فعال از وضعیت فعلی</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>شناسه گذار</th>
+                        <th>شرح</th>
+                        <th>اقدام</th>
+                        <th>وضعیت مقصد</th>
+                        <th>تعداد پست‌های مجاز</th>
+                        <th>مجاز برای کاربر؟</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for tr in outgoing %}
+                    <tr>
+                        <td>{{ tr.id }}</td>
+                        <td>{{ tr.name }}</td>
+                        <td><span class="tag">{{ tr.action }}</span></td>
+                        <td><code>{{ tr.to_status }}</code></td>
+                        <td>{{ tr.allowed_posts_count }}</td>
+                        <td>{% if tr.user_allowed %}<span class="ok">بله</span>{% else %}<span class="no">خیر</span>{% endif %}</td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="6">هیچ گذار خروجی فعالی یافت نشد.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+
+            <h3>اقدام‌های مجاز برای کاربر</h3>
+            <p>
+            {% for a in allowed_actions %}
+                <span class="tag">{{ a }}</span>
+            {% empty %}
+                <em>موردی یافت نشد</em>
+            {% endfor %}
+            </p>
+        {% else %}
+            <p>
+                موجودیت: <code>{{ entity_type }}</code>
+                | نمای: <code>{{ scope }}</code>
+                {% if org_filter %}| فیلتر سازمان: <code>{{ org_filter }}</code>{% endif %}
+            </p>
+            <h3>خلاصه گذارهای فعال به تفکیک سازمان</h3>
+            <table>
+                <thead>
+                <tr>
+                    <th>سازمان</th>
+                    <th>تعداد گذار فعال</th>
+                    <th>لبه‌ها (from/action/to)</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for row in summary %}
+                    <tr>
+                        <td><code>{{ row.organization }}</code></td>
+                        <td>{{ row.count }}</td>
+                        <td>
+                            {% for e in row.edges %}
+                                <div>
+                                    <code>{{ e.from }}</code> -- <span class="tag">{{ e.action }}</span> --> <code>{{ e.to }}</code>
+                                    (پست‌های مجاز: {{ e.allowed_posts_count }})
+                                    {% if e.allowed_posts and e.allowed_posts|length > 0 %}
+                                        <ul>
+                                        {% for p in e.allowed_posts %}
+                                            <li>
+                                                <strong>{{ p.name }}</strong>
+                                                {% if p.users and p.users|length > 0 %}
+                                                    — کاربران فعال: {{ p.users|join:", " }}
+                                                {% else %}
+                                                    — کاربر فعالی ندارد
+                                                {% endif %}
+                                            </li>
+                                        {% endfor %}
+                                        </ul>
+                                    {% endif %}
+                                </div>
+                            {% empty %}
+                                <em>موردی نیست</em>
+                            {% endfor %}
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="3">سازمانی یافت نشد یا گذار فعالی تعریف نشده است.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+
+            <div class="graph">
+                <h3>نمای شماتیک ساده</h3>
+                {% for row in summary %}
+                    <h4>سازمان <code>{{ row.organization }}</code></h4>
+                    <div>
+                        {% for e in row.edges %}
+                            <div class="edge">
+                                <span class="node">{{ e.from }}</span>
+                                → <span class="tag">{{ e.action }}</span>
+                                → <span class="node">{{ e.to }}</span>
+                            </div>
+                        {% empty %}
+                            <em>تعریفی وجود ندارد</em>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endif %}
+
+    {% endblock %}
+
+

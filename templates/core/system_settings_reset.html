@@ -1,0 +1,51 @@
+{% extends 'base_ld.html' %}
+{% load i18n static %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-warning text-dark border-bottom py-3">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        {% trans "بازنشانی تنظیمات سیستم" %}
+                    </h5>
+                </div>
+                
+                <div class="card-body p-4 text-center">
+                    <div class="warning-icon mb-4">
+                        <i class="fas fa-refresh fa-4x text-warning"></i>
+                    </div>
+                    
+                    <h4 class="text-warning mb-3">{% trans "آیا مطمئن هستید؟" %}</h4>
+                    
+                    <p class="text-muted mb-4">
+                        {% trans "این عمل تمام تنظیمات سیستم را به حالت پیش‌فرض بازمی‌گرداند. این عمل غیرقابل بازگشت است." %}
+                    </p>
+                    
+                    <div class="alert alert-danger mb-4">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>{% trans "هشدار:" %}</strong> 
+                        {% trans "تمامی تنظیمات مربوط به بودجه، تنخواه و گردش کار حذف خواهند شد." %}
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-center gap-3">
+                            <button type="submit" class="btn btn-danger btn-lg">
+                                <i class="fas fa-check me-2"></i>{% trans "بله، بازنشانی کن" %}
+                            </button>
+                            <a href="{% url 'system_settings_dashboard' %}" class="btn btn-secondary btn-lg">
+                                <i class="fas fa-times me-2"></i>{% trans "انصراف" %}
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+{% endblock %}
+
+

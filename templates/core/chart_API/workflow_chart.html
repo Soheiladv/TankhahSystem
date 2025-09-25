@@ -1,0 +1,422 @@
+{% extends 'core/chart_API/organization_chart_base.html' %}
+{% load static i18n %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* صفحه بزرگ‌تر و خواناتر */
+    .container-fluid { max-width: 98%; }
+    #wfChartContainer { height: 78vh; min-height: 600px; border: 1px solid #e5e7eb; border-radius: 8px; background: #fff; }
+    h3.page-title { font-size: 1.4rem; font-weight: 700; }
+    .form-label { font-weight: 600; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h3 class="mb-3 page-title">{% trans "نمودار گردش کار (Transitions)" %}</h3>
+    <div class="card mb-4">
+        <div class="card-body p-2">
+            <div class="row mb-3">
+                <div class="col-md-4 mb-2">
+                    <label class="form-label">{% trans "نوع موجودیت (EntityType)" %}</label>
+                    <select id="wf-entity" class="form-select">
+                        {% for et in entity_types %}
+                            <option value="{{ et.code }}">{{ et.name }} ({{ et.code }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4 mb-2">
+                    <label class="form-label">{% trans "نمای سازمانی" %}</label>
+                    <select id="wf-scope" class="form-select">
+                        <option value="all">{% trans "همه سازمان‌ها" %}</option>
+                        <option value="branch">{% trans "فقط شعب" %}</option>
+                        <option value="hq">{% trans "فقط دفتر مرکزی" %}</option>
+                    </select>
+                </div>
+                <div class="col-md-4 mb-2">
+                    <label class="form-label">{% trans "سازمان" %}</label>
+                    <select id="wf-org" class="form-select">
+                        <option value="">{% trans "همه سازمان‌ها" %}</option>
+                        {% for org in organizations %}
+                            <option value="{{ org.code }}">{{ org.name }} ({{ org.code }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4 mb-2">
+                    <label class="form-label">{% trans "شاخه (اختیاری)" %}</label>
+                    <select id="wf-branch" class="form-select">
+                        <option value="">{% trans "همه شاخه‌ها" %}</option>
+                        {% for br in branches %}
+                            <option value="{{ br.id }}">{{ br.name }} ({{ br.code }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4 mb-2">
+                    <label class="form-label">{% trans "فیلتر عنوان پست" %}</label>
+                    <input id="wf-post-filter" class="form-control" placeholder="{% trans 'مثال: مدیر مالی' %}">
+                </div>
+                <div class="col-md-4 mb-2">
+                    <label class="form-label">{% trans "فیلتر قانون/اکشن پست" %}</label>
+                    <input id="wf-action-filter" class="form-control" placeholder="{% trans 'مثال: تأیید / ارسال' %}">
+                </div>
+
+                <div class="col-md-4 mb-2 d-flex align-items-end gap-3">
+                    <div class="form-check me-3">
+                        <input class="form-check-input" type="checkbox" id="wf-show-details" checked>
+                        <label class="form-check-label" for="wf-show-details">{% trans "نمایش جزئیات گره‌ها/یال‌ها" %}</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="wf-show-status-flow" checked>
+                        <label class="form-check-label" for="wf-show-status-flow">{% trans "نمایش یال جریان وضعیت‌ها" %}</label>
+                    </div>
+                </div>
+            </div>
+            <div class="row mb-2">
+                <div class="col-12 d-flex gap-2">
+                    <button id="wf-btn-add" class="btn btn-sm btn-success"><i class="fas fa-plus me-1"></i>{% trans "افزودن گذار جدید" %}</button>
+                    <button id="wf-btn-edit" class="btn btn-sm btn-primary"><i class="fas fa-edit me-1"></i>{% trans "ویرایش گذار انتخاب‌شده" %}</button>
+                    <button id="wf-btn-toggle" class="btn btn-sm btn-warning"><i class="fas fa-toggle-on me-1"></i>{% trans "فعال/غیرفعال" %}</button>
+                    <button id="wf-btn-delete" class="btn btn-sm btn-danger"><i class="fas fa-trash me-1"></i>{% trans "حذف" %}</button>
+                </div>
+            </div>
+            <div class="card mb-2">
+                <div class="card-body py-2">
+                    <span class="badge bg-light text-dark border me-2">{% trans "راهنما رنگ‌بندی اقدامات" %}:</span>
+                    <span class="badge" style="background:#0d6efd">{% trans "ارسال (SUBMIT)" %}</span>
+                    <span class="badge" style="background:#20c997">{% trans "تأیید میانی (APPROVE)" %}</span>
+                    <span class="badge" style="background:#198754">{% trans "تأیید نهایی (FINAL_APPROVE)" %}</span>
+                    <span class="badge" style="background:#dc3545">{% trans "رد (REJECT)" %}</span>
+                </div>
+            </div>
+            <div class="card mb-2" id="wfInspector" style="display:none;">
+                <div class="card-header">{% trans "ویرایش/ایجاد گذار (بدون مدال)" %}</div>
+                <div class="card-body">
+                    <div id="wfInspectorInfo" class="small text-muted mb-2"></div>
+                    <form id="wfInlineForm" class="row g-2">
+                        <div class="col-md-3">
+                            <label class="form-label">{% trans "وضعیت مبدأ" %}</label>
+                            <select id="in-from" class="form-select"></select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">{% trans "اقدام" %}</label>
+                            <select id="in-action" class="form-select"></select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">{% trans "وضعیت مقصد" %}</label>
+                            <select id="in-to" class="form-select"></select>
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="in-active" checked>
+                                <label class="form-check-label" for="in-active">{% trans "فعال" %}</label>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">{% trans "پست‌های مجاز" %}</label>
+                            <select id="in-posts" class="form-select" multiple></select>
+                        </div>
+                        <div class="col-12 d-flex gap-2 mt-2">
+                            <button type="button" id="in-save" class="btn btn-primary btn-sm">{% trans "ذخیره" %}</button>
+                            <button type="button" id="in-toggle" class="btn btn-warning btn-sm">{% trans "فعال/غیرفعال" %}</button>
+                            <button type="button" id="in-delete" class="btn btn-danger btn-sm">{% trans "حذف" %}</button>
+                            <button type="button" id="in-cancel" class="btn btn-secondary btn-sm">{% trans "انصراف" %}</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div id="wfChartContainer">
+                <div id="wfLoading" class="p-3">{% trans "در حال بارگذاری نمودار..." %} <i class="fas fa-spinner fa-spin"></i></div>
+            </div>
+            <div class="card mt-3" id="wfInspector" style="display:none;">
+                <div class="card-header">{% trans "ویرایش/ایجاد گذار (بدون مدال)" %}</div>
+                <div class="card-body">
+                    <div id="wfInspectorInfo" class="small text-muted mb-2"></div>
+                    <form id="wfInlineForm" class="row g-2">
+                        <div class="col-md-3">
+                            <label class="form-label">{% trans "وضعیت مبدأ" %}</label>
+                            <select id="in-from" class="form-select"></select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">{% trans "اقدام" %}</label>
+                            <select id="in-action" class="form-select"></select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">{% trans "وضعیت مقصد" %}</label>
+                            <select id="in-to" class="form-select"></select>
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="in-active" checked>
+                                <label class="form-check-label" for="in-active">{% trans "فعال" %}</label>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">{% trans "پست‌های مجاز" %}</label>
+                            <select id="in-posts" class="form-select" multiple></select>
+                        </div>
+                        <div class="col-12 d-flex gap-2 mt-2">
+                            <button type="button" id="in-save" class="btn btn-primary btn-sm">{% trans "ذخیره" %}</button>
+                            <button type="button" id="in-toggle" class="btn btn-warning btn-sm">{% trans "فعال/غیرفعال" %}</button>
+                            <button type="button" id="in-delete" class="btn btn-danger btn-sm">{% trans "حذف" %}</button>
+                            <button type="button" id="in-cancel" class="btn btn-secondary btn-sm">{% trans "انصراف" %}</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="modal fade" id="wfModal" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="wfModalTitle">{% trans "افزودن/ویرایش گذار" %}</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p class="text-muted">{% trans "مودال تست برای بررسی نمایش دکمه‌ها و رویدادها" %}</p>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "بستن" %}</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const container = document.getElementById('wfChartContainer');
+    const loading = document.getElementById('wfLoading');
+    let network = null;
+    let selectedEdge = null;
+
+    const options = {
+        layout: { hierarchical: { enabled: true, direction: 'LR', levelSeparation: 180, nodeSpacing: 120 }},
+        physics: { enabled: false },
+        nodes: { shape: 'box', font: { size: 12 } },
+        edges: { arrows: { to: { enabled: true }}, smooth: { enabled: true, type: 'cubicBezier' }},
+    };
+
+    function loadChart() {
+        const et = document.getElementById('wf-entity').value;
+        const scope = document.getElementById('wf-scope').value;
+        const org = document.getElementById('wf-org').value;
+        let url = `/api/workflow-chart/?entity_type=${et}&scope=${scope}`;
+        if (org) url += `&org_code=${org}`;
+        const br = document.getElementById('wf-branch').value;
+        if (br) url += `&branch_id=${br}`;
+
+        fetch(url)
+            .then(r => r.json())
+            .then(data => {
+                const nodes = new vis.DataSet(data.nodes || []);
+                const edges = new vis.DataSet(data.edges || []);
+                if (network) network.destroy();
+                network = new vis.Network(container, { nodes, edges }, options);
+                loading.style.display = 'none';
+
+                // Reset selection and attach network handlers (once per load)
+                selectedEdge = null;
+                network.on('selectEdge', function(params){
+                    try { selectedEdge = params.edges && params.edges.length ? edges.get(params.edges[0]) : null; } catch(e) { selectedEdge = null; }
+                    console.log('Selected edge:', selectedEdge);
+                    if (selectedEdge && String(selectedEdge.id).startsWith('trpost:')) {
+                        openInspectorForEdge(selectedEdge);
+                    }
+                });
+                network.on('deselectEdge', function(){ selectedEdge = null; });
+
+                network.on('click', function(params){
+                    const nodeId = params.nodes && params.nodes.length ? params.nodes[0] : null;
+                    if (!nodeId) return;
+                    if (String(nodeId).startsWith('post:')) {
+                        const postId = parseInt(String(nodeId).split(':')[1]);
+                        openInspectorForCreate({ prePostId: postId });
+                    } else if (String(nodeId).startsWith('status:')) {
+                        const statusCode = String(nodeId).split(':')[1];
+                        openInspectorForCreate({ preStatusCode: statusCode });
+                    }
+                });
+
+                // Apply client-side filters for post title and action text, and toggle details
+                const postFilter = document.getElementById('wf-post-filter').value.toLowerCase();
+                const actionFilter = document.getElementById('wf-action-filter').value.toLowerCase();
+                const showDetails = document.getElementById('wf-show-details').checked;
+                const showStatusFlow = document.getElementById('wf-show-status-flow').checked;
+
+                if (!showStatusFlow) {
+                    edges.forEach(e => {
+                        const fromNode = nodes.get(e.from);
+                        const toNode = nodes.get(e.to);
+                        if (fromNode && toNode && String(fromNode.id).startsWith('status:') && String(toNode.id).startsWith('status:')) {
+                            edges.update({ id: e.id, hidden: true });
+                        }
+                    });
+                }
+
+                if (!showDetails) {
+                    nodes.forEach(n => nodes.update({ id: n.id, title: '' }));
+                    edges.forEach(e => edges.update({ id: e.id, title: '' }));
+                }
+
+                if (postFilter || actionFilter) {
+                    const visiblePosts = new Set();
+                    nodes.forEach(n => {
+                        if (String(n.id).startsWith('post:')) {
+                            const match = n.label && n.label.toLowerCase().includes(postFilter);
+                            nodes.update({ id: n.id, hidden: postFilter ? !match : false });
+                            if (match) visiblePosts.add(n.id);
+                        }
+                    });
+                    edges.forEach(e => {
+                        const edgeLabel = (e.label || '').toLowerCase();
+                        const fromIsPost = String(e.from).startsWith('post:');
+                        const matchesPost = !postFilter || (fromIsPost && visiblePosts.has(e.from));
+                        const matchesAction = !actionFilter || edgeLabel.includes(actionFilter);
+                        const hide = !(matchesPost && matchesAction);
+                        edges.update({ id: e.id, hidden: hide });
+                    });
+                }
+
+                // Color edges by action to show movement trends
+                edges.forEach(e => {
+                    const code = (e.action_code || e.label || '').toUpperCase();
+                    let color = null;
+                    if (code.includes('SUBMIT')) color = '#0d6efd'; // آبی برای ارسال
+                    else if (code.includes('FINAL')) color = '#198754'; // سبز برای تایید نهایی
+                    else if (code.includes('APPROVE')) color = '#20c997'; // سبز فیروزه ای برای تایید میانی
+                    else if (code.includes('REJECT')) color = '#dc3545'; // قرمز برای رد
+                    if (color) edges.update({ id: e.id, color: { color } });
+                });
+            })
+            .catch(() => { loading.innerText = '{% trans "خطا در بارگذاری" %}'; });
+    }
+
+    // Inline inspector helpers
+    const statuses = {{ statuses_json|safe|default:'[]' }};
+    const actions = {{ actions_json|safe|default:'[]' }};
+    const allPosts = {{ posts_json|safe|default:'[]' }};
+    const orgs = {{ organizations_json|safe|default:'[]' }};
+
+    function fillSelect(select, items, getValue, getText){
+        select.innerHTML = '';
+        items.forEach(it => {
+            const opt = document.createElement('option');
+            opt.value = getValue(it);
+            opt.textContent = getText(it);
+            select.appendChild(opt);
+        });
+    }
+    function openInspector(){ document.getElementById('wfInspector').style.display = ''; }
+    function closeInspector(){ document.getElementById('wfInspector').style.display = 'none'; }
+
+    function openInspectorForCreate(opts){
+        const et = document.getElementById('wf-entity').value;
+        const org = document.getElementById('wf-org').value;
+        if (!et || !org){ alert('{% trans "نوع موجودیت و سازمان را انتخاب کنید." %}'); return; }
+        openInspector();
+        document.getElementById('wfInspectorInfo').textContent = `{% trans "ایجاد گذار جدید برای" %} ${et} / ${org}`;
+        fillSelect(document.getElementById('in-from'), statuses, s => s.code, s => `${s.name} (${s.code})`);
+        fillSelect(document.getElementById('in-action'), actions, a => a.code, a => `${a.name} (${a.code})`);
+        fillSelect(document.getElementById('in-to'), statuses, s => s.code, s => `${s.name} (${s.code})`);
+        const orgId = (orgs.find(o => o.code === org) || {}).id;
+        const postsSelect = document.getElementById('in-posts');
+        postsSelect.innerHTML='';
+        allPosts.forEach(p => {
+            if (!orgId || p.organization_id === orgId) {
+                const opt = document.createElement('option'); opt.value = p.id; opt.textContent = p.name; postsSelect.appendChild(opt);
+            }
+        });
+        if (opts && opts.prePostId){ Array.from(postsSelect.options).forEach(o => { if (parseInt(o.value) === opts.prePostId) o.selected = true; }); }
+        if (opts && opts.preStatusCode){ document.getElementById('in-from').value = opts.preStatusCode; }
+        document.getElementById('in-active').checked = true;
+        document.getElementById('in-save').onclick = async () => {
+            const payload = {
+                entity_type: et,
+                organization: org,
+                from_status: document.getElementById('in-from').value,
+                action: document.getElementById('in-action').value,
+                to_status: document.getElementById('in-to').value,
+                is_active: document.getElementById('in-active').checked,
+                allowed_post_ids: Array.from(document.getElementById('in-posts').selectedOptions).map(o => parseInt(o.value)),
+            };
+            const res = await fetch('{% url "workflow_transition_create" %}', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' }, body: JSON.stringify(payload) });
+            if (res.ok) { location.reload(); } else { alert(await res.text()); }
+        };
+        document.getElementById('in-toggle').onclick = null;
+        document.getElementById('in-delete').onclick = null;
+    }
+
+    function openInspectorForEdge(edge){
+        const et = document.getElementById('wf-entity').value;
+        const org = document.getElementById('wf-org').value;
+        const transitionId = parseInt(String(edge.id).split(':')[1]);
+        openInspector();
+        document.getElementById('wfInspectorInfo').textContent = `{% trans "ویرایش گذار" %} #${transitionId}`;
+        fillSelect(document.getElementById('in-from'), statuses, s => s.code, s => `${s.name} (${s.code})`);
+        fillSelect(document.getElementById('in-action'), actions, a => a.code, a => `${a.name} (${a.code})`);
+        fillSelect(document.getElementById('in-to'), statuses, s => s.code, s => `${s.name} (${s.code})`);
+        // Note: برای سادگی از مقداردهی قبلی صرف نظر می‌کنیم (می‌توان با API جزئیات را خواند)
+        const orgId = (orgs.find(o => o.code === org) || {}).id;
+        const postsSelect = document.getElementById('in-posts');
+        postsSelect.innerHTML='';
+        allPosts.forEach(p => { if (!orgId || p.organization_id === orgId) { const opt = document.createElement('option'); opt.value = p.id; opt.textContent = p.name; postsSelect.appendChild(opt);} });
+        document.getElementById('in-save').onclick = async () => {
+            const payload = {
+                action: document.getElementById('in-action').value,
+                to_status: document.getElementById('in-to').value,
+                is_active: document.getElementById('in-active').checked,
+                allowed_post_ids: Array.from(document.getElementById('in-posts').selectedOptions).map(o => parseInt(o.value)),
+            };
+            const url = '{% url "workflow_transition_update" 9999 %}'.replace('9999', transitionId);
+            const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' }, body: JSON.stringify(payload) });
+            if (res.ok) { location.reload(); } else { alert(await res.text()); }
+        };
+        document.getElementById('in-toggle').onclick = async () => {
+            const url = '{% url "workflow_transition_toggle" 9999 %}'.replace('9999', transitionId);
+            const res = await fetch(url, { method: 'POST', headers: { 'X-CSRFToken': '{{ csrf_token }}' } });
+            if (res.ok) { location.reload(); } else { alert(await res.text()); }
+        };
+        document.getElementById('in-delete').onclick = async () => {
+            if (!confirm('{% trans "از حذف این گذار مطمئنید؟" %}')) return;
+            const url = '{% url "workflow_transition_delete" 9999 %}'.replace('9999', transitionId);
+            const res = await fetch(url, { method: 'POST', headers: { 'X-CSRFToken': '{{ csrf_token }}' } });
+            if (res.ok) { location.reload(); } else { alert(await res.text()); }
+        };
+    }
+
+    document.getElementById('in-cancel')?.addEventListener('click', () => closeInspector());
+
+    // Attach filter listeners (once)
+    document.getElementById('wf-entity').addEventListener('change', loadChart);
+    document.getElementById('wf-scope').addEventListener('change', loadChart);
+    document.getElementById('wf-org').addEventListener('change', () => { loadChart(); });
+    document.getElementById('wf-branch').addEventListener('change', loadChart);
+
+    // Button handlers (attach once, use getOrCreateInstance to avoid modal duplication)
+    function openTestModal(){
+        const modalEl = document.getElementById('wfModal');
+        if (!modalEl) { alert('Modal element not found'); return; }
+        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+        modal.show();
+    }
+    const btnAdd = document.getElementById('wf-btn-add');
+    const btnEdit = document.getElementById('wf-btn-edit');
+    const btnToggle = document.getElementById('wf-btn-toggle');
+    const btnDelete = document.getElementById('wf-btn-delete');
+    if (btnAdd) btnAdd.addEventListener('click', () => { console.log('ADD clicked'); openTestModal(); });
+    if (btnEdit) btnEdit.addEventListener('click', () => { console.log('EDIT clicked', selectedEdge); openTestModal(); });
+    if (btnToggle) btnToggle.addEventListener('click', () => { console.log('TOGGLE clicked', selectedEdge); alert('Toggle test'); });
+    if (btnDelete) btnDelete.addEventListener('click', () => { console.log('DELETE clicked', selectedEdge); alert('Delete test'); });
+
+    // Initial load
+    loadChart();
+});
+</script>
+{% endblock %}
+
+

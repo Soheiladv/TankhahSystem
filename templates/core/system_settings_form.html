@@ -1,0 +1,399 @@
+<form id="settings-form" method="post" novalidate class="row g-3">{% extends "base_ld.html" %}
+{% load i18n static %}
+
+{% block page_title %}
+    {% if form.instance.pk %}
+        {% translate "ویرایش تنظیمات سیستم" %}
+    {% else %}
+        {% translate "ایجاد تنظیمات سیستم" %}
+    {% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.setting-card {
+    transition: all 0.3s ease;
+    border: 1px solid #e3e6f0;
+}
+
+.setting-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+}
+
+.form-switch .form-check-input:checked {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.form-switch .form-check-input {
+    width: 3em;
+    height: 1.5em;
+}
+
+.json-editor {
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+    min-height: 120px;
+}
+
+.help-text {
+    font-size: 0.85rem;
+    color: #6c757d;
+}
+
+.badge-pill {
+    border-radius: 50rem;
+}
+
+.input-group-text {
+    background-color: #f8f9fa;
+    border: 1px solid #ced4da;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- هدر صفحه -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="icon-wrapper bg-primary bg-opacity-10 rounded-circle p-3">
+                        <i class="fas fa-sliders-h text-primary fa-lg"></i>
+                    </div>
+                    <div>
+                        <h1 class="h4 mb-1 fw-bold">
+                            {% if form.instance.pk %}
+                                {% translate "ویرایش تنظیمات سیستم" %}
+                            {% else %}
+                                {% translate "ایجاد تنظیمات سیستم" %}
+                            {% endif %}
+                        </h1>
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb mb-0 small">
+{#                                <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">{% translate "داشبورد" %}</a></li>#}
+                                <li class="breadcrumb-item"><a href="{% url 'system_settings_dashboard' %}">{% translate "تنظیمات سیستم" %}</a></li>
+                                <li class="breadcrumb-item active">
+                                    {% if form.instance.pk %}{% translate "ویرایش" %}{% else %}{% translate "ایجاد" %}{% endif %}
+                                </li>
+                            </ol>
+                        </nav>
+                    </div>
+                </div>
+                
+                <div class="d-flex gap-2">
+                    <a href="{% url 'system_settings_dashboard' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-right me-2"></i>{% translate "انصراف" %}
+                    </a>
+                    <button type="submit" form="settings-form" class="btn btn-primary">
+                        <i class="fas fa-save me-2"></i>{% translate "ذخیره تنظیمات" %}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- پیام‌های خطا -->
+    {% if form.errors %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="alert alert-danger d-flex align-items-center">
+                <i class="fas fa-exclamation-triangle me-3 fa-lg"></i>
+                <div>
+                    <strong>{% translate "خطا در فرم!" %}</strong>
+                    {% translate "لطفاً موارد مشخص‌شده را بررسی کنید." %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <form id="settings-form" method="post" novalidate>
+        {% csrf_token %}
+        
+        <div class="row g-4">
+            <!-- کارت گردش کار -->
+            <div class="col-12 col-xl-6">
+                <div class="card setting-card shadow-sm h-100">
+                    <div class="card-header bg-light d-flex align-items-center justify-content-between py-3">
+                        <h5 class="card-title mb-0 fw-bold">
+                            <i class="fas fa-project-diagram text-primary me-2"></i>
+                            {% translate "سیاست‌های گردش کار" %}
+                        </h5>
+                        <span class="badge bg-primary badge-pill">3 {% translate "تنظیم" %}</span>
+                    </div>
+                    <div class="card-body">
+                        <!-- ترتیب دقیق تأیید -->
+                        <div class="setting-item mb-4 p-3 border rounded">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <label class="form-check-label fw-semibold" for="id_enforce_strict_approval_order">
+                                    {% translate "اجبار ترتیب سلسله‌مراتب تأیید" %}
+                                </label>
+                                <div class="form-check form-switch m-0">
+                                    {{ form.enforce_strict_approval_order }}
+                                </div>
+                            </div>
+                            <small class="help-text">
+                                <i class="fas fa-info-circle me-1"></i>
+                                {% translate "اجباری کردن رعایت دقیق ترتیب سلسله مراتب در فرآیند تأیید" %}
+                            </small>
+                        </div>
+
+                        <!-- دور زدن چارت -->
+                        <div class="setting-item mb-4 p-3 border rounded">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <label class="form-check-label fw-semibold" for="id_allow_bypass_org_chart">
+                                    {% translate "اجازه دور زدن چارت سازمانی" %}
+                                </label>
+                                <div class="form-check form-switch m-0">
+                                    {{ form.allow_bypass_org_chart }}
+                                </div>
+                            </div>
+                            <small class="help-text">
+                                <i class="fas fa-info-circle me-1"></i>
+                                {% translate "امکان رد شدن از مراحل چارت سازمانی در شرایط خاص" %}
+                            </small>
+                        </div>
+
+                        <!-- اقدام بدون پست -->
+                        <div class="setting-item p-3 border rounded">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <label class="form-check-label fw-semibold" for="id_allow_action_without_org_chart">
+                                    {% translate "اجازه اقدام بدون پست فعال" %}
+                                </label>
+                                <div class="form-check form-switch m-0">
+                                    {{ form.allow_action_without_org_chart }}
+                                </div>
+                            </div>
+                            <small class="help-text">
+                                <i class="fas fa-info-circle me-1"></i>
+                                {% translate "امکان انجام اقدامات بدون داشتن پست فعال در چارت سازمانی" %}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- کارت بودجه و تنخواه -->
+            <div class="col-12 col-xl-6">
+                <div class="card setting-card shadow-sm h-100">
+                    <div class="card-header bg-light d-flex align-items-center justify-content-between py-3">
+                        <h5 class="card-title mb-0 fw-bold">
+                            <i class="fas fa-wallet text-success me-2"></i>
+                            {% translate "تنظیمات بودجه و تنخواه" %}
+                        </h5>
+                        <span class="badge bg-success badge-pill">5 {% translate "تنظیم" %}</span>
+                    </div>
+                    <div class="card-body">
+                        <!-- سقف تنخواه -->
+                        <div class="setting-item mb-4">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <label class="form-label fw-semibold mb-0" for="id_tankhah_payment_ceiling_default">
+                                    {% translate "سقف پیش‌فرض تنخواه" %}
+                                </label>
+                                <div class="form-check form-switch">
+                                    {{ form.tankhah_payment_ceiling_enabled_default }}
+                                    <label class="form-check-label small" for="id_tankhah_payment_ceiling_enabled_default">
+                                        {% translate "فعال" %}
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="input-group">
+                                {{ form.tankhah_payment_ceiling_default }}
+                                <span class="input-group-text">ریال</span>
+                            </div>
+                            <small class="help-text">
+                                <i class="fas fa-info-circle me-1"></i>
+                                {% translate "حداکثر مبلغ قابل پرداخت در هر تراکنش تنخواه" %}
+                            </small>
+                            {{ form.tankhah_payment_ceiling_default.errors }}
+                        </div>
+
+                        <!-- تنظیمات بودجه -->
+                        <div class="row g-3">
+                            <div class="col-12 col-md-6">
+                                <label class="form-label fw-semibold" for="id_budget_locked_percentage_default">
+                                    {% translate "درصد قفل بودجه" %}
+                                </label>
+                                <div class="input-group">
+                                    {{ form.budget_locked_percentage_default }}
+                                    <span class="input-group-text">%</span>
+                                </div>
+                                <small class="help-text">
+                                    {% translate "حداقل درصد باقیمانده برای قفل شدن بودجه" %}
+                                </small>
+                                {{ form.budget_locked_percentage_default.errors }}
+                            </div>
+
+                            <div class="col-12 col-md-6">
+                                <label class="form-label fw-semibold" for="id_budget_warning_threshold_default">
+                                    {% translate "آستانه هشدار بودجه" %}
+                                </label>
+                                <div class="input-group">
+                                    {{ form.budget_warning_threshold_default }}
+                                    <span class="input-group-text">%</span>
+                                </div>
+                                <small class="help-text">
+                                    {% translate "درصد باقیمانده برای فعال شدن هشدار" %}
+                                </small>
+                                {{ form.budget_warning_threshold_default.errors }}
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label fw-semibold" for="id_budget_warning_action_default">
+                                    {% translate "اقدام در آستانه هشدار" %}
+                                </label>
+                                {{ form.budget_warning_action_default }}
+                                <small class="help-text">
+                                    {% translate "نوع اقدام هنگام رسیدن به آستانه هشدار بودجه" %}
+                                </small>
+                                {{ form.budget_warning_action_default.errors }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- کارت تنظیمات پیشرفته -->
+            <div class="col-12">
+                <div class="card setting-card shadow-sm">
+                    <div class="card-header bg-light d-flex align-items-center justify-content-between py-3">
+                        <h5 class="card-title mb-0 fw-bold">
+                            <i class="fas fa-cogs text-warning me-2"></i>
+                            {% translate "تنظیمات پیشرفته" %}
+                        </h5>
+                        <span class="badge bg-warning badge-pill">2 {% translate "تنظیم" %}</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-4">
+                            <!-- وضعیت‌های مصرف تنخواه -->
+                            <div class="col-12 col-lg-6">
+                                <div class="setting-item">
+                                    <label class="form-label fw-semibold" for="id_tankhah_used_statuses">
+                                        <i class="fas fa-list-alt me-2"></i>
+                                        {% translate "وضعیت‌های مصرف تنخواه" %}
+                                    </label>
+                                    {{ form.tankhah_used_statuses }}
+                                    <small class="help-text">
+                                        <i class="fas fa-code me-1"></i>
+                                        {% translate "فرمت JSON - لیست وضعیت‌های مجاز برای مصرف تنخواه" %}
+                                    </small>
+                                    {{ form.tankhah_used_statuses.errors }}
+                                </div>
+                            </div>
+
+                            <!-- سازمان‌های مجاز -->
+                            <div class="col-12 col-lg-6">
+                                <div class="setting-item">
+                                    <label class="form-label fw-semibold" for="id_tankhah_accessible_organizations">
+                                        <i class="fas fa-building me-2"></i>
+                                        {% translate "سازمان‌های مجاز تنخواه" %}
+                                    </label>
+                                    {{ form.tankhah_accessible_organizations }}
+                                    <small class="help-text">
+                                        <i class="fas fa-code me-1"></i>
+                                        {% translate "فرمت JSON - لیست شناسه‌های سازمان‌های مجاز برای ثبت تنخواه" %}
+                                    </small>
+                                    {{ form.tankhah_accessible_organizations.errors }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- دکمه‌های اقدام -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card border-0 bg-light">
+                    <div class="card-body py-3">
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="send-notification" name="send_notification" checked>
+                                <label class="form-check-label" for="send-notification">
+                                    <i class="fas fa-bell me-2"></i>
+                                    {% translate "ارسال به مدیران سیستم" %}
+                                </label>
+                            </div>
+                            
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary btn-lg px-4">
+                                    <i class="fas fa-save me-2"></i>
+                                    {% if form.instance.pk %}
+                                        {% translate "بروزرسانی تنظیمات" %}
+                                    {% else %}
+                                        {% translate "ایجاد تنظیمات" %}
+                                    {% endif %}
+                                </button>
+                                <a href="{% url 'system_settings_dashboard' %}" class="btn btn-outline-secondary btn-lg px-4">
+                                    <i class="fas fa-times me-2"></i>{% translate "انصراف" %}
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // اعتبارسنجی فرم
+    $('#settings-form').on('submit', function(e) {
+        if (!this.checkValidity()) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        $(this).addClass('was-validated');
+    });
+
+    // مدیریت فعال/غیرفعال کردن سقف تنخواه
+    $('#id_tankhah_payment_ceiling_enabled_default').on('change', function() {
+        const ceilingInput = $('#id_tankhah_payment_ceiling_default');
+        if ($(this).is(':checked')) {
+            ceilingInput.prop('disabled', false);
+            ceilingInput.closest('.setting-item').removeClass('text-muted');
+        } else {
+            ceilingInput.prop('disabled', true);
+            ceilingInput.closest('.setting-item').addClass('text-muted');
+        }
+    }).trigger('change');
+
+    // فرمت‌دهی اعداد
+    $('input[type="number"]').on('blur', function() {
+        const value = parseFloat($(this).val());
+        if (!isNaN(value)) {
+            $(this).val(value.toLocaleString('fa-IR'));
+        }
+    });
+
+    // اعتبارسنجی JSON
+    $('.json-editor').on('blur', function() {
+        try {
+            const jsonValue = $(this).val();
+            if (jsonValue) {
+                JSON.parse(jsonValue);
+                $(this).removeClass('is-invalid').addClass('is-valid');
+            }
+        } catch (e) {
+            $(this).removeClass('is-valid').addClass('is-invalid');
+        }
+    });
+
+    // راهنمای ابزار برای فیلدهای JSON
+    $('.help-text').each(function() {
+        $(this).parent().hover(function() {
+            $(this).find('.help-text').fadeIn();
+        }, function() {
+            $(this).find('.help-text').fadeOut();
+        });
+    });
+});
+</script>
+{% endblock %}

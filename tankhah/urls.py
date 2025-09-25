@@ -65,6 +65,7 @@ urlpatterns = [
 
 
     path('factor/create/new/', New_FactorCreateView.as_view(), name='Nfactor_create'),
+
     path('get-tankhah-budget-info/',  get_tankhah_budget_info, name='get_tankhah_budget_info'),
 
     path('factors/<int:pk>/edit/', FactorUpdateView.as_view(), name='factor_edit'),

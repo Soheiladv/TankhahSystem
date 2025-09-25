@@ -1,0 +1,1030 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}
+    {% trans "مدیریت قوانین گردش کار" %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .main-container {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+        border-radius: 20px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        margin: 20px;
+        padding: 0;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .main-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #667eea, #764ba2, #f093fb, #f5576c);
+        background-size: 300% 100%;
+        animation: gradientShift 3s ease infinite;
+    }
+
+    @keyframes gradientShift {
+        0%, 100% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+    }
+
+    .header-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 40px;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .header-section::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        animation: float 8s ease-in-out infinite;
+    }
+
+    @keyframes float {
+        0%, 100% { transform: translateY(0px) rotate(0deg); }
+        50% { transform: translateY(-30px) rotate(180deg); }
+    }
+
+    .header-icon {
+        font-size: 3rem;
+        margin-bottom: 20px;
+        animation: pulse 2s ease-in-out infinite;
+        position: relative;
+        z-index: 2;
+    }
+
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+    }
+
+    .header-title {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 10px;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        position: relative;
+        z-index: 2;
+    }
+
+    .header-subtitle {
+        font-size: 1rem;
+        opacity: 0.9;
+        position: relative;
+        z-index: 2;
+    }
+
+    .tab-container {
+        background: white;
+        border-radius: 15px;
+        margin: 20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+
+    .nav-tabs {
+        border-bottom: none;
+        background: #f8f9fa;
+        margin: 0;
+        padding: 0;
+    }
+
+    .nav-tabs .nav-link {
+        border: none;
+        border-radius: 0;
+        padding: 20px 30px;
+        font-weight: 600;
+        color: #6c757d;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .nav-tabs .nav-link::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.1), transparent);
+        transition: left 0.5s;
+    }
+
+    .nav-tabs .nav-link:hover::before {
+        left: 100%;
+    }
+
+    .nav-tabs .nav-link.active {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+    }
+
+    .nav-tabs .nav-link i {
+        margin-left: 10px;
+        font-size: 1.2rem;
+    }
+
+    .tab-content {
+        padding: 30px;
+        min-height: 500px;
+    }
+
+    .tab-pane {
+        display: none;
+        animation: fadeIn 0.5s ease;
+    }
+
+    .tab-pane.active {
+        display: block;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .stats-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        border-left: 4px solid #667eea;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 100px;
+        height: 100px;
+        background: radial-gradient(circle, rgba(102, 126, 234, 0.1) 0%, transparent 70%);
+        border-radius: 50%;
+        transform: translate(30px, -30px);
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    }
+
+    .stat-card h3 {
+        color: #667eea;
+        font-size: 2rem;
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+
+    .stat-card p {
+        color: #6c757d;
+        margin: 0;
+        font-weight: 500;
+    }
+
+    .stat-card i {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        font-size: 2rem;
+        color: rgba(102, 126, 234, 0.3);
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 30px;
+        flex-wrap: wrap;
+    }
+
+    .btn {
+        border-radius: 20px;
+        padding: 12px 25px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        border: none;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        transition: left 0.5s;
+    }
+
+    .btn:hover::before {
+        left: 100%;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-success {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        color: white;
+        box-shadow: 0 5px 15px rgba(79, 172, 254, 0.3);
+    }
+
+    .btn-success:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(79, 172, 254, 0.4);
+    }
+
+    .btn-warning {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+        box-shadow: 0 5px 15px rgba(240, 147, 251, 0.3);
+    }
+
+    .btn-warning:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(240, 147, 251, 0.4);
+    }
+
+    .btn-info {
+        background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+        color: #2c3e50;
+        box-shadow: 0 5px 15px rgba(168, 237, 234, 0.3);
+    }
+
+    .btn-info:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(168, 237, 234, 0.4);
+    }
+
+    .table-container {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        overflow-x: auto;
+    }
+
+    .table {
+        margin: 0;
+    }
+
+    .table th {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 15px;
+        font-weight: 600;
+        text-align: center;
+    }
+
+    .table td {
+        padding: 15px;
+        vertical-align: middle;
+        border-color: #e9ecef;
+    }
+
+    .table tbody tr {
+        transition: all 0.3s ease;
+    }
+
+    .table tbody tr:hover {
+        background: rgba(102, 126, 234, 0.05);
+        transform: scale(1.01);
+    }
+
+    .badge {
+        padding: 8px 15px;
+        border-radius: 20px;
+        font-weight: 500;
+    }
+
+    .badge-success {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        color: white;
+    }
+
+    .badge-warning {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+    }
+
+    .badge-info {
+        background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+        color: #2c3e50;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #6c757d;
+    }
+
+    .empty-state i {
+        font-size: 4rem;
+        margin-bottom: 20px;
+        opacity: 0.5;
+    }
+
+    .empty-state h4 {
+        margin-bottom: 15px;
+        color: #495057;
+    }
+
+    .empty-state p {
+        margin-bottom: 25px;
+    }
+
+    .filter-section {
+        background: #f8f9fa;
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 25px;
+    }
+
+    .filter-row {
+        display: flex;
+        gap: 15px;
+        align-items: end;
+        flex-wrap: wrap;
+    }
+
+    .filter-group {
+        flex: 1;
+        min-width: 200px;
+    }
+
+    .filter-group label {
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .form-control {
+        border-radius: 10px;
+        border: 2px solid #e9ecef;
+        padding: 10px 15px;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    }
+
+    @media (max-width: 768px) {
+        .main-container {
+            margin: 10px;
+            border-radius: 15px;
+        }
+        
+        .header-section {
+            padding: 25px 15px;
+        }
+        
+        .header-title {
+            font-size: 1.5rem;
+        }
+        
+        .tab-content {
+            padding: 20px;
+        }
+        
+        .stats-cards {
+            grid-template-columns: 1fr;
+        }
+        
+        .action-buttons {
+            flex-direction: column;
+        }
+        
+        .filter-row {
+            flex-direction: column;
+        }
+        
+        .filter-group {
+            min-width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="main-container">
+        <!-- هدر -->
+        <div class="header-section">
+            <div class="header-icon">
+                <i class="fas fa-cogs"></i>
+            </div>
+            <h1 class="header-title">
+                {% trans "مدیریت قوانین گردش کار" %}
+            </h1>
+            <p class="header-subtitle">{% trans "مدیریت قوانین پست‌ها و تأییدکنندگان مراحل" %}</p>
+        </div>
+
+        <div class="tab-container">
+            <!-- تب‌ها -->
+            <ul class="nav nav-tabs" id="workflowTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview" type="button" role="tab">
+                        <i class="fas fa-chart-pie"></i>
+                        {% trans "نمای کلی" %}
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="post-rules-tab" data-bs-toggle="tab" data-bs-target="#post-rules" type="button" role="tab">
+                        <i class="fas fa-user-tie"></i>
+                        {% trans "قوانین پست‌ها" %}
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="stage-approvers-tab" data-bs-toggle="tab" data-bs-target="#stage-approvers" type="button" role="tab">
+                        <i class="fas fa-users-cog"></i>
+                        {% trans "تأییدکنندگان مراحل" %}
+                    </button>
+                </li>
+            </ul>
+
+            <!-- محتوای تب‌ها -->
+            <div class="tab-content" id="workflowTabContent">
+                <!-- تب نمای کلی -->
+                <div class="tab-pane fade show active" id="overview" role="tabpanel">
+                    <div class="stats-cards">
+                        <div class="stat-card">
+                            <i class="fas fa-user-tie"></i>
+                            <h3 id="postRulesCount">-</h3>
+                            <p>{% trans "قوانین پست‌ها" %}</p>
+                        </div>
+                        <div class="stat-card">
+                            <i class="fas fa-users-cog"></i>
+                            <h3 id="stageApproversCount">-</h3>
+                            <p>{% trans "تأییدکنندگان مراحل" %}</p>
+                        </div>
+                        <div class="stat-card">
+                            <i class="fas fa-sitemap"></i>
+                            <h3 id="organizationsCount">-</h3>
+                            <p>{% trans "سازمان‌ها" %}</p>
+                        </div>
+                        <div class="stat-card">
+                            <i class="fas fa-list"></i>
+                            <h3 id="stagesCount">-</h3>
+                            <p>{% trans "مراحل فعال" %}</p>
+                        </div>
+                    </div>
+
+                    <div class="action-buttons">
+                        <a href="{% url 'workflow_management:post_assignment_list' %}" class="btn btn-primary">
+                            <i class="fas fa-user-tie me-2"></i>
+                            {% trans "مدیریت قوانین پست‌ها" %}
+                        </a>
+                        <a href="{% url 'workflow_management:stage_approver_list' %}" class="btn btn-success">
+                            <i class="fas fa-users-cog me-2"></i>
+                            {% trans "مدیریت تأییدکنندگان" %}
+                        </a>
+                        <a href="{% url 'workflow_management:simple_dashboard' %}" class="btn btn-info">
+                            <i class="fas fa-arrow-left me-2"></i>
+                            {% trans "بازگشت به داشبورد" %}
+                        </a>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="table-container">
+                                <h5 class="mb-3">
+                                    <i class="fas fa-user-tie me-2"></i>
+                                    {% trans "آخرین قوانین پست‌ها" %}
+                                </h5>
+                                <div id="recentPostRules">
+                                    <div class="text-center text-muted">
+                                        <i class="fas fa-spinner fa-spin"></i>
+                                        {% trans "در حال بارگذاری..." %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="table-container">
+                                <h5 class="mb-3">
+                                    <i class="fas fa-users-cog me-2"></i>
+                                    {% trans "آخرین تأییدکنندگان" %}
+                                </h5>
+                                <div id="recentStageApprovers">
+                                    <div class="text-center text-muted">
+                                        <i class="fas fa-spinner fa-spin"></i>
+                                        {% trans "در حال بارگذاری..." %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- تب قوانین پست‌ها -->
+                <div class="tab-pane fade" id="post-rules" role="tabpanel">
+                    <div class="action-buttons">
+                        <a href="{% url 'workflow_management:post_assignment_create' %}" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>
+                            {% trans "افزودن قانون جدید" %}
+                        </a>
+                        <a href="{% url 'workflow_management:post_assignment_list' %}" class="btn btn-success">
+                            <i class="fas fa-list me-2"></i>
+                            {% trans "مشاهده همه" %}
+                        </a>
+                    </div>
+
+                    <div class="filter-section">
+                        <div class="filter-row">
+                            <div class="filter-group">
+                                <label for="postFilter">{% trans "پست" %}</label>
+                                <select class="form-control" id="postFilter">
+                                    <option value="">{% trans "همه پست‌ها" %}</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label for="entityTypeFilter">{% trans "نوع موجودیت" %}</label>
+                                <select class="form-control" id="entityTypeFilter">
+                                    <option value="">{% trans "همه انواع" %}</option>
+                                    <option value="FACTOR">{% trans "فاکتور" %}</option>
+                                    <option value="TANKHAH">{% trans "تنخواه" %}</option>
+                                    <option value="PAYMENTORDER">{% trans "دستور پرداخت" %}</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <button class="btn btn-primary" onclick="filterPostRules()">
+                                    <i class="fas fa-filter me-2"></i>
+                                    {% trans "فیلتر" %}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="table-container">
+                        <div id="postRulesTable">
+                            <div class="text-center text-muted">
+                                <i class="fas fa-spinner fa-spin"></i>
+                                {% trans "در حال بارگذاری..." %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- تب تأییدکنندگان مراحل -->
+                <div class="tab-pane fade" id="stage-approvers" role="tabpanel">
+                    <div class="action-buttons">
+                        <a href="{% url 'workflow_management:stage_approver_create' %}" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>
+                            {% trans "افزودن تأییدکننده جدید" %}
+                        </a>
+                        <a href="{% url 'workflow_management:stage_approver_list' %}" class="btn btn-success">
+                            <i class="fas fa-list me-2"></i>
+                            {% trans "مشاهده همه" %}
+                        </a>
+                        <button class="btn btn-warning" onclick="checkDuplicates()">
+                            <i class="fas fa-search me-2"></i>
+                            {% trans "بررسی تکراری‌ها" %}
+                        </button>
+                    </div>
+
+                    <div class="filter-section">
+                        <div class="filter-row">
+                            <div class="filter-group">
+                                <label for="stageFilter">{% trans "مرحله" %}</label>
+                                <select class="form-control" id="stageFilter">
+                                    <option value="">{% trans "همه مراحل" %}</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label for="approverPostFilter">{% trans "پست" %}</label>
+                                <select class="form-control" id="approverPostFilter">
+                                    <option value="">{% trans "همه پست‌ها" %}</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label for="approverEntityTypeFilter">{% trans "نوع موجودیت" %}</label>
+                                <select class="form-control" id="approverEntityTypeFilter">
+                                    <option value="">{% trans "همه انواع" %}</option>
+                                    <option value="FACTOR">{% trans "فاکتور" %}</option>
+                                    <option value="TANKHAH">{% trans "تنخواه" %}</option>
+                                    <option value="BUDGET_ALLOCATION">{% trans "تخصیص بودجه" %}</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <button class="btn btn-primary" onclick="filterStageApprovers()">
+                                    <i class="fas fa-filter me-2"></i>
+                                    {% trans "فیلتر" %}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="table-container">
+                        <div id="stageApproversTable">
+                            <div class="text-center text-muted">
+                                <i class="fas fa-spinner fa-spin"></i>
+                                {% trans "در حال بارگذاری..." %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    loadOverviewData();
+    loadPostRulesData();
+    loadStageApproversData();
+    loadFilterOptions();
+});
+
+function loadOverviewData() {
+    // بارگذاری آمار کلی
+    fetch('/workflow-management/api/overview-stats/')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('postRulesCount').textContent = data.post_rules_count || 0;
+                document.getElementById('stageApproversCount').textContent = data.stage_approvers_count || 0;
+                document.getElementById('organizationsCount').textContent = data.organizations_count || 0;
+                document.getElementById('stagesCount').textContent = data.stages_count || 0;
+            }
+        })
+        .catch(error => {
+            console.error('Error loading overview data:', error);
+        });
+}
+
+function loadPostRulesData() {
+    // بارگذاری قوانین پست‌ها
+    fetch('/workflow-management/api/post-rules/')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                displayPostRules(data.post_rules);
+                displayRecentPostRules(data.recent_post_rules);
+            }
+        })
+        .catch(error => {
+            console.error('Error loading post rules:', error);
+        });
+}
+
+function loadStageApproversData() {
+    // بارگذاری تأییدکنندگان مراحل
+    fetch('/workflow-management/api/stage-approvers/')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                displayStageApprovers(data.stage_approvers);
+                displayRecentStageApprovers(data.recent_stage_approvers);
+            }
+        })
+        .catch(error => {
+            console.error('Error loading stage approvers:', error);
+        });
+}
+
+function loadFilterOptions() {
+    // بارگذاری گزینه‌های فیلتر
+    fetch('/workflow-management/api/filter-options/')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                populateSelect('postFilter', data.posts);
+                populateSelect('approverPostFilter', data.posts);
+                populateSelect('stageFilter', data.stages);
+            }
+        })
+        .catch(error => {
+            console.error('Error loading filter options:', error);
+        });
+}
+
+function populateSelect(selectId, options) {
+    const select = document.getElementById(selectId);
+    if (select && options) {
+        options.forEach(option => {
+            const optionElement = document.createElement('option');
+            optionElement.value = option.id;
+            optionElement.textContent = option.name;
+            select.appendChild(optionElement);
+        });
+    }
+}
+
+function displayPostRules(postRules) {
+    const container = document.getElementById('postRulesTable');
+    if (!postRules || postRules.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-user-tie"></i>
+                <h4>{% trans "هیچ قانونی یافت نشد" %}</h4>
+                <p>{% trans "هنوز هیچ قانونی برای پست‌ها تعریف نشده است." %}</p>
+                <a href="{% url 'workflow_management:post_assignment_create' %}" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>
+                    {% trans "افزودن قانون جدید" %}
+                </a>
+            </div>
+        `;
+        return;
+    }
+
+    let html = `
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>{% trans "پست" %}</th>
+                        <th>{% trans "اقدام" %}</th>
+                        <th>{% trans "سازمان" %}</th>
+                        <th>{% trans "نوع موجودیت" %}</th>
+                        <th>{% trans "وضعیت" %}</th>
+                        <th>{% trans "عملیات" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+    `;
+
+    postRules.forEach(rule => {
+        const statusBadge = rule.is_active ? 
+            '<span class="badge badge-success">فعال</span>' : 
+            '<span class="badge badge-warning">غیرفعال</span>';
+
+        html += `
+            <tr>
+                <td>${rule.post_name}</td>
+                <td>${rule.action_name}</td>
+                <td>${rule.organization_name}</td>
+                <td><span class="badge badge-info">${rule.entity_type_display}</span></td>
+                <td>${statusBadge}</td>
+                <td>
+                    <a href="/workflow-management/post-assignments/${rule.id}/edit/" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                </td>
+            </tr>
+        `;
+    });
+
+    html += `
+                </tbody>
+            </table>
+        </div>
+    `;
+
+    container.innerHTML = html;
+}
+
+function displayStageApprovers(stageApprovers) {
+    const container = document.getElementById('stageApproversTable');
+    if (!stageApprovers || stageApprovers.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-users-cog"></i>
+                <h4>{% trans "هیچ تأییدکننده‌ای یافت نشد" %}</h4>
+                <p>{% trans "هنوز هیچ تأییدکننده مرحله‌ای تعریف نشده است." %}</p>
+                <a href="{% url 'workflow_management:stage_approver_create' %}" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>
+                    {% trans "افزودن تأییدکننده جدید" %}
+                </a>
+            </div>
+        `;
+        return;
+    }
+
+    let html = `
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>{% trans "مرحله" %}</th>
+                        <th>{% trans "پست" %}</th>
+                        <th>{% trans "نوع موجودیت" %}</th>
+                        <th>{% trans "اقدام" %}</th>
+                        <th>{% trans "وضعیت" %}</th>
+                        <th>{% trans "عملیات" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+    `;
+
+    stageApprovers.forEach(approver => {
+        const statusBadge = approver.is_active ? 
+            '<span class="badge badge-success">فعال</span>' : 
+            '<span class="badge badge-warning">غیرفعال</span>';
+
+        html += `
+            <tr>
+                <td>${approver.stage_name}</td>
+                <td>${approver.post_name}</td>
+                <td><span class="badge badge-info">${approver.entity_type_display}</span></td>
+                <td>${approver.action_display || '-'}</td>
+                <td>${statusBadge}</td>
+                <td>
+                    <a href="/workflow-management/stage-approvers/${approver.id}/edit/" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                </td>
+            </tr>
+        `;
+    });
+
+    html += `
+                </tbody>
+            </table>
+        </div>
+    `;
+
+    container.innerHTML = html;
+}
+
+function displayRecentPostRules(recentRules) {
+    const container = document.getElementById('recentPostRules');
+    if (!recentRules || recentRules.length === 0) {
+        container.innerHTML = '<p class="text-muted">{% trans "هیچ قانونی یافت نشد" %}</p>';
+        return;
+    }
+
+    let html = '<div class="list-group">';
+    recentRules.slice(0, 5).forEach(rule => {
+        html += `
+            <div class="list-group-item">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-1">${rule.post_name}</h6>
+                        <small class="text-muted">${rule.action_name} - ${rule.organization_name}</small>
+                    </div>
+                    <span class="badge badge-info">${rule.entity_type_display}</span>
+                </div>
+            </div>
+        `;
+    });
+    html += '</div>';
+
+    container.innerHTML = html;
+}
+
+function displayRecentStageApprovers(recentApprovers) {
+    const container = document.getElementById('recentStageApprovers');
+    if (!recentApprovers || recentApprovers.length === 0) {
+        container.innerHTML = '<p class="text-muted">{% trans "هیچ تأییدکننده‌ای یافت نشد" %}</p>';
+        return;
+    }
+
+    let html = '<div class="list-group">';
+    recentApprovers.slice(0, 5).forEach(approver => {
+        html += `
+            <div class="list-group-item">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-1">${approver.stage_name}</h6>
+                        <small class="text-muted">${approver.post_name}</small>
+                    </div>
+                    <span class="badge badge-info">${approver.entity_type_display}</span>
+                </div>
+            </div>
+        `;
+    });
+    html += '</div>';
+
+    container.innerHTML = html;
+}
+
+function filterPostRules() {
+    const postId = document.getElementById('postFilter').value;
+    const entityType = document.getElementById('entityTypeFilter').value;
+    
+    let url = '/workflow-management/api/post-rules/';
+    const params = new URLSearchParams();
+    if (postId) params.append('post_id', postId);
+    if (entityType) params.append('entity_type', entityType);
+    
+    if (params.toString()) {
+        url += '?' + params.toString();
+    }
+    
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                displayPostRules(data.post_rules);
+            }
+        })
+        .catch(error => {
+            console.error('Error filtering post rules:', error);
+        });
+}
+
+function filterStageApprovers() {
+    const stageId = document.getElementById('stageFilter').value;
+    const postId = document.getElementById('approverPostFilter').value;
+    const entityType = document.getElementById('approverEntityTypeFilter').value;
+    
+    let url = '/workflow-management/api/stage-approvers/';
+    const params = new URLSearchParams();
+    if (stageId) params.append('stage_id', stageId);
+    if (postId) params.append('post_id', postId);
+    if (entityType) params.append('entity_type', entityType);
+    
+    if (params.toString()) {
+        url += '?' + params.toString();
+    }
+    
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                displayStageApprovers(data.stage_approvers);
+            }
+        })
+        .catch(error => {
+            console.error('Error filtering stage approvers:', error);
+        });
+}
+
+// بررسی تکراری‌ها
+function checkDuplicates() {
+    fetch('/workflow-management/api/check-duplicates/')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                let message = 'نتایج بررسی تکراری‌ها:\n\n';
+                
+                if (data.total_duplicate_post_rules === 0 && data.total_duplicate_stage_approvers === 0) {
+                    message += '✅ هیچ قانون تکراری‌ای یافت نشد!';
+                } else {
+                    if (data.total_duplicate_post_rules > 0) {
+                        message += `🔍 قوانین تکراری پست‌ها: ${data.total_duplicate_post_rules}\n`;
+                        data.duplicate_post_rules.forEach(rule => {
+                            message += `- ${rule.post_name} - ${rule.action_name} (${rule.entity_type}): ${rule.count} مورد\n`;
+                        });
+                        message += '\n';
+                    }
+                    
+                    if (data.total_duplicate_stage_approvers > 0) {
+                        message += `🔍 تأییدکنندگان تکراری: ${data.total_duplicate_stage_approvers}\n`;
+                        data.duplicate_stage_approvers.forEach(approver => {
+                            message += `- ${approver.stage_name} - ${approver.post_name} (${approver.entity_type}): ${approver.count} مورد\n`;
+                        });
+                    }
+                }
+                
+                alert(message);
+            } else {
+                alert('خطا در بررسی تکراری‌ها: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error checking duplicates:', error);
+            alert('خطا در بررسی تکراری‌ها');
+        });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,446 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}
+    {% if is_edit %}
+        {% trans "ویرایش تأییدکننده مرحله" %}
+    {% else %}
+        {% trans "ایجاد تأییدکننده مرحله جدید" %}
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- هدر -->
+            <div class="card border-0 shadow-lg mb-4">
+                <div class="card-header bg-primary text-white py-4">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-grow-1">
+                            <h1 class="h3 mb-0">
+                                <i class="fas fa-user-check me-2"></i>
+                                {% if is_edit %}
+                                    {% trans "ویرایش تأییدکننده مرحله" %}
+                                {% else %}
+                                    {% trans "ایجاد تأییدکننده مرحله جدید" %}
+                                {% endif %}
+                            </h1>
+                            <p class="mb-0 opacity-75">{% trans "مدیریت تأییدکنندگان مراحل گردش کار" %}</p>
+                        </div>
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-cog fa-2x opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- فرم اصلی -->
+            <div class="card border-0 shadow">
+                <div class="card-body p-4">
+                    <form method="post" id="stageApproverForm">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <!-- مرحله -->
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.stage.id_for_label }}" class="form-label fw-semibold">
+                                    <i class="fas fa-step-forward text-primary me-2"></i>
+                                    {% trans "مرحله گردش کار" %}
+                                    <span class="text-danger">*</span>
+                                </label>
+                                {{ form.stage }}
+                                {% if form.stage.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        <i class="fas fa-exclamation-circle me-1"></i>
+                                        {{ form.stage.errors }}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">
+                                    <i class="fas fa-info-circle text-muted me-1"></i>
+                                    {% trans "مرحله‌ای که این پست می‌تواند در آن تأیید کند" %}
+                                </div>
+                            </div>
+
+                            <!-- پست -->
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.post.id_for_label }}" class="form-label fw-semibold">
+                                    <i class="fas fa-user-tie text-primary me-2"></i>
+                                    {% trans "پست تأییدکننده" %}
+                                    <span class="text-danger">*</span>
+                                </label>
+                                {{ form.post }}
+                                {% if form.post.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        <i class="fas fa-exclamation-circle me-1"></i>
+                                        {{ form.post.errors }}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">
+                                    <i class="fas fa-info-circle text-muted me-1"></i>
+                                    {% trans "پستی که می‌تواند در این مرحله تأیید کند" %}
+                                </div>
+                            </div>
+
+                            <!-- نوع موجودیت -->
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.entity_type.id_for_label }}" class="form-label fw-semibold">
+                                    <i class="fas fa-cube text-primary me-2"></i>
+                                    {% trans "نوع موجودیت" %}
+                                    <span class="text-danger">*</span>
+                                </label>
+                                {{ form.entity_type }}
+                                {% if form.entity_type.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        <i class="fas fa-exclamation-circle me-1"></i>
+                                        {{ form.entity_type.errors }}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">
+                                    <i class="fas fa-info-circle text-muted me-1"></i>
+                                    {% trans "نوع موجودیتی که این تأیید برای آن اعمال می‌شود" %}
+                                </div>
+                            </div>
+
+                            <!-- اقدام -->
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.action.id_for_label }}" class="form-label fw-semibold">
+                                    <i class="fas fa-play text-primary me-2"></i>
+                                    {% trans "اقدام" %}
+                                    <span class="text-danger">*</span>
+                                </label>
+                                {{ form.action }}
+                                {% if form.action.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        <i class="fas fa-exclamation-circle me-1"></i>
+                                        {{ form.action.errors }}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">
+                                    <i class="fas fa-info-circle text-muted me-1"></i>
+                                    {% trans "نوع اقدام قابل انجام توسط این پست" %}
+                                </div>
+                            </div>
+
+                            <!-- وضعیت فعال -->
+                            <div class="col-12 mb-4">
+                                <div class="form-check form-switch">
+                                    {{ form.is_active }}
+                                    <label class="form-check-label fw-semibold" for="{{ form.is_active.id_for_label }}">
+                                        <i class="fas fa-toggle-on text-success me-2"></i>
+                                        {% trans "فعال" %}
+                                    </label>
+                                </div>
+                                {% if form.is_active.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        <i class="fas fa-exclamation-circle me-1"></i>
+                                        {{ form.is_active.errors }}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">
+                                    <i class="fas fa-info-circle text-muted me-1"></i>
+                                    {% trans "در صورت غیرفعال بودن، این تأییدکننده در گردش کار اعمال نمی‌شود" %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- پیش‌نمایش -->
+                        <div class="border-top pt-4 mt-4">
+                            <h5 class="mb-3 text-primary">
+                                <i class="fas fa-eye me-2"></i>
+                                {% trans "پیش‌نمایش تنظیمات" %}
+                            </h5>
+                            <div class="row">
+                                <div class="col-md-3 col-6 mb-3">
+                                    <div class="border rounded p-3 h-100">
+                                        <small class="text-muted d-block mb-1">{% trans "مرحله" %}</small>
+                                        <span class="fw-semibold" id="preview-stage">-</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 col-6 mb-3">
+                                    <div class="border rounded p-3 h-100">
+                                        <small class="text-muted d-block mb-1">{% trans "پست" %}</small>
+                                        <span class="fw-semibold" id="preview-post">-</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 col-6 mb-3">
+                                    <div class="border rounded p-3 h-100">
+                                        <small class="text-muted d-block mb-1">{% trans "نوع موجودیت" %}</small>
+                                        <span class="fw-semibold" id="preview-entity-type">-</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 col-6 mb-3">
+                                    <div class="border rounded p-3 h-100">
+                                        <small class="text-muted d-block mb-1">{% trans "اقدام" %}</small>
+                                        <span class="fw-semibold" id="preview-action">-</span>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="border rounded p-3 bg-light">
+                                        <small class="text-muted d-block mb-1">{% trans "وضعیت" %}</small>
+                                        <span class="badge bg-success" id="preview-status">
+                                            <i class="fas fa-check-circle me-1"></i>
+                                            {% trans "فعال" %}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- دکمه‌های عملیات -->
+                        <div class="border-top pt-4 mt-4">
+                            <div class="d-flex gap-2 flex-wrap justify-content-end">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-2"></i>
+                                    {% if is_edit %}
+                                        {% trans "ذخیره تغییرات" %}
+                                    {% else %}
+                                        {% trans "ایجاد تأییدکننده" %}
+                                    {% endif %}
+                                </button>
+                                <a href="{% url 'workflow_management:stage_approver_list' %}" class="btn btn-outline-secondary">
+                                    <i class="fas fa-times me-2"></i>
+                                    {% trans "انصراف" %}
+                                </a>
+                                <button type="button" class="btn btn-outline-info" onclick="updatePreview()">
+                                    <i class="fas fa-sync me-2"></i>
+                                    {% trans "بروزرسانی پیش‌نمایش" %}
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // استایل‌دهی فیلدهای فرم
+    const styleFormFields = function() {
+        const selects = document.querySelectorAll('select');
+        selects.forEach(select => {
+            select.classList.add('form-select');
+        });
+        
+        const checkbox = document.getElementById('{{ form.is_active.id_for_label }}');
+        if (checkbox) {
+            checkbox.classList.add('form-check-input');
+        }
+    };
+    
+    // مقداردهی اولیه
+    styleFormFields();
+    updatePreview();
+    
+    // اضافه کردن event listeners
+    const formFields = [
+        '{{ form.stage.id_for_label }}',
+        '{{ form.post.id_for_label }}',
+        '{{ form.entity_type.id_for_label }}',
+        '{{ form.action.id_for_label }}',
+        '{{ form.is_active.id_for_label }}'
+    ];
+    
+    formFields.forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (field) {
+            field.addEventListener('change', updatePreview);
+        }
+    });
+    
+    // اعتبارسنجی فرم
+    const form = document.getElementById('stageApproverForm');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            if (!validateForm()) {
+                e.preventDefault();
+                showValidationErrors();
+            }
+        });
+    }
+});
+
+function updatePreview() {
+    // بروزرسانی مرحله
+    const stageSelect = document.getElementById('{{ form.stage.id_for_label }}');
+    const stagePreview = document.getElementById('preview-stage');
+    if (stageSelect && stagePreview) {
+        stagePreview.textContent = stageSelect.value ? 
+            stageSelect.options[stageSelect.selectedIndex].text : '-';
+    }
+    
+    // بروزرسانی پست
+    const postSelect = document.getElementById('{{ form.post.id_for_label }}');
+    const postPreview = document.getElementById('preview-post');
+    if (postSelect && postPreview) {
+        postPreview.textContent = postSelect.value ? 
+            postSelect.options[postSelect.selectedIndex].text : '-';
+    }
+    
+    // بروزرسانی نوع موجودیت
+    const entityTypeSelect = document.getElementById('{{ form.entity_type.id_for_label }}');
+    const entityTypePreview = document.getElementById('preview-entity-type');
+    if (entityTypeSelect && entityTypePreview) {
+        entityTypePreview.textContent = entityTypeSelect.value ? 
+            entityTypeSelect.options[entityTypeSelect.selectedIndex].text : '-';
+    }
+    
+    // بروزرسانی اقدام
+    const actionSelect = document.getElementById('{{ form.action.id_for_label }}');
+    const actionPreview = document.getElementById('preview-action');
+    if (actionSelect && actionPreview) {
+        actionPreview.textContent = actionSelect.value ? 
+            actionSelect.options[actionSelect.selectedIndex].text : '-';
+    }
+    
+    // بروزرسانی وضعیت
+    const isActiveCheckbox = document.getElementById('{{ form.is_active.id_for_label }}');
+    const statusPreview = document.getElementById('preview-status');
+    if (isActiveCheckbox && statusPreview) {
+        if (isActiveCheckbox.checked) {
+            statusPreview.className = 'badge bg-success';
+            statusPreview.innerHTML = '<i class="fas fa-check-circle me-1"></i> {% trans "فعال" %}';
+        } else {
+            statusPreview.className = 'badge bg-danger';
+            statusPreview.innerHTML = '<i class="fas fa-times-circle me-1"></i> {% trans "غیرفعال" %}';
+        }
+    }
+}
+
+function validateForm() {
+    let isValid = true;
+    const requiredFields = [
+        '{{ form.stage.id_for_label }}',
+        '{{ form.post.id_for_label }}',
+        '{{ form.entity_type.id_for_label }}',
+        '{{ form.action.id_for_label }}'
+    ];
+    
+    // حذف استایل‌های خطای قبلی
+    requiredFields.forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (field) {
+            field.classList.remove('is-invalid');
+        }
+    });
+    
+    // اعتبارسنجی فیلدهای اجباری
+    requiredFields.forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (field && !field.value) {
+            isValid = false;
+            field.classList.add('is-invalid');
+        }
+    });
+    
+    return isValid;
+}
+
+function showValidationErrors() {
+    // اسکرول به اولین فیلد دارای خطا
+    const firstError = document.querySelector('.is-invalid');
+    if (firstError) {
+        firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        firstError.focus();
+    }
+    
+    // نمایش نوتیفیکیشن
+    const toast = document.createElement('div');
+    toast.className = 'position-fixed top-0 end-0 m-4';
+    toast.style.zIndex = '1055';
+    toast.innerHTML = `
+        <div class="toast show" role="alert">
+            <div class="toast-header bg-danger text-white">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <strong class="me-auto">خطا</strong>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+            </div>
+            <div class="toast-body">
+                لطفا تمام فیلدهای اجباری را پر کنید
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(toast);
+    
+    // حذف خودکار نوتیفیکیشن پس از 5 ثانیه
+    setTimeout(() => {
+        const bsToast = new bootstrap.Toast(toast.querySelector('.toast'));
+        bsToast.hide();
+        setTimeout(() => toast.remove(), 500);
+    }, 5000);
+}
+</script>
+
+<style>
+/* استایل‌های سفارشی برای بهبود ظاهر */
+.card {
+    border-radius: 15px;
+}
+
+.card-header {
+    border-radius: 15px 15px 0 0 !important;
+}
+
+.form-select, .form-check-input {
+    border-radius: 10px;
+}
+
+.form-select:focus, .form-check-input:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+.btn {
+    border-radius: 10px;
+    padding: 10px 20px;
+}
+
+.badge {
+    font-size: 0.9rem;
+    padding: 0.5em 0.75em;
+}
+
+/* انیمیشن‌های ملایم */
+.card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+}
+
+.btn {
+    transition: all 0.2s ease;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+}
+
+/* رسپانسیو برای موبایل */
+@media (max-width: 768px) {
+    .container {
+        padding: 15px;
+    }
+    
+    .card-body {
+        padding: 20px !important;
+    }
+    
+    .btn {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+    
+    .d-flex.justify-content-end {
+        justify-content: center !important;
+    }
+}
+</style>
+{% endblock %}  

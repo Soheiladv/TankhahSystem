@@ -1,0 +1,86 @@
+{% extends 'base_ld.html' %}
+{% load i18n %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="card shadow-sm">
+    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+      <h5 class="m-0"><i class="fas fa-eye me-2"></i>{% trans "پیش‌نمایش اثر تنظیمات روی فاکتور" %}</h5>
+      <a class="btn btn-outline-secondary" href="{% url 'system_settings_dashboard' %}"><i class="fas fa-arrow-right me-2"></i>{% trans "بازگشت" %}</a>
+    </div>
+    <div class="card-body">
+      <div class="row g-3 mb-3">
+        <div class="col-12 col-lg-6">
+          <div class="p-3 border rounded bg-light h-100">
+            <div class="mb-2 fw-bold">{% trans "تنظیمات فعلی" %}</div>
+            {% if settings %}
+              <ul class="list-unstyled small mb-0">
+                <li>{% trans "سخت‌گیری ترتیب" %}: <strong>{{ settings.enforce_strict_approval_order|yesno:_('فعال,غیرفعال') }}</strong></li>
+                <li>{% trans "بایپس چارت" %}: <strong>{{ settings.allow_bypass_org_chart|yesno:_('فعال,غیرفعال') }}</strong></li>
+                <li>{% trans "اقدام بدون پست" %}: <strong>{{ settings.allow_action_without_org_chart|yesno:_('فعال,غیرفعال') }}</strong></li>
+              </ul>
+            {% else %}
+              <div class="text-muted small">{% trans "تنظیمات ثبت نشده است." %}</div>
+            {% endif %}
+          </div>
+        </div>
+        <div class="col-12 col-lg-6">
+          <div class="p-3 border rounded h-100">
+            <div class="mb-2 fw-bold">{% trans "پست‌های فعال کاربر" %}</div>
+            {% if user_posts %}
+              <ul class="small mb-0">
+                {% for up in user_posts %}
+                  <li>{{ up.post.name }}{% if up.post.organization %} - {{ up.post.organization.name }}{% endif %} (L{{ up.post.level }})</li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <div class="text-muted small">{% trans "پست فعالی ندارید." %}</div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <form id="preview-form" class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label">{% trans "شناسه فاکتور" %}</label>
+          <div class="input-group">
+            <input class="form-control" type="number" name="factor_id" id="factor-id-input" required>
+            <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">{% trans "اخیر" %}</button>
+            <ul class="dropdown-menu dropdown-menu-end">
+              {% for f in recent_factors %}
+                <li><a class="dropdown-item" href="#" onclick="document.getElementById('factor-id-input').value='{{ f.id }}'">#{{ f.id }} - {{ f.number }}</a></li>
+              {% endfor %}
+              {% if not recent_factors %}
+                <li><span class="dropdown-item-text text-muted">{% trans "موردی نیست" %}</span></li>
+              {% endif %}
+            </ul>
+          </div>
+        </div>
+        <div class="col-md-6 d-flex align-items-end">
+          <button class="btn btn-primary" type="submit"><i class="fas fa-search me-2"></i>{% trans "شبیه‌سازی" %}</button>
+        </div>
+      </form>
+      <hr>
+      <div id="preview-result"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.getElementById('preview-form').addEventListener('submit', async function(e){
+  e.preventDefault();
+  const fd = new FormData(this);
+  const res = await fetch('{% url "system_settings_preview" %}', {method: 'POST', headers: {'X-CSRFToken': '{{ csrf_token }}'}, body: fd});
+  const data = await res.json();
+  const wrap = document.getElementById('preview-result');
+  if(!data.ok){ wrap.innerHTML = `<div class="alert alert-danger">${data.error||'Error'}</div>`; return; }
+  if(!data.next_steps || !data.next_steps.length){ wrap.innerHTML = '<div class="alert alert-warning">{% trans "اقدام مجاز فعلی یافت نشد." %}</div>'; return; }
+  let html = '<ul class="list-group">';
+  data.next_steps.forEach(ns => { html += `<li class="list-group-item">${ns.action} → ${ns.to_status} (${ns.organization||''})</li>`; });
+  html += '</ul>';
+  wrap.innerHTML = html;
+});
+</script>
+{% endblock %}
+
+

@@ -1,0 +1,30 @@
+{
+  "default": {
+    "page_size": "20x28",
+    "landscape": true,
+    "margins": {
+      "top_cm": 1.5,
+      "right_cm": 1.5,
+      "bottom_cm": 1.5,
+      "left_cm": 1.5
+    }
+  },
+  "presets": {
+    "a4_portrait_narrow": {
+      "page_size": "A4",
+      "landscape": false,
+      "margins": { "top_cm": 1.0, "right_cm": 1.0, "bottom_cm": 1.0, "left_cm": 1.0 }
+    },
+    "a4_landscape_wide": {
+      "page_size": "A4",
+      "landscape": true,
+      "margins": { "top_cm": 1.0, "right_cm": 1.0, "bottom_cm": 1.0, "left_cm": 1.0 }
+    },
+    "custom_20x28": {
+      "page_size": "20x28",
+      "landscape": true,
+      "margins": { "top_cm": 1.5, "right_cm": 1.5, "bottom_cm": 1.5, "left_cm": 1.5 }
+    }
+  }
+}
+

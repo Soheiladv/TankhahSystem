@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load i18n rcms_custom_filters static %}
+{% load i18n rcms_custom_filters humanize static %}
 
 {% block page_title %}{% trans "تخصیص بودجه جدید" %}{% endblock %}
 
@@ -15,10 +15,10 @@
             {% if budget_period %}
                 <div class="budget-summary border rounded p-3 mb-4 bg-light position-relative">
                     <div id="budget-meta"
-                         data-total="{{ total_amount|default:0|floatformat:0 }}"
-                         data-remaining="{{ remaining_amount|default:0|floatformat:0 }}"
-                         data-locked="{{ locked_percentage|default:0|floatformat:0 }}"
-                         data-warning="{{ warning_threshold|default:0|floatformat:0 }}"
+                         data-total="{{ total_amount|default:0 }}"
+                         data-remaining="{{ remaining_amount|default:0 }}"
+                         data-locked="{{ locked_percentage|default:0 }}"
+                         data-warning="{{ warning_threshold|default:0 }}"
                          class="d-none"></div>
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <h6 class="mb-0 text-muted">{% trans "دوره بودجه:" %} <strong>{{ budget_period.name  | to_persian_number }}</strong></h6>
@@ -80,6 +80,10 @@
                 {% csrf_token %}
                 {% if budget_period %}
                     <input type="hidden" name="budget_period" value="{{ budget_period.id }}">
+                {% else %}
+                    {% if form.budget_period and form.budget_period.errors %}
+                    <div class="alert alert-danger" role="alert">{{ form.budget_period.errors|join:', ' }}</div>
+                    {% endif %}
                 {% endif %}
 
                 <h6 class="mb-3 border-bottom pb-2 fw-bold">{% trans "اطلاعات اصلی تخصیص" %}</h6>
@@ -88,6 +92,23 @@
                     <div class="col-md-12">
                         <label for="{{ form.budget_item.id_for_label }}" class="form-label fw-semibold"><i class="fas fa-list-ol fa-fw me-1 text-muted"></i>{% trans "ردیف بودجه" %}: <span class="text-danger">*</span></label>
                         {{ form.budget_item }}
+                        <script>
+                        (function(){
+                            if (window.jQuery) {
+                                var $ = window.jQuery;
+                                $(function(){
+                                    var $bi = $('#id_budget_item');
+                                    if ($bi.length && !$bi.data('select2')) {
+                                        try { $bi.select2({
+                                            theme: 'bootstrap-5',
+                                            placeholder: '{% trans "— انتخاب ردیف بودجه —" %}',
+                                            allowClear: true
+                                        }); } catch(e) {}
+                                    }
+                                });
+                            }
+                        })();
+                        </script>
                         {% if form.budget_item.errors %}
                             <div class="invalid-feedback d-block">
                                 {{ form.budget_item.errors|striptags }}
@@ -169,7 +190,7 @@
                                 <div class="word-display text-muted small mt-1 text-end" id="allocated-amount-words"></div>
                              </div>
                              <div class="mt-2 small text-muted" id="auto-desc-preview" style="min-height:1.5rem">
-                                 
+
                              </div>
                         </div>
                     </div>
@@ -392,12 +413,14 @@
 {% endblock %}
 <script>
     $(document).ready(function () {
-        $('[data-jdp]').pDatepicker({
-            format: 'YYYY/MM/DD',
-            autoClose: true,
-            initialValue: false,
-            persianDigit: true
-        });
+        if ($.fn.pDatepicker) {
+            $('#id_allocation_date').pDatepicker({
+                format: 'YYYY/MM/DD',
+                autoClose: true,
+                initialValue: false,
+                persianDigit: true
+            });
+        }
 
         $('.needs-validation').on('submit', function (e) {
             if (!this.checkValidity()) {
@@ -407,11 +430,12 @@
             this.classList.add('was-validated');
         });
     });
-</script>
+    </script>
 
 
 {% block extra_js %}
-<script src="{% static 'admin/js/select2.min.js' %}"></script>
+<script src="{% static 'admin/js/vendor/select2/select2.full.min.js' %}"></script>
+<script src="{% static 'admin/js/jalalidatepicker.min.js' %}"></script>
 <script>
 $(document).ready(function() {
     // مقداردهی اولیه Select2
@@ -461,7 +485,6 @@ $(document).ready(function() {
     }
 });
 </script>
-    <!-- جاوااسکریپت قبلی بدون تغییر -->
     <script>
         $(document).ready(function () {
 
@@ -469,14 +492,14 @@ $(document).ready(function() {
             $('#id_organization').on('change', function () {
                 var orgId = $(this).val();
                 $.ajax({
-                    url: '{% url "get_projects_by_organization" %}', // باید این URL رو توی urls.py تعریف کنید
+                    url: '{% url "get_projects_by_organization" %}',
                     data: {
                         'organization_id': orgId
                     },
                     success: function (data) {
                         var $projectSelect = $('#id_project');
                         $projectSelect.empty();
-                        $projectSelect.append('<option value="">---------</option>');
+                        $projectSelect.append('<option value="">{% trans "--------- (بدون پروژه)" %}</option>');
                         $.each(data.projects, function (index, project) {
                             $projectSelect.append('<option value="' + project.id + '">' + project.name + '</option>');
                         });
@@ -584,7 +607,7 @@ $(document).ready(function() {
 
             document.addEventListener('DOMContentLoaded', function () {
                 const allocationTypeRadios = document.querySelectorAll('input[name="{{ form.allocation_type.name }}"]');
-                const allocatedAmountInput = document.getElementById('{{ form.allocated_amount.id_for_label }}');
+                const allocatedAmountInput = document.getElementById('{{ form.allocated_amount.id_for_label }}') || document.getElementById('id_allocated_amount');
                 const allocatedAmountLabel = document.getElementById('allocated-amount-label');
                 const allocatedAmountUnit = document.getElementById('allocated-amount-unit');
                 const remainingAmountDisplay = document.getElementById('remaining-amount');
@@ -595,7 +618,7 @@ $(document).ready(function() {
                 const allocatedAmountWords = document.getElementById('allocated-amount-words');
                 const autoDescPreview = document.getElementById('auto-desc-preview');
                 const autoFillSwitch = document.getElementById('autoFillDescSwitch');
-                const descriptionField = document.getElementById('{{ form.description.id_for_label }}');
+                const descriptionField = document.getElementById('{{ form.description.id_for_label }}') || document.getElementById('id_description');
 
                 const metaEl = document.getElementById('budget-meta');
                 const totalAmount = metaEl ? parseFloat(metaEl.dataset.total || '0') : 0;
@@ -604,13 +627,18 @@ $(document).ready(function() {
                 const warningThreshold = metaEl ? parseFloat(metaEl.dataset.warning || '0') : 0;
                 const budgetAvailable = {{ budget_period|yesno:"true,false" }};
                 const periodName = '{{ budget_period.name|default:"" }}';
-                const orgName = (function(){ try { return document.querySelector('#id_organization option:checked').text || ''; } catch(e){ return ''; } })();
+                function getOrgName(){
+                    try {
+                        var el = document.querySelector('#id_organization option:checked');
+                        return el && el.text ? el.text : '';
+                    } catch(e){ return ''; }
+                }
                 function jalaliToday(){
                     const d = new Date();
                     return d.toLocaleDateString('fa-IR');
                 }
 
-                allocatedAmountInput.addEventListener('input', function (e) {
+                if (allocatedAmountInput) allocatedAmountInput.addEventListener('input', function (e) {
                     let value = e.target.value;
                     value = value.replace(/[^۰-۹0-9,،.]/g, '');
                     e.target.value = value;
@@ -619,7 +647,8 @@ $(document).ready(function() {
                 function updateDisplay() {
                     if (!budgetAvailable || !allocatedAmountInput) return;
 
-                    const isPercent = document.querySelector('input[name="{{ form.allocation_type.name }}"]:checked').value === 'percent';
+                    const selectedTypeEl = document.querySelector('input[name="{{ form.allocation_type.name }}"]:checked');
+                    const isPercent = selectedTypeEl ? selectedTypeEl.value === 'percent' : false;
                     const rawValue = allocatedAmountInput.value;
                     const value = NumberFormatter.getRawNumber(rawValue);
                     let amount = parseFloat(value) || 0;
@@ -679,6 +708,7 @@ $(document).ready(function() {
                     if (autoDescPreview) {
                         let txt = '';
                         if (displayAmount > 0) {
+                            const orgName = getOrgName();
                             txt = `تخصیص بودجه به مبلغ ${NumberFormatter.separate(displayAmount)} ریال برای سازمان «${orgName}» در دوره «${periodName}» در تاریخ ${jalaliToday()}`;
                         }
                         autoDescPreview.textContent = txt;

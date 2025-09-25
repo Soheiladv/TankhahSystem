@@ -72,6 +72,16 @@ from core.workflow.views_Action import (
     ActionListView, ActionUpdateView, ActionDeleteView, ActionCreteView,
     # ویوهای Transition و Permission در مراحل بعدی اضافه خواهند شد
 )
+from BudgetsSystem.view.view_SystemSettings import (
+    SystemSettingsDashboardView,
+    SystemSettingsCreateView,
+    SystemSettingsUpdateView,
+    SystemSettingsResetView,
+    SystemSettingsExportView,
+    SystemSettingsImportView,
+    SystemSettingsHealthView,
+    SystemSettingsPreviewView,
+)
 urlpatterns = [
             # داشبوردها
             path('dashboard/flows-1/', DashboardView_flows_1.as_view(), name='dashboard_flows_1'),
@@ -233,6 +243,16 @@ urlpatterns += [
             
             # داشبورد اجرایی
             path('executive-dashboard/', ExecutiveDashboardView.as_view(), name='executive_dashboard'),
+            # System Settings
+            path('system-settings/', SystemSettingsDashboardView.as_view(), name='system_settings_dashboard'),
+            # path('system-settings/create/', SystemSettingsCreateView.as_view(), name='system_settings_create'),
+            path('system-settings/create/', SystemSettingsUpdateView.as_view(), name='system_settings_create'),
+            path('system-settings/<int:pk>/edit/', SystemSettingsUpdateView.as_view(), name='system_settings_update'),
+            path('system-settings/reset/', SystemSettingsResetView.as_view(), name='system_settings_reset'),
+            path('system-settings/export/', SystemSettingsExportView.as_view(), name='system_settings_export'),
+            path('system-settings/import/', SystemSettingsImportView.as_view(), name='system_settings_import'),
+            path('system-settings/health/', SystemSettingsHealthView.as_view(), name='system_settings_health'),
+            path('system-settings/preview/', SystemSettingsPreviewView.as_view(), name='system_settings_preview'),
             
             # گزارشات جامع
             path('comprehensive-budget-report/', ComprehensiveBudgetReportView.as_view(), name='comprehensive_budget_report'),

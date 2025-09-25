@@ -4,7 +4,17 @@
 
 
 {% block content %}
-<div class="container py-5">
+<style>
+    /* جدول فشرده و قابل جا شدن در عرض */
+    .table-fixed { table-layout: fixed; }
+    .cell-nw { white-space: nowrap; }
+    .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block; max-width: 100%; }
+    /* کاهش فاصله دکمه‌ها */
+    .btn-custom { padding: .25rem .4rem; }
+    /* بهبود تراکم سطرها */
+    .table-sm td, .table-sm th { padding-top: .4rem; padding-bottom: .4rem; }
+</style>
+<div class="container-fluid py-5">
     <div class="card fade-in">
         <div class="card-body">
             <h2 class="card-title text-center mb-4">
@@ -128,17 +138,28 @@
                                                 </h3>
                                                 <div id="projectCollapse{{ forloop.parentloop.counter }}_{{ forloop.counter }}" class="accordion-collapse collapse" aria-labelledby="projectHeading{{ forloop.parentloop.counter }}_{{ forloop.counter }}" data-bs-parent="#projectAccordion{{ forloop.counter }}">
                                                     <div class="accordion-body">
-                                                        <table class="table table-hover">
+                                                        <div class="d-flex justify-content-end mb-2">
+                                                            <a class="btn btn-outline-secondary btn-sm"
+                                                               href="{% url 'reportlab_pdf_api' %}?app=tankhah&model=Tankhah&fields=number,date,amount,description&landscape=true&page_size=20x28"
+                                                               target="_blank">
+                                                                <i class="fas fa-print"></i> {% trans "چاپ لیست" %}
+                                                            </a>
+                                                        </div>
+                                                        <div class="table-responsive">
+                                                        <table class="table table-hover table-sm align-middle table-fixed">
                                                             <thead>
                                                                 <tr>
-                                                                    <th>{% trans "ردیف" %}</th>
-                                                                    <th>{% trans "شماره" %}</th>
-                                                                    <th>{% trans "تاریخ" %}</th>
-                                                                    <th>{% trans "مبلغ" %}</th>
-                                                                    <th>{% trans "باقیمانده" %}</th>
-                                                                    <th>{% trans "وضعیت" %}</th>
-                                                                    <th>{% trans "مانده تنخواه" %}</th>
-                                                                    <th>{% trans "عملیات" %}</th>
+                                                                     <th style="width:5%">{% trans "ردیف" %}</th>
+                                                                     <th style="width:12%">{% trans "شماره" %}</th>
+                                                                     <th style="width:9%">{% trans "تاریخ" %}</th>
+                                                                     <th style="width:12%">{% trans "مبلغ" %}</th>
+                                                                     <th style="width:12%">{% trans "باقیمانده" %}</th>
+                                                                     <th class="d-none d-sm-table-cell" style="width:10%">{% trans "وضعیت" %}</th>
+                                                                     <th class="d-none d-lg-table-cell" style="width:12%">{% trans "دسته بندی بودجه" %}</th>
+                                                                     <th class="d-none d-lg-table-cell" style="width:12%">{% trans "ردیف بودجه تنخواه" %}</th>
+                                                                     <th class="d-none d-md-table-cell" style="width:6%">{% trans "تعداد فاکتورها" %}</th>
+                                                                     <th class="d-none d-xl-table-cell" style="width:10%">{% trans "پیشرفت مصرف" %}</th>
+                                                                     <th style="width:10%">{% trans "عملیات" %}</th>
                                                                 </tr>
                                                             </thead>
                                                             <tbody>
@@ -156,7 +177,7 @@
                                                                         <tr class="fade-in">
                                                                     {% endif %}
                                                                         <td>{{ forloop.counter |to_persian_number }}</td>
-                                                                        <td>
+                                                                        <td class="cell-nw truncate" title="{{ tankhah.number }}">
                                                                             {{ tankhah.number|to_persian_number }}
                                                                             {% if tankhah.project_budget_allocation and tankhah.project_budget_allocation.budget_period %}
                                                                                 {% with budget_period=tankhah.project_budget_allocation.budget_period %}
@@ -168,31 +189,84 @@
                                                                                 {% endwith %}
                                                                             {% endif %}
                                                                         </td>
-                                                                        <td>{{ tankhah.date|jformat:"%Y/%m/%d"|to_persian_number }}</td>
-                                                                        <td>{{ tankhah.amount|floatformat:0|intcomma|to_persian_number }} {% trans "ریال" %}</td>
-                                                                        <td>{{ tankhah.get_remaining_budget|floatformat:0|intcomma|to_persian_number }} {% trans "ریال" %}</td>
-                                                                        <td>
-                                                                            <span class="status-badge status-{{ tankhah.status|lower }}">
-                                                                                {{ tankhah.get_status_display }}
+                                                                        <td class="cell-nw">{{ tankhah.date|jformat:"%Y/%m/%d"|to_persian_number }}</td>
+                                                                        <td class="cell-nw" title="{{ tankhah.amount|floatformat:0|format_negative }}">{{ tankhah.amount|floatformat:0|to_persian_number }} {% trans "ریال" %}</td>
+                                                                        <td class="cell-nw" title="{{ tankhah.get_remaining_budget|floatformat:0|intcomma }}">{{ tankhah.get_remaining_budget|floatformat:0|intcomma|to_persian_number }} {% trans "ریال" %}</td>
+                                                                        <td class="d-none d-sm-table-cell">
+                                                                            <span class="status-badge 
+                                                                                {% if tankhah.status %}
+                                                                                    status-{{ tankhah.status.code|lower }}
+                                                                                {% else %}
+                                                                                    status-unknown
+                                                                                {% endif %}">
+                                                                                {% if tankhah.status %}
+                                                                                    {{ tankhah.status.name }}
+                                                                                {% else %}
+                                                                                    -
+                                                                                {% endif %}
                                                                             </span>
+                                                                        </td>
+                                                                        <td class="d-none d-lg-table-cell truncate"
+                                                                            {% if tankhah.project_budget_allocation and tankhah.project_budget_allocation.budget_item and tankhah.project_budget_allocation.budget_item.organization %}
+                                                                                title="{{ tankhah.project_budget_allocation.budget_item.organization.name }}"
+                                                                            {% endif %}>
+                                                                            {% if tankhah.project_budget_allocation and tankhah.project_budget_allocation.budget_item and tankhah.project_budget_allocation.budget_item.organization %}
+                                                                                {{ tankhah.project_budget_allocation.budget_item.organization.name|default:"-" }}
+                                                                            {% else %}-{% endif %}
+                                                                        </td>
+                                                                        <td class="d-none d-lg-table-cell truncate"
+                                                                            {% if tankhah.project_budget_allocation and tankhah.project_budget_allocation.budget_item %}
+                                                                                title="{{ tankhah.project_budget_allocation.budget_item.name }}"
+                                                                            {% endif %}>
+                                                                            {% if tankhah.project_budget_allocation and tankhah.project_budget_allocation.budget_item %}
+                                                                                {{ tankhah.project_budget_allocation.budget_item.name|default:"-" }}
+                                                                            {% else %}-{% endif %}
+                                                                        </td>
+                                                                        <td class="d-none d-md-table-cell">
+                                                                            {{ tankhah.factors.count|to_persian_number }}
+                                                                        </td>
+                                                                        <td class="d-none d-xl-table-cell" style="min-width:160px;">
+                                                                            {% with consumed=tankhah.tankhah_used_budget|default:0 total=tankhah.amount|default:0 %}
+                                                                                {% if total and total > 0 %}
+                                                                                    {% with percent_val=consumed|mul:100|div:total %}
+                                                                                        <div class="progress" style="height: 14px;">
+                                                                                            <div class="progress-bar bg-success" role="progressbar" style="width: {{ percent_val|floatformat:0 }}%" aria-valuenow="{{ percent_val|floatformat:0 }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                                                                        </div>
+                                                                                    {% endwith %}
+                                                                                {% else %}
+                                                                                    <div class="progress" style="height: 14px;">
+                                                                                        <div class="progress-bar bg-secondary" style="width: 0%"></div>
+                                                                                    </div>
+                                                                                {% endif %}
+                                                                            {% endwith %}
                                                                         </td>
                                                                         <td>
                                                                             <a href="{% url 'tankhah_detail' tankhah.pk %}" class="btn btn-sm btn-info btn-custom" title="{% trans 'جزئیات' %}" aria-label="{% trans 'مشاهده جزئیات تنخواه' %} {{ tankhah.number }}">
                                                                                 <i class="fas fa-eye"></i>
                                                                             </a>
-
-                                                                            <a href="{% url 'tankhah_approval_timeline' tankhah.pk %}" class="btn btn-sm btn-info btn-custom" title="{% trans 'وضعیت' %}" aria-label="{% trans 'مشاهده وضعیت تنخواه' %} {{ tankhah.number }}">
-                                                                                <i class="fas fa-eye"></i>
+                                                                            <a href="{% url 'reportlab_pdf_api' %}?app=tankhah&model=Tankhah&fields=number,date,amount,description&filters=%7B%22id%22%3A{{ tankhah.id }}%7D&landscape=true&page_size=20x28" target="_blank" class="btn btn-sm btn-secondary btn-custom" title="{% trans 'چاپ' %}"
+                                                                               aria-label="{% trans 'چاپ تنخواه' %} {{ tankhah.number }}">
+                                                                                <i class="fas fa-print"></i>
                                                                             </a>
-
-                                                                            <a href="{% url 'enhancedtankhah_update_status' pk=tankhah.pk %}" class="btn btn-primary">{% trans "به‌روزرسانی وضعیت" %}</a>
-
-
+                                                                            <a href="{% url 'tankhah_update' tankhah.pk %}"
+                                                                               class="btn btn-sm btn-warning btn-custom {% if tankhah.factors.exists %}disabled{% endif %}"
+                                                                               title="{% trans 'ویرایش' %}"
+                                                                               aria-disabled="{% if tankhah.factors.exists %}true{% else %}false{% endif %}">
+                                                                                <i class="fas fa-edit"></i>
+                                                                            </a>
+                                                                            <a href="{% url 'tankhah_delete' tankhah.pk %}"
+                                                                               class="btn btn-sm btn-danger btn-custom {% if tankhah.factors.exists %}disabled{% endif %}"
+                                                                               title="{% trans 'حذف' %}"
+                                                                               aria-disabled="{% if tankhah.factors.exists %}true{% else %}false{% endif %}"
+                                                                               onclick="return {% if tankhah.factors.exists %}false{% else %}confirm('{% trans 'آیا از حذف تنخواه مطمئن هستید؟' %}'){% endif %};">
+                                                                                <i class="fas fa-trash"></i>
+                                                                            </a>
                                                                         </td>
                                                                     </tr>
                                                                 {% endfor %}
                                                             </tbody>
                                                         </table>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>

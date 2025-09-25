@@ -188,25 +188,49 @@ def analyze_specific_factor():
     print(f"\n🔍 تحلیل فاکتور مشخص شده:")
     print("=" * 50)
     
-    factor_number = "FAC-TNKH-14040601-HSarein-HSAR-Flor3-001-14040630-HSarein-0001"
+    from django.contrib.auth import get_user_model
+    from tankhah.models import Factor
+    from core.models import Transition
+    from tankhah.Factor.FactorDetail.views_FactorDetail import get_user_allowed_transitions, get_next_steps_with_posts
+
+    factor_id = int(os.environ.get('FACTOR_ID', '80'))
+    try:
+        factor = Factor.objects.select_related('tankhah', 'tankhah__organization', 'status').get(pk=factor_id)
+    except Factor.DoesNotExist:
+        print(f"   ❌ فاکتور با شناسه {factor_id} یافت نشد.")
+        return
     
-    print(f"📋 شماره فاکتور: {factor_number}")
+    print(f"📋 فاکتور: ID={factor.id} | Number={factor.number} | Status={getattr(factor.status, 'name', 'N/A')}")
     print("   " + "-" * 50)
     
-    # تجزیه شماره فاکتور
-    parts = factor_number.split('-')
-    if len(parts) >= 8:
-        print("   🔍 تجزیه شماره فاکتور:")
-        print(f"      FAC: فاکتور")
-        print(f"      TNKH: تنخواه")
-        print(f"      14040601: تاریخ ایجاد")
-        print(f"      HSarein: سازمان ایجادکننده")
-        print(f"      HSAR: کد شعبه")
-        print(f"      Flor3: طبقه/سطح")
-        print(f"      001: شماره پروژه")
-        print(f"      14040630: تاریخ انقضا")
-        print(f"      HSarein: سازمان نهایی")
-        print(f"      0001: شماره سریال")
+    # نمایش آخرین لاگ‌ها
+    print("\n🧾 آخرین 10 لاگ:")
+    logs = list(factor.approval_logs.select_related('user', 'post', 'from_status', 'to_status', 'action').order_by('-timestamp')[:10])
+    for log in logs:
+        uname = log.user.get_full_name() or log.user.username if log.user else 'سیستم'
+        post = f"{getattr(log.post, 'name', 'بدون پست')} (L{getattr(log.post, 'level', 'NA')})" if log.post else 'بدون پست'
+        print(f"   - {log.timestamp.strftime('%Y-%m-%d %H:%M:%S')} | {uname} | {post} | {getattr(log.action,'code', 'ACT')} -> {getattr(log.to_status,'code','STS')}")
+
+    # نمایش سطح پست اقدام‌کننده فعلی (کاربران فعال)
+    print("\n👤 پست‌های فعال کاربران در این لحظه:")
+    from core.models import UserPost
+    ups = UserPost.objects.filter(user__is_active=True, is_active=True).select_related('user','post')[:20]
+    for up in ups:
+        print(f"   - {up.user.username}: {up.post.name} (L{up.post.level}) @ {up.post.organization.code}")
+
+    # ترنزیشن‌های وضعیت فعلی و next-step
+    print("\n➡️ ترنزیشن‌های وضعیت فعلی و next-steps:")
+    transitions = Transition.objects.filter(entity_type__code='FACTOR', from_status=factor.status, is_active=True).select_related('action','to_status','organization').prefetch_related('allowed_posts')
+    for t in transitions:
+        posts = ", ".join([f"{p.name}(L{p.level})" for p in t.allowed_posts.all()]) or 'عمومی'
+        print(f"   - {t.action.code} -> {t.to_status.code} @ {t.organization.code} | پست‌ها: {posts}")
+
+    # مسیر کامل محاسبه‌شده
+    path = get_next_steps_with_posts(factor)
+    print("\n🗺️ مسیر بعدی محاسبه‌شده:")
+    for step in path:
+        posts = ", ".join([f"{p.name}(L{p.level})" for p in step['posts']]) if step.get('posts') else 'عمومی'
+        print(f"   - {step['action'].code}: {step['from_status'].code} -> {step['to_status'].code} | {posts}")
     
     print(f"\n   🏢 اطلاعات سازمان:")
     print(f"      سازمان ایجادکننده: HSarein")

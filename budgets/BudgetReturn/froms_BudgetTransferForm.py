@@ -64,7 +64,7 @@ class BudgetTransferForm(forms.Form):
         required=False,
         widget=forms.Textarea(attrs={
             'class': 'form-control',
-            'rows': 3,
+            'rows': 1,
             'placeholder': _('دلیل جابجایی بودجه...')
         })
     )

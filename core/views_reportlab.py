@@ -194,15 +194,118 @@ def _sanitize_rows(rows: List[dict]) -> List[dict]:
     return out
 
 
-def _build_pdf_table(buffer: io.BytesIO, title: str, fields: List[str], rows: List[dict], landscape_mode: bool = False,
-                      footer_text: str = None, page_size: str = 'A4') -> bytes:
-    # Select page size
-    base_size = A4
-    if page_size and page_size.upper() == 'A4':
-        base_size = A4
-    page_size_tuple = landscape(base_size) if landscape_mode else portrait(base_size)
+def _cm_to_pt(val_cm: float) -> float:
+    return float(val_cm) * 28.3464567
 
-    doc = SimpleDocTemplate(buffer, pagesize=page_size_tuple, title=title)
+
+def _load_report_settings() -> dict:
+    """Load report settings (page size, margins, presets) from config/report_settings.json if present."""
+    try:
+        base_dir = getattr(settings, 'BASE_DIR', os.path.dirname(os.path.dirname(__file__)))
+        cfg_path = os.path.join(base_dir, 'config', 'report_settings.json')
+        if os.path.exists(cfg_path):
+            with open(cfg_path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                return data or {}
+    except Exception as e:
+        logger.warning(f"[RPT] Failed to load report_settings.json: {e}")
+    return {}
+
+
+def _resolve_page_setup(request, fallback_page_size: str = 'A4', fallback_landscape: bool = False) -> tuple:
+    """Resolve page size (tuple in points) and margins (tuple of 4 pts) using request params and config file.
+
+    Priority: request params > preset in config > defaults in config > fallbacks.
+    """
+    cfg = _load_report_settings()
+
+    # Resolve preset if provided
+    preset_name = (request.GET.get('preset') or '').strip()
+    preset = cfg.get('presets', {}).get(preset_name, {}) if preset_name else {}
+
+    # Resolve page_size string
+    page_size_str = request.GET.get('page_size') or preset.get('page_size') or cfg.get('default', {}).get('page_size') or fallback_page_size
+
+    # Resolve orientation
+    landscape_param = request.GET.get('landscape')
+    if landscape_param is not None:
+        landscape_mode = (landscape_param.lower() == 'true')
+    else:
+        landscape_mode = bool(preset.get('landscape', cfg.get('default', {}).get('landscape', fallback_landscape)))
+
+    # Resolve margins (in cm if not specified otherwise)
+    margins_cfg = preset.get('margins', cfg.get('default', {}).get('margins', {}))
+    top_cm = float(margins_cfg.get('top_cm', 1.5))
+    right_cm = float(margins_cfg.get('right_cm', 1.5))
+    bottom_cm = float(margins_cfg.get('bottom_cm', 1.5))
+    left_cm = float(margins_cfg.get('left_cm', 1.5))
+
+    margins_pt = (_cm_to_pt(left_cm), _cm_to_pt(right_cm), _cm_to_pt(top_cm), _cm_to_pt(bottom_cm))
+
+    # Resolve page size tuple (pts)
+    page_size_tuple = None
+    try:
+        if page_size_str:
+            ps = str(page_size_str).strip()
+            if ps.upper() == 'A4':
+                page_size_tuple = A4
+            elif 'x' in ps.lower():
+                parts = ps.lower().split('x')
+                if len(parts) == 2:
+                    w_cm = float(parts[0])
+                    h_cm = float(parts[1])
+                    page_size_tuple = (_cm_to_pt(w_cm), _cm_to_pt(h_cm))
+    except Exception:
+        page_size_tuple = None
+
+    if not page_size_tuple:
+        page_size_tuple = A4
+
+    if landscape_mode:
+        page_size_tuple = (page_size_tuple[1], page_size_tuple[0])
+
+    return page_size_tuple, margins_pt
+
+
+def _build_pdf_table(buffer: io.BytesIO, title: str, fields: List[str], rows: List[dict], landscape_mode: bool = False,
+                      footer_text: str = None, page_size: str = 'A4', margins_pt: tuple = None, request=None) -> bytes:
+    # Select page size (supports 'A4' or custom like '20x28' in cm)
+    if request is not None and margins_pt is None:
+        page_size_tuple, margins_pt = _resolve_page_setup(request, fallback_page_size=page_size, fallback_landscape=landscape_mode)
+    else:
+        # Backward compatibility path
+        base_size = A4
+        page_size_tuple = None
+        try:
+            if page_size:
+                ps = str(page_size).strip()
+                if ps.upper() == 'A4':
+                    page_size_tuple = A4
+                elif 'x' in ps.lower():
+                    parts = ps.lower().split('x')
+                    if len(parts) == 2:
+                        w_cm = float(parts[0])
+                        h_cm = float(parts[1])
+                        page_size_tuple = (_cm_to_pt(w_cm), _cm_to_pt(h_cm))
+        except Exception:
+            page_size_tuple = None
+        if not page_size_tuple:
+            page_size_tuple = A4
+        if landscape_mode:
+            page_size_tuple = (page_size_tuple[1], page_size_tuple[0])
+        if margins_pt is None:
+            margins_pt = (_cm_to_pt(1.5), _cm_to_pt(1.5), _cm_to_pt(1.5), _cm_to_pt(1.5))
+
+    left_m, right_m, top_m, bottom_m = margins_pt if margins_pt else (_cm_to_pt(1.5), _cm_to_pt(1.5), _cm_to_pt(1.5), _cm_to_pt(1.5))
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=page_size_tuple,
+        title=title,
+        leftMargin=left_m,
+        rightMargin=right_m,
+        topMargin=top_m,
+        bottomMargin=bottom_m,
+    )
     styles = getSampleStyleSheet()
 
     # Use Persian font when available
@@ -214,21 +317,57 @@ def _build_pdf_table(buffer: io.BytesIO, title: str, fields: List[str], rows: Li
     story.append(Paragraph(_shape_text(smart_str(title or 'گزارش')), styles['Heading2']))
     story.append(Spacer(1, 12))
 
-    # Build table data with shaping
-    header = [ _shape_text(smart_str(f)) for f in (fields or []) ]
+    # Build table data with shaping and wrapping
+    # Create a compact paragraph style for table cells
+    cell_style = styles['Normal']
+    try:
+        from reportlab.lib.styles import ParagraphStyle
+        cell_style = ParagraphStyle(
+            name='TableCellSmall',
+            parent=styles['Normal'],
+            fontName=(PERSIAN_FONT_NAME if FONT_READY else 'Helvetica'),
+            fontSize=8,
+            leading=10,
+            alignment=2,  # RIGHT
+        )
+        header_style = ParagraphStyle(
+            name='TableHeaderSmall',
+            parent=styles['Normal'],
+            fontName=(PERSIAN_FONT_NAME if FONT_READY else 'Helvetica'),
+            fontSize=8.5,
+            leading=11,
+            alignment=2,
+        )
+    except Exception:
+        header_style = cell_style
+
+    header = [Paragraph(_shape_text(smart_str(f)), header_style) for f in (fields or [])]
     data = [header]
     for r in rows:
-        data.append([ _shape_text(smart_str(r.get(f, ''))) for f in fields])
+        row_cells = []
+        for f in fields:
+            txt = _shape_text(smart_str(r.get(f, '')))
+            row_cells.append(Paragraph(txt, cell_style))
+        data.append(row_cells)
 
-    tbl = Table(data, repeatRows=1)
+    # Equal column widths to fit available doc width
+    try:
+        num_cols = max(1, len(fields))
+        col_width = (doc.width / num_cols)
+        col_widths = [col_width for _ in range(num_cols)]
+    except Exception:
+        col_widths = None
+
+    tbl = Table(data, repeatRows=1, colWidths=col_widths)
     tbl.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
-        ('ALIGN', (0, 0), (-1, -1), 'RIGHT'),  # RTL alignment
+        ('ALIGN', (0, 0), (-1, -1), 'RIGHT'),
         ('FONTNAME', (0, 0), (-1, -1), PERSIAN_FONT_NAME if FONT_READY else 'Helvetica'),
-        ('FONTSIZE', (0, 0), (-1, -1), 9),
+        ('FONTSIZE', (0, 0), (-1, -1), 8),
         ('BOTTOMPADDING', (0, 0), (-1, 0), 6),
         ('GRID', (0, 0), (-1, -1), 0.25, colors.grey),
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
     ]))
 
     story.append(tbl)
@@ -295,9 +434,16 @@ def reportlab_pdf_api(request):
 
         rows = _sanitize_rows(_qs_to_dicts(qs, fields))
         buf = io.BytesIO()
-        pdf_bytes = _build_pdf_table(buf, title=title, fields=fields, rows=rows,
-                                     landscape_mode=landscape_mode, footer_text=f"تاریخ تهیه: {datetime.now():%Y-%m-%d %H:%M}",
-                                     page_size=page_size)
+        pdf_bytes = _build_pdf_table(
+            buf,
+            title=title,
+            fields=fields,
+            rows=rows,
+            landscape_mode=landscape_mode,
+            footer_text=f"تاریخ تهیه: {datetime.now():%Y-%m-%d %H:%M}",
+            page_size=page_size,
+            request=request,
+        )
         resp = HttpResponse(pdf_bytes, content_type='application/pdf')
         resp['Content-Disposition'] = f"attachment; filename={smart_str(model_name)}.pdf"
         return resp

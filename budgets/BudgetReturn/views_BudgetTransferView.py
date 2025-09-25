@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 class BudgetTransferView(FormView):
     form_class = BudgetTransferForm
-    template_name = 'budgets/ReturnTransfer/budget_transfer_form.html'
+    template_name = 'budgets/BudgetTransfer/transfer_list.html'
     success_url = reverse_lazy('budgetallocation_list')
 
     def get_form_kwargs(self):

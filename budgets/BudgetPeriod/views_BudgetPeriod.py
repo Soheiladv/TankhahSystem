@@ -14,6 +14,7 @@ from django.views.generic import CreateView, UpdateView, DeleteView,ListView,Det
 from django.urls import reverse_lazy
 from django.contrib import messages
 from django.db import transaction
+from django.db.models.deletion import ProtectedError
 
 from BudgetsSystem.utils import parse_jalali_date_jdate
 from budgets.budget_calculations import check_budget_status
@@ -104,8 +105,19 @@ class BudgetPeriodDeleteView(PermissionBaseView, DeleteView):
     def post(self, request, *args, **kwargs):
         budget_period = self.get_object()
         with transaction.atomic():
-            budget_period.delete()
-            messages.success(request, f'دوره بودجه {budget_period.name} با موفقیت حذف شد.')
+            # اگر تخصیص دارد: حذف انجام نشود و پیام بده
+            from budgets.models import BudgetAllocation
+            if BudgetAllocation.objects.filter(budget_period=budget_period).exists():
+                messages.error(request, _('این دوره دارای تخصیص است و قابل حذف نیست. ابتدا تخصیص‌ها را حذف/انتقال دهید.'))
+                return redirect(self.success_url)
+
+            # در غیر این صورت، حذف را تلاش کن
+            try:
+                budget_period.delete()
+                messages.success(request, f'دوره بودجه {budget_period.name} با موفقیت حذف شد.')
+            except ProtectedError:
+                # احتمالاً به‌دلیل وجود BudgetItem‌های وابسته
+                messages.error(request, _('به دلیل وجود ردیف‌های بودجه وابسته، حذف ممکن نیست. ابتدا ردیف‌ها را حذف کنید.'))
         return redirect(self.success_url)
 
 # --- BudgetPeriod CRUD ---

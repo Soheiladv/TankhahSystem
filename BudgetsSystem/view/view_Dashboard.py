@@ -23,97 +23,11 @@ from datetime import timedelta
 from tankhah.models import Tankhah, Factor
 from budgets.models import BudgetPeriod, BudgetAllocation, BudgetTransaction
 from core.models import Project
+from core.models import SystemSettings
 from django.contrib.contenttypes.models import ContentType
 logger = logging.getLogger('Main_Dashboard')
 # لینک‌های داشبورد
-_____dashboard_links_ = {
-    'روند تنخواه': [
-        {'name': _('روند تنخواه'), 'url': 'dashboard_flows', 'icon': 'fas fa-link'},
-        {'name': _('BI گزارشات'), 'url': 'financialDashboardView', 'icon': 'fas fa-chart-bar'},
-        {'name': _('گزارش جزئیات تنخواه'), 'url': 'tankhah_detail', 'icon': 'fas fa-chart-bar'},
-        {'name': _('گزارش لحظه‌ای از بودجه‌بندی'), 'url': 'budgetrealtimeReportView', 'icon': 'fas fa-chart-bar'},
-    ],
-    'بودجه سازمان': [
-        {'name': _('فهرست بودجه کلان'), 'url': 'budgetperiod_list', 'permission': 'budgets.view_budgetperiod',
-         'icon': 'fas fa-project-diagram'},
-        {'name': _('داشبورد مدیریتی بودجه'), 'url': 'budgets_dashboard', 'permission': 'budgets.view_budgetallocation',
-         'icon': 'fas fa-project-diagram'},
-        {'name': _('فهرست بودجه شعبات'), 'url': 'budgetallocation_list', 'permission': 'budgets.view_budgetallocation',
-         'icon': 'fas fa-plus'},
-        {'name': _('گزارش هشدارهای بودجه'), 'url': 'budget_warning_report', 'permission': 'budgets.view_budgethistory',
-         'icon': 'fas fa-plus'},
-        {'name': _('فهرست بودجه در مراکز هزینه (برگشت بودجه)'), 'url': 'budgetallocation_list',
-         'permission': 'budgets.view_budgetallocation', 'icon': 'fas fa-plus'},
-        {'name': _('انتقال بودجه'), 'url': 'budget_transfer', 'permission': 'budgets.add_budgetreallocation',
-         'icon': 'fas fa-plus'},
-        {'name': _('فهرست تغییر در بودجه'), 'url': 'budgettransaction_list',
-         'permission': 'budgets.view_budgettransaction', 'icon': 'fas fa-plus'},
-    ],
-    'تنخواه': [
-        {'name': _('فهرست تنخواه'), 'url': 'tankhah_list', 'permission': 'tankhah.view_tankhah',
-         'icon': 'fas fa-project-diagram'},
-        {'name': _('ایجاد تنخواه'), 'url': 'tankhah_create', 'permission': 'tankhah.add_tankhah',
-         'icon': 'fas fa-plus'},
-    ],
-    'فاکتورها': [
-        {'name': _('فهرست فاکتورها'), 'url': 'factor_list', 'permission': 'tankhah.view_factor', 'icon': 'fas fa-file-invoice'},
-        {'name': _('ایجاد فاکتور'), 'url': 'Nfactor_create', 'permission': 'tankhah.add_factor', 'icon': 'fas fa-plus'},
-    ],
-    'عنوان مرکز هزینه (پروژه)': [
-        {'name': _('فهرست مرکز هزینه (پروژه)'), 'url': 'project_list', 'permission': 'core.view_project',
-         'icon': 'fas fa-project-diagram'},
-        {'name': _('ایجاد مرکز هزینه (پروژه)'), 'url': 'project_create', 'permission': 'core.add_project',
-         'icon': 'fas fa-plus'},
-        {'name': _('ایجاد زیر مرکز هزینه (پروژه)'), 'url': 'subproject_create', 'permission': 'core.add_subproject',
-         'icon': 'fas fa-plus'},
-    ],
-    'گردش کار': [
-        {'name': _('فهرست گردش کار'), 'url': 'workflow_stage_list', 'permission': 'core.view_workflowstage',
-         'icon': 'fas fa-exchange-alt'},
-        {'name': _('ثبت گردش کار'), 'url': 'workflow_stage_create', 'permission': 'core.add_workflowstage',
-         'icon': 'fas fa-plus'},
-    ],
-    'پست و سلسله مراتب': [
-        {'name': _('فهرست پست‌ها'), 'url': 'post_list', 'permission': 'core.view_post', 'icon': 'fas fa-sitemap'},
-        {'name': _('ایجاد پست'), 'url': 'post_create', 'permission': 'core.add_post', 'icon': 'fas fa-plus'},
-    ],
-    'سازمان': [
-        {'name': _('فهرست سازمان‌ها'), 'url': 'organization_list', 'permission': 'core.view_organization',
-         'icon': 'fas fa-building'},
-        {'name': _('ایجاد سازمان'), 'url': 'organization_create', 'permission': 'core.add_organization',
-         'icon': 'fas fa-plus'},
-    ],
-    'پست همکار در سازمان': [
-        {'name': _('فهرست اتصالات کاربر به پست'), 'url': 'userpost_list', 'permission': 'core.view_userpost',
-         'icon': 'fas fa-users'},
-        {'name': _('ایجاد اتصال'), 'url': 'userpost_create', 'permission': 'core.add_userpost', 'icon': 'fas fa-plus'},
-    ],
-    'مدیریت دستور پرداخت': [
-        {'name': _('دستور پرداخت'), 'url': 'paymentorder_list', 'icon': 'fas fa-plus'},
-        # {'name': _('دستور پرداخت'), 'url': 'paymentorder_list', 'permission': 'budgets.view_paymentorder', 'icon': 'fas fa-plus'},
-        # ,'permission': 'budgets.BudgetTransaction_view'
-        {'name': _('فهرست دریافت‌کننده'), 'url': 'payee_list', 'icon': 'fas fa-plus'},
-        # {'name': _('فهرست دریافت‌کننده'), 'url': 'payee_list', 'permission': 'budgets.view_payee', 'icon': 'fas fa-plus'},
-        # ,'permission': 'budgets.BudgetTransaction_view'
-        {'name': _('فهرست تعریف پویا نوع تراکنش‌ها'), 'url': 'transactiontype_list', 'icon': 'fas fa-plus'},
-        # {'name': _('فهرست تعریف پویا نوع تراکنش‌ها'), 'url': 'transactiontype_list', 'permission': 'budgets.view_transactiontype', 'icon': 'fas fa-plus'},
-        # 'permission': 'budgets.BudgetTransaction_view',
-        {'name': _('دسته بندی نوع هزینه کرد'), 'url': 'itemcategory_list', 'icon': 'fas fa-link'},
-    ],
-    'قوانین سیستم (رول‌های دسترسی)': [
-        # {'name': _('قوانین سیستم (رول‌های دسترسی)'), 'url': 'accessrule_list', 'icon': 'fas fa-history'},
-        {'name': _('قوانین سیستم (رول‌های دسترسی)  '), 'url': 'post_access_rule_assign', 'icon': 'fas fa-history'},
-    ],
-    'تاریخچه پست‌ها': [
-        {'name': _('فهرست تاریخچه پست‌ها'), 'url': 'posthistory_list', 'permission': 'core.view_posthistory',
-         'icon': 'fas fa-history'},
-    ],
-    'دیگر لینک‌ها': [
-        {'name': _('مدیریت کاربران'), 'url': 'accounts:admin_dashboard', 'icon': 'fas fa-link'},
-        {'name': _('نسخه‌ها'), 'url': 'version_index_view', 'icon': 'fas fa-link'},
-        {'name': _('راهنمای بودجه‌بندی'), 'url': 'budget_Help', 'icon': 'fas fa-link'},
-    ],
-}
+
 dashboard_links = {
     'فاکتورها': [
         {'name': _('فهرست فاکتورها'), 'url': 'factor_list',    'permission': 'tankhah.view_factor',     'icon': 'fas fa-clipboard-list'},  # لیست کلیپ‌بورد برای فاکتورها
@@ -226,6 +140,7 @@ dashboard_links = {
         {'name': _('راهنمای بودجه‌بندی'), 'url': 'budget_Help', 'icon': 'fas fa-question-circle'},
         # علامت سوال برای راهنما
         {'name': _('راهنمای سیستم '), 'url': 'soft_help', 'icon': 'fas fa-question-circle'},  # علامت سوال برای راهنما
+        {'name': _('تنظیمات سامانه (SystemSettings)'), 'url': 'system_settings_dashboard', 'icon': 'fas fa-sliders-h'},
     ],
 }
 
@@ -984,6 +899,23 @@ class DashboardView(LoginRequiredMixin, View):
 
         # لینک‌های داشبورد
         context['dashboard_links'] = dashboard_links
+
+        # تنظیمات سیستم (SystemSettings Dashboard)
+        try:
+            settings_obj = SystemSettings.objects.first()
+        except Exception:
+            settings_obj = None
+        context['system_settings'] = settings_obj
+        context['system_settings_info'] = {
+            'enforce_strict_approval_order': bool(getattr(settings_obj, 'enforce_strict_approval_order', False)),
+            'allow_bypass_org_chart': bool(getattr(settings_obj, 'allow_bypass_org_chart', False)),
+            'allow_action_without_org_chart': bool(getattr(settings_obj, 'allow_action_without_org_chart', False)),
+            'tankhah_payment_ceiling_enabled_default': bool(getattr(settings_obj, 'tankhah_payment_ceiling_enabled_default', False)),
+            'tankhah_payment_ceiling_default': getattr(settings_obj, 'tankhah_payment_ceiling_default', None),
+            'budget_locked_percentage_default': getattr(settings_obj, 'budget_locked_percentage_default', None),
+            'budget_warning_threshold_default': getattr(settings_obj, 'budget_warning_threshold_default', None),
+            'budget_warning_action_default': getattr(settings_obj, 'budget_warning_action_default', None),
+        }
 
         # متغیرهای کلیدی برای تمپلیت
         context['active_budget_periods_count'] = BudgetPeriod.objects.filter(is_active=True, is_completed=False).count() or 0

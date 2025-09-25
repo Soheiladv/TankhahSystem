@@ -1,0 +1,463 @@
+{% load i18n static rcms_custom_filters %}
+
+<style>
+    .approval-path-container {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-radius: 15px;
+        padding: 25px;
+        margin-bottom: 20px;
+    }
+    
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-bottom: 25px;
+    }
+    
+    .stat-card {
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        text-align: center;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        border-left: 4px solid #007bff;
+    }
+    
+    .stat-card h4 {
+        color: #007bff;
+        font-size: 1.8rem;
+        font-weight: bold;
+        margin-bottom: 8px;
+    }
+    
+    .stat-card p {
+        color: #6c757d;
+        margin: 0;
+        font-weight: 500;
+    }
+    
+    .path-step {
+        display: flex;
+        align-items: center;
+        margin-bottom: 20px;
+        padding: 20px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+        position: relative;
+    }
+    
+    .path-step:hover {
+        transform: translateX(5px);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    }
+    
+    .path-step.current {
+        border-left: 4px solid #007bff;
+        background: linear-gradient(135deg, rgba(0, 123, 255, 0.1) 0%, rgba(0, 123, 255, 0.05) 100%);
+    }
+    
+    .path-step.completed {
+        border-left: 4px solid #28a745;
+        background: linear-gradient(135deg, rgba(40, 167, 69, 0.1) 0%, rgba(40, 167, 69, 0.05) 100%);
+    }
+    
+    .path-step.pending {
+        border-left: 4px solid #ffc107;
+        background: linear-gradient(135deg, rgba(255, 193, 7, 0.1) 0%, rgba(255, 193, 7, 0.05) 100%);
+    }
+    
+    .step-number {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        background: #007bff;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 1.1rem;
+        margin-right: 20px;
+        box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
+    }
+    
+    .step-number.current {
+        background: #007bff;
+        animation: pulse 2s infinite;
+    }
+    
+    .step-number.completed {
+        background: #28a745;
+    }
+    
+    .step-number.pending {
+        background: #ffc107;
+    }
+    
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+    
+    .step-content {
+        flex: 1;
+    }
+    
+    .step-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: #2c3e50;
+    }
+    
+    .step-action {
+        font-size: 1rem;
+        color: #007bff;
+        margin-bottom: 12px;
+        font-weight: 500;
+    }
+    
+    .step-status {
+        margin-bottom: 15px;
+    }
+    
+    .status-badge {
+        padding: 4px 12px;
+        border-radius: 15px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+    
+    .status-current {
+        background: rgba(0, 123, 255, 0.2);
+        color: #007bff;
+    }
+    
+    .status-completed {
+        background: rgba(40, 167, 69, 0.2);
+        color: #28a745;
+    }
+    
+    .status-pending {
+        background: rgba(255, 193, 7, 0.2);
+        color: #e0a800;
+    }
+    
+    .posts-section, .users-section {
+        margin-top: 12px;
+    }
+    
+    .posts-title, .users-title {
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: #495057;
+    }
+    
+    .post-item, .user-item {
+        display: inline-block;
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        padding: 6px 12px;
+        margin: 3px 3px 3px 0;
+        font-size: 0.85rem;
+        color: #495057;
+    }
+    
+    .user-item {
+        background: linear-gradient(135deg, rgba(168, 237, 234, 0.3) 0%, rgba(254, 214, 227, 0.3) 100%);
+        border-color: rgba(168, 237, 234, 0.5);
+    }
+    
+    .progress-bar {
+        height: 8px;
+        background: #e9ecef;
+        border-radius: 10px;
+        overflow: hidden;
+        margin: 20px 0;
+    }
+    
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        border-radius: 10px;
+        transition: width 0.5s ease;
+    }
+    
+    .duplicate-actions {
+        background: #fff3cd;
+        border: 1px solid #ffeaa7;
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+    
+    .termination-rules {
+        background: #d1ecf1;
+        border: 1px solid #bee5eb;
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+    
+    .post-rules {
+        background: #f8d7da;
+        border: 1px solid #f5c6cb;
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+    
+    .accordion-button {
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+    
+    .accordion-body {
+        font-size: 0.85rem;
+    }
+</style>
+
+<div class="approval-path-container">
+    <!-- آمار کلی -->
+    <div class="stats-row">
+        <div class="stat-card">
+            <h4>{{ path_stats.total_steps|to_persian_number }}</h4>
+            <p>{% trans "کل مراحل" %}</p>
+        </div>
+        <div class="stat-card">
+            <h4>{{ path_stats.completed_steps|to_persian_number }}</h4>
+            <p>{% trans "تکمیل شده" %}</p>
+        </div>
+        <div class="stat-card">
+            <h4>{{ path_stats.remaining_steps|to_persian_number }}</h4>
+            <p>{% trans "باقی‌مانده" %}</p>
+        </div>
+        <div class="stat-card">
+            <h4>{{ path_stats.completion_percentage|floatformat:1 }}%</h4>
+            <p>{% trans "درصد پیشرفت" %}</p>
+        </div>
+    </div>
+
+    <!-- نوار پیشرفت -->
+    <div class="progress-bar">
+        <div class="progress-fill" style="width: {{ path_stats.completion_percentage }}%"></div>
+    </div>
+
+    <!-- مسیر تأیید -->
+    <h5 class="mb-3">
+        <i class="fas fa-route me-2"></i>
+        {% trans "مسیر کامل تأیید" %}
+    </h5>
+    
+    {% for step in approval_path %}
+    <div class="path-step {{ step.is_current|yesno:'current,' }}{{ step.is_completed|yesno:'completed,' }}{{ step.is_pending|yesno:'pending,' }}">
+        <div class="step-number {{ step.is_current|yesno:'current,' }}{{ step.is_completed|yesno:'completed,' }}{{ step.is_pending|yesno:'pending,' }}">
+            {{ step.step_number }}
+        </div>
+        <div class="step-content">
+            <div class="step-title">
+                {% if step.action %}
+                    {{ step.action.name }}
+                {% else %}
+                    {% trans "وضعیت فعلی" %}
+                {% endif %}
+            </div>
+            
+            {% if step.action %}
+            <div class="step-action">
+                <i class="fas fa-arrow-right me-2"></i>
+                {% trans "از" %} "{{ step.from_status.name }}" {% trans "به" %} "{{ step.to_status.name }}"
+            </div>
+            {% endif %}
+            
+            <div class="step-status">
+                {% if step.is_current %}
+                    <span class="status-badge status-current">
+                        <i class="fas fa-play me-1"></i>
+                        {% trans "در حال انجام" %}
+                    </span>
+                {% elif step.is_completed %}
+                    <span class="status-badge status-completed">
+                        <i class="fas fa-check me-1"></i>
+                        {% trans "تکمیل شده" %}
+                    </span>
+                {% else %}
+                    <span class="status-badge status-pending">
+                        <i class="fas fa-clock me-1"></i>
+                        {% trans "در انتظار" %}
+                    </span>
+                {% endif %}
+            </div>
+            
+            {% if step.posts %}
+            <div class="posts-section">
+                <div class="posts-title">
+                    <i class="fas fa-user-tie me-1"></i>
+                    {% trans "پست‌های مسئول" %}:
+                </div>
+                {% for post in step.posts %}
+                    <span class="post-item">
+                        {{ post.name }} (سطح {{ post.level }})
+                    </span>
+                {% endfor %}
+            </div>
+            {% endif %}
+            
+            {% if step.users %}
+            <div class="users-section">
+                <div class="users-title">
+                    <i class="fas fa-users me-1"></i>
+                    {% trans "کاربران فعال" %}:
+                </div>
+                {% for user_info in step.users %}
+                    <span class="user-item">
+                        {{ user_info.user.get_full_name|default:user_info.user.username }}
+                        ({{ user_info.post.name }})
+                    </span>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- تحلیل اقدامات تکراری -->
+{% if duplicate_actions %}
+<div class="duplicate-actions">
+    <h6 class="mb-3">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        {% trans "تحلیل اقدامات تکراری" %}
+    </h6>
+    <div class="accordion" id="duplicateActionsAccordion">
+        {% for action in duplicate_actions %}
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="heading-duplicate-{{ forloop.counter }}">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-duplicate-{{ forloop.counter }}">
+                    <span class="me-2 badge bg-warning text-dark">{{ action.occurrences|to_persian_number }}</span>
+                    {{ action.action_name }}
+                    <small class="text-muted ms-2">({{ action.action_code }})</small>
+                </button>
+            </h2>
+            <div id="collapse-duplicate-{{ forloop.counter }}" class="accordion-collapse collapse" data-bs-parent="#duplicateActionsAccordion">
+                <div class="accordion-body">
+                    <p><strong>{% trans "تعداد تکرار" %}:</strong> {{ action.occurrences|to_persian_number }}</p>
+                    <p><strong>{% trans "وضعیت‌های مبدأ" %}:</strong> {{ action.from_statuses|join:", " }}</p>
+                    <p><strong>{% trans "وضعیت‌های مقصد" %}:</strong> {{ action.to_statuses|join:", " }}</p>
+                    <p><strong>{% trans "سازمان‌ها" %}:</strong> {{ action.organizations|join:", " }}</p>
+                    <p><strong>{% trans "پست‌های مجاز" %}:</strong></p>
+                    <ul class="mb-0">
+                        {% for post in action.posts %}
+                        <li>{{ post }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- قوانین خاتمه -->
+{% if termination_rules %}
+<div class="termination-rules">
+    <h6 class="mb-3">
+        <i class="fas fa-flag-checkered me-2"></i>
+        {% trans "قوانین خاتمه روند" %}
+    </h6>
+    <div class="accordion" id="terminationRulesAccordion">
+        {% for rule in termination_rules %}
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="heading-termination-{{ forloop.counter }}">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-termination-{{ forloop.counter }}">
+                    <span class="me-2 badge {% if rule.is_final_approve %}bg-success{% else %}bg-danger{% endif %}">
+                        {% if rule.is_final_approve %}{% trans "تأیید نهایی" %}{% else %}{% trans "رد نهایی" %}{% endif %}
+                    </span>
+                    {{ rule.action.name }}
+                </button>
+            </h2>
+            <div id="collapse-termination-{{ forloop.counter }}" class="accordion-collapse collapse" data-bs-parent="#terminationRulesAccordion">
+                <div class="accordion-body">
+                    <p><strong>{% trans "اقدام" %}:</strong> {{ rule.action.name }}</p>
+                    <p><strong>{% trans "از وضعیت" %}:</strong> {{ rule.from_status.name }}</p>
+                    <p><strong>{% trans "به وضعیت" %}:</strong> {{ rule.to_status.name }}</p>
+                    <p><strong>{% trans "سازمان" %}:</strong> {{ rule.organization.name }}</p>
+                    <p><strong>{% trans "پست‌های مجاز" %}:</strong></p>
+                    <ul class="mb-0">
+                        {% for post in rule.posts %}
+                        <li>{{ post.name }} ({{ post.organization.name }})</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- قوانین پست‌ها در هر شعبه -->
+{% if post_rules_per_branch %}
+<div class="post-rules">
+    <h6 class="mb-3">
+        <i class="fas fa-sitemap me-2"></i>
+        {% trans "قوانین پست‌ها در هر شعبه" %}
+    </h6>
+    <div class="accordion" id="postRulesAccordion">
+        {% for rule in post_rules_per_branch %}
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="heading-post-{{ forloop.counter }}">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-post-{{ forloop.counter }}">
+                    <span class="me-2 badge bg-info text-dark">{{ rule.post.name }}</span>
+                    <small class="text-muted">({{ rule.organization.name }})</small>
+                </button>
+            </h2>
+            <div id="collapse-post-{{ forloop.counter }}" class="accordion-collapse collapse" data-bs-parent="#postRulesAccordion">
+                <div class="accordion-body">
+                    <p><strong>{% trans "پست" %}:</strong> {{ rule.post.name }}</p>
+                    <p><strong>{% trans "سازمان" %}:</strong> {{ rule.organization.name }}</p>
+                    <p><strong>{% trans "اقدامات مجاز" %}:</strong> {{ rule.actions|join:", " }}</p>
+                    <p><strong>{% trans "وضعیت‌های مبدأ" %}:</strong> {{ rule.from_statuses|join:", " }}</p>
+                    <p><strong>{% trans "وضعیت‌های مقصد" %}:</strong> {{ rule.to_statuses|join:", " }}</p>
+                    <p><strong>{% trans "تعداد گذارها" %}:</strong> {{ rule.transitions|length|to_persian_number }}</p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // انیمیشن نوار پیشرفت
+    const progressFill = document.querySelector('.progress-fill');
+    if (progressFill) {
+        setTimeout(() => {
+            progressFill.style.width = '{{ path_stats.completion_percentage }}%';
+        }, 500);
+    }
+    
+    // انیمیشن مراحل مسیر
+    const pathSteps = document.querySelectorAll('.path-step');
+    pathSteps.forEach((step, index) => {
+        setTimeout(() => {
+            step.style.opacity = '0';
+            step.style.transform = 'translateX(-20px)';
+            step.style.transition = 'all 0.5s ease';
+            
+            setTimeout(() => {
+                step.style.opacity = '1';
+                step.style.transform = 'translateX(0)';
+            }, 100);
+        }, index * 100);
+    });
+});
+</script>

@@ -774,7 +774,7 @@
                 try{
                     const resp = await $.get('{% url "get_tankhah_budget_info" %}', {tankhah_id: tankhahId});
                     // Back-end already returns budget_period details? If not, we compute a simple progress fallback
-                    const bpNameEl = document.getElementById('bp-name');
+                    const bpNameEl = document.getElementById('');
                     const bpStartEl = document.getElementById('bp-start');
                     const bpEndEl = document.getElementById('bp-end');
                     const bpLockEl = document.getElementById('bp-lock-state');

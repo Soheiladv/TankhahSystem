@@ -1458,7 +1458,7 @@ def calculate_balance_from_transactions(budget_source_obj):
 # ----------------------------------------------------
 
 def create_budget_transaction(*, budget_source_obj, transaction_type, amount, created_by, description,
-                              trigger_obj=None):
+                              trigger_obj=None, client_ip: str | None = None, client_host: str | None = None):
     """
     **تابع هسته‌ای:** یک تراکنش بودجه جدید ایجاد می‌کند.
     (این تابع با مدل BudgetTransaction شما سازگار است)
@@ -1484,6 +1484,11 @@ def create_budget_transaction(*, budget_source_obj, transaction_type, amount, cr
     elif isinstance(budget_source_obj, Tankhah):
         transaction_kwargs['related_tankhah'] = budget_source_obj
 
+    # Attach client info if provided
+    if client_ip:
+        transaction_kwargs['client_ip'] = client_ip
+    if client_host:
+        transaction_kwargs['client_host'] = client_host
     transaction = BudgetTransaction.objects.create(**transaction_kwargs)
     logger.info(
         f"Budget transaction created for {budget_source_obj}: {transaction.transaction_type} of {transaction.amount}")

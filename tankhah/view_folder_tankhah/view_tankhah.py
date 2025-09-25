@@ -625,9 +625,17 @@ class TankhahDetailView(PermissionBaseView, DetailView):
         return context
 
 class TankhahDeleteView(PermissionBaseView, DeleteView):
-    model = 'tankhah.Tankhah'
+    model = Tankhah
     template_name = 'tankhah/Tankhah_confirm_delete.html'
     success_url = reverse_lazy('tankhah_list')
+    permission_codenames = ['tankhah.Tankhah_delete']
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        if self.object.factors.exists():
+            messages.error(request, _('این تنخواه فاکتور ثبت‌شده دارد و قابل حذف نیست.'))
+            return redirect('tankhah_list')
+        return super().post(request, *args, **kwargs)
 
     def delete(self, request, *args, **kwargs):
         messages.success(self.request, _('تنخواه با موفقیت حذف شد.'))

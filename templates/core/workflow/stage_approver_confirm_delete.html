@@ -1,0 +1,364 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "تأیید حذف تأییدکننده مرحله" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --danger-gradient: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+        --warning-gradient: linear-gradient(135deg, #feca57 0%, #ff9ff3 100%);
+        --info-gradient: linear-gradient(135deg, #48dbfb 0%, #0abde3 100%);
+        --success-gradient: linear-gradient(135deg, #1dd1a1 0%, #55a3ff 100%);
+    }
+
+    body {
+        background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .delete-container {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+        border-radius: 25px;
+        box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+        padding: 40px;
+        max-width: 600px;
+        width: 90%;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .delete-container::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,107,107,0.1) 0%, transparent 70%);
+        animation: pulse 3s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 0.5; transform: scale(1); }
+        50% { opacity: 1; transform: scale(1.1); }
+    }
+
+    .header-section {
+        text-align: center;
+        margin-bottom: 30px;
+        padding: 25px;
+        background: var(--danger-gradient);
+        border-radius: 20px;
+        color: white;
+        position: relative;
+        z-index: 2;
+    }
+
+    .header-section h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 10px;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .warning-icon {
+        font-size: 4rem;
+        margin-bottom: 20px;
+        animation: shake 2s ease-in-out infinite;
+    }
+
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-5px); }
+        75% { transform: translateX(5px); }
+    }
+
+    .details-card {
+        background: white;
+        border-radius: 20px;
+        padding: 25px;
+        margin: 25px 0;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        border: 1px solid rgba(255,107,107,0.2);
+    }
+
+    .detail-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 0;
+        border-bottom: 1px solid #f0f0f0;
+        transition: all 0.3s ease;
+    }
+
+    .detail-item:last-child {
+        border-bottom: none;
+    }
+
+    .detail-item:hover {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+
+    .detail-label {
+        font-weight: 600;
+        color: #2c3e50;
+        display: flex;
+        align-items: center;
+    }
+
+    .detail-label i {
+        margin-left: 8px;
+        color: #ff6b6b;
+    }
+
+    .detail-value {
+        color: #6c757d;
+        font-weight: 500;
+    }
+
+    .badge-custom {
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    .badge-success-custom {
+        background: var(--success-gradient);
+        color: white;
+    }
+
+    .badge-danger-custom {
+        background: var(--danger-gradient);
+        color: white;
+    }
+
+    .badge-warning-custom {
+        background: var(--warning-gradient);
+        color: white;
+    }
+
+    .badge-secondary-custom {
+        background: #6c757d;
+        color: white;
+    }
+
+    .impact-alert {
+        background: linear-gradient(135deg, #ffeaa7 0%, #fab1a0 100%);
+        border: none;
+        border-radius: 15px;
+        padding: 20px;
+        margin: 25px 0;
+        color: #2d3436;
+    }
+
+    .impact-alert h6 {
+        color: #2d3436;
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 15px;
+        margin-top: 30px;
+        justify-content: center;
+    }
+
+    .btn-custom {
+        padding: 15px 30px;
+        border-radius: 25px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        transition: all 0.3s ease;
+        border: none;
+        position: relative;
+        overflow: hidden;
+        min-width: 150px;
+    }
+
+    .btn-custom::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        transition: left 0.5s;
+    }
+
+    .btn-custom:hover::before {
+        left: 100%;
+    }
+
+    .btn-danger-custom {
+        background: var(--danger-gradient);
+        color: white;
+        box-shadow: 0 8px 25px rgba(255,107,107,0.3);
+    }
+
+    .btn-danger-custom:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 35px rgba(255,107,107,0.4);
+    }
+
+    .btn-secondary-custom {
+        background: #6c757d;
+        color: white;
+        box-shadow: 0 8px 25px rgba(108,117,125,0.3);
+    }
+
+    .btn-secondary-custom:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 35px rgba(108,117,125,0.4);
+    }
+
+    .floating-warning {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: var(--warning-gradient);
+        color: white;
+        padding: 15px 20px;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(254,202,87,0.3);
+        z-index: 1000;
+        animation: slideIn 0.5s ease;
+    }
+
+    @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="delete-container">
+    <!-- هدر حذف -->
+    <div class="header-section">
+        <div class="warning-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <h1>{% trans "تأیید حذف تأییدکننده" %}</h1>
+        <p>{% trans "این عمل قابل بازگشت نیست!" %}</p>
+    </div>
+
+    <!-- جزئیات تأییدکننده -->
+    <div class="details-card">
+        <h5 class="mb-4 text-center">
+            <i class="fas fa-info-circle me-2"></i>
+            {% trans "جزئیات تأییدکننده" %}
+        </h5>
+        
+        <div class="detail-item">
+            <div class="detail-label">
+                <i class="fas fa-step-forward"></i>
+                {% trans "مرحله" %}
+            </div>
+            <div class="detail-value">{{ object.stage.name }}</div>
+        </div>
+        
+        <div class="detail-item">
+            <div class="detail-label">
+                <i class="fas fa-user-tie"></i>
+                {% trans "پست" %}
+            </div>
+            <div class="detail-value">{{ object.post.name }}</div>
+        </div>
+        
+        <div class="detail-item">
+            <div class="detail-label">
+                <i class="fas fa-building"></i>
+                {% trans "سازمان" %}
+            </div>
+            <div class="detail-value">{{ object.post.organization.name }}</div>
+        </div>
+        
+        <div class="detail-item">
+            <div class="detail-label">
+                <i class="fas fa-cube"></i>
+                {% trans "نوع موجودیت" %}
+            </div>
+            <div class="detail-value">{{ object.get_entity_type_display }}</div>
+        </div>
+        
+        <div class="detail-item">
+            <div class="detail-label">
+                <i class="fas fa-play"></i>
+                {% trans "اقدام" %}
+            </div>
+            <div class="detail-value">
+                {% if object.action == 'APPROVE' %}
+                    <span class="badge-custom badge-success-custom">{% trans "تأیید" %}</span>
+                {% elif object.action == 'REJECT' %}
+                    <span class="badge-custom badge-danger-custom">{% trans "رد" %}</span>
+                {% elif object.action == 'PARTIAL' %}
+                    <span class="badge-custom badge-warning-custom">{% trans "نیمه‌تأیید" %}</span>
+                {% else %}
+                    <span class="badge-custom badge-secondary-custom">-</span>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="detail-item">
+            <div class="detail-label">
+                <i class="fas fa-toggle-on"></i>
+                {% trans "وضعیت" %}
+            </div>
+            <div class="detail-value">
+                {% if object.is_active %}
+                    <span class="badge-custom badge-success-custom">{% trans "فعال" %}</span>
+                {% else %}
+                    <span class="badge-custom badge-secondary-custom">{% trans "غیرفعال" %}</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- هشدار تأثیر -->
+    <div class="impact-alert">
+        <h6>
+            <i class="fas fa-exclamation-circle me-2"></i>
+            {% trans "تأثیر حذف" %}
+        </h6>
+        <p class="mb-0">
+            {% trans "با حذف این تأییدکننده، پست" %} <strong>{{ object.post.name }}</strong> 
+            {% trans "دیگر نمی‌تواند در مرحله" %} <strong>{{ object.stage.name }}</strong> 
+            {% trans "برای نوع موجودیت" %} <strong>{{ object.get_entity_type_display }}</strong> 
+            {% trans "اقدام کند." %}
+        </p>
+    </div>
+
+    <!-- دکمه‌های عملیات -->
+    <form method="post">
+        {% csrf_token %}
+        <div class="action-buttons">
+            <button type="submit" class="btn-custom btn-danger-custom">
+                <i class="fas fa-trash me-2"></i>
+                {% trans "بله، حذف کن" %}
+            </button>
+            <a href="{% url 'workflow_management:stage_approver_list' %}" class="btn-custom btn-secondary-custom">
+                <i class="fas fa-arrow-left me-2"></i>
+                {% trans "انصراف" %}
+            </a>
+        </div>
+    </form>
+</div>
+
+<!-- هشدار شناور -->
+<div class="floating-warning">
+    <i class="fas fa-warning me-2"></i>
+    {% trans "این عمل قابل بازگشت نیست!" %}
+</div>
+{% endblock %}

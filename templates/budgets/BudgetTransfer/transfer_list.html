@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="mb-0">انتقال‌های بودجه</h4>
+    <a href="{% url 'budget_transfer:transfer_create' %}" class="btn btn-success">ثبت انتقال جدید</a>
+  </div>
+
+  <div class="alert alert-info" role="alert">
+    <strong>راهنمای سریع:</strong>
+    - این صفحه فقط «ثبت‌های انتقال» را نشان می‌دهد (دوتراکنش: کاهش در مبدا، افزایش در مقصد).
+    - برای ثبت انتقال جدید روی «ثبت انتقال جدید» کلیک کنید. برای مشاهده فرم: <a class="alert-link" href="{% url 'budget_transfer:transfer_create' %}">/budgets/budget-transfer/create/</a>
+  </div>
+
+  <div class="accordion mb-3" id="helpAccordion">
+    <div class="accordion-item">
+      <h2 class="accordion-header" id="headingOne">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+          توضیحات کامل انتقال بودجه و نکات وارد کردن اعداد
+        </button>
+      </h2>
+      <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#helpAccordion">
+        <div class="accordion-body">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <h6 class="fw-bold">روند انتقال</h6>
+              <ol class="mb-2">
+                <li>انتخاب تخصیص مبدا و مقصد در فرم انتقال</li>
+                <li>وارد کردن «مبلغ انتقال (ریال)» و «توضیحات»</li>
+                <li>ثبت؛ سیستم دو تراکنش ثبت می‌کند: «کاهش» برای مبدا و «افزایش» برای مقصد</li>
+              </ol>
+              <div class="small text-muted">در صورت نیاز می‌توانید انتقال معکوس انجام دهید تا اصلاح شود.</div>
+            </div>
+            <div class="col-md-6">
+              <h6 class="fw-bold">راهنمای وارد کردن اعداد</h6>
+              <ul class="mb-2">
+                <li>مبالغ را به «ریال» وارد کنید (مثال: 1000000 برای یک‌میلیون ریال).</li>
+                <li>می‌توانید بدون جداکننده یا با جداکننده هزار بنویسید (1000000 یا 1,000,000).</li>
+                <li>اگر صفحه کلید فارسی است، از اعداد انگلیسی استفاده کنید تا خطا نشود.</li>
+              </ul>
+              <div class="small">فرم انتقال: <a href="{% url 'budget_transfer:transfer_create' %}">رفتن به ثبت انتقال</a></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table table-striped table-bordered align-middle">
+      <thead class="table-light">
+        <tr>
+          <th>زمان</th>
+          <th>نوع</th>
+          <th>تخصیص</th>
+          <th class="text-end">مبلغ (ریال)</th>
+          <th>توضیحات</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for t in transfers %}
+        <tr>
+          <td>{{ t.timestamp|date:'Y/m/d H:i' }}</td>
+          <td>
+            {% if t.transaction_type == 'INCREASE' %}
+              <span class="badge bg-success">افزایش</span>
+            {% elif t.transaction_type == 'DECREASE' %}
+              <span class="badge bg-danger">کاهش</span>
+            {% else %}
+              <span class="badge bg-secondary">نامشخص</span>
+            {% endif %}
+          </td>
+          <td>{{ t.allocation }}</td>
+          <td class="text-end">{{ t.amount|floatformat:0 }}</td>
+          <td>{{ t.description }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="text-center">موردی ثبت نشده است.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

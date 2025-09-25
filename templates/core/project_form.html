@@ -638,6 +638,7 @@
                             <i class="fas fa-comment fa-fw me-1 text-muted"></i> {% trans "توضیحات" %}
                         </label>
                         {{ form.description }}
+                        <div class="form-text text-muted" id="auto-desc-hint">{% trans "در صورت خالی بودن، توضیحات به‌صورت خودکار تولید می‌شود." %}</div>
                         {{ form.description.errors }}
                     </div>
                     <div class="col-md-6">
@@ -735,6 +736,11 @@
         const remainingAmountDisplay = document.getElementById('remaining-amount');
         const remainingPercentDisplay = document.getElementById('remaining-percent');
         const progressBar = document.getElementById('progress-bar');
+        const nameInput = document.getElementById('{{ form.name.id_for_label }}');
+        const codeInput = document.getElementById('{{ form.code.id_for_label }}');
+        const startInput = document.getElementById('{{ form.start_date.id_for_label }}');
+        const endInput = document.getElementById('{{ form.end_date.id_for_label }}');
+        const descInput = document.getElementById('{{ form.description.id_for_label }}');
 
         const warningThreshold = 10; // 10% برای هشدار
 
@@ -784,6 +790,38 @@
                 }
             }
         }
+
+        // تولید خودکار توضیحات در فرانت (در صورت خالی بودن)
+        function autoFillDescription() {
+            if (!descInput) return;
+            const hasUserTyped = descInput.dataset.userTyped === '1';
+            if (hasUserTyped) return;
+            const name = nameInput ? nameInput.value.trim() : '';
+            const code = codeInput ? codeInput.value.trim() : '';
+            const orgText = organizationSelect ? organizationSelect.options[organizationSelect.selectedIndex]?.text?.trim() : '';
+            const start = startInput ? startInput.value.trim() : '';
+            const end = endInput ? endInput.value.trim() : '';
+            let parts = [];
+            if (name) parts.push('پروژه ' + name);
+            if (code) parts.push('با کد ' + code);
+            if (orgText) parts.push('در شعبه ' + orgText);
+            if (start) parts.push('از تاریخ ' + start);
+            if (end) parts.push('تا ' + end);
+            const text = parts.join(' ');
+            descInput.value = text;
+        }
+
+        if (descInput) {
+            descInput.addEventListener('input', function(){ this.dataset.userTyped = this.value ? '1' : ''; });
+        }
+        [nameInput, codeInput, organizationSelect, startInput, endInput].forEach(el => {
+            if (el) el.addEventListener('input', autoFillDescription);
+            if (el) el.addEventListener('change', autoFillDescription);
+        });
+        autoFillDescription();
+
+        // فعال‌سازی دیتاپیکر جلالی
+        try { jalaliDatepicker.startWatch(); } catch(e) {}
 
         // رویدادها
         organizationSelect.addEventListener('change', updateDisplay);

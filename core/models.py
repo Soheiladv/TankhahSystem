@@ -700,20 +700,49 @@ class SystemSettings(models.Model):
                                                           verbose_name=_("سقف پرداخت پیش‌فرض تنخواه"))
     tankhah_payment_ceiling_enabled_default = models.BooleanField(default=False,
                                                                   verbose_name=_("فعال بودن پیش‌فرض سقف پرداخت تنخواه"))
+    # Workflow/hierarchy enforcement settings
+    enforce_strict_approval_order = models.BooleanField(
+        default=True,
+        verbose_name=_("اجبار ترتیب سلسله‌مراتبی تأیید (سطح پایین قبل از سطح بالا)"),
+        help_text=_("اگر فعال باشد، کاربر سطح بالاتر نمی‌تواند قبل از کاربر سطح پایین اقدام کند.")
+    )
+    allow_bypass_org_chart = models.BooleanField(
+        default=False,
+        verbose_name=_("اجازه دور زدن چارت سازمانی برای تأیید"),
+        help_text=_("اگر فعال باشد، قوانین وابسته به پست/سطح می‌توانند نادیده گرفته شوند.")
+    )
+    allow_action_without_org_chart = models.BooleanField(
+        default=False,
+        verbose_name=_("اجازه اقدام بدون رعایت پست‌ها"),
+        help_text=_("اگر فعال باشد، حتی بدون داشتن پست سازمانی هم اقدام ممکن است.")
+    )
 
     def save(self, *args, **kwargs):
         # اطمینان از وجود تنها یک نمونه
-        if not self.pk and SystemSettings.objects.exists():
-            raise ValidationError(_("فقط یک نمونه از تنظیمات سیستم مجاز است."))
+        if not self.pk:
+            existing = SystemSettings.objects.first()
+            if existing:
+                # به‌جای خطا، به‌روزرسانی همان رکورد موجود
+                self.pk = existing.pk
         super().save(*args, **kwargs)
 
     class Meta:
         verbose_name = _("تنظیمات سیستم")
         verbose_name_plural = _("تنظیمات سیستم")
-
+        default_permissions =()
+        permissions = [('SystemSettings_access','دسترسی به تنظیمات کلی سیستم'),]
     def __str__(self):
         ceiling = f"{self.tankhah_payment_ceiling_default:,.0f}" if self.tankhah_payment_ceiling_default else "غیرفعال"
-        return f"تنظیمات سیستم - سقف تنخواه: {ceiling}"
+        return f"تنظیمات سیستم - سقف تنخواه: {ceiling} | سلسله‌مراتب: {'فعال' if self.enforce_strict_approval_order else 'غیرفعال'}"
+
+    @classmethod
+    def get_solo(cls):
+        obj = cls.objects.first()
+        if obj:
+            return obj
+        obj = cls()
+        obj.save()
+        return obj
 
     # def __str__(self):
     #     return "تنظیمات سیستم بودجه"

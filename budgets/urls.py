@@ -1,5 +1,5 @@
 # budgets/urls.py
-from django.urls import path
+from django.urls import path, include
 
 from reports.ComprehensiveBudgetReportView import ComprehensiveBudgetReportView
 
@@ -40,6 +40,9 @@ urlpatterns = [
     path('convert_number_to_words/', NumberToWordsView.as_view(), name='convert_number_to_words'),
     path('get-budget-info/', get_budget_info, name='get_budget_info'),
     path('api/projects-by-organization/', get_projects_by_organization, name='get_projects_by_organization'),
+
+    # Budget Transfer module
+    path('budget-transfer/', include('budgets.BudgetTransfer.urls', namespace='budget_transfer')),
 
     # ===================================================================
     # ==== مدیریت تعاریف پایه ====

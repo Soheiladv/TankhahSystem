@@ -150,11 +150,25 @@ def get_user_allowed_transitions(user, factor):
         is_active=True,
     ).select_related('action', 'from_status', 'to_status').prefetch_related('allowed_posts')
 
-    # برای ادمین: همه ترنزیشن‌ها مجازند
+    # بارگذاری تنظیمات سیستم
+    try:
+        from core.models import SystemSettings
+        sys_settings = SystemSettings.objects.first()
+    except Exception:
+        sys_settings = None
+
+    # برای ادمین: همه ترنزیشن‌ها مجازند (مگر اینکه enforce_strict_approval_order فعال و bypass غیرفعال باشد)
     if user.is_superuser:
-        result = list(transitions_qs)
-        logger.info(f"Superuser {user.username} allowed transitions: {[t.action.name for t in result]}")
-        return result
+        if sys_settings and getattr(sys_settings, 'enforce_strict_approval_order', False):
+            # سوپراگر enforce فعال است هم باید از لاگ سطح بالاتر عبور نکند مگر bypass روشن باشد
+            if sys_settings and getattr(sys_settings, 'allow_bypass_org_chart', False):
+                result = list(transitions_qs)
+                logger.info(f"Superuser {user.username} allowed transitions (bypass enabled): {[t.action.name for t in result]}")
+                return result
+        else:
+            result = list(transitions_qs)
+            logger.info(f"Superuser {user.username} allowed transitions: {[t.action.name for t in result]}")
+            return result
 
     # شناسه پست‌های فعال کاربر
     user_post_ids_set = set()
@@ -164,17 +178,18 @@ def get_user_allowed_transitions(user, factor):
         user_post_ids_set = set(active_userposts.values_list('post_id', flat=True))
         user_levels = [up.post.level for up in active_userposts if getattr(up.post, 'level', None) is not None]
 
-    # قانون قفل‌شدن سطح پایین پس از اقدام سطح بالاتر
-    # اگر کاربر سطحی دارد و در لاگِ این فاکتور اقدامی توسط پستی با level کمتر (مرتبه بالاتر) ثبت شده باشد، اقدامی برای این کاربر مجاز نیست
-    if user_levels:
-        try:
-            user_min_level = min(user_levels)  # سطح بالاتر عدد کمتر
-            higher_action_exists = factor.approval_logs.filter(post__level__lt=user_min_level).exists()
-            if higher_action_exists:
-                logger.info(f"User {user.username} blocked by higher-level action. user_min_level={user_min_level}")
-                return []
-        except Exception as e:
-            logger.debug(f"Level-block check failed: {e}")
+    # قانون قفل‌شدن سطح پایین پس از اقدام سطح بالاتر (کنترل‌شده با SystemSettings)
+    if sys_settings and getattr(sys_settings, 'enforce_strict_approval_order', False):
+        if not (sys_settings and getattr(sys_settings, 'allow_bypass_org_chart', False)):
+            if user_levels:
+                try:
+                    user_min_level = min(user_levels)  # سطح بالاتر عدد کمتر است
+                    higher_action_exists = factor.approval_logs.filter(post__level__lt=user_min_level).exists()
+                    if higher_action_exists:
+                        logger.info(f"User {user.username} blocked by higher-level action (strict order enforced). user_min_level={user_min_level}")
+                        return []
+                except Exception as e:
+                    logger.debug(f"Level-block check failed: {e}")
 
     # تشخیص ترنزیشن‌های مجاز بر اساس پست‌های مجاز
     allowed = []
@@ -191,6 +206,11 @@ def get_user_allowed_transitions(user, factor):
         # اگر ترنزیشن پست‌های مجاز تعریف نکرده باشد، عمومی است
         allowed_posts = list(t.allowed_posts.all())
         if not allowed_posts:  # عمومی
+            # اگر اقدام بدون چارت ممنوع است و کاربر پست فعال ندارد، رد شود
+            if not (sys_settings and getattr(sys_settings, 'allow_action_without_org_chart', False)):
+                if not user_post_ids_set:
+                    logger.debug(f"Skipped public transition due to no user posts and org-chart required: {t.action.name}")
+                    continue
             allowed.append(t)
             logger.debug(f"Added public transition: {t.action.name}")
             continue

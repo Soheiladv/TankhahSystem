@@ -1,0 +1,158 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-10">
+      <div class="card shadow-sm mb-3">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">ثبت انتقال بودجه</h5>
+          <a href="{% url 'budget_transfer:transfer_list' %}" class="btn btn-outline-secondary btn-sm">بازگشت به لیست انتقال‌ها</a>
+        </div>
+        <div class="card-body">
+          <div class="mb-3 small text-muted d-flex flex-wrap gap-3">
+            <div><strong>تاریخ انتقال:</strong> {{ jalali_now }}</div>
+            <div><strong>کاربر:</strong> {{ request.user.get_full_name|default:request.user.username }}</div>
+          </div>
+          <div class="alert alert-info" role="alert">
+            <strong>راهنمای ثبت انتقال:</strong>
+            <ul class="mb-0">
+              <li>«تخصیص مبدا» و «تخصیص مقصد» را انتخاب کنید.</li>
+              <li>«مبلغ انتقال (ریال)» را وارد کنید؛ این مبلغ نباید از «مانده مبدا» بیشتر باشد.</li>
+              <li>«توضیحات» را کامل و شفاف بنویسید (علت انتقال، شماره سند داخلی، تاریخچه تصمیم).</li>
+              <li>پس از ثبت، دو تراکنش ثبت می‌شود: «کاهش» برای مبدا و «افزایش» برای مقصد.</li>
+            </ul>
+            <div class="mt-2 small">آموزش بیشتر و مشاهده آخرین انتقال‌ها: <a class="alert-link" href="{% url 'budget_transfer:transfer_list' %}">رفتن به لیست انتقال‌ها</a></div>
+          </div>
+          <div class="alert alert-secondary py-2 small" role="alert">
+            <strong>راهنمای اعداد:</strong> مبلغ را به «ریال» وارد کنید (مثال: 1000000). می‌توانید با یا بدون جداکننده هزار بنویسید. اگر صفحه‌کلید فارسی است از اعداد انگلیسی استفاده کنید.
+          </div>
+          <form method="post" novalidate>
+            {% csrf_token %}
+            {% if form.non_field_errors %}
+              <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+            {% endif %}
+            <div class="row g-4">
+              <div class="col-lg-7">
+                <div class="row g-3">
+                  <div class="col-md-12">
+                    <label class="form-label">تخصیص مبدا</label>
+                    {{ form.source_allocation }}
+                    {% if form.source_allocation.errors %}
+                      <div class="text-danger small">{{ form.source_allocation.errors }}</div>
+                    {% endif %}
+                  </div>
+                  <div class="col-md-12">
+                    <label class="form-label">تخصیص مقصد</label>
+                    {{ form.target_allocation }}
+                    {% if form.target_allocation.errors %}
+                      <div class="text-danger small">{{ form.target_allocation.errors }}</div>
+                    {% endif %}
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">مبلغ انتقال (ریال)</label>
+                    {{ form.amount }}
+                    {% if form.amount.errors %}
+                      <div class="text-danger small">{{ form.amount.errors }}</div>
+                    {% endif %}
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">توضیحات انتقال</label>
+                    {{ form.description }}
+                    <div class="form-text">مثال: انتقال برای توازن پروژه‌ها در مهر 1404</div>
+                    <div class="mt-2 small text-muted" id="auto-desc-preview"></div>
+                  </div>
+                </div>
+                <div class="mt-3">
+                  <button type="submit" class="btn btn-primary">ثبت انتقال</button>
+                  <a href="{% url 'budget_transfer:transfer_list' %}" class="btn btn-light">لغو</a>
+                </div>
+              </div>
+
+              <div class="col-lg-5">
+                <div class="card border-0 border-start border-4 border-primary h-100">
+                  <div class="card-body">
+                    <h6 class="fw-bold mb-3">تاثیر انتقال (پیش‌نمایش)</h6>
+                    <div class="mb-2 small text-muted">انتخاب‌ها و مبلغ را تغییر دهید تا مقادیر به‌روز شود.</div>
+                    <div id="impact-box" class="table-responsive">
+                      <table class="table table-sm align-middle">
+                        <tbody>
+                          <tr>
+                            <th class="text-muted">برچسب مبدا</th>
+                            <td id="src-label">—</td>
+                          </tr>
+                          <tr>
+                            <th class="text-muted">مانده فعلی مبدا</th>
+                            <td><span id="src-rem">0</span></td>
+                          </tr>
+                          <tr>
+                            <th class="text-muted">مانده پس از انتقال</th>
+                            <td><span id="src-new">0</span></td>
+                          </tr>
+                          <tr>
+                            <th class="text-muted">برچسب مقصد</th>
+                            <td id="dst-label">—</td>
+                          </tr>
+                          <tr>
+                            <th class="text-muted">مانده فعلی مقصد</th>
+                            <td><span id="dst-rem">0</span></td>
+                          </tr>
+                          <tr>
+                            <th class="text-muted">مانده پس از انتقال</th>
+                            <td><span id="dst-new">0</span></td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const meta = {{ allocation_meta|safe }};
+  const srcSel = document.getElementById('id_source_allocation');
+  const dstSel = document.getElementById('id_target_allocation');
+  const amtInp = document.getElementById('id_amount');
+  const fmt = (n)=>{ try { return Number(n).toLocaleString('fa-IR'); } catch(e){ return n; } };
+  function findMeta(id){ id = parseInt(id || 0); return meta.find(m=>m.id===id); }
+  function updateImpact(){
+    const src = findMeta(srcSel && srcSel.value);
+    const dst = findMeta(dstSel && dstSel.value);
+    const amt = parseFloat(amtInp && amtInp.value ? amtInp.value : 0) || 0;
+    const srcLabel = document.getElementById('src-label');
+    const dstLabel = document.getElementById('dst-label');
+    const srcRem = document.getElementById('src-rem');
+    const dstRem = document.getElementById('dst-rem');
+    const srcNew = document.getElementById('src-new');
+    const dstNew = document.getElementById('dst-new');
+    if(src){ srcLabel.textContent = src.label; srcRem.textContent = fmt(src.remaining); srcNew.textContent = fmt(Math.max(0, (src.remaining - amt))); }
+    else { srcLabel.textContent = '—'; srcRem.textContent = '0'; srcNew.textContent = '0'; }
+    if(dst){ dstLabel.textContent = dst.label; dstRem.textContent = fmt(dst.remaining); dstNew.textContent = fmt((dst.remaining + amt)); }
+    else { dstLabel.textContent = '—'; dstRem.textContent = '0'; dstNew.textContent = '0'; }
+    // Auto description preview
+    const preview = document.getElementById('auto-desc-preview');
+    if (preview){
+      const srcText = src ? `${src.org || '—'} / ${src.item || '—'}` : '—';
+      const dstText = dst ? `${dst.org || '—'} / ${dst.item || '—'}` : '—';
+      preview.textContent = `پیشنویس: انتقال ${fmt(amt)} ریال از (${srcText}) به (${dstText}) در {{ jalali_now }}`;
+    }
+  }
+  ['change','keyup','input'].forEach(ev=>{
+    if(srcSel) srcSel.addEventListener(ev, updateImpact);
+    if(dstSel) dstSel.addEventListener(ev, updateImpact);
+    if(amtInp) amtInp.addEventListener(ev, updateImpact);
+  });
+  document.addEventListener('DOMContentLoaded', updateImpact);
+  updateImpact();
+})();
+</script>
+{% endblock %}

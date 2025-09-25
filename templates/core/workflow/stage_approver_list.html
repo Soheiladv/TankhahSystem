@@ -1,0 +1,830 @@
+{% extends 'base.html' %}
+{% load i18n jformat rcms_custom_filters %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        --warning-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        --info-gradient: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+    }
+
+    body {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        min-height: 100vh;
+    }
+
+    .main-container {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+        border-radius: 20px;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        margin: 20px;
+        padding: 30px;
+    }
+
+    .header-section {
+        text-align: center;
+        margin-bottom: 40px;
+        padding: 30px;
+        background: var(--primary-gradient);
+        border-radius: 20px;
+        color: white;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .header-section::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        animation: float 6s ease-in-out infinite;
+    }
+
+    @keyframes float {
+        0%, 100% { transform: translateY(0px) rotate(0deg); }
+        50% { transform: translateY(-20px) rotate(180deg); }
+    }
+
+    .header-section h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 10px;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .guide-step {
+        background: white;
+        border-radius: 20px;
+        padding: 30px;
+        margin-bottom: 30px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+
+    .step-number {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: var(--primary-gradient);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 1.2rem;
+        margin: 0 auto 15px;
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+    }
+
+    .assignment-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+
+    .card-header {
+        background: var(--primary-gradient);
+        color: white;
+        border: none;
+        padding: 25px;
+    }
+
+    .card-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin: 0;
+    }
+
+    .card-tools {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .btn {
+        border-radius: 25px;
+        padding: 10px 20px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        border: none;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        transition: left 0.5s;
+    }
+
+    .btn:hover::before {
+        left: 100%;
+    }
+
+    .btn-primary {
+        background: var(--success-gradient);
+        color: white;
+        box-shadow: 0 8px 25px rgba(79, 172, 254, 0.3);
+    }
+
+    .btn-success {
+        background: var(--success-gradient);
+        color: white;
+        box-shadow: 0 8px 25px rgba(79, 172, 254, 0.3);
+    }
+
+    .btn-warning {
+        background: var(--warning-gradient);
+        color: white;
+        box-shadow: 0 8px 25px rgba(250, 112, 154, 0.3);
+    }
+
+    .btn-info {
+        background: var(--info-gradient);
+        color: #2c3e50;
+        box-shadow: 0 8px 25px rgba(168, 237, 234, 0.3);
+    }
+
+    .btn-secondary {
+        background: #6c757d;
+        color: white;
+        box-shadow: 0 8px 25px rgba(108,117,125,0.3);
+    }
+
+    .btn:hover {
+        transform: translateY(-3px);
+    }
+
+    .form-select, .form-control {
+        border-radius: 15px;
+        border: 2px solid #e9ecef;
+        padding: 12px 15px;
+        transition: all 0.3s ease;
+    }
+
+    .form-select:focus, .form-control:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    }
+
+    .table {
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    .table thead th {
+        background: var(--primary-gradient);
+        color: white;
+        border: none;
+        padding: 20px 15px;
+        font-weight: 600;
+        text-align: center;
+    }
+
+    .table tbody td {
+        padding: 20px 15px;
+        vertical-align: middle;
+        border-bottom: 1px solid #f0f0f0;
+        transition: all 0.3s ease;
+    }
+
+    .table tbody tr:hover {
+        background: #f8f9fa;
+        transform: scale(1.01);
+    }
+
+    .badge {
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    .bg-success-subtle {
+        background: rgba(25, 135, 84, 0.1) !important;
+        color: #198754 !important;
+        border: 1px solid rgba(25, 135, 84, 0.2) !important;
+    }
+
+    .bg-danger-subtle {
+        background: rgba(220, 53, 69, 0.1) !important;
+        color: #dc3545 !important;
+        border: 1px solid rgba(220, 53, 69, 0.2) !important;
+    }
+
+    .bg-warning-subtle {
+        background: rgba(255, 193, 7, 0.1) !important;
+        color: #ffc107 !important;
+        border: 1px solid rgba(255, 193, 7, 0.2) !important;
+    }
+
+    .bg-secondary-subtle {
+        background: rgba(108, 117, 125, 0.1) !important;
+        color: #6c757d !important;
+        border: 1px solid rgba(108, 117, 125, 0.2) !important;
+    }
+
+    .cursor-pointer {
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .cursor-pointer:hover {
+        transform: scale(1.05);
+    }
+
+    .modal-content {
+        border-radius: 20px;
+        border: none;
+        box-shadow: 0 25px 50px rgba(0,0,0,0.2);
+    }
+
+    .modal-header {
+        background: var(--primary-gradient);
+        color: white;
+        border-radius: 20px 20px 0 0;
+        border: none;
+        padding: 25px;
+    }
+
+    .modal-body {
+        padding: 30px;
+    }
+
+    .modal-footer {
+        border: none;
+        padding: 20px 30px 30px;
+    }
+
+    .pagination {
+        justify-content: center;
+        margin-top: 30px;
+    }
+
+    .page-link {
+        border-radius: 10px;
+        margin: 0 5px;
+        border: 2px solid #e9ecef;
+        color: #667eea;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .page-link:hover {
+        background: var(--primary-gradient);
+        color: white;
+        border-color: #667eea;
+        transform: translateY(-2px);
+    }
+
+    .page-item.active .page-link {
+        background: var(--primary-gradient);
+        border-color: #667eea;
+        color: white;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #6c757d;
+    }
+
+    .empty-state i {
+        font-size: 4rem;
+        margin-bottom: 20px;
+        opacity: 0.5;
+    }
+
+    .empty-state h5 {
+        margin-bottom: 15px;
+        color: #495057;
+    }
+
+    .empty-state p {
+        margin-bottom: 25px;
+    }
+</style>
+{% endblock %}
+
+{% block title %}{% trans "لیست تأییدکنندگان مرحله" %}{% endblock %}
+
+{% block content %}
+<div class="main-container">
+    <!-- هدر اصلی -->
+    <div class="header-section">
+        <h1>
+            <i class="fas fa-users-cog me-3"></i>
+            {% trans "مدیریت تأییدکنندگان مرحله" %}
+        </h1>
+        <p>{% trans "مدیریت و تنظیم تأییدکنندگان برای مراحل مختلف گردش کار" %}</p>
+    </div>
+
+    <!-- راهنمای قدم به قدم -->
+    <div class="guide-step">
+        <h4 class="mb-4 text-center">
+            <i class="fas fa-graduation-cap me-2"></i>
+            {% trans "راهنمای مدیریت تأییدکنندگان مرحله" %}
+        </h4>
+        <div class="row">
+            <div class="col-md-3">
+                <div class="step-number">1</div>
+                <h6 class="text-center">{% trans "انتخاب مرحله" %}</h6>
+                <p class="small text-center text-muted">{% trans "مرحله گردش کار را انتخاب کنید" %}</p>
+            </div>
+            <div class="col-md-3">
+                <div class="step-number">2</div>
+                <h6 class="text-center">{% trans "انتخاب پست" %}</h6>
+                <p class="small text-center text-muted">{% trans "پست‌های مجاز برای تأیید را انتخاب کنید" %}</p>
+            </div>
+            <div class="col-md-3">
+                <div class="step-number">3</div>
+                <h6 class="text-center">{% trans "تعیین اقدام" %}</h6>
+                <p class="small text-center text-muted">{% trans "نوع اقدام (تأیید/رد) را مشخص کنید" %}</p>
+            </div>
+            <div class="col-md-3">
+                <div class="step-number">4</div>
+                <h6 class="text-center">{% trans "ذخیره" %}</h6>
+                <p class="small text-center text-muted">{% trans "تنظیمات را ذخیره کنید" %}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="assignment-card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h3 class="card-title">
+                            <i class="fas fa-users-cog me-2"></i>
+                            {% trans "تأییدکنندگان مرحله" %}
+                        </h3>
+                        <div class="card-tools">
+                            <a href="{% url 'workflow_management:stage_approver_create' %}" class="btn btn-primary">
+                                <i class="fas fa-plus me-2"></i>
+                                {% trans "تأییدکننده جدید" %}
+                            </a>
+                            <button class="btn btn-success" onclick="showBulkCreateModal()">
+                                <i class="fas fa-layer-group me-2"></i>
+                                {% trans "ایجاد دسته‌ای" %}
+                            </button>
+                            <a href="{% url 'workflow_management:unified_workflow_management' %}" class="btn btn-warning">
+                                <i class="fas fa-cogs me-2"></i>
+                                {% trans "مدیریت ترکیبی" %}
+                            </a>
+                            <button class="btn btn-info" onclick="checkDuplicates()">
+                                <i class="fas fa-search me-2"></i>
+                                {% trans "بررسی تکراری‌ها" %}
+                            </button>
+                            <a href="{% url 'workflow_management:post_assignment_list' %}" class="btn btn-info">
+                                <i class="fas fa-user-tie me-2"></i>
+                                {% trans "قوانین پست‌ها" %}
+                            </a>
+                            <a href="{% url 'workflow_management:simple_dashboard' %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>
+                                {% trans "بازگشت به داشبورد" %}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- فیلترها -->
+                    <div class="row mb-3">
+                        <div class="col-md-3">
+                            <label class="form-label">{% trans "فیلتر بر اساس مرحله:" %}</label>
+                            <select class="form-select" id="stageFilter">
+                                <option value="">{% trans "همه مراحل" %}</option>
+                                {% for stage in stages %}
+                                <option value="{{ stage.id }}">{{ stage.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">{% trans "فیلتر بر اساس پست:" %}</label>
+                            <select class="form-select" id="postFilter">
+                                <option value="">{% trans "همه پست‌ها" %}</option>
+                                {% for post in posts %}
+                                <option value="{{ post.id }}">{{ post.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">{% trans "فیلتر بر اساس سازمان:" %}</label>
+                            <select class="form-select" id="organizationFilter">
+                                <option value="">{% trans "همه سازمان‌ها" %}</option>
+                                {% for organization in organizations %}
+                                <option value="{{ organization.id }}">{{ organization.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">{% trans "نوع موجودیت:" %}</label>
+                            <select class="form-select" id="entityTypeFilter">
+                                <option value="">{% trans "همه انواع" %}</option>
+                                {% for code, name in entity_types %}
+                                <option value="{{ code }}">{{ name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    {% if stage_approvers %}
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>{% trans "مرحله" %}</th>
+                                        <th>{% trans "پست" %}</th>
+                                        <th>{% trans "سازمان" %}</th>
+                                        <th>{% trans "نوع موجودیت" %}</th>
+                                        <th>{% trans "اقدام" %}</th>
+                                        <th>{% trans "وضعیت" %}</th>
+                                        <th>{% trans "عملیات" %}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for approver in stage_approvers %}
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <i class="fas fa-step-forward me-2 text-primary"></i>
+                                                    <strong>{{ approver.stage.name }}</strong>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <i class="fas fa-user-tie me-2 text-success"></i>
+                                                    {{ approver.post.name }}
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <i class="fas fa-building me-2 text-info"></i>
+                                                    {{ approver.post.organization.name }}
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-secondary">
+                                                    {{ approver.get_entity_type_display }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                {% if approver.action == 'APPROVE' %}
+                                                    <span class="badge bg-success">
+                                                        <i class="fas fa-check me-1"></i>{% trans "تأیید" %}
+                                                    </span>
+                                                {% elif approver.action == 'REJECT' %}
+                                                    <span class="badge bg-danger">
+                                                        <i class="fas fa-times me-1"></i>{% trans "رد" %}
+                                                    </span>
+                                                {% elif approver.action == 'PARTIAL' %}
+                                                    <span class="badge bg-warning">
+                                                        <i class="fas fa-minus me-1"></i>{% trans "نیمه‌تأیید" %}
+                                                    </span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary">-</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if approver.is_active %}
+                                                    <span class="badge bg-success">
+                                                        <i class="fas fa-check me-1"></i>{% trans "فعال" %}
+                                                    </span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary">
+                                                        <i class="fas fa-times me-1"></i>{% trans "غیرفعال" %}
+                                                    </span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <div class="btn-group" role="group">
+                                                    <a href="{% url 'workflow_management:stage_approver_edit' approver.pk %}" 
+                                                       class="btn btn-sm btn-outline-warning" 
+                                                       title="{% trans 'ویرایش' %}">
+                                                        <i class="fas fa-edit"></i>
+                                                    </a>
+                                                    <button class="btn btn-sm btn-outline-danger" 
+                                                            onclick="deleteApprover({{ approver.pk }})"
+                                                            title="{% trans 'حذف' %}">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- صفحه‌بندی -->
+                        {% if is_paginated %}
+                        <nav aria-label="{% trans 'صفحه‌بندی' %}">
+                            <ul class="pagination justify-content-center">
+                                {% if page_obj.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page=1">{% trans "اول" %}</a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}">{% trans "قبلی" %}</a>
+                                    </li>
+                                {% endif %}
+                                
+                                <li class="page-item active">
+                                    <span class="page-link">
+                                        {% trans "صفحه" %} {{ page_obj.number }} {% trans "از" %} {{ page_obj.paginator.num_pages }}
+                                    </span>
+                                </li>
+                                
+                                {% if page_obj.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.next_page_number }}">{% trans "بعدی" %}</a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">{% trans "آخر" %}</a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                        {% endif %}
+                    {% else %}
+                        <div class="empty-state">
+                            <i class="fas fa-users-cog"></i>
+                            <h5>{% trans "هیچ تأییدکننده‌ای یافت نشد" %}</h5>
+                            <p>{% trans "برای شروع، یک تأییدکننده مرحله جدید ایجاد کنید" %}</p>
+                            <a href="{% url 'workflow_management:stage_approver_create' %}" class="btn btn-primary">
+                                <i class="fas fa-plus me-2"></i>{% trans "تأییدکننده جدید" %}
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal برای ایجاد دسته‌ای -->
+<div class="modal fade" id="bulkCreateModal" tabindex="-1" aria-labelledby="bulkCreateModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="bulkCreateModalLabel">
+                    <i class="fas fa-layer-group me-2"></i>
+                    {% trans "ایجاد دسته‌ای تأییدکنندگان" %}
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="bulkCreateForm">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="bulkStage" class="form-label">{% trans "مرحله" %} <span class="text-danger">*</span></label>
+                                <select class="form-select" id="bulkStage" required>
+                                    <option value="">{% trans "لطفاً مرحله را انتخاب کنید" %}</option>
+                                    {% for stage in stages %}
+                                    <option value="{{ stage.id }}">{{ stage.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="bulkEntityType" class="form-label">{% trans "نوع موجودیت" %} <span class="text-danger">*</span></label>
+                                <select class="form-select" id="bulkEntityType" required>
+                                    <option value="">{% trans "لطفاً نوع موجودیت را انتخاب کنید" %}</option>
+                                    {% for code, name in entity_types %}
+                                    <option value="{{ code }}">{{ name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="bulkAction" class="form-label">{% trans "اقدام" %} <span class="text-danger">*</span></label>
+                                <select class="form-select" id="bulkAction" required>
+                                    <option value="">{% trans "لطفاً اقدام را انتخاب کنید" %}</option>
+                                    {% for code, name in actions %}
+                                    <option value="{{ code }}">{{ name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="bulkOrganization" class="form-label">{% trans "سازمان" %} <span class="text-danger">*</span></label>
+                                <select class="form-select" id="bulkOrganization" required>
+                                    <option value="">{% trans "لطفاً سازمان را انتخاب کنید" %}</option>
+                                    {% for organization in organizations %}
+                                    <option value="{{ organization.id }}">{{ organization.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">{% trans "پست‌ها" %} <span class="text-danger">*</span></label>
+                        <div id="postsContainer">
+                            <p class="text-muted">{% trans "ابتدا سازمان را انتخاب کنید" %}</p>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>
+                    {% trans "انصراف" %}
+                </button>
+                <button type="button" class="btn btn-primary" onclick="submitBulkCreate()">
+                    <i class="fas fa-save me-1"></i>
+                    {% trans "ایجاد" %}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// فیلترها
+document.addEventListener('DOMContentLoaded', function() {
+    const stageFilter = document.getElementById('stageFilter');
+    const postFilter = document.getElementById('postFilter');
+    const organizationFilter = document.getElementById('organizationFilter');
+    const entityTypeFilter = document.getElementById('entityTypeFilter');
+    
+    // اعمال فیلترها
+    [stageFilter, postFilter, organizationFilter, entityTypeFilter].forEach(filter => {
+        if (filter) {
+            filter.addEventListener('change', applyFilters);
+        }
+    });
+    
+    // بارگذاری پست‌ها هنگام تغییر سازمان
+    document.getElementById('bulkOrganization').addEventListener('change', function() {
+        loadPostsForOrganization(this.value);
+    });
+});
+
+// اعمال فیلترها
+function applyFilters() {
+    const stageId = document.getElementById('stageFilter').value;
+    const postId = document.getElementById('postFilter').value;
+    const organizationId = document.getElementById('organizationFilter').value;
+    const entityType = document.getElementById('entityTypeFilter').value;
+    
+    const params = new URLSearchParams();
+    if (stageId) params.append('stage_id', stageId);
+    if (postId) params.append('post_id', postId);
+    if (organizationId) params.append('organization_id', organizationId);
+    if (entityType) params.append('entity_type', entityType);
+    
+    window.location.href = window.location.pathname + '?' + params.toString();
+}
+
+// نمایش مودال ایجاد دسته‌ای
+function showBulkCreateModal() {
+    const modal = new bootstrap.Modal(document.getElementById('bulkCreateModal'));
+    modal.show();
+}
+
+// بارگذاری پست‌های سازمان
+function loadPostsForOrganization(organizationId) {
+    if (!organizationId) {
+        document.getElementById('postsContainer').innerHTML = '<p class="text-muted">ابتدا سازمان را انتخاب کنید</p>';
+        return;
+    }
+    
+    fetch(`/workflow-management/api/posts/${organizationId}/`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                let html = '<div class="row">';
+                data.posts.forEach(post => {
+                    html += `
+                        <div class="col-md-6 mb-2">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="${post.id}" id="post_${post.id}" name="post_ids">
+                                <label class="form-check-label" for="post_${post.id}">
+                                    ${post.name} (سطح ${post.level})
+                                </label>
+                            </div>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+                document.getElementById('postsContainer').innerHTML = html;
+            } else {
+                document.getElementById('postsContainer').innerHTML = '<p class="text-danger">خطا در بارگذاری پست‌ها</p>';
+            }
+        })
+        .catch(error => {
+            console.error('Error loading posts:', error);
+            document.getElementById('postsContainer').innerHTML = '<p class="text-danger">خطا در بارگذاری پست‌ها</p>';
+        });
+}
+
+// ارسال فرم ایجاد دسته‌ای
+function submitBulkCreate() {
+    const stageId = document.getElementById('bulkStage').value;
+    const entityType = document.getElementById('bulkEntityType').value;
+    const action = document.getElementById('bulkAction').value;
+    const postCheckboxes = document.querySelectorAll('input[name="post_ids"]:checked');
+    
+    if (!stageId || !entityType || !action || postCheckboxes.length === 0) {
+        alert('لطفاً همه فیلدهای اجباری را پر کنید و حداقل یک پست را انتخاب کنید.');
+        return;
+    }
+    
+    const postIds = Array.from(postCheckboxes).map(cb => cb.value);
+    
+    const data = {
+        stage_id: stageId,
+        post_ids: postIds,
+        entity_type: entityType,
+        action: action
+    };
+    
+    fetch('/workflow-management/stage-approvers/bulk-create/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            location.reload();
+        } else {
+            alert('خطا: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('خطا در ایجاد تأییدکنندگان');
+    });
+}
+
+// حذف تأییدکننده
+function deleteApprover(approverId) {
+    if (confirm('آیا مطمئن هستید که می‌خواهید این تأییدکننده را حذف کنید؟')) {
+        window.location.href = `/workflow-management/stage-approvers/${approverId}/delete/`;
+    }
+}
+
+// بررسی تکراری‌ها
+function checkDuplicates() {
+    fetch('/workflow-management/api/check-duplicates/')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                let message = 'نتایج بررسی تکراری‌ها:\n\n';
+                
+                if (data.total_duplicate_post_rules === 0 && data.total_duplicate_stage_approvers === 0) {
+                    message += '✅ هیچ قانون تکراری‌ای یافت نشد!';
+                } else {
+                    if (data.total_duplicate_post_rules > 0) {
+                        message += `🔍 قوانین تکراری پست‌ها: ${data.total_duplicate_post_rules}\n`;
+                        data.duplicate_post_rules.forEach(rule => {
+                            message += `- ${rule.post_name} - ${rule.action_name} (${rule.entity_type}): ${rule.count} مورد\n`;
+                        });
+                        message += '\n';
+                    }
+                    
+                    if (data.total_duplicate_stage_approvers > 0) {
+                        message += `🔍 تأییدکنندگان تکراری: ${data.total_duplicate_stage_approvers}\n`;
+                        data.duplicate_stage_approvers.forEach(approver => {
+                            message += `- ${approver.stage_name} - ${approver.post_name} (${approver.entity_type}): ${approver.count} مورد\n`;
+                        });
+                    }
+                }
+                
+                alert(message);
+            } else {
+                alert('خطا در بررسی تکراری‌ها: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error checking duplicates:', error);
+            alert('خطا در بررسی تکراری‌ها');
+        });
+}
+</script>
+{% endblock %}

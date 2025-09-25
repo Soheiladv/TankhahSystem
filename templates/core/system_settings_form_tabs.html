@@ -1,0 +1,265 @@
+{% extends 'base_ld.html' %}
+{% load i18n static %}
+
+{% block page_title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="page-header d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="header-icon bg-primary bg-opacity-10 rounded-circle p-3">
+                        <i class="fas fa-cogs text-primary fa-2x"></i>
+                    </div>
+                    <div>
+                        <h1 class="h3 mb-1">{{ page_title }}</h1>
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb mb-0">
+                                {% for breadcrumb in breadcrumbs %}
+                                    {% if breadcrumb.active %}
+                                        <li class="breadcrumb-item active">{{ breadcrumb.name }}</li>
+                                    {% else %}
+                                        <li class="breadcrumb-item"><a href="{{ breadcrumb.url }}">{{ breadcrumb.name }}</a></li>
+                                    {% endif %}
+                                {% endfor %}
+                            </ol>
+                        </nav>
+                    </div>
+                </div>
+                <a href="{% url 'system_settings_dashboard' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-right me-2"></i>{% trans "بازگشت" %}
+                </a>
+            </div>
+        </div>
+    </div>
+
+    {% if is_edit and last_modified %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="alert alert-info d-flex align-items-center">
+                <i class="fas fa-info-circle me-3 fa-lg"></i>
+                <div>
+                    <strong>{% trans "آخرین تغییر:" %}</strong> 
+                    {{ last_modified|date:"Y/m/d H:i" }}
+                    {% if modified_by %}
+                        {% trans "توسط" %} <strong>{{ modified_by.get_full_name|default:modified_by.username }}</strong>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-light border-bottom py-3">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-sliders-h me-2"></i>
+                        {{ form_title }}
+                    </h5>
+                </div>
+                
+                <div class="card-body p-4">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                    <form method="post" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        
+                        {% if form.errors and not form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {% trans "لطفاً خطاهای زیر را برطرف کنید." %}
+                        </div>
+                        {% endif %}
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ form.non_field_errors }}
+                        </div>
+                        {% endif %}
+
+                        <ul class="nav nav-tabs mb-4" id="settingsTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="budget-tab" data-bs-toggle="tab" data-bs-target="#budget" type="button" role="tab">
+                                    <i class="fas fa-chart-pie me-2"></i>{% trans "بودجه" %}
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="tankhah-tab" data-bs-toggle="tab" data-bs-target="#tankhah" type="button" role="tab">
+                                    <i class="fas fa-wallet me-2"></i>{% trans "تنخواه" %}
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="workflow-tab" data-bs-toggle="tab" data-bs-target="#workflow" type="button" role="tab">
+                                    <i class="fas fa-project-diagram me-2"></i>{% trans "گردش کار" %}
+                                </button>
+                            </li>
+                        </ul>
+
+                        <div class="tab-content" id="settingsTabsContent">
+                            <div class="tab-pane fade show active" id="budget" role="tabpanel">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label for="{{ form.budget_locked_percentage_default.id_for_label }}" class="form-label fw-semibold">
+                                            {% trans "درصد قفل پیش‌فرض بودجه" %}
+                                        </label>
+                                        <div class="input-group">
+                                            {{ form.budget_locked_percentage_default }}
+                                            <span class="input-group-text">%</span>
+                                        </div>
+                                        <div class="form-text">{% trans "حداقل درصد باقیمانده برای قفل شدن بودجه" %}</div>
+                                        {{ form.budget_locked_percentage_default.errors }}
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label for="{{ form.budget_warning_threshold_default.id_for_label }}" class="form-label fw-semibold">
+                                            {% trans "آستانه اخطار بودجه" %}
+                                        </label>
+                                        <div class="input-group">
+                                            {{ form.budget_warning_threshold_default }}
+                                            <span class="input-group-text">%</span>
+                                        </div>
+                                        <div class="form-text">{% trans "درصد باقیمانده برای فعال شدن هشدار" %}</div>
+                                        {{ form.budget_warning_threshold_default.errors }}
+                                    </div>
+
+                                    <div class="col-12">
+                                        <label for="{{ form.budget_warning_action_default.id_for_label }}" class="form-label fw-semibold">
+                                            {% trans "اقدام هشدار پیش‌فرض" %}
+                                        </label>
+                                        {{ form.budget_warning_action_default }}
+                                        <div class="form-text">{% trans "نوع اقدام هنگام فعال شدن هشدار بودجه" %}</div>
+                                        {{ form.budget_warning_action_default.errors }}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="tab-pane fade" id="tankhah" role="tabpanel">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label for="{{ form.tankhah_payment_ceiling_default.id_for_label }}" class="form-label fw-semibold">
+                                            {% trans "سقف پرداخت پیش‌فرض" %}
+                                        </label>
+                                        <div class="input-group">
+                                            {{ form.tankhah_payment_ceiling_default }}
+                                            <span class="input-group-text">{% trans "ریال" %}</span>
+                                        </div>
+                                        <div class="form-text">{% trans "حداکثر مبلغ قابل پرداخت در هر تراکنش" %}</div>
+                                        {{ form.tankhah_payment_ceiling_default.errors }}
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold d-block">{% trans "فعال بودن سقف پرداخت" %}</label>
+                                        <div class="form-check form-switch form-check-lg">
+                                            {{ form.tankhah_payment_ceiling_enabled_default }}
+                                            <label class="form-check-label" for="{{ form.tankhah_payment_ceiling_enabled_default.id_for_label }}">
+                                                {% trans "فعال" %}
+                                            </label>
+                                        </div>
+                                        {{ form.tankhah_payment_ceiling_enabled_default.errors }}
+                                    </div>
+
+                                    <div class="col-12">
+                                        <label for="{{ form.tankhah_accessible_organizations.id_for_label }}" class="form-label fw-semibold">
+                                            {% trans "سازمان‌های دسترسی به تنخواه" %}
+                                        </label>
+                                        {{ form.tankhah_accessible_organizations }}
+                                        <div class="form-text">{% trans "سازمان‌های مجاز برای استفاده از سیستم تنخواه" %}</div>
+                                        {{ form.tankhah_accessible_organizations.errors }}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="tab-pane fade" id="workflow" role="tabpanel">
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-semibold d-block">{% trans "ترتیب دقیق تایید" %}</label>
+                                        <div class="form-check form-switch">
+                                            {{ form.enforce_strict_approval_order }}
+                                            <label class="form-check-label" for="{{ form.enforce_strict_approval_order.id_for_label }}">
+                                                {% trans "فعال" %}
+                                            </label>
+                                        </div>
+                                        <div class="form-text">{% trans "اجبار به رعایت ترتیب سلسله مراتب" %}</div>
+                                        {{ form.enforce_strict_approval_order.errors }}
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-semibold d-block">{% trans "اجازه عبور از چارت" %}</label>
+                                        <div class="form-check form-switch">
+                                            {{ form.allow_bypass_org_chart }}
+                                            <label class="form-check-label" for="{{ form.allow_bypass_org_chart.id_for_label }}">
+                                                {% trans "مجاز" %}
+                                            </label>
+                                        </div>
+                                        <div class="form-text">{% trans "امکان رد شدن از مراحل چارت سازمانی" %}</div>
+                                        {{ form.allow_bypass_org_chart.errors }}
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-semibold d-block">{% trans "اقدام بدون چارت" %}</label>
+                                        <div class="form-check form-switch">
+                                            {{ form.allow_action_without_org_chart }}
+                                            <label class="form-check-label" for="{{ form.allow_action_without_org_chart.id_for_label }}">
+                                                {% trans "مجاز" %}
+                                            </label>
+                                        </div>
+                                        <div class="form-text">{% trans "امکان انجام اقدام بدون چارت سازمانی" %}</div>
+                                        {{ form.allow_action_without_org_chart.errors }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-actions border-top mt-4 pt-4">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="send-notification" name="send_notification" checked>
+                                    <label class="form-check-label" for="send-notification">
+                                        {% trans "ارسال به مدیران" %}
+                                    </label>
+                                </div>
+                                
+                                <div class="d-flex gap-2">
+                                    <button type="submit" class="btn {{ submit_class }} btn-lg px-4">
+                                        <i class="{{ submit_icon }} me-2"></i>{{ submit_text }}
+                                    </button>
+                                    <a href="{% url 'system_settings_dashboard' %}" class="btn btn-outline-secondary btn-lg px-4">
+                                        <i class="fas fa-times me-2"></i>{% trans "انصراف" %}
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const tabs = document.querySelectorAll('#settingsTabs button');
+    tabs.forEach(btn => btn.addEventListener('click', function (e) {
+        e.preventDefault();
+        new bootstrap.Tab(this).show();
+    }));
+});
+</script>
+
+<style>
+.nav-tabs .nav-link { color: #6c757d; font-weight: 500; border: none; padding: 1rem 1.5rem; }
+.nav-tabs .nav-link.active { color: #495057; background-color: #fff; border-bottom: 3px solid #0d6efd; }
+.tab-content { padding: 1.5rem; background: #fff; border: 1px solid #dee2e6; border-top: none; border-radius: 0 0 0.375rem 0.375rem; }
+</style>
+{% endblock %}
+
+

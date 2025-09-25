@@ -1,6 +1,8 @@
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 from django.views.generic.edit import CreateView
+from accounts.models import CustomUser
+from notificationApp.utils import send_notification
 from django.urls import reverse_lazy
 from django.utils.translation import gettext_lazy as _
 from django.contrib import messages
@@ -289,6 +291,8 @@ class BudgetAllocationUpdateView(PermissionBaseView, UpdateView):
         context = super().get_context_data(**kwargs)
         context['title'] = _('ویرایش تخصیص بودجه')
         context['budget_period'] = self.object.budget_period
+        from django.utils import timezone
+        context['today'] = timezone.now().date()
         context['total_amount'] = self.object.budget_period.total_amount or Decimal('0')
         context['remaining_amount'] = self.object.budget_period.get_remaining_amount() + self.object.allocated_amount
         context['remaining_percent'] = (
@@ -366,7 +370,8 @@ class BudgetAllocationCreateView(PermissionBaseView, CreateView):
             logger.warning("No budget_period_id provided")
             return None
         try:
-            budget_period = BudgetPeriod.objects.get(id=budget_period_id, is_active =True)
+            # اجازه استفاده از دوره‌های منقضی/غیرفعال برای مشاهده و تخصیص (مطابق نیاز کاربر)
+            budget_period = BudgetPeriod.objects.get(id=budget_period_id)
             logger.info(f"Retrieved budget_period: ID={budget_period.id}, name={budget_period.name}")
             return budget_period
         except (BudgetPeriod.DoesNotExist, ValueError) as e:
@@ -386,8 +391,9 @@ class BudgetAllocationCreateView(PermissionBaseView, CreateView):
 
         if budget_period:
             context['budget_period'] = budget_period
+            # برای جلوگیری از افزونگی، همه آیتم‌های فعال را نمایش بده (فرم هم همین را انجام می‌دهد)
             context['budget_items'] = BudgetItem.objects.filter(
-                organization__org_type__in=allowed_org_types, is_active=True
+                is_active=True
             ).select_related('organization')
             context['total_amount'] = budget_period.total_amount or Decimal('0')
             context['remaining_amount'] = budget_period.get_remaining_amount() or Decimal('0')
@@ -450,6 +456,30 @@ class BudgetAllocationCreateView(PermissionBaseView, CreateView):
                 response = super().form_valid(form)
                 logger.info(f"BudgetAllocation created with ID: {self.object.pk}")
                 messages.success(self.request, _('تخصیص بودجه با موفقیت ثبت شد.'))
+                # ارسال اعلان به کاربران مجاز شعبه
+                try:
+                    org = self.object.organization
+                    if org:
+                        recipients = CustomUser.objects.filter(is_active=True, userpost__post__organization=org).distinct()
+                        if recipients.exists():
+                            send_notification(
+                                actor=self.request.user,
+                                users=list(recipients),
+                                posts=None,
+                                verb=_('تخصیص بودجه جدید'),
+                                description=_('مبلغ %(amount)s ریال برای دوره %(period)s ثبت شد.') % {
+                                    'amount': f"{self.object.allocated_amount:,.0f}",
+                                    'period': budget_period.name,
+                                },
+                                target=self.object,
+                                entity_type='BudgetAllocation',
+                                priority='MEDIUM'
+                            )
+                            logger.info(f"Notification sent to {recipients.count()} users for organization {org.id}")
+                        else:
+                            logger.warning("No recipients found for budget allocation notification")
+                except Exception as notif_err:
+                    logger.error(f"Failed to send allocation notification: {notif_err}")
                 return response
         except ValidationError as e:
             logger.error(f"Validation error saving budget allocation: {str(e)}")
