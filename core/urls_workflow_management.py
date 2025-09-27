@@ -59,6 +59,8 @@ urlpatterns = [
     path('api/actions/', views_workflow_management.api_actions, name='api_actions'),
     path('api/organizations/', views_workflow_management.api_organizations, name='api_organizations'),
     path('api/posts/<int:organization_id>/', views_workflow_management.get_posts_by_organization, name='get_posts_by_organization'),
+    path('api/organizations/<int:organization_id>/posts/', views_workflow_management.get_posts_by_organization, name='api_posts_by_org'),
+    path('api/organizations/<int:organization_id>/users/', views_workflow_management.get_users_by_organization, name='api_users_by_org'),
     path('api/validation/<int:organization_id>/<str:entity_type>/', views_workflow_management.workflow_validation, name='workflow_validation'),
     path('api/summary/<int:organization_id>/<str:entity_type>/', views_workflow_management.workflow_summary, name='workflow_summary'),
     path('api/export/<int:organization_id>/<str:entity_type>/', views_workflow_management.export_workflow_rules, name='export_workflow_rules'),
@@ -74,4 +76,7 @@ urlpatterns = [
     # Factor Approval Path
     path('factor/<int:pk>/approval-path/',   FactorApprovalPathView.as_view(), name='factor_approval_path'),
     path('api/factor/<int:factor_id>/approval-path/', views_factor_approval_path.api_factor_approval_path, name='api_factor_approval_path'),
+    
+    # Organization Access Tree
+    path('org-access-tree/', views_workflow_management.OrganizationAccessTreeView.as_view(), name='org_access_tree'),
 ]

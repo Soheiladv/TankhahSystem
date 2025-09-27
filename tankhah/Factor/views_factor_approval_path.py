@@ -77,6 +77,9 @@ class FactorApprovalPathView(LoginRequiredMixin, PermissionRequiredMixin, Detail
         for transition in allowed_transitions:
             # دریافت کاربران فعال در پست‌های مجاز
             allowed_posts = list(transition.allowed_posts.all())
+            # اگر برای گذار هیچ پست خاصی تعیین نشده باشد، تمام پست‌های فعال سازمان مجازند
+            if not allowed_posts and transition.organization_id:
+                allowed_posts = list(Post.objects.filter(organization_id=transition.organization_id, is_active=True))
             active_users = []
             
             if allowed_posts:
@@ -114,6 +117,19 @@ def get_detailed_approval_path(factor, user=None):
     if not factor.status or not factor.tankhah or not factor.tankhah.organization:
         return []
     
+    # Helper: resolve entity type code for Factor
+    def _get_factor_entity_type_code():
+        try:
+            from django.contrib.contenttypes.models import ContentType
+            from core.models import EntityType
+            ct = ContentType.objects.get_for_model(Factor)
+            et = EntityType.objects.filter(content_type=ct).first()
+            return et.code if et else 'FACTOR'
+        except Exception:
+            return 'FACTOR'
+
+    et_code = _get_factor_entity_type_code()
+
     # جمع‌آوری تمام سازمان‌های والد
     org_hierarchy_pks = []
     current_org = factor.tankhah.organization
@@ -123,7 +139,7 @@ def get_detailed_approval_path(factor, user=None):
     
     # گرفتن تمام گذارها برای سازمان‌ها
     all_transitions = Transition.objects.filter(
-        entity_type__code='FACTOR',
+        entity_type__code=et_code,
         organization_id__in=org_hierarchy_pks,
         is_active=True
     ).select_related('action', 'from_status', 'to_status', 'organization').prefetch_related('allowed_posts')
@@ -156,6 +172,31 @@ def get_detailed_approval_path(factor, user=None):
         'can_perform': False
     })
     
+    # Helper: تعیین پست‌های مؤثر هر گذار با اولویت: allowed_posts → PRA → همه پست‌های فعال سازمان
+    def _effective_posts_for_transition(tr):
+        posts = list(tr.allowed_posts.all())
+        if not posts and tr.organization_id:
+            from core.models import PostRuleAssignment as _PRA, Post as _Post
+            pra_post_ids = list(_PRA.objects.filter(
+                is_active=True,
+                organization_id=tr.organization_id,
+                action_id=tr.action_id,
+                entity_type=et_code
+            ).values_list('post_id', flat=True))
+            if pra_post_ids:
+                posts = list(_Post.objects.filter(id__in=pra_post_ids, is_active=True))
+            else:
+                posts = list(_Post.objects.filter(organization_id=tr.organization_id, is_active=True))
+        try:
+            posts.sort(key=lambda p: (
+                not getattr(p, 'can_final_approve_factor', False),  # False اول (True اولویت دارد)
+                getattr(p, 'level', 9999) or 9999,
+                p.name
+            ))
+        except Exception:
+            pass
+        return posts
+
     while current_status:
         next_possible_transitions = []
         for key, transitions in transitions_map.items():
@@ -165,26 +206,53 @@ def get_detailed_approval_path(factor, user=None):
         if not next_possible_transitions:
             break
         
-        # انتخاب گذار اصلی (اولین گذار غیر رد نهایی)
-        main_transition = next(
-            (t for t in sorted(next_possible_transitions, key=lambda x: x.id)
-             if not t.to_status.is_final_reject),
-            None
-        )
+        # انتخاب گذار اصلی: اولویت با پست‌هایی که can_final_approve_factor=True دارند
+        candidates = [t for t in next_possible_transitions if not t.to_status.is_final_reject]
+        if not candidates:
+            break
+        def _order_key(tr):
+            posts = _effective_posts_for_transition(tr)
+            # اولویت با پست‌هایی که can_final_approve_factor=True دارند
+            has_final_approve = any(getattr(p, 'can_final_approve_factor', False) for p in posts)
+            min_level = min([getattr(p, 'level', 9999) or 9999 for p in posts], default=9999)
+            # اگر پست‌هایی با can_final_approve_factor=True وجود دارند، اولویت با آنها
+            if has_final_approve:
+                return (0, min_level, tr.id)  # 0 برای اولویت بالا
+            else:
+                return (1, min_level, tr.id)  # 1 برای اولویت پایین
+        main_transition = min(candidates, key=_order_key)
         
         if not main_transition:
             break
         
-        # دریافت پست‌های مجاز
-        allowed_posts = list(main_transition.allowed_posts.all())
+        # دریافت پست‌های مؤثر (مرتب‌شده بر اساس can_final_approve_factor سپس سطح/نام)
+        allowed_posts = _effective_posts_for_transition(main_transition)
         
-        # دریافت کاربران فعال در این پست‌ها
+        # مرتب‌سازی پست‌ها: اول can_final_approve_factor=True، سپس سطح، سپس نام
+        try:
+            allowed_posts = sorted(allowed_posts, key=lambda p: (
+                not getattr(p, 'can_final_approve_factor', False),  # False اول (True اولویت دارد)
+                getattr(p, 'level', 9999) or 9999,
+                p.name
+            ))
+        except Exception:
+            pass
+        
+        # دریافت کاربران فعال در این پست‌ها (مرتب‌سازی بر اساس can_final_approve_factor سپس سطح پست سپس نام)
         active_users = []
         if allowed_posts:
             userposts = UserPost.objects.filter(
                 post__in=allowed_posts,
                 is_active=True
             ).select_related('user', 'post')
+            try:
+                userposts = sorted(userposts, key=lambda up: (
+                    not getattr(up.post, 'can_final_approve_factor', False),  # False اول (True اولویت دارد)
+                    getattr(up.post, 'level', 9999) or 9999,
+                    up.user.get_full_name() or up.user.username
+                ))
+            except Exception:
+                pass
             
             seen_user_ids = set()
             for up in userposts:

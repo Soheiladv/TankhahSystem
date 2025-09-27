@@ -1081,6 +1081,7 @@ class FactorHistory(models.Model):
 
     def __str__(self):
         return f"{self.get_change_type_display()} برای فاکتور {self.factor.number} در {self.change_timestamp}"
+
 class StageApprover(models.Model):
     stage = models.ForeignKey('core.Status', on_delete=models.CASCADE, verbose_name=_('مرحله'))
     post = models.ForeignKey('core.Post', on_delete=models.CASCADE, verbose_name=_('پست مجاز'))
@@ -1114,12 +1115,14 @@ class StageApprover(models.Model):
             ('stageapprover__Update', 'بروزرسانی تأییدکننده مرحله'),
             ('stageapprover__delete', 'حــذف تأییدکننده مرحله'),
         ]
+
 class TankhahFinalApproval(models.Model):
     class Meta:
         default_permissions = ()
         permissions = [
             ('TankhahFinalApproval_view', 'دسترسی تایید یا رد تنخواه گردان ')
         ]
+
 class ItemCategory(models.Model):
     name = models.CharField(max_length=100, verbose_name=_("نام دسته‌بندی"))
     min_stage_order = models.IntegerField(default=1, verbose_name=_("حداقل ترتیب مرحله"))

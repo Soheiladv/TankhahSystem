@@ -59,6 +59,7 @@ class ActionUpdateView(WorkflowAdminRequiredMixin, DetailView):
             return redirect('action_list')
         context = self.get_context_data(); context['form'] = form
         return self.render_to_response(context)
+
 class ActionDeleteView(WorkflowAdminRequiredMixin, DeleteView):
     model = Action
     template_name = 'core/workflow/Action/confirm_retire.html' # استفاده از تمپلیت عمومی

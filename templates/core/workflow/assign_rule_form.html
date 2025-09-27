@@ -1,329 +1,390 @@
 {% extends 'base.html' %}
-{% load i18n %}
+{% load i18n rcms_custom_filters %}
 
 {% block title %}{% trans "تخصیص قانون به پست" %}{% endblock %}
-
- 
-
 {% block content %}
-<div class="container-fluid">
-    <!-- راهنمای قدم به قدم -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card form-card">
-                <div class="card-header">
-                    <h3 class="card-title">
-                        <i class="fas fa-user-plus me-2"></i>
-                        {% trans "تخصیص قانون به پست" %}
-                    </h3>
-                </div>
-                <div class="card-body">
-                    <!-- شاخص مراحل -->
-                    <div class="step-indicator">
-                        <div class="step active">
-                            <div class="step-number">1</div>
-                            <span>{% trans "انتخاب پست" %}</span>
-                        </div>
-                        <div class="step">
-                            <div class="step-number">2</div>
-                            <span>{% trans "انتخاب اقدام" %}</span>
-                        </div>
-                        <div class="step">
-                            <div class="step-number">3</div>
-                            <span>{% trans "انتخاب سازمان" %}</span>
-                        </div>
-                        <div class="step">
-                            <div class="step-number">4</div>
-                            <span>{% trans "تایید" %}</span>
-                        </div>
+    <div class="container-fluid">
+        <!-- راهنمای قدم به قدم -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card form-card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-user-plus me-2"></i>
+                            {% trans "تخصیص قانون به پست" %}
+                        </h3>
                     </div>
-
-                    <!-- فرم تخصیص -->
-                    <form id="assignRuleForm" method="post">
-                        {% csrf_token %}
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="post_id" class="form-label">
-                                        <i class="fas fa-user-tie me-2"></i>
-                                        {% trans "انتخاب پست" %} <span class="text-danger">*</span>
-                                    </label>
-                                    <select class="form-select" id="post_id" name="post_id" required>
-                                        <option value="">{% trans "لطفاً پست را انتخاب کنید" %}</option>
-                                        {% for post in posts %}
-                                        <option value="{{ post.id }}">{{ post.name }} - {{ post.organization.name }}</option>
-                                        {% endfor %}
-                                    </select>
-                                    <div class="form-text">{% trans "پستی که قانون به آن تخصیص داده می‌شود" %}</div>
-                                </div>
+                    <div class="card-body">
+                        <!-- شاخص مراحل -->
+                        <div class="step-indicator">
+                            <div class="step">
+                                <div class="step-number">1</div>
+                                <span>{% trans "انتخاب سازمان" %}</span>
                             </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="action_id" class="form-label">
-                                        <i class="fas fa-play me-2"></i>
-                                        {% trans "انتخاب اقدام" %} <span class="text-danger">*</span>
-                                    </label>
-                                    <select class="form-select" id="action_id" name="action_id" required>
-                                        <option value="">{% trans "لطفاً اقدام را انتخاب کنید" %}</option>
-                                        <!-- اقدامات از طریق AJAX بارگذاری می‌شوند -->
-                                    </select>
-                                    <div class="form-text">{% trans "اقدامی که پست می‌تواند انجام دهد" %}</div>
-                                </div>
+                            <div class="step">
+                                <div class="step-number">2</div>
+                                <span>{% trans "انتخاب اقدام" %}</span>
+                            </div>
+                            <div class="step active">
+                                <div class="step-number">3</div>
+                                <span>{% trans "انتخاب پست" %}</span>
+                            </div>
+
+                            <div class="step">
+                                <div class="step-number">4</div>
+                                <span>{% trans "تایید" %}</span>
                             </div>
                         </div>
 
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="organization_id" class="form-label">
-                                        <i class="fas fa-building me-2"></i>
-                                        {% trans "انتخاب سازمان" %} <span class="text-danger">*</span>
-                                    </label>
-                                    <select class="form-select" id="organization_id" name="organization_id" required>
-                                        <option value="">{% trans "لطفاً سازمان را انتخاب کنید" %}</option>
-                                        {% for organization in organizations %}
-                                        <option value="{{ organization.id }}">{{ organization.name }}</option>
-                                        {% endfor %}
-                                    </select>
-                                    <div class="form-text">{% trans "سازمانی که قانون در آن اعمال می‌شود" %}</div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="entity_type" class="form-label">
-                                        <i class="fas fa-cube me-2"></i>
-                                        {% trans "نوع موجودیت" %} <span class="text-danger">*</span>
-                                    </label>
-                                    <select class="form-select" id="entity_type" name="entity_type" required>
-                                        <option value="">{% trans "لطفاً نوع موجودیت را انتخاب کنید" %}</option>
-                                        <option value="TANKHAH">{% trans "تنخواه" %}</option>
-                                        <option value="FACTOR">{% trans "فاکتور" %}</option>
-                                        <option value="PAYMENTORDER">{% trans "دستور پرداخت" %}</option>
-                                    </select>
-                                    <div class="form-text">{% trans "نوع موجودیتی که قانون برای آن اعمال می‌شود" %}</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label">
-                                        <i class="fas fa-info-circle me-2"></i>
-                                        {% trans "وضعیت" %}
-                                    </label>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="is_active" name="is_active" checked>
-                                        <label class="form-check-label" for="is_active">
-                                            {% trans "فعال" %}
+                        <!-- فرم تخصیص -->
+                        <form id="assignRuleForm" method="post">
+                            {% csrf_token %}
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="organization_id" class="form-label">
+                                            <i class="fas fa-building me-2"></i>
+                                            {% trans "انتخاب سازمان" %} <span class="text-danger">*</span>
                                         </label>
+                                        <select class="form-select" id="organization_id" name="organization_id"
+                                                required>
+                                            <option value="">{% trans "لطفاً سازمان را انتخاب کنید" %}</option>
+                                            {% for organization in organizations %}
+                                                <option value="{{ organization.id }}">{{ organization.name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                        <div class="form-text">{% trans "سازمانی که قانون در آن اعمال می‌شود" %}</div>
                                     </div>
-                                    <div class="form-text">{% trans "آیا این تخصیص فعال باشد؟" %}</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="entity_type" class="form-label">
+                                            <i class="fas fa-cube me-2"></i>
+                                            {% trans "نوع موجودیت" %} <span class="text-danger">*</span>
+                                        </label>
+                                        <select class="form-select" id="entity_type" name="entity_type" required>
+                                            <option value="">{% trans "لطفاً نوع موجودیت را انتخاب کنید" %}</option>
+                                            <option value="TANKHAH">{% trans "تنخواه" %}</option>
+                                            <option value="FACTOR">{% trans "فاکتور" %}</option>
+                                            <option value="PAYMENTORDER">{% trans "دستور پرداخت" %}</option>
+                                        </select>
+                                        <div class="form-text">{% trans "نوع موجودیتی که قانون برای آن اعمال می‌شود" %}</div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-
-                        <!-- پیش‌نمایش تخصیص -->
-                        <div class="row mt-4" id="previewSection" style="display: none;">
-                            <div class="col-12">
-                                <div class="card bg-light">
-                                    <div class="card-header">
-                                        <h5 class="card-title">
-                                            <i class="fas fa-eye me-2"></i>
-                                            {% trans "پیش‌نمایش تخصیص" %}
-                                        </h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="post_id" class="form-label">
+                                            <i class="fas fa-user-tie me-2"></i>
+                                            {% trans "انتخاب پست" %} <span class="text-danger">*</span>
+                                        </label>
+                                        <select class="form-select" id="post_id" name="post_id" required>
+                                            <option value="">{% trans "لطفاً پست را انتخاب کنید" %}</option>
+                                            {% for post in posts %}
+                                                <option value="{{ post.id }}">{{ post.name }}
+                                                    - {{ post.organization.name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                        <div class="form-text">{% trans "پستی که قانون به آن تخصیص داده می‌شود" %}</div>
                                     </div>
-                                    <div class="card-body">
-                                        <div class="row">
-                                            <div class="col-md-4">
-                                                <strong>{% trans "پست:" %}</strong>
-                                                <span id="previewPost">-</span>
-                                            </div>
-                                            <div class="col-md-4">
-                                                <strong>{% trans "اقدام:" %}</strong>
-                                                <span id="previewAction">-</span>
-                                            </div>
-                                            <div class="col-md-4">
-                                                <strong>{% trans "سازمان:" %}</strong>
-                                                <span id="previewOrganization">-</span>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="action_id" class="form-label">
+                                            <i class="fas fa-play me-2"></i>
+                                            {% trans "انتخاب اقدام" %} <span class="text-danger">*</span>
+                                        </label>
+                                        <select class="form-select" id="action_id" name="action_id" required>
+                                            <option value="">{% trans "لطفاً اقدام را انتخاب کنید" %}</option>
+                                            <!-- اقدامات از طریق AJAX بارگذاری می‌شوند -->
+                                        </select>
+                                        <div class="form-text">{% trans "اقدامی که پست می‌تواند انجام دهد" %}</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">
+                                            <i class="fas fa-info-circle me-2"></i>
+                                            {% trans "وضعیت" %}
+                                        </label>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="is_active"
+                                                   name="is_active" checked>
+                                            <label class="form-check-label" for="is_active">
+                                                {% trans "فعال" %}
+                                            </label>
+                                        </div>
+                                        <div class="form-text">{% trans "آیا این تخصیص فعال باشد؟" %}</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">
+                                            <i class="fas fa-users me-2"></i>
+                                            {% trans "کاربران سازمان" %}
+                                        </label>
+                                        <div id="orgUsersContainer" class="border rounded p-2"
+                                             style="min-height: 40px; background-color: #f8f9fa;">
+                                            <span class="text-muted">{% trans "ابتدا سازمان را انتخاب کنید" %}</span>
+                                        </div>
+                                        <div class="form-text">{% trans "کاربران فعال در سازمان انتخابی" %}</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- پیش‌نمایش تخصیص -->
+                            <div class="row mt-4" id="previewSection" style="display: none;">
+                                <div class="col-12">
+                                    <div class="card bg-light">
+                                        <div class="card-header">
+                                            <h5 class="card-title">
+                                                <i class="fas fa-eye me-2"></i>
+                                                {% trans "پیش‌نمایش تخصیص" %}
+                                            </h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="row">
+                                                <div class="col-md-4">
+                                                    <strong>{% trans "پست:" %}</strong>
+                                                    <span id="previewPost">-</span>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <strong>{% trans "اقدام:" %}</strong>
+                                                    <span id="previewAction">-</span>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <strong>{% trans "سازمان:" %}</strong>
+                                                    <span id="previewOrganization">-</span>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <!-- دکمه‌های عملیات -->
-                        <div class="row mt-4">
-                            <div class="col-12">
-                                <div class="d-flex gap-2">
-                                    <button type="submit" class="btn btn-primary">
-                                        <i class="fas fa-save me-2"></i>
-                                        {% trans "تخصیص قانون" %}
-                                    </button>
-                                    <a href="{% url 'workflow_management:post_assignment_list' %}" class="btn btn-secondary">
-                                        <i class="fas fa-arrow-left me-2"></i>
-                                        {% trans "انصراف" %}
-                                    </a>
-                                    <button type="button" class="btn btn-info" onclick="previewAssignment()">
-                                        <i class="fas fa-eye me-2"></i>
-                                        {% trans "پیش‌نمایش" %}
-                                    </button>
+                            <!-- دکمه‌های عملیات -->
+                            <div class="row mt-4">
+                                <div class="col-12">
+                                    <div class="d-flex gap-2">
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-save me-2"></i>
+                                            {% trans "تخصیص قانون" %}
+                                        </button>
+                                        <a href="{% url 'workflow_management:post_assignment_list' %}"
+                                           class="btn btn-secondary">
+                                            <i class="fas fa-arrow-left me-2"></i>
+                                            {% trans "انصراف" %}
+                                        </a>
+                                        <button type="button" class="btn btn-info" onclick="previewAssignment()">
+                                            <i class="fas fa-eye me-2"></i>
+                                            {% trans "پیش‌نمایش" %}
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </form>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- راهنمای استفاده -->
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title">
-                        <i class="fas fa-question-circle me-2"></i>
-                        {% trans "راهنمای استفاده" %}
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <h6>{% trans "مراحل تخصیص قانون:" %}</h6>
-                            <ol>
-                                <li>{% trans "پست مورد نظر را از لیست انتخاب کنید" %}</li>
-                                <li>{% trans "اقدام مناسب را انتخاب کنید" %}</li>
-                                <li>{% trans "سازمان مربوطه را مشخص کنید" %}</li>
-                                <li>{% trans "وضعیت فعال/غیرفعال را تعیین کنید" %}</li>
-                                <li>{% trans "تخصیص را ذخیره کنید" %}</li>
-                            </ol>
-                        </div>
-                        <div class="col-md-6">
-                            <h6>{% trans "نکات مهم:" %}</h6>
-                            <ul>
-                                <li>{% trans "هر پست می‌تواند چندین اقدام داشته باشد" %}</li>
-                                <li>{% trans "قوانین بر اساس سازمان اعمال می‌شوند" %}</li>
-                                <li>{% trans "تخصیص‌های غیرفعال در گردش کار اعمال نمی‌شوند" %}</li>
-                                <li>{% trans "امکان ویرایش و حذف تخصیص‌ها وجود دارد" %}</li>
-                            </ul>
+        <!-- راهنمای استفاده -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title">
+                            <i class="fas fa-question-circle me-2"></i>
+                            {% trans "راهنمای استفاده" %}
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>{% trans "مراحل تخصیص قانون:" %}</h6>
+                                <ol>
+                                    <li>{% trans "پست مورد نظر را از لیست انتخاب کنید" %}</li>
+                                    <li>{% trans "اقدام مناسب را انتخاب کنید" %}</li>
+                                    <li>{% trans "سازمان مربوطه را مشخص کنید" %}</li>
+                                    <li>{% trans "وضعیت فعال/غیرفعال را تعیین کنید" %}</li>
+                                    <li>{% trans "تخصیص را ذخیره کنید" %}</li>
+                                </ol>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>{% trans "نکات مهم:" %}</h6>
+                                <ul>
+                                    <li>{% trans "هر پست می‌تواند چندین اقدام داشته باشد" %}</li>
+                                    <li>{% trans "قوانین بر اساس سازمان اعمال می‌شوند" %}</li>
+                                    <li>{% trans "تخصیص‌های غیرفعال در گردش کار اعمال نمی‌شوند" %}</li>
+                                    <li>{% trans "امکان ویرایش و حذف تخصیص‌ها وجود دارد" %}</li>
+                                </ul>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 {% endblock %}
 
 {% block extra_js %}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // بارگذاری اقدامات
-    loadActions();
-    
-    // رویداد تغییر پست
-    document.getElementById('post_id').addEventListener('change', function() {
-        updatePreview();
-    });
-    
-    // رویداد تغییر اقدام
-    document.getElementById('action_id').addEventListener('change', function() {
-        updatePreview();
-    });
-    
-    // رویداد تغییر سازمان
-    document.getElementById('organization_id').addEventListener('change', function() {
-        updatePreview();
-    });
-    
-    // رویداد تغییر نوع موجودیت
-    document.getElementById('entity_type').addEventListener('change', function() {
-        updatePreview();
-    });
-    
-    // ارسال فرم
-    document.getElementById('assignRuleForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        submitForm();
-    });
-});
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // بارگذاری اقدامات
+            loadActions();
 
-// بارگذاری اقدامات
-function loadActions() {
-    fetch('/workflow-management/api/actions/')
-        .then(response => response.json())
-        .then(data => {
-            const select = document.getElementById('action_id');
-            if (select && data.actions) {
-                data.actions.forEach(action => {
-                    const option = document.createElement('option');
-                    option.value = action.id;
-                    option.textContent = action.name;
-                    select.appendChild(option);
-                });
-            }
-        })
-        .catch(error => console.error('Error loading actions:', error));
-}
+            // تغییر سازمان => بارگذاری پست‌ها و کاربران سازمان
+            document.getElementById('organization_id').addEventListener('change', function () {
+                const orgId = this.value;
+                if (!orgId) {
+                    return;
+                }
+                // پست‌ها
+                fetch(`/workflow-management/api/organizations/${orgId}/posts/`)
+                    .then(r => r.json())
+                    .then(data => {
+                        const sel = document.getElementById('post_id');
+                        sel.innerHTML = '<option value="">لطفاً پست را انتخاب کنید</option>';
+                        if (data.success && data.posts) {
+                            data.posts.forEach(p => {
+                                const opt = document.createElement('option');
+                                opt.value = p.id;
+                                opt.textContent = `${p.name}`;
+                                sel.appendChild(opt);
+                            });
+                        }
+                        updatePreview();
+                    });
+                // کاربران
+                fetch(`/workflow-management/api/organizations/${orgId}/users/`)
+                    .then(r => r.json())
+                    .then(data => {
+                        const container = document.getElementById('orgUsersContainer');
+                        if (!container) return;
+                        container.innerHTML = '';
+                        if (data.success && data.users && data.users.length) {
+                            const list = document.createElement('ul');
+                            list.className = 'mb-0';
+                            data.users.forEach(u => {
+                                const li = document.createElement('li');
+                                li.textContent = `${u.name} (${u.username})`;
+                                list.appendChild(li);
+                            });
+                            container.appendChild(list);
+                        } else {
+                            const span = document.createElement('span');
+                            span.className = 'text-muted';
+                            span.textContent = 'کاربری یافت نشد';
+                            container.appendChild(span);
+                        }
+                    });
+            });
 
-// به‌روزرسانی پیش‌نمایش
-function updatePreview() {
-    const postSelect = document.getElementById('post_id');
-    const actionSelect = document.getElementById('action_id');
-    const organizationSelect = document.getElementById('organization_id');
-    const entityTypeSelect = document.getElementById('entity_type');
-    
-    const postText = postSelect.options[postSelect.selectedIndex].text;
-    const actionText = actionSelect.options[actionSelect.selectedIndex].text;
-    const organizationText = organizationSelect.options[organizationSelect.selectedIndex].text;
-    const entityTypeText = entityTypeSelect.options[entityTypeSelect.selectedIndex].text;
-    
-    document.getElementById('previewPost').textContent = postText;
-    document.getElementById('previewAction').textContent = actionText;
-    document.getElementById('previewOrganization').textContent = organizationText;
-    
-    // نمایش بخش پیش‌نمایش اگر همه فیلدها پر شده باشند
-    if (postSelect.value && actionSelect.value && organizationSelect.value && entityTypeSelect.value) {
-        document.getElementById('previewSection').style.display = 'block';
-    } else {
-        document.getElementById('previewSection').style.display = 'none';
-    }
-}
+            // رویداد تغییر پست
+            document.getElementById('post_id').addEventListener('change', function () {
+                updatePreview();
+            });
 
-// پیش‌نمایش تخصیص
-function previewAssignment() {
-    updatePreview();
-    if (document.getElementById('previewSection').style.display === 'none') {
-        alert('لطفاً ابتدا همه فیلدهای اجباری را پر کنید.');
-    }
-}
+            // رویداد تغییر اقدام
+            document.getElementById('action_id').addEventListener('change', function () {
+                updatePreview();
+            });
 
-// ارسال فرم
-function submitForm() {
-    const formData = new FormData(document.getElementById('assignRuleForm'));
-    
-    fetch('{% url "workflow_management:assign_rule_to_post" %}', {
-        method: 'POST',
-        headers: {
-            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-        },
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert(data.message);
-            window.location.href = '{% url "workflow_management:post_assignment_list" %}';
-        } else {
-            alert('خطا: ' + data.message);
+            // رویداد تغییر سازمان
+            document.getElementById('organization_id').addEventListener('change', function () {
+                updatePreview();
+            });
+
+            // رویداد تغییر نوع موجودیت
+            document.getElementById('entity_type').addEventListener('change', function () {
+                updatePreview();
+            });
+
+            // ارسال فرم
+            document.getElementById('assignRuleForm').addEventListener('submit', function (e) {
+                e.preventDefault();
+                submitForm();
+            });
+        });
+
+        // بارگذاری اقدامات
+        function loadActions() {
+            fetch('/workflow-management/api/actions/')
+                .then(response => response.json())
+                .then(data => {
+                    const select = document.getElementById('action_id');
+                    if (select && data.actions) {
+                        data.actions.forEach(action => {
+                            const option = document.createElement('option');
+                            option.value = action.id;
+                            option.textContent = action.name;
+                            select.appendChild(option);
+                        });
+                    }
+                })
+                .catch(error => console.error('Error loading actions:', error));
         }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('خطا در ارسال فرم');
-    });
-}
-</script>
+
+        // به‌روزرسانی پیش‌نمایش
+        function updatePreview() {
+            const postSelect = document.getElementById('post_id');
+            const actionSelect = document.getElementById('action_id');
+            const organizationSelect = document.getElementById('organization_id');
+            const entityTypeSelect = document.getElementById('entity_type');
+
+            const postText = postSelect.options[postSelect.selectedIndex].text;
+            const actionText = actionSelect.options[actionSelect.selectedIndex].text;
+            const organizationText = organizationSelect.options[organizationSelect.selectedIndex].text;
+            const entityTypeText = entityTypeSelect.options[entityTypeSelect.selectedIndex].text;
+
+            document.getElementById('previewPost').textContent = postText;
+            document.getElementById('previewAction').textContent = actionText;
+            document.getElementById('previewOrganization').textContent = organizationText;
+
+            // نمایش بخش پیش‌نمایش اگر همه فیلدها پر شده باشند
+            if (postSelect.value && actionSelect.value && organizationSelect.value && entityTypeSelect.value) {
+                document.getElementById('previewSection').style.display = 'block';
+            } else {
+                document.getElementById('previewSection').style.display = 'none';
+            }
+        }
+
+        // پیش‌نمایش تخصیص
+        function previewAssignment() {
+            updatePreview();
+            if (document.getElementById('previewSection').style.display === 'none') {
+                alert('لطفاً ابتدا همه فیلدهای اجباری را پر کنید.');
+            }
+        }
+
+        // ارسال فرم
+        function submitForm() {
+            const formData = new FormData(document.getElementById('assignRuleForm'));
+
+            fetch('{% url "workflow_management:assign_rule_to_post" %}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                },
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(data.message);
+                        window.location.href = '{% url "workflow_management:post_assignment_list" %}';
+                    } else {
+                        alert('خطا: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('خطا در ارسال فرم');
+                });
+        }
+    </script>
 {% endblock %}

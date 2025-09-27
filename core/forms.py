@@ -46,6 +46,18 @@ class SystemSettingsForm(forms.ModelForm):
             'budget_locked_percentage_default': _('درصد قفل پیش‌فرض بودجه'),
             'budget_warning_threshold_default': _('آستانه اخطار بودجه'),
         }
+        help_texts = {
+            'budget_locked_percentage_default': _('وقتی درصد باقیمانده بودجه کمتر از این مقدار شود قفل می‌شود.'),
+            'budget_warning_threshold_default': _('اگر درصد باقیمانده از این مقدار کمتر شود هشدار فعال می‌شود.'),
+            'allocation_locked_percentage_default': _('حداقل درصد باقیمانده تخصیص برای قفل شدن تخصیص‌ها.'),
+            'tankhah_payment_ceiling_default': _('حداکثر مبلغ مجاز هر پرداخت تنخواه (ریال).'),
+            'tankhah_payment_ceiling_enabled_default': _('در صورت فعال بودن، سقف پرداخت تنخواه اعمال می‌شود.'),
+            'tankhah_accessible_organizations': _('لیست ID سازمان‌های مجاز به‌صورت JSON مانند [1,2,3].'),
+            'tankhah_used_statuses': _('لیست کد وضعیت‌های مصرف‌شده به‌صورت JSON مانند ["PAID","APPROVED"].'),
+            'enforce_strict_approval_order': _('الزام رعایت ترتیب سلسله‌مراتب تأیید.'),
+            'allow_bypass_org_chart': _('اجازه رد شدن از سلسله‌مراتب در شرایط خاص.'),
+            'allow_action_without_org_chart': _('اجازه اقدام بدون داشتن پست سازمانی.'),
+        }
 
     def clean_tankhah_used_statuses(self):
         # این متدها را به دلیل ماهیت JSONی آن‌ها نگه دارید.

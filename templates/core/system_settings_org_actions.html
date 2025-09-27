@@ -1,0 +1,85 @@
+{% extends 'base_ld.html' %}
+{% load i18n %}
+
+{% block page_title %}{% trans "گزارش اقدامات مجاز کاربران سازمان" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+  <div class="card shadow-sm">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h5 class="mb-0">{% trans "گزارش اقدامات مجاز" %}</h5>
+      <form method="get" class="d-flex align-items-center gap-2" action="">
+        <select class="form-select" name="q">
+          <option value="">{% trans 'انتخاب شعبه/سازمان' %}</option>
+          {% for org in organizations %}
+            <option value="{{ org.name }}" {% if org.name == query %}selected{% endif %}>
+              {{ org.name }}{% if org.code %} ({{ org.code }}){% endif %}
+            </option>
+          {% endfor %}
+        </select>
+        <button class="btn btn-primary" type="submit">{% trans "نمایش" %}</button>
+      </form>
+    </div>
+    <div class="card-body">
+      {% if not organization %}
+      <div class="alert alert-warning">{% trans "سازمانی با این نام یافت نشد." %}</div>
+      {% else %}
+      <div class="mb-3">
+        <strong>{% trans "سازمان:" %}</strong> {{ organization.name }}
+      </div>
+      <div class="table-responsive">
+        <table class="table table-striped align-middle">
+          <thead>
+            <tr>
+              <th>{% trans "کاربر" %}</th>
+              <th>{% trans "پست" %}</th>
+              <th style="width:55%">{% trans "اقدامات مجاز (فقط FACTOR)" %}</th>
+              <th>{% trans "نقطه شروع" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in rows %}
+            <tr>
+              <td>{{ row.user.get_full_name|default:row.user.username }}</td>
+              <td>{{ row.post.name }}</td>
+              <td>
+                {% if row.allowed %}
+                  <ul class="mb-0">
+                    {% for a in row.allowed %}
+                      <li>
+                        <span class="badge bg-warning text-dark me-1">{{ a.action_name }}</span>
+                        <small class="text-muted">({{ a.action_code }})</small>
+                        <small class="ms-2">{{ a.from_status }} → {{ a.to_status }}</small>
+                        {% if a.is_initial_from %}<span class="badge bg-primary ms-2">{% trans "شروع" %}</span>{% endif %}
+                        {% if a.is_final_to %}<span class="badge bg-success ms-1">{% trans "پایانی" %}</span>{% endif %}
+                        {% if a.is_reject_to %}<span class="badge bg-danger ms-1">{% trans "رد" %}</span>{% endif %}
+                      </li>
+                    {% endfor %}
+                  </ul>
+                {% else %}
+                  <span class="text-muted">{% trans "موردی یافت نشد." %}</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if row.allowed %}
+                  {% if row.has_initial_start %}
+                    <span class="badge bg-primary">{% trans "از ابتدا" %}</span>
+                  {% else %}
+                    <span class="badge bg-secondary">{% trans "از میانه" %}</span>
+                  {% endif %}
+                {% else %}
+                  <span class="text-muted">—</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+

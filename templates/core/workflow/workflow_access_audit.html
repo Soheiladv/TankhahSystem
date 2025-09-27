@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% load i18n rcms_custom_filters %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="card shadow-sm">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h5 class="mb-0">{% trans "گزارش دسترسی گردش کار (سطح به سطح)" %}</h5>
+      <a href="{% url 'workflow_dashboard' %}" class="btn btn-outline-secondary btn-sm">{% trans "بازگشت" %}</a>
+    </div>
+    <div class="card-body">
+      <form method="get" class="row g-2 align-items-end mb-3">
+        <div class="col-md-6">
+          <label class="form-label">{% trans 'سازمان' %}</label>
+          <select class="form-select" name="organization_id" onchange="this.form.submit()">
+            <option value="">{% trans 'همه' %}</option>
+            {% for org in organizations %}
+              <option value="{{ org.id }}" {% if selected_org_id|stringformat:'s' == org.id|stringformat:'s' %}selected{% endif %}>
+                {{ org.name }}{% if org.code %} ({{ org.code }}){% endif %}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">{% trans 'نوع موجودیت' %}</label>
+          <select class="form-select" name="entity_type" onchange="this.form.submit()">
+            <option value="FACTOR" {% if selected_entity_type == 'FACTOR' %}selected{% endif %}>{% trans 'فاکتور' %}</option>
+            <option value="TANKHAH" {% if selected_entity_type == 'TANKHAH' %}selected{% endif %}>{% trans 'تنخواه' %}</option>
+            <option value="PAYMENTORDER" {% if selected_entity_type == 'PAYMENTORDER' %}selected{% endif %}>{% trans 'دستور پرداخت' %}</option>
+          </select>
+        </div>
+      </form>
+
+      <div class="table-responsive">
+        <table class="table table-hover align-middle">
+          <thead>
+            <tr>
+              <th>{% trans "ردیف" %}</th>
+              <th>{% trans "سازمان" %}</th>
+              <th>{% trans "کاربر" %}</th>
+              <th>{% trans "پست" %}</th>
+              <th class="text-center">{% trans "ارسال (SUBMIT)" %}</th>
+              <th class="text-center">{% trans "تایید (APPROVE)" %}</th>
+              <th class="text-center">{% trans "رد (REJECT)" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in audit_rows %}
+              <tr>
+                <td>{{ forloop.counter|to_persian_number }}</td>
+                <td>{{ row.organization.name }}</td>
+                <td>{{ row.user.get_full_name|default:row.user.username }}</td>
+                <td>{{ row.post.name }}</td>
+                <td class="text-center">
+                  {% if row.can_submit %}
+                    <span class="badge bg-primary">{% trans "بله" %}</span>
+                  {% else %}
+                    <span class="badge bg-secondary">{% trans "خیر" %}</span>
+                  {% endif %}
+                </td>
+                <td class="text-center">
+                  {% if row.can_approve %}
+                    <span class="badge bg-success">{% trans "بله" %}</span>
+                  {% else %}
+                    <span class="badge bg-secondary">{% trans "خیر" %}</span>
+                  {% endif %}
+                </td>
+                <td class="text-center">
+                  {% if row.can_reject %}
+                    <span class="badge bg-danger">{% trans "بله" %}</span>
+                  {% else %}
+                    <span class="badge bg-secondary">{% trans "خیر" %}</span>
+                  {% endif %}
+                </td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="7" class="text-center text-muted py-4">
+                  <i class="fas fa-info-circle me-2"></i> {% trans "موردی یافت نشد." %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+

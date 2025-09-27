@@ -1,0 +1,105 @@
+.I'll explain the workflow system and why the uniqueness constraint exists, then check the approval path page you mentioned.
+
+
+[4 tools called]
+
+Now let me check the approval path page you mentioned:
+
+
+[1 tool called]
+
+Now let me explain the workflow system based on what I found:
+
+## توضیح سیستم گردش کار (Workflow System)
+
+### 1. **چرا StageApprover باید یونیک باشد؟**
+
+```python
+# در مدل StageApprover
+unique_together = ('stage', 'post', 'entity_type')
+```
+
+**دلیل**: هر پست در هر مرحله برای هر نوع موجودیت فقط **یک بار** می‌تواند تأییدکننده باشد. این جلوگیری از تداخل و تضاد در قوانین است.
+
+**مثال**: اگر "مدیر کل هتل" در مرحله "در انتظار تأیید" برای "فاکتور" تأییدکننده باشد، نمی‌تواند دوباره برای همان مرحله و نوع موجودیت تعریف شود.
+
+### 2. **چگونه تأیید نهایی مشخص می‌شود؟**
+
+سیستم بر اساس **وضعیت‌های نهایی** (`Status`) کار می‌کند:
+
+```python
+# در مدل Status
+is_final_approve = models.BooleanField(default=False)  # تأیید نهایی
+is_final_reject = models.BooleanField(default=False)   # رد نهایی
+```
+
+**مثال وضعیت‌ها**:
+- `DRAFT` (پیش‌نویس) - `is_initial=True`
+- `PENDING` (در انتظار تأیید) - حالت میانی
+- `APPROVED` (تأیید شده) - `is_final_approve=True` ← **نهایی**
+- `REJECTED` (رد شده) - `is_final_reject=True` ← **نهایی**
+
+### 3. **درخت گردش کار چگونه کار می‌کند؟**
+
+```python
+# Transition مدل - تعریف مسیرهای ممکن
+class Transition:
+    from_status = ForeignKey(Status)  # از کجا
+    to_status = ForeignKey(Status)     # به کجا  
+    action = ForeignKey(Action)       # چه عملی
+    allowed_posts = ManyToManyField(Post)  # کدام پست‌ها مجازند
+```
+
+**مثال درخت**:
+```
+DRAFT → [SUBMIT] → PENDING → [APPROVE] → APPROVED (نهایی)
+                    ↓
+                 [REJECT] → REJECTED (نهایی)
+```
+
+### 4. **چه پستی تأیید نهایی می‌کند؟**
+
+**پاسخ**: هر پستی که در `Transition` تعریف شده و به وضعیت `is_final_approve=True` منجر شود.
+
+**مثال**:
+- اگر `Transition` از `PENDING` به `APPROVED` با `action=APPROVE` وجود داشته باشد
+- و `allowed_posts` شامل "مدیر عامل" باشد
+- آنگاه "مدیر عامل" تأیید نهایی می‌کند
+
+### 5. **چرا چندین تأییدکننده ممکن است؟**
+
+در هر مرحله ممکن است **چندین پست** مجاز به تأیید باشند:
+
+```python
+# مثال: در مرحله "در انتظار تأیید"
+allowed_posts = ["مدیر کل", "معاون مالی", "مدیر پروژه"]
+```
+
+**قوانین**:
+- همه باید تأیید کنند تا به مرحله بعد برود
+- اگر یکی رد کند، کل فرآیند رد می‌شود
+- اگر همه تأیید کنند، به مرحله بعد می‌رود
+
+### 6. **صفحه approval-path چه نشان می‌دهد؟**
+
+صفحه `http://127.0.0.1:8000/workflow-management/factor/80/approval-path/` نشان می‌دهد:
+
+1. **مسیر کامل**: از وضعیت فعلی تا نهایی
+2. **تأییدکنندگان هر مرحله**: چه کسانی باید تأیید کنند
+3. **وضعیت فعلی**: در کدام مرحله هستیم
+4. **تاریخچه**: چه کسانی قبلاً تأیید/رد کرده‌اند
+5. **مراحل باقی‌مانده**: چه کارهایی باید انجام شود
+
+### 7. **مثال عملی**:
+
+```
+فاکتور شماره FAC-123:
+├── مرحله 1: DRAFT (پیش‌نویس) ← فعلی
+├── مرحله 2: PENDING (در انتظار تأیید)
+│   ├── تأییدکنندگان: مدیر کل، معاون مالی
+│   └── اقدام: APPROVE یا REJECT
+├── مرحله 3: APPROVED (تأیید نهایی) ← is_final_approve=True
+└── مرحله 4: PAID (پرداخت شده)
+```
+
+**خلاصه**: سیستم بر اساس `Status` و `Transition` کار می‌کند. هر `Status` می‌تواند نهایی باشد (`is_final_approve/reject`). `StageApprover` فقط یک بار برای هر ترکیب `(stage, post, entity_type)` تعریف می‌شود تا از تداخل جلوگیری شود.

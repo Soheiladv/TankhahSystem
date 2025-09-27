@@ -1,0 +1,65 @@
+{%   load i18n rcms_custom_filters %}
+<div class="accordion-item">
+  <h2 class="accordion-header" id="heading-{{ node.org.id }}">
+    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-{{ node.org.id }}">
+      {{ node.org.name }}
+    </button>
+  </h2>
+  <div id="collapse-{{ node.org.id }}" class="accordion-collapse collapse" data-bs-parent="#orgTree">
+    <div class="accordion-body">
+      {% if node.posts %}
+        <div class="mb-3">
+          <div class="fw-bold mb-2">{% trans "پست‌ها" %}</div>
+          <div class="table-responsive">
+            <table class="table table-sm align-middle table-hover">
+              <thead class="table-light">
+                <tr>
+                  <th class="text-nowrap">{% trans "پست" %}</th>
+                  <th class="text-center">۱) {% trans "بودجه" %} / BUDGET</th>
+                  <th class="text-center">۲) {% trans "فاکتور" %} / FACTOR</th>
+                  <th class="text-center">۳) {% trans "دستور پرداخت" %} / PAYMENT</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for post in node.posts %}
+                {% with pk=post.id %}
+                <tr class="post-row" data-post-id="{{ pk }}">
+                  <td class="text-nowrap">{{ post.name }}</td>
+                  {% for et in entity_types %}
+                  <td class="text-center">
+                    <div class="action-grid">
+                      {% for ac in action_codes %}
+                      <label class="form-check form-check-inline">
+                        <input type="checkbox" class="form-check-input" data-et="{{ et }}" data-ac="{{ ac }}">
+                        <span class="form-check-label small">
+                          {% if forloop.counter == 1 %}۱{% elif forloop.counter == 2 %}۲{% elif forloop.counter == 3 %}۳{% else %}•{% endif %}
+                          )
+                          {% if ac == 'SUBMIT' %}{% trans "ارسال" %}{% elif ac == 'APPROVE' %}{% trans "تأیید" %}{% elif ac == 'REJECT' %}{% trans "رد" %}{% else %}{{ ac }}{% endif %}
+                          / {{ ac }}
+                        </span>
+                      </label>
+                      {% endfor %}
+                    </div>
+                  </td>
+                  {% endfor %}
+                </tr>
+                {% endwith %}
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      {% endif %}
+
+      {% if node.children %}
+        <div class="ms-3">
+          {% for child in node.children %}
+            {% include 'core/workflow/partials/_org_access_node.html' with node=child %}
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+

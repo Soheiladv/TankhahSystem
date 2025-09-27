@@ -142,6 +142,8 @@ def dashboard_view(request):
             "icon": "fas fa-user-tag",
             "items": [
                 {"label": "مدیریت پیام ها ", "url": "notifications:inbox", "icon": "fas fa-chart", "color": "danger"},
+                {'name': _('تنظیمات سامانه (SystemSettings)'), 'url': 'system_settings_dashboard',
+                 'icon': 'fas fa-sliders-h'},
             ],
         },
         {

@@ -35,6 +35,17 @@ from django.views.generic import DetailView
 
 logger = logging.getLogger(__name__)
 
+# Helper: resolve EntityType code for Factor dynamically to avoid hardcoding
+def _get_factor_entity_type_code():
+    try:
+        from django.contrib.contenttypes.models import ContentType
+        from core.models import EntityType
+        ct = ContentType.objects.get_for_model(Factor)
+        et = EntityType.objects.filter(content_type=ct).first()
+        return et.code if et else 'FACTOR'
+    except Exception:
+        return 'FACTOR'
+
 # ===================================================================
 # ۱. توابع کمکی مشترک
 # ===================================================================
@@ -77,6 +88,18 @@ def get_next_steps_with_posts(factor, include_final_reject=False):
     current_status = factor.status
     visited_statuses = {current_status.pk}
 
+    # مرتب‌سازی پست‌ها بر اساس can_final_approve_factor سپس سطح/نام از مدل Post
+    def _sort_posts(posts):
+        try:
+            posts.sort(key=lambda p: (
+                not getattr(p, 'can_final_approve_factor', False),  # False اول (True اولویت دارد)
+                getattr(p, 'level', 9999) or 9999,
+                p.name
+            ))
+        except Exception:
+            pass
+        return posts
+
     while current_status:
         next_possible_transitions = transitions_map.get(current_status.pk, [])
         if not next_possible_transitions:
@@ -91,6 +114,28 @@ def get_next_steps_with_posts(factor, include_final_reject=False):
             break
 
         posts_list = list(main_transition.allowed_posts.all())
+        # fallback 1: اگر پست مشخص نشده، از PostRuleAssignment استفاده کن
+        if not posts_list:
+            try:
+                from core.models import PostRuleAssignment as _PRA, Post as _Post
+                pra_post_ids = list(_PRA.objects.filter(
+                    is_active=True,
+                    organization_id=main_transition.organization_id,
+                    action_id=main_transition.action_id,
+                    entity_type='FACTOR'
+                ).values_list('post_id', flat=True))
+                if pra_post_ids:
+                    posts_list = list(_Post.objects.filter(id__in=pra_post_ids, is_active=True))
+            except Exception:
+                pass
+        # fallback 2: اگر PRA هم نبود، تمام پست‌های فعال سازمان
+        if not posts_list and getattr(main_transition, 'organization_id', None):
+            try:
+                from core.models import Post as _Post
+                posts_list = list(_Post.objects.filter(organization_id=main_transition.organization_id, is_active=True))
+            except Exception:
+                pass
+        posts_list = _sort_posts(posts_list)
         path.append({
             'action': main_transition.action,
             'from_status': current_status,
@@ -126,7 +171,7 @@ def get_user_allowed_transitions(user, factor):
     Returns:
         list: لیست ترنزیشن‌های مجاز برای کاربر
     """
-    from core.models import Transition, UserPost
+    from core.models import Transition, UserPost, Post
     from core.PermissionBase import PermissionBaseView
     
     # اگر وضعیت/تنخواه/سازمان تعریف نشده باشد، اقدامی مجاز نیست
@@ -143,8 +188,9 @@ def get_user_allowed_transitions(user, factor):
         return []
 
     # دریافت تمام ترنزیشن‌های فعال از وضعیت فعلی فاکتور برای سازمان‌های مجاز کاربر
+    et_code = _get_factor_entity_type_code()
     transitions_qs = Transition.objects.filter(
-        entity_type__code='FACTOR',
+        entity_type__code=et_code,
         from_status=factor.status,
         organization_id__in=user_org_ids,
         is_active=True,
@@ -195,6 +241,8 @@ def get_user_allowed_transitions(user, factor):
     allowed = []
     seen_actions = set()  # برای جلوگیری از تکرار اقدامات مشابه
     
+    from core.models import PostRuleAssignment as _PRA
+
     for t in transitions_qs:
         # جلوگیری از تکرار بر اساس ترکیب action و from_status
         action_key = (t.action.id, t.from_status.id)
@@ -203,17 +251,32 @@ def get_user_allowed_transitions(user, factor):
             continue
         seen_actions.add(action_key)
         
-        # اگر ترنزیشن پست‌های مجاز تعریف نکرده باشد، عمومی است
+        # اگر ترنزیشن پست‌های مجاز ندارد، از تخصیص‌های پست (PostRuleAssignment) استفاده کن
         allowed_posts = list(t.allowed_posts.all())
-        if not allowed_posts:  # عمومی
-            # اگر اقدام بدون چارت ممنوع است و کاربر پست فعال ندارد، رد شود
-            if not (sys_settings and getattr(sys_settings, 'allow_action_without_org_chart', False)):
-                if not user_post_ids_set:
-                    logger.debug(f"Skipped public transition due to no user posts and org-chart required: {t.action.name}")
-                    continue
-            allowed.append(t)
-            logger.debug(f"Added public transition: {t.action.name}")
-            continue
+        if not allowed_posts:
+            pra_post_ids = list(_PRA.objects.filter(
+                is_active=True,
+                organization_id=t.organization_id,
+                action_id=t.action_id,
+                entity_type=et_code
+            ).values_list('post_id', flat=True))
+            if pra_post_ids:
+                # اگر PRA وجود دارد، صرفاً کاربران با پست‌های PRA مجازند
+                if not user_post_ids_set.isdisjoint(set(pra_post_ids)):
+                    allowed.append(t)
+                    logger.debug(f"Added transition via PRA posts: {t.action.name}")
+                else:
+                    logger.debug(f"Skipped transition - user not in PRA posts: {t.action.name}")
+                continue
+            else:
+                # عمومی تلقی می‌شود
+                if not (sys_settings and getattr(sys_settings, 'allow_action_without_org_chart', False)):
+                    if not user_post_ids_set:
+                        logger.debug(f"Skipped public transition due to no user posts and org-chart required: {t.action.name}")
+                        continue
+                allowed.append(t)
+                logger.debug(f"Added public transition (no allowed_posts and no PRA): {t.action.name}")
+                continue
             
         # بررسی اینکه کاربر در پست‌های مجاز باشد
         allowed_post_ids = {p.id for p in allowed_posts}
@@ -223,6 +286,45 @@ def get_user_allowed_transitions(user, factor):
         else:
             logger.debug(f"Skipped transition - user not in allowed posts: {t.action.name}")
 
+    # مرتب‌سازی ترنزیشن‌ها بر اساس can_final_approve_factor سپس سطح پست
+    def _sort_transitions(transitions):
+        def _get_transition_priority(transition):
+            # دریافت پست‌های مجاز برای این ترنزیشن
+            allowed_posts = list(transition.allowed_posts.all())
+            if not allowed_posts:
+                # اگر پست‌های مجاز ندارند، از PRA استفاده کن
+                pra_post_ids = list(_PRA.objects.filter(
+                    is_active=True,
+                    organization_id=transition.organization_id,
+                    action_id=transition.action_id,
+                    entity_type=et_code
+                ).values_list('post_id', flat=True))
+                if pra_post_ids:
+                    allowed_posts = list(Post.objects.filter(id__in=pra_post_ids, is_active=True))
+                else:
+                    # اگر PRA هم ندارند، تمام پست‌های سازمان
+                    allowed_posts = list(Post.objects.filter(organization_id=transition.organization_id, is_active=True))
+            
+            # بررسی اینکه آیا پست‌هایی با can_final_approve_factor=True وجود دارند
+            has_final_approve = any(getattr(p, 'can_final_approve_factor', False) for p in allowed_posts)
+            min_level = min([getattr(p, 'level', 9999) or 9999 for p in allowed_posts], default=9999)
+            
+            # اگر پست‌هایی با can_final_approve_factor=True وجود دارند، اولویت با آنها
+            if has_final_approve:
+                return (0, min_level, transition.id)  # 0 برای اولویت بالا
+            else:
+                return (1, min_level, transition.id)  # 1 برای اولویت پایین
+        
+        try:
+            transitions.sort(key=_get_transition_priority)
+        except Exception as e:
+            logger.warning(f"Error sorting transitions: {e}")
+        
+        return transitions
+
+    # مرتب‌سازی ترنزیشن‌های مجاز
+    allowed = _sort_transitions(allowed)
+    
     logger.info(f"User {user.username} allowed transitions: {[t.action.name for t in allowed]}")
     return allowed
 

@@ -496,7 +496,6 @@ class EntityType(models.Model):
     content_type = models.OneToOneField('contenttypes.ContentType',on_delete=models.CASCADE,null=True, blank=True, # در ابتدا می‌تواند خالی باشد
         verbose_name=_("نوع محتوای مرتبط")    )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("تاریخ ایجاد"))
-
     def clean(self):
         if self.code and not self.code.isupper():
             raise ValidationError("کد باید uppercase باشد.")

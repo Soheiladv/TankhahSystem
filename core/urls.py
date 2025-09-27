@@ -1,4 +1,5 @@
 from django.urls import path, include
+from django.views.generic import TemplateView
 
 from BudgetsSystem.view.view_Dashboard import SimpleChartView, ExecutiveDashboardView
 from core.views_executive_dashboard import (
@@ -72,6 +73,7 @@ from core.workflow.views_Action import (
     ActionListView, ActionUpdateView, ActionDeleteView, ActionCreteView,
     # ویوهای Transition و Permission در مراحل بعدی اضافه خواهند شد
 )
+from core.views_workflow_management import ActionTransitionsReportView, WorkflowAccessAuditView
 from BudgetsSystem.view.view_SystemSettings import (
     SystemSettingsDashboardView,
     SystemSettingsCreateView,
@@ -81,6 +83,7 @@ from BudgetsSystem.view.view_SystemSettings import (
     SystemSettingsImportView,
     SystemSettingsHealthView,
     SystemSettingsPreviewView,
+    OrgActionsReportView,
 )
 urlpatterns = [
             # داشبوردها
@@ -234,12 +237,16 @@ urlpatterns += [
             path('workflow/actions/create/', ActionCreteView.as_view(), name='action_create'),
             path('workflow/actions/<int:pk>/update/', ActionUpdateView.as_view(), name='action_update'),
             path('workflow/actions/<int:pk>/delete/', ActionDeleteView.as_view(), name='action_delete'),
+            path('workflow/actions/<int:pk>/report/', ActionTransitionsReportView.as_view(), name='action_transitions_report'),
+            path('workflow/audit/', WorkflowAccessAuditView.as_view(), name='workflow_access_audit'),
+            path('workflow/user-guide/', TemplateView.as_view(template_name='core/workflow/workflow_user_guide.html'), name='workflow_user_guide'),
 
             # --- URL های CRUD برای Transition ---
             path('workflow/transition/', TransitionListView.as_view(), name='transition_list'),
             path('workflow/transition/create/', TransitionCreateView.as_view(), name='transition_create'),
             path('workflow/transition/<int:pk>/update/', TransitionUpdateView.as_view(), name='transition_update'),
             path('workflow/transition/<int:pk>/delete/', TransitionDeleteView.as_view(), name='transition_delete'),
+            path('workflow/org-actions/', OrgActionsReportView.as_view(), name='workflow_org_actions'),
             
             # داشبورد اجرایی
             path('executive-dashboard/', ExecutiveDashboardView.as_view(), name='executive_dashboard'),

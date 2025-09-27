@@ -137,6 +137,18 @@
                                         <div class="form-text">{% trans "نوع اقدام هنگام فعال شدن هشدار بودجه" %}</div>
                                         {{ form.budget_warning_action_default.errors }}
                                     </div>
+
+                                    <div class="col-md-6">
+                                        <label for="{{ form.allocation_locked_percentage_default.id_for_label }}" class="form-label fw-semibold">
+                                            {% trans "درصد قفل پیش‌فرض تخصیص" %}
+                                        </label>
+                                        <div class="input-group">
+                                            {{ form.allocation_locked_percentage_default }}
+                                            <span class="input-group-text">%</span>
+                                        </div>
+                                        <div class="form-text">{% trans "حداقل درصد باقیمانده تخصیص برای قفل شدن" %}</div>
+                                        {{ form.allocation_locked_percentage_default.errors }}
+                                    </div>
                                 </div>
                             </div>
 
@@ -166,12 +178,46 @@
                                     </div>
 
                                     <div class="col-12">
-                                        <label for="{{ form.tankhah_accessible_organizations.id_for_label }}" class="form-label fw-semibold">
-                                            {% trans "سازمان‌های دسترسی به تنخواه" %}
+                                        <label class="form-label fw-semibold d-block">
+                                            {% trans "اقدامات گردش کار (نمایش فقط)" %}
                                         </label>
-                                        {{ form.tankhah_accessible_organizations }}
-                                        <div class="form-text">{% trans "سازمان‌های مجاز برای استفاده از سیستم تنخواه" %}</div>
-                                        {{ form.tankhah_accessible_organizations.errors }}
+                                        <div class="list-group mb-3">
+                                            {% if workflow_actions %}
+                                                {% for a in workflow_actions %}
+                                                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                                                        <span><i class="fas fa-bolt me-2 text-warning"></i>{{ a.name }} <small class="text-muted">({{ a.code }})</small></span>
+                                                        {% if a.is_active %}<span class="badge bg-success">{% trans "فعال" %}</span>{% else %}<span class="badge bg-secondary">{% trans "غیرفعال" %}</span>{% endif %}
+                                                    </div>
+                                                {% endfor %}
+                                            {% else %}
+                                                <div class="list-group-item text-muted">{% trans "اقدامی یافت نشد." %}</div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="form-text">{% trans "برای ویرایش اقدامات به بخش مدیریت گردش کار مراجعه کنید." %}</div>
+                                    </div>
+
+                                    <div class="col-12">
+                                        <label class="form-label fw-semibold d-block">
+                                            {% trans "وضعیت‌های گردش کار (نمایش فقط)" %}
+                                        </label>
+                                        <div class="list-group">
+                                            {% if workflow_statuses %}
+                                                {% for s in workflow_statuses %}
+                                                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                                                        <span><i class="fas fa-flag me-2 text-info"></i>{{ s.name }} <small class="text-muted">({{ s.code }})</small></span>
+                                                        <span>
+                                                            {% if s.is_initial %}<span class="badge bg-primary me-1">{% trans "ابتدایی" %}</span>{% endif %}
+                                                            {% if s.is_final_approve %}<span class="badge bg-success me-1">{% trans "تایید نهایی" %}</span>{% endif %}
+                                                            {% if s.is_final_reject %}<span class="badge bg-danger me-1">{% trans "رد نهایی" %}</span>{% endif %}
+                                                            {% if s.is_active %}<span class="badge bg-success">{% trans "فعال" %}</span>{% else %}<span class="badge bg-secondary">{% trans "غیرفعال" %}</span>{% endif %}
+                                                        </span>
+                                                    </div>
+                                                {% endfor %}
+                                            {% else %}
+                                                <div class="list-group-item text-muted">{% trans "وضعیتی یافت نشد." %}</div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="form-text">{% trans "برای ویرایش وضعیت‌ها به بخش مدیریت گردش کار مراجعه کنید." %}</div>
                                     </div>
                                 </div>
                             </div>

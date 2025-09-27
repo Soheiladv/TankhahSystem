@@ -71,23 +71,32 @@
                 <div class="card-body">
                     <!-- فیلترها -->
                     <div class="row mb-3">
-                        <div class="col-md-4">
-                            <label class="form-label">{% trans "فیلتر بر اساس پست:" %}</label>
-                            <select class="form-select" id="postFilter">
-                                <option value="">{% trans "همه پست‌ها" %}</option>
-                                {% for post in posts %}
-                                <option value="{{ post.id }}">{{ post.name }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <label class="form-label">{% trans "فیلتر بر اساس سازمان:" %}</label>
                             <select class="form-select" id="organizationFilter">
                                 <option value="">{% trans "همه سازمان‌ها" %}</option>
                                 <!-- سازمان‌ها اینجا اضافه می‌شوند -->
                             </select>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
+                            <label class="form-label">{% trans "فیلتر بر اساس پست:" %}</label>
+                            <select class="form-select" id="postFilter">
+                                <option value="">{% trans "همه پست‌ها" %}</option>
+                                {% for post in posts %}
+                                    <option value="{{ post.id }}">{{ post.name }}</option>
+                                {% endfor %}
+                            </select>
+                            <small class="form-text text-muted">{% trans "ابتدا سازمان را انتخاب کنید تا پست‌های آن نمایش داده شود" %}</small>
+                        </div>
+                       
+                        <div class="col-md-3">
+                            <label class="form-label">{% trans "فیلتر بر اساس اقدام:" %}</label>
+                            <select class="form-select" id="actionFilter">
+                                <option value="">{% trans "همه اقدامات" %}</option>
+                                <!-- اقدامات اینجا اضافه می‌شوند -->
+                            </select>
+                        </div>
+                        <div class="col-md-3">
                             <label class="form-label">{% trans "وضعیت:" %}</label>
                             <select class="form-select" id="statusFilter">
                                 <option value="">{% trans "همه وضعیت‌ها" %}</option>
@@ -98,6 +107,10 @@
                     </div>
 
                     {% if assignments %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            {% trans "تعداد نتایج فیلتر شده:" %} <strong>{{ assignments|length }}</strong>
+                        </div>
                         <div class="table-responsive">
                             <table class="table table-striped table-hover">
                                 <thead class="table-dark">
@@ -227,49 +240,203 @@
 document.addEventListener('DOMContentLoaded', function() {
     const postFilter = document.getElementById('postFilter');
     const organizationFilter = document.getElementById('organizationFilter');
+    const actionFilter = document.getElementById('actionFilter');
     const statusFilter = document.getElementById('statusFilter');
     
-    // بارگذاری سازمان‌ها
-    loadOrganizations();
+    // بارگذاری سازمان‌ها و اقدامات
+    loadOrganizations().then(() => {
+        // تنظیم مقادیر فیلترها از URL بعد از بارگذاری سازمان‌ها
+        setFilterValuesFromURL();
+    });
+    loadActions();
     
     // اعمال فیلترها
-    [postFilter, organizationFilter, statusFilter].forEach(filter => {
+    [postFilter, organizationFilter, actionFilter, statusFilter].forEach(filter => {
         if (filter) {
             filter.addEventListener('change', applyFilters);
         }
     });
 });
 
+// تنظیم مقادیر فیلترها از URL
+function setFilterValuesFromURL() {
+    const urlParams = new URLSearchParams(window.location.search);
+    
+    // تنظیم فیلتر سازمان
+    const organizationId = urlParams.get('organization_id');
+    if (organizationId) {
+        const organizationFilter = document.getElementById('organizationFilter');
+        if (organizationFilter) {
+            organizationFilter.value = organizationId;
+            // بارگذاری پست‌های سازمان انتخاب شده
+            loadPostsByOrganization(organizationId).then(() => {
+                // تنظیم فیلتر پست بعد از بارگذاری پست‌ها
+                const postId = urlParams.get('post_id');
+                if (postId) {
+                    const postFilter = document.getElementById('postFilter');
+                    if (postFilter) {
+                        postFilter.value = postId;
+                    }
+                }
+            });
+        }
+    } else {
+        // تنظیم فیلتر پست اگر سازمان انتخاب نشده
+        const postId = urlParams.get('post_id');
+        if (postId) {
+            const postFilter = document.getElementById('postFilter');
+            if (postFilter) {
+                postFilter.value = postId;
+            }
+        }
+    }
+    
+    // تنظیم فیلتر اقدام
+    const actionId = urlParams.get('action_id');
+    if (actionId) {
+        const actionFilter = document.getElementById('actionFilter');
+        if (actionFilter) {
+            actionFilter.value = actionId;
+        }
+    }
+    
+    // تنظیم فیلتر وضعیت
+    const status = urlParams.get('status');
+    if (status) {
+        const statusFilter = document.getElementById('statusFilter');
+        if (statusFilter) {
+            statusFilter.value = status;
+        }
+    }
+}
+
 // بارگذاری سازمان‌ها
 function loadOrganizations() {
-    fetch('/workflow-management/api/organizations/')
+    const organizationFilter = document.getElementById('organizationFilter');
+    if (!organizationFilter) return Promise.resolve();
+    
+    // ذخیره مقدار انتخاب شده فعلی
+    const currentValue = organizationFilter.value;
+    
+    return fetch('/workflow-management/api/organizations/')
         .then(response => response.json())
         .then(data => {
-            const select = document.getElementById('organizationFilter');
-            if (select && data.organizations) {
+            if (data.organizations) {
                 data.organizations.forEach(org => {
                     const option = document.createElement('option');
                     option.value = org.id;
                     option.textContent = org.name;
-                    select.appendChild(option);
+                    organizationFilter.appendChild(option);
+                });
+                
+                // بازگردانی مقدار انتخاب شده قبلی اگر هنوز موجود باشد
+                if (currentValue && organizationFilter.querySelector(`option[value="${currentValue}"]`)) {
+                    organizationFilter.value = currentValue;
+                }
+                
+                // اضافه کردن event listener برای فیلتر پست‌ها
+                organizationFilter.addEventListener('change', function() {
+                    loadPostsByOrganization(this.value);
+                    // اعمال فیلتر خودکار پس از تغییر سازمان
+                    setTimeout(applyFilters, 100);
                 });
             }
         })
-        .catch(error => console.error('Error loading organizations:', error));
+        .catch(error => {
+            console.error('Error loading organizations:', error);
+            return Promise.resolve();
+        });
+}
+
+// بارگذاری پست‌ها بر اساس سازمان
+function loadPostsByOrganization(organizationId) {
+    const postFilter = document.getElementById('postFilter');
+    if (!postFilter) return Promise.resolve();
+    
+    // ذخیره مقدار انتخاب شده فعلی
+    const currentValue = postFilter.value;
+    
+    // پاک کردن گزینه‌های قبلی
+    postFilter.innerHTML = '<option value="">{% trans "همه پست‌ها" %}</option>';
+    
+    if (!organizationId) return Promise.resolve();
+    
+    return fetch(`/workflow-management/api/organizations/${organizationId}/posts/`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.posts) {
+                data.posts.forEach(post => {
+                    const option = document.createElement('option');
+                    option.value = post.id;
+                    option.textContent = post.name;
+                    postFilter.appendChild(option);
+                });
+                
+                // بازگردانی مقدار انتخاب شده قبلی اگر هنوز موجود باشد
+                if (currentValue && postFilter.querySelector(`option[value="${currentValue}"]`)) {
+                    postFilter.value = currentValue;
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error loading posts:', error);
+            return Promise.resolve();
+        });
+}
+
+// بارگذاری اقدامات
+function loadActions() {
+    const actionFilter = document.getElementById('actionFilter');
+    if (!actionFilter) return;
+    
+    // ذخیره مقدار انتخاب شده فعلی
+    const currentValue = actionFilter.value;
+    
+    fetch('/workflow-management/api/actions/')
+        .then(response => response.json())
+        .then(data => {
+            if (data.actions) {
+                data.actions.forEach(action => {
+                    const option = document.createElement('option');
+                    option.value = action.id;
+                    option.textContent = action.name;
+                    actionFilter.appendChild(option);
+                });
+                
+                // بازگردانی مقدار انتخاب شده قبلی اگر هنوز موجود باشد
+                if (currentValue && actionFilter.querySelector(`option[value="${currentValue}"]`)) {
+                    actionFilter.value = currentValue;
+                }
+            }
+        })
+        .catch(error => console.error('Error loading actions:', error));
 }
 
 // اعمال فیلترها
 function applyFilters() {
     const postId = document.getElementById('postFilter').value;
     const organizationId = document.getElementById('organizationFilter').value;
+    const actionId = document.getElementById('actionFilter').value;
     const status = document.getElementById('statusFilter').value;
     
     const params = new URLSearchParams();
     if (postId) params.append('post_id', postId);
     if (organizationId) params.append('organization_id', organizationId);
+    if (actionId) params.append('action_id', actionId);
     if (status) params.append('status', status);
     
+    // نمایش پیام بارگذاری
+    showLoadingMessage();
+    
     window.location.href = window.location.pathname + '?' + params.toString();
+}
+
+// نمایش پیام بارگذاری
+function showLoadingMessage() {
+    const resultsInfo = document.getElementById('resultsInfo');
+    if (resultsInfo) {
+        resultsInfo.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>{% trans "در حال بارگذاری..." %}';
+    }
 }
 
 // ویرایش تخصیص

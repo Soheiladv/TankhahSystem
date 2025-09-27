@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% load i18n %}
-{% load static %}
+{% load jformat static %}
 
 {% block title %}مدیریت گردش کار{% endblock %}
 
@@ -115,6 +115,35 @@
                                 <i class="fas fa-link fa-2x mb-2"></i>
                                 <span class="fw-semibold">تخصیص قانون جدید</span>
                                 <small class="text-muted">ایجاد تخصیص جدید</small>
+                            </a>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <a href="{% url 'workflow_org_actions' %}?q=هتل لاله سرعین" class="btn btn-outline-dark w-100 h-100 d-flex flex-column align-items-center justify-content-center py-4">
+                                <i class="fas fa-user-shield fa-2x mb-2"></i>
+                                <span class="fw-semibold">گزارش اقدامات مجاز (FACTOR)</span>
+                                <small class="text-muted">کاربران/پست‌ها در سازمان</small>
+                            </a>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <a href="{% url 'workflow_access_audit' %}" class="btn btn-outline-danger w-100 h-100 d-flex flex-column align-items-center justify-content-center py-4">
+                                <i class="fas fa-traffic-light fa-2x mb-2"></i>
+                                <span class="fw-semibold">گزارش دسترسی سطح به سطح</span>
+                                <small class="text-muted">Submit/Approve/Reject برای هر کاربر</small>
+                            </a>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <a href="{% url 'workflow_management:org_access_tree' %}" class="btn btn-outline-primary w-100 h-100 d-flex flex-column align-items-center justify-content-center py-4">
+                                <i class="fas fa-sitemap fa-2x mb-2"></i>
+                                <span class="fw-semibold">درخت دسترسی سازمانی</span>
+                                <small class="text-muted">بودجه/فاکتور/دستور پرداخت</small>
+                            </a>
+                        </div>
+                        
+                        <div class="col-lg-3 col-md-6">
+                            <a href="{% url 'workflow_user_guide' %}" class="btn btn-outline-info w-100 h-100 d-flex flex-column align-items-center justify-content-center py-4">
+                                <i class="fas fa-book fa-2x mb-2"></i>
+                                <span class="fw-semibold">راهنمای کاربری</span>
+                                <small class="text-muted">آموزش استفاده از گردش کار</small>
                             </a>
                         </div>
                     </div>

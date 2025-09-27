@@ -18,20 +18,45 @@
         </div>
 
         <div class="card-body">
-            <!-- جستجو -->
+            <!-- جستجو و فیلتر -->
             <div class="mb-4">
-                <form method="get" class="row g-2">
-                    <div class="col-md-8">
+                <form method="get" class="row g-2 align-items-end">
+                    <div class="col-md-4">
+                        <label class="form-label">{% trans 'جستجو بر اساس نام یا کد' %}</label>
                         <div class="input-group">
                             <input type="text" name="q" value="{{ request.GET.q }}" class="form-control"
-                                   placeholder="{% trans 'جستجو بر اساس نام یا کد...' %}">
+                                   placeholder="{% trans 'عبارت جستجو...' %}">
                             <button class="btn btn-outline-secondary" type="submit">
                                 <i class="fas fa-search"></i>
                             </button>
                         </div>
                     </div>
                     <div class="col-md-4">
-                        <a href="{% url 'action_list' %}" class="btn btn-outline-danger w-100">
+                        <label class="form-label">{% trans 'سازمان' %}</label>
+                        <select class="form-select" name="organization_id">
+                            <option value="">{% trans 'همه' %}</option>
+                            {% for org in organizations %}
+                                <option value="{{ org.id }}" {% if selected_org_id == org.id|stringformat:'s' %}selected{% endif %}>
+                                    {{ org.name }}{% if org.code %} ({{ org.code }}){% endif %}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">{% trans 'نوع موجودیت' %}</label>
+                        <select class="form-select" name="entity_type">
+                            <option value="FACTOR" {% if selected_entity_type == 'FACTOR' %}selected{% endif %}>{% trans 'فاکتور' %}</option>
+                            <option value="TANKHAH" {% if selected_entity_type == 'TANKHAH' %}selected{% endif %}>{% trans 'تنخواه' %}</option>
+                            <option value="PAYMENTORDER" {% if selected_entity_type == 'PAYMENTORDER' %}selected{% endif %}>{% trans 'دستور پرداخت' %}</option>
+                        </select>
+                    </div>
+                    <div class="col-md-1">
+                        <button class="btn btn-outline-primary w-100" type="submit" title="{% trans 'اعمال فیلتر' %}">
+                            <i class="fas fa-filter"></i>
+                        </button>
+                    </div>
+                    <div class="col-md-12">
+                        <a href="{% url 'action_list' %}" class="btn btn-outline-danger mt-2">
                             <i class="fas fa-times"></i> {% trans "حذف فیلتر" %}
                         </a>
                     </div>
@@ -40,32 +65,42 @@
 
             <!-- جدول اقدامات -->
             <div class="table-responsive">
-                <table class="table table-hover table-striped">
+                <table class="table table-hover table-striped align-middle">
                     <thead class="table-light">
                     <tr>
                         <th>{% trans "ردیف" %}</th>
                         <th>{% trans "نام" %}</th>
                         <th>{% trans "کد" %}</th>
                         <th>{% trans "توضیحات" %}</th>
-                        <th>{% trans "تاریخ ایجاد" %}</th>
+                        <th class="text-center">{% trans "شروع" %}</th>
+                        <th class="text-center">{% trans "میانی" %}</th>
+                        <th class="text-center">{% trans "پایان" %}</th>
+                        <th>{% trans "گزارش" %}</th>
                         <th>{% trans "عملیات" %}</th>
                     </tr>
                     </thead>
                     <tbody>
-                    {% for action in actions %}
+                    {% for stat in action_stats %}
                         <tr>
                             <td>{{ forloop.counter|to_persian_number}}</td>
-                            <td>{{ action.name }}</td>
-                            <td><span class="badge bg-secondary">{{ action.code }}</span></td>
-                            <td>{{ action.description }}</td>
-                            <td>🗓️{{ action.created_at|jformat:"%Y/%m/%d"|to_persian_number}}⌚ {{ action.created_at | date:"H:i" |to_persian_number}}</td>
+                            <td>{{ stat.action.name }}</td>
+                            <td><span class="badge bg-secondary">{{ stat.action.code }}</span></td>
+                            <td>{{ stat.action.description }}</td>
+                            <td class="text-center"><span class="badge bg-primary">{{ stat.start|default:0|to_persian_number }}</span></td>
+                            <td class="text-center"><span class="badge bg-info">{{ stat.middle|default:0|to_persian_number }}</span></td>
+                            <td class="text-center"><span class="badge bg-success">{{ stat.finish|default:0|to_persian_number }}</span></td>
+                            <td>
+                                <a class="btn btn-sm btn-outline-dark" href="{% url 'action_transitions_report' stat.action.pk %}?organization_id={{ selected_org_id }}&entity_type={{ selected_entity_type }}">
+                                    <i class="fas fa-list"></i> {% trans 'جزئیات ترنزیشن‌ها' %}
+                                </a>
+                            </td>
                             <td>
                                 <div class="btn-group btn-group-sm" role="group">
-                                    <a href="{% url 'action_update' action.pk %}" class="btn btn-outline-primary"
+                                    <a href="{% url 'action_update' stat.action.pk %}" class="btn btn-outline-primary"
                                        title="{% trans 'ویرایش' %}">
                                         <i class="fas fa-edit"></i>
                                     </a>
-                                    <a href="{% url 'action_delete' action.pk %}" class="btn btn-outline-danger"
+                                    <a href="{% url 'action_delete' stat.action.pk %}" class="btn btn-outline-danger"
                                        title="{% trans 'بازنشسته کردن' %}">
                                         <i class="fas fa-trash-alt"></i>
                                     </a>
@@ -74,7 +109,7 @@
                         </tr>
                     {% empty %}
                         <tr>
-                            <td colspan="4" class="text-center text-muted py-4">
+                            <td colspan="9" class="text-center text-muted py-4">
                                 <i class="fas fa-info-circle me-2"></i> {% trans "هیچ اقدام فعالی یافت نشد" %}
                             </td>
                         </tr>
@@ -90,7 +125,7 @@
                         {% if page_obj.has_previous %}
                             <li class="page-item">
                                 <a class="page-link" href="?page=
-                                        {{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">
+                                        {{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if selected_org_id %}&organization_id={{ selected_org_id }}{% endif %}{% if selected_entity_type %}&entity_type={{ selected_entity_type }}{% endif %}">
                                     &laquo; {% trans "قبلی" %}
                                 </a>
                             </li>
@@ -102,7 +137,7 @@
                             {% else %}
                                 <li class="page-item">
                                     <a class="page-link" href="?page=
-                                            {{ num }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">{{ num }}</a>
+                                            {{ num }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if selected_org_id %}&organization_id={{ selected_org_id }}{% endif %}{% if selected_entity_type %}&entity_type={{ selected_entity_type }}{% endif %}">{{ num }}</a>
                                 </li>
                             {% endif %}
                         {% endfor %}
@@ -110,7 +145,7 @@
                         {% if page_obj.has_next %}
                             <li class="page-item">
                                 <a class="page-link" href="?page=
-                                        {{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">
+                                        {{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if selected_org_id %}&organization_id={{ selected_org_id }}{% endif %}{% if selected_entity_type %}&entity_type={{ selected_entity_type }}{% endif %}">
                                     {% trans "بعدی" %} &raquo;
                                 </a>
                             </li>

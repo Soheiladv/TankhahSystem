@@ -41,6 +41,18 @@
                     <form method="post" id="stageApproverForm">
                         {% csrf_token %}
                         
+                        <!-- نمایش خطاهای کلی فرم -->
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                <strong>خطا:</strong>
+                                {% for error in form.non_field_errors %}
+                                    <div>{{ error }}</div>
+                                {% endfor %}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endif %}
+                        
                         <div class="row">
                             <!-- مرحله -->
                             <div class="col-md-6 mb-3">

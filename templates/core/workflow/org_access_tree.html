@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "درخت دسترسی سازمانی" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+  <div class="d-flex justify-content-between align-items-center mb-3 px-3">
+    <h1 class="h4 mb-0">{% trans "درخت دسترسی سازمانی" %}</h1>
+    <button id="saveBtn" class="btn btn-primary">
+      <i class="fas fa-save me-2"></i> {% trans "ذخیره تغییرات" %}
+    </button>
+  </div>
+
+  <!-- فیلتر سازمان -->
+  <form method="get" class="row g-2 mb-3 px-3">
+    <div class="col-md-6">
+      <label class="form-label">{% trans "سازمان" %}</label>
+      <select name="organization_id" class="form-select" onchange="this.form.submit()">
+        <option value="">{% trans "همه سازمان‌ها (از ریشه)" %}</option>
+        {% for org in organizations %}
+          <option value="{{ org.id }}" {% if selected_org_id|stringformat:'s' == org.id|stringformat:'s' %}selected{% endif %}>{{ org.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+  </form>
+
+  <div class="alert alert-info mx-3">
+    {% trans "برای هر پست، اقدامات مجاز را به ازای سه حوزه انتخاب کنید: بودجه، فاکتور، دستور پرداخت." %}
+  </div>
+
+  <div class="accordion mx-3" id="orgTree">
+    {% for node in tree %}
+      {% include 'core/workflow/partials/_org_access_node.html' with node=node %}
+    {% empty %}
+      <div class="text-muted px-3">{% trans "سازمانی یافت نشد." %}</div>
+    {% endfor %}
+  </div>
+</div>
+
+<script>
+const ENTITY_TYPES = {{ entity_types|safe }};
+const ACTION_CODES = {{ action_codes|safe }};
+const CURRENT = JSON.parse(`{{ current_json|safe }}`); // {post_id: {entity_type: [..]}}
+
+function getPostKey(postId) { return String(postId); }
+
+function collectChanges() {
+  const changes = [];
+  document.querySelectorAll('[data-post-id]').forEach(row => {
+    const postId = parseInt(row.getAttribute('data-post-id'));
+    ENTITY_TYPES.forEach(et => {
+      const actions = [];
+      ACTION_CODES.forEach(ac => {
+        const cb = row.querySelector(`input[type=checkbox][data-et="${et}"][data-ac="${ac}"]`);
+        if (cb && cb.checked) { actions.push(ac); }
+      });
+      changes.push({ post_id: postId, entity_type: et, actions });
+    });
+  });
+  return changes;
+}
+
+// Initialize checkboxes from CURRENT
+document.addEventListener('DOMContentLoaded', () => {
+  console.log('Initializing checkboxes with CURRENT data:', CURRENT);
+  document.querySelectorAll('[data-post-id]').forEach(row => {
+    const postId = parseInt(row.getAttribute('data-post-id'));
+    const postKeys = Object.keys(CURRENT || {});
+    console.log('Processing post ID:', postId, 'Available keys:', postKeys);
+    
+    if (!postKeys.includes(String(postId))) {
+      console.log('No data found for post ID:', postId);
+      return;
+    }
+    
+    const postMap = CURRENT[String(postId)] || CURRENT[postId] || {};
+    console.log('Post map for', postId, ':', postMap);
+    
+    ENTITY_TYPES.forEach(et => {
+      const actions = new Set(postMap[et] || []);
+      console.log('Actions for', et, ':', Array.from(actions));
+      
+      ACTION_CODES.forEach(ac => {
+        const cb = row.querySelector(`input[type=checkbox][data-et="${et}"][data-ac="${ac}"]`);
+        if (cb) {
+          const isChecked = actions.has(ac);
+          cb.checked = isChecked;
+          console.log(`Checkbox ${et}-${ac} for post ${postId}:`, isChecked);
+        }
+      });
+    });
+  });
+});
+
+// CSRF helper from cookie (fallback if template tag not present)
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.substring(0, name.length + 1) === (name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
+
+document.getElementById('saveBtn').addEventListener('click', () => {
+  const payload = { changes: collectChanges() };
+  fetch('', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') || '{{ csrf_token }}' },
+    body: JSON.stringify(payload)
+  }).then(r => r.json()).then(resp => {
+    if (resp.success) {
+      alert('ذخیره شد.');
+    } else {
+      alert('خطا: ' + (resp.message || 'نامشخص'));
+    }
+  });
+});
+</script>
+
+<style>
+.post-row { border-bottom: 1px dashed #e5e5e5; padding: 8px 0; }
+.action-grid { display: grid; grid-template-columns: repeat(3, minmax(150px,1fr)); gap: 6px 16px; }
+.accordion-body { padding: 1rem 1.5rem; }
+.table-responsive { overflow-x: auto; }
+</style>
+{% endblock %}
+
+

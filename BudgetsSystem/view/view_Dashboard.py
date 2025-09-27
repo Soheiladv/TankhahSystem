@@ -140,7 +140,6 @@ dashboard_links = {
         {'name': _('راهنمای بودجه‌بندی'), 'url': 'budget_Help', 'icon': 'fas fa-question-circle'},
         # علامت سوال برای راهنما
         {'name': _('راهنمای سیستم '), 'url': 'soft_help', 'icon': 'fas fa-question-circle'},  # علامت سوال برای راهنما
-        {'name': _('تنظیمات سامانه (SystemSettings)'), 'url': 'system_settings_dashboard', 'icon': 'fas fa-sliders-h'},
     ],
 }
 
