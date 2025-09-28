@@ -311,6 +311,7 @@ class BudgetAllocation(models.Model):
             ('budgetallocation_return', _("برگشت تخصیص بودجه")),
             ('BudgetAllocation_approve', 'می‌تواند تخصیص بودجه را تأیید کند'),
             ('BudgetAllocation_reject', 'می‌تواند تخصیص بودجه را رد کند'),
+            ('BudgetAllocation_reports', 'گزارشات تخصیص بودجه'),
         ]
         indexes = [
             models.Index(fields=['budget_period', 'allocation_date']),

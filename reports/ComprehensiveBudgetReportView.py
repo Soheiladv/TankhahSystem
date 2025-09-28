@@ -363,11 +363,11 @@ class BudgetItemsForOrgPeriodAPIView(APIView):
                             'id': f.pk,
                             'number': f.number,
                             'amount_formatted': f"{f.amount or 0:,.0f}",
-                            'status_display': f.get_status_display(),
+                            'status_display': f.status.name if f.status else 'نامشخص',
                             'category_name': f.category.name if f.category else "-",
                             'date_jalali': jdatetime.date.fromgregorian(date=f.date).strftime(
                                 '%Y/%m/%d') if f.date else "-",
-                            'detail_url': reverse('factor_detail', kwargs={'pk': f.pk}),
+                            'detail_url': reverse('advance_factor_detail', kwargs={'factor_pk': f.pk}),
                             'items_count': f.items.count(),
                             'items': [
                                 {
@@ -375,7 +375,7 @@ class BudgetItemsForOrgPeriodAPIView(APIView):
                                     'amount_formatted': f"{item.amount or 0:,.0f}",
                                     'quantity': item.quantity,
                                     'unit_price': f"{item.unit_price or 0:,.0f}",
-                                    'status_display': item.get_status_display(),
+                                    'status_display': item.status.name if item.status else 'نامشخص',
                                 } for item in f.items.all()
                             ]
                         } for f in factors
@@ -384,7 +384,7 @@ class BudgetItemsForOrgPeriodAPIView(APIView):
                         'id': t.pk,
                         'number': t.number,
                         'amount_formatted': f"{t.amount or 0:,.0f}",
-                        'status_display': t.get_status_display(),
+                        'status_display': t.status.name if t.status else 'نامشخص',
                         'date_jalali': jdatetime.date.fromgregorian(date=t.date).strftime(
                             '%Y/%m/%d') if t.date else '-',
                         'detail_url': reverse('tankhah_detail', kwargs={'pk': t.pk}),
@@ -440,10 +440,10 @@ class APIFactorsForTankhahView(View):
                     'id': f.pk,
                     'number': f.number,
                     'amount_formatted': f"{f.amount or 0:,.0f}",
-                    'status_display': f.get_status_display(),
+                    'status_display': f.status.name if f.status else 'نامشخص',
                     'category_name': f.category.name if f.category else "-",
                     'date_jalali': jdatetime.date.fromgregorian(date=f.date).strftime('%Y/%m/%d') if f.date else "-",
-                    'detail_url': reverse('factor_detail', kwargs={'factor_pk': f.pk}),
+                    'detail_url': reverse('advance_factor_detail', kwargs={'factor_pk': f.pk}),
                     'items_count': f.items.count(),
                     'items': [
                         {
@@ -503,7 +503,7 @@ class APITankhahsForAllocationView(View):
                     'number': t.number,
                     'amount': t.amount,
                     'amount_formatted': f"{t.amount:,.0f}" if t.amount else "0",
-                    'status': t.get_status_display(),
+                    'status': t.status.name if t.status else 'نامشخص',
                     'date_jalali': jdatetime.date.fromgregorian(date=t.date).strftime('%Y/%m/%d') if t.date else "-",
                     'factors_count': t.factors.count(),
                     'detail_url': reverse('tankhah_detail', kwargs={'pk': t.pk}),
@@ -1003,11 +1003,11 @@ class  AA__BudgetItemsForOrgPeriodAPIView(View):
                             'id': f.pk,
                             'number': f.number,
                             'amount_formatted': f"{f.amount or 0:,.0f}",
-                            'status_display': f.get_status_display(),
+                            'status_display': f.status.name if f.status else 'نامشخص',
                             'category_name': f.category.name if f.category else "-",
                             'date_jalali': jdatetime.date.fromgregorian(date=f.date).strftime(
                                 '%Y/%m/%d') if f.date else "-",
-                            'detail_url': reverse('factor_detail', kwargs={'factor_pk': f.pk}),
+                            'detail_url': reverse('advance_factor_detail', kwargs={'factor_pk': f.pk}),
                             'items_count': f.items.count(),
                             'items': [
                                 {
@@ -1015,7 +1015,7 @@ class  AA__BudgetItemsForOrgPeriodAPIView(View):
                                     'amount_formatted': f"{item.amount or 0:,.0f}",
                                     'quantity': item.quantity,
                                     'unit_price': f"{item.unit_price or 0:,.0f}",
-                                    'status_display': item.get_status_display(),
+                                    'status_display': item.status.name if item.status else 'نامشخص',
                                 } for item in f.items.all()
                             ]
                         } for f in factors
@@ -1025,7 +1025,7 @@ class  AA__BudgetItemsForOrgPeriodAPIView(View):
                         'id': t.pk,
                         'number': t.number,
                         'amount_formatted': f"{t.amount or 0:,.0f}",
-                        'status_display': t.get_status_display(),
+                        'status_display': t.status.name if t.status else 'نامشخص',
                         'date_jalali': jdatetime.date.fromgregorian(date=t.date).strftime(
                             '%Y/%m/%d') if t.date else '-',
                         'detail_url': reverse('tankhah_detail', kwargs={'pk': t.pk}),

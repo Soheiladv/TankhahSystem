@@ -11,6 +11,7 @@ from reports.PaymentOrderReport.PaymentOrderReportView import PaymentOrderReport
 from reports.budgets_reports.view_budgets_reports import BudgetWarningReportView
 from reports.views import TankhahFinancialReportView, FinancialDashboardView, TankhahDetailView, \
     BudgetAllocationReportView
+from reports.views_enhanced import BudgetAllocationReportEnhancedView
 from reports.views import print_financial_report, send_to_accounting
 
 urlpatterns = [
@@ -26,6 +27,7 @@ urlpatterns = [
     # گزارشات بودجه
     path('budget/warnings/', BudgetWarningReportView.as_view(), name='budget_warning_report'),
     path('budget-allocation/<int:pk>/report/', BudgetAllocationReportView.as_view(), name='budget_allocation_report'),
+    path('budget-allocation/<int:pk>/report-enhanced/', BudgetAllocationReportEnhancedView.as_view(), name='budget_allocation_report_enhanced'),
 
     # APIها
     path('api/period/<int:period_pk>/organization-allocations/', OrganizationAllocationsAPIView.as_view(),

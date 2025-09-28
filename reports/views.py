@@ -931,12 +931,12 @@ class old__BudgetAllocationReportView(LoginRequiredMixin, DetailView): # یا Pe
 # def get_subproject_remaining_budget(subproject_instance): ...
 # اگر این توابع را ندارید، باید منطق محاسبه را مستقیماً در get_context_data بنویسید یا آن‌ها را ایجاد کنید.
 
-class BudgetAllocationReportView(LoginRequiredMixin, DetailView):  # یا PermissionBaseView
+class BudgetAllocationReportView(PermissionBaseView, DetailView):  # یا PermissionBaseView
     model = BudgetAllocation
     template_name = 'reports/report_budget_allocation_report_detail.html'
     context_object_name = 'budget_allocation'
     pk_url_kwarg = 'pk'  # اگر نام پارامتر در URL 'pk' است
-
+    permission_codename = 'BudgetAllocation.BudgetAllocation_reports'
     # اگر از PermissionBaseView استفاده می‌کنید، این خطوط را فعال کنید:
     # permission_codenames = ['budgets.view_budget_allocation_report'] # پرمیشن مناسب
     # check_organization = True # اگر لازم است دسترسی سازمانی چک شود
@@ -967,6 +967,10 @@ class BudgetAllocationReportView(LoginRequiredMixin, DetailView):  # یا Permis
         )
 
     def get_object(self, queryset=None):
+        # تنظیم kwargs برای get_object
+        if not hasattr(self, 'kwargs'):
+            self.kwargs = {'pk': self.kwargs.get('pk')}
+        
         obj = super().get_object(queryset)
         # بررسی دسترسی سازمانی (اگر check_organization = True در PermissionBaseView نیست)
         # اگر از PermissionBaseView استفاده می‌کنید، این بخش را داخل آن هندل کنید.

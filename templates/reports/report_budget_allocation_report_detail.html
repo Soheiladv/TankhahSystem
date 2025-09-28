@@ -15,10 +15,15 @@
                 {% translate "سرفصل بودجه:" %} {{ budget_item.name }} ({{ budget_item.code }})
             </h5>
         </div>
-        <div>
+        <div class="d-flex gap-2 flex-wrap">
             <button onclick="window.print();" class="btn btn-outline-primary btn-sm">
                 <i class="fas fa-print me-1"></i>{% translate "چاپ گزارش" %}
             </button>
+            {# لینک به گزارش بهبود یافته #}
+            <a href="{% url 'budget_allocation_report_enhanced' budget_allocation.pk %}" class="btn btn-success btn-sm">
+                <i class="fas fa-chart-line me-1"></i>{% translate "گزارش پیشرفته" %}
+                <span class="badge bg-light text-dark ms-1">جدید</span>
+            </a>
             {# لینک بازگشت به لیست BudgetAllocations یا داشبورد #}
             <a href="{% url 'budgetallocation_list' %}" class="btn btn-outline-secondary btn-sm">
                  <i class="fas fa-arrow-left me-1"></i> {% translate "بازگشت به لیست تخصیص‌ها" %}
