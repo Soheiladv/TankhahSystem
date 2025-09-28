@@ -1,0 +1,296 @@
+<!-- Filter Components Template -->
+
+<!-- Advanced Filter Panel -->
+<div class="filter-section" data-aos="fade-up">
+    <h4 class="mb-4">
+        <i class="fas fa-filter me-2"></i>
+        فیلترهای پیشرفته
+    </h4>
+    <form method="GET" id="filterForm">
+        <div class="row g-3">
+            <!-- Date Range Filters -->
+            <div class="col-md-3">
+                <label class="form-label">
+                    <i class="fas fa-calendar-alt me-1"></i>
+                    تاریخ شروع
+                </label>
+                <input type="date" class="form-control" name="start_date" id="start_date">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">
+                    <i class="fas fa-calendar-alt me-1"></i>
+                    تاریخ پایان
+                </label>
+                <input type="date" class="form-control" name="end_date" id="end_date">
+            </div>
+            
+            <!-- Organization Filter -->
+            <div class="col-md-3">
+                <label class="form-label">
+                    <i class="fas fa-building me-1"></i>
+                    سازمان
+                </label>
+                <select class="form-control" name="organization" id="organization">
+                    <option value="">همه سازمان‌ها</option>
+                    <!-- Options will be loaded via AJAX -->
+                </select>
+            </div>
+            
+            <!-- Project Filter -->
+            <div class="col-md-3">
+                <label class="form-label">
+                    <i class="fas fa-project-diagram me-1"></i>
+                    پروژه
+                </label>
+                <select class="form-control" name="project" id="project">
+                    <option value="">همه پروژه‌ها</option>
+                    <!-- Options will be loaded via AJAX -->
+                </select>
+            </div>
+        </div>
+        
+        <!-- Additional Filters Row -->
+        <div class="row g-3 mt-2">
+            <!-- Status Filter -->
+            <div class="col-md-3">
+                <label class="form-label">
+                    <i class="fas fa-info-circle me-1"></i>
+                    وضعیت
+                </label>
+                <select class="form-control" name="status" id="status">
+                    <option value="">همه وضعیت‌ها</option>
+                    <option value="active">فعال</option>
+                    <option value="inactive">غیرفعال</option>
+                    <option value="pending">در انتظار</option>
+                    <option value="approved">تأیید شده</option>
+                    <option value="rejected">رد شده</option>
+                </select>
+            </div>
+            
+            <!-- Amount Range Filter -->
+            <div class="col-md-3">
+                <label class="form-label">
+                    <i class="fas fa-money-bill-wave me-1"></i>
+                    مبلغ از
+                </label>
+                <input type="number" class="form-control" name="amount_from" id="amount_from" placeholder="0">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">
+                    <i class="fas fa-money-bill-wave me-1"></i>
+                    مبلغ تا
+                </label>
+                <input type="number" class="form-control" name="amount_to" id="amount_to" placeholder="1000000000">
+            </div>
+            
+            <!-- Report Type Filter -->
+            <div class="col-md-3">
+                <label class="form-label">
+                    <i class="fas fa-chart-bar me-1"></i>
+                    نوع گزارش
+                </label>
+                <select class="form-control" name="report_type" id="report_type">
+                    <option value="all">همه گزارش‌ها</option>
+                    <option value="budget">بودجه</option>
+                    <option value="tankhah">تنخواه</option>
+                    <option value="factor">فاکتور</option>
+                    <option value="payment">پرداخت</option>
+                    <option value="returns">برگشت</option>
+                </select>
+            </div>
+        </div>
+        
+        <!-- Action Buttons -->
+        <div class="row mt-4">
+            <div class="col-12 text-center">
+                <button type="submit" class="btn btn-light me-2 btn-animated">
+                    <i class="fas fa-search me-2"></i>
+                    اعمال فیلتر
+                </button>
+                <button type="button" class="btn btn-outline-light me-2" onclick="resetFilters()">
+                    <i class="fas fa-undo me-2"></i>
+                    پاک کردن
+                </button>
+                <button type="button" class="btn btn-outline-light" onclick="saveFilters()">
+                    <i class="fas fa-save me-2"></i>
+                    ذخیره فیلتر
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Quick Filter Buttons -->
+<div class="row mb-4" data-aos="fade-up">
+    <div class="col-12">
+        <div class="d-flex flex-wrap gap-2">
+            <button class="btn btn-outline-primary btn-sm" onclick="setQuickFilter('today')">
+                <i class="fas fa-calendar-day me-1"></i>
+                امروز
+            </button>
+            <button class="btn btn-outline-primary btn-sm" onclick="setQuickFilter('week')">
+                <i class="fas fa-calendar-week me-1"></i>
+                این هفته
+            </button>
+            <button class="btn btn-outline-primary btn-sm" onclick="setQuickFilter('month')">
+                <i class="fas fa-calendar-alt me-1"></i>
+                این ماه
+            </button>
+            <button class="btn btn-outline-primary btn-sm" onclick="setQuickFilter('year')">
+                <i class="fas fa-calendar me-1"></i>
+                امسال
+            </button>
+            <button class="btn btn-outline-primary btn-sm" onclick="setQuickFilter('last_month')">
+                <i class="fas fa-arrow-left me-1"></i>
+                ماه گذشته
+            </button>
+            <button class="btn btn-outline-primary btn-sm" onclick="setQuickFilter('last_year')">
+                <i class="fas fa-arrow-left me-1"></i>
+                سال گذشته
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Saved Filters -->
+<div class="row mb-4" id="savedFilters" style="display: none;" data-aos="fade-up">
+    <div class="col-12">
+        <div class="alert alert-info">
+            <h6 class="mb-3">
+                <i class="fas fa-bookmark me-2"></i>
+                فیلترهای ذخیره شده
+            </h6>
+            <div class="d-flex flex-wrap gap-2" id="savedFiltersList">
+                <!-- Saved filters will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Quick filter functions
+function setQuickFilter(period) {
+    const today = new Date();
+    const startDate = document.getElementById('start_date');
+    const endDate = document.getElementById('end_date');
+    
+    switch(period) {
+        case 'today':
+            startDate.value = today.toISOString().split('T')[0];
+            endDate.value = today.toISOString().split('T')[0];
+            break;
+        case 'week':
+            const weekStart = new Date(today.setDate(today.getDate() - today.getDay()));
+            const weekEnd = new Date(today.setDate(today.getDate() - today.getDay() + 6));
+            startDate.value = weekStart.toISOString().split('T')[0];
+            endDate.value = weekEnd.toISOString().split('T')[0];
+            break;
+        case 'month':
+            const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+            const monthEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+            startDate.value = monthStart.toISOString().split('T')[0];
+            endDate.value = monthEnd.toISOString().split('T')[0];
+            break;
+        case 'year':
+            const yearStart = new Date(today.getFullYear(), 0, 1);
+            const yearEnd = new Date(today.getFullYear(), 11, 31);
+            startDate.value = yearStart.toISOString().split('T')[0];
+            endDate.value = yearEnd.toISOString().split('T')[0];
+            break;
+        case 'last_month':
+            const lastMonthStart = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+            const lastMonthEnd = new Date(today.getFullYear(), today.getMonth(), 0);
+            startDate.value = lastMonthStart.toISOString().split('T')[0];
+            endDate.value = lastMonthEnd.toISOString().split('T')[0];
+            break;
+        case 'last_year':
+            const lastYearStart = new Date(today.getFullYear() - 1, 0, 1);
+            const lastYearEnd = new Date(today.getFullYear() - 1, 11, 31);
+            startDate.value = lastYearStart.toISOString().split('T')[0];
+            endDate.value = lastYearEnd.toISOString().split('T')[0];
+            break;
+    }
+    
+    // Apply the filter
+    document.getElementById('filterForm').submit();
+}
+
+// Save filters function
+function saveFilters() {
+    const formData = new FormData(document.getElementById('filterForm'));
+    const filters = Object.fromEntries(formData.entries());
+    
+    // Save to localStorage
+    const savedFilters = JSON.parse(localStorage.getItem('savedFilters') || '[]');
+    const filterName = prompt('نام فیلتر را وارد کنید:');
+    
+    if (filterName) {
+        savedFilters.push({
+            name: filterName,
+            filters: filters,
+            date: new Date().toISOString()
+        });
+        
+        localStorage.setItem('savedFilters', JSON.stringify(savedFilters));
+        loadSavedFilters();
+        showSuccessMessage('فیلتر با موفقیت ذخیره شد');
+    }
+}
+
+// Load saved filters
+function loadSavedFilters() {
+    const savedFilters = JSON.parse(localStorage.getItem('savedFilters') || '[]');
+    const container = document.getElementById('savedFiltersList');
+    const savedFiltersDiv = document.getElementById('savedFilters');
+    
+    if (savedFilters.length > 0) {
+        savedFiltersDiv.style.display = 'block';
+        container.innerHTML = '';
+        
+        savedFilters.forEach((filter, index) => {
+            const button = document.createElement('button');
+            button.className = 'btn btn-outline-secondary btn-sm me-2';
+            button.innerHTML = `
+                <i class="fas fa-filter me-1"></i>
+                ${filter.name}
+                <i class="fas fa-times ms-1" onclick="removeSavedFilter(${index})"></i>
+            `;
+            button.onclick = () => applySavedFilter(filter.filters);
+            container.appendChild(button);
+        });
+    } else {
+        savedFiltersDiv.style.display = 'none';
+    }
+}
+
+// Apply saved filter
+function applySavedFilter(filters) {
+    Object.keys(filters).forEach(key => {
+        const element = document.querySelector(`[name="${key}"]`);
+        if (element) {
+            element.value = filters[key];
+        }
+    });
+    
+    document.getElementById('filterForm').submit();
+}
+
+// Remove saved filter
+function removeSavedFilter(index) {
+    const savedFilters = JSON.parse(localStorage.getItem('savedFilters') || '[]');
+    savedFilters.splice(index, 1);
+    localStorage.setItem('savedFilters', JSON.stringify(savedFilters));
+    loadSavedFilters();
+}
+
+// Reset filters
+function resetFilters() {
+    document.getElementById('filterForm').reset();
+    window.location.href = window.location.pathname;
+}
+
+// Load saved filters on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadSavedFilters();
+});
+</script>

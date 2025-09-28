@@ -1,0 +1,105 @@
+{% load i18n jformat rcms_custom_filters %}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% trans "چاپ دستور پرداخت" %} - {{ payment_order.order_number }}</title>
+    <style>
+        body { font-family: 'Vazirmatn', sans-serif; color: #222; }
+        .container { max-width: 900px; margin: 0 auto; padding: 20px; }
+        .header { text-align: center; margin-bottom: 20px; }
+        .title { font-size: 20px; font-weight: 800; }
+        .meta { color: #555; font-size: 12px; margin-top: 6px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
+        .item { padding: 10px; border: 1px solid #ddd; border-radius: 8px; }
+        .label { font-size: 12px; color: #666; }
+        .value { font-size: 14px; font-weight: 700; }
+        h4 { margin: 22px 0 10px; border-bottom: 1px dashed #bbb; padding-bottom: 6px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #ddd; padding: 8px; font-size: 12px; }
+        th { background: #f7f7f7; }
+        .no-print { display: none; }
+        @media print {
+            body { background: #fff; }
+            .no-print { display: none !important; }
+        }
+    </style>
+</head>
+<body onload="window.print()">
+<div class="container">
+    <div class="header">
+        <div class="title">{% trans "چاپ جزئیات دستور پرداخت" %}</div>
+        <div class="meta">{% trans "شماره" %}: {{ payment_order.order_number }} — {% trans "تاریخ" %}: {{ payment_order.created_at|jformat:"%Y/%m/%d %H:%M"|to_persian_number }}</div>
+    </div>
+
+    <div class="grid">
+        <div class="item"><div class="label">{% trans "مبلغ" %}</div><div class="value">{{ payment_order.amount|floatformat:0|format_negative }} {% trans "ریال" %}</div></div>
+        <div class="item"><div class="label">{% trans "وضعیت" %}</div><div class="value">{{ payment_order.status.name }}</div></div>
+        <div class="item"><div class="label">{% trans "سازمان" %}</div><div class="value">{{ payment_order.organization.name }}</div></div>
+        <div class="item"><div class="label">{% trans "دریافت‌کننده" %}</div><div class="value">{{ payment_order.payee|default:"—" }}</div></div>
+        <div class="item"><div class="label">{% trans "ایجادکننده" %}</div><div class="value">{{ payment_order.created_by.get_full_name|default:payment_order.created_by.username }}</div></div>
+        <div class="item"><div class="label">{% trans "تاریخ صدور" %}</div><div class="value">{% if payment_order.issue_date %}{{ payment_order.issue_date|jformat:"%Y/%m/%d"|to_persian_number }}{% else %}—{% endif %}</div></div>
+    </div>
+
+    {% if payment_order.description %}
+        <h4>{% trans "توضیحات" %}</h4>
+        <p>{{ payment_order.description|linebreaksbr }}</p>
+    {% endif %}
+
+    <h4>{% trans "فاکتورهای مرتبط" %}</h4>
+    {% if related_factors %}
+    <table>
+        <thead>
+            <tr>
+                <th>{% trans "شماره" %}</th>
+                <th>{% trans "تاریخ" %}</th>
+                <th>{% trans "مبلغ" %}</th>
+                <th>{% trans "وضعیت" %}</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for f in related_factors %}
+            <tr>
+                <td>{{ f.number|default:f.id }}</td>
+                <td>{% if f.issue_date %}{{ f.issue_date|jformat:"%Y/%m/%d"|to_persian_number }}{% endif %}</td>
+                <td>{{ f.amount|default:0|floatformat:0|format_negative }}</td>
+                <td>{{ f.status.name|default:"—" }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+        <p>{% trans "فاکتوری ثبت نشده است." %}</p>
+    {% endif %}
+
+    <h4>{% trans "تاریخچه تاییدات" %}</h4>
+    {% if approval_logs %}
+    <table>
+        <thead>
+            <tr>
+                <th>{% trans "کاربر" %}</th>
+                <th>{% trans "اقدام" %}</th>
+                <th>{% trans "زمان" %}</th>
+                <th>{% trans "یادداشت" %}</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for log in approval_logs %}
+            <tr>
+                <td>{{ log.user.get_full_name|default:log.user.username }}</td>
+                <td>{{ log.action.name|default:"—" }}</td>
+                <td>{{ log.timestamp|jformat:"%Y/%m/%d %H:%M"|to_persian_number }}</td>
+                <td>{{ log.comment|default:"" }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+        <p>{% trans "تاریخچه‌ای ثبت نشده است." %}</p>
+    {% endif %}
+
+</div>
+</body>
+</html>
+

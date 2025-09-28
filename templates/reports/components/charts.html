@@ -1,0 +1,63 @@
+<!-- Chart Components Template -->
+
+<!-- Budget Distribution Chart -->
+<div class="chart-container" data-aos="fade-up">
+    <h5 class="mb-4">
+        <i class="fas fa-chart-pie me-2 text-primary"></i>
+        توزیع بودجه بر اساس سازمان
+    </h5>
+    <canvas id="budgetDistributionChart" height="300"></canvas>
+</div>
+
+<!-- Monthly Consumption Chart -->
+<div class="chart-container" data-aos="fade-up">
+    <h5 class="mb-4">
+        <i class="fas fa-chart-line me-2 text-success"></i>
+        روند مصرف بودجه (ماهانه)
+    </h5>
+    <canvas id="monthlyConsumptionChart" height="300"></canvas>
+</div>
+
+<!-- Tankhah Status Chart -->
+<div class="chart-container" data-aos="fade-up">
+    <h5 class="mb-4">
+        <i class="fas fa-chart-bar me-2 text-warning"></i>
+        وضعیت تنخواه‌ها
+    </h5>
+    <canvas id="tankhahStatusChart" height="300"></canvas>
+</div>
+
+<!-- Factor Category Chart -->
+<div class="chart-container" data-aos="fade-up">
+    <h5 class="mb-4">
+        <i class="fas fa-chart-doughnut me-2 text-info"></i>
+        دسته‌بندی فاکتورها
+    </h5>
+    <canvas id="factorCategoryChart" height="300"></canvas>
+</div>
+
+<!-- Budget Returns Trend Chart -->
+<div class="chart-container" data-aos="fade-up">
+    <h5 class="mb-4">
+        <i class="fas fa-undo me-2 text-danger"></i>
+        روند برگشت‌های بودجه
+    </h5>
+    <canvas id="budgetReturnsChart" height="300"></canvas>
+</div>
+
+<!-- Progress Ring -->
+<div class="text-center" data-aos="fade-up">
+    <svg class="progress-ring" width="120" height="120">
+        <circle class="progress-ring-circle" 
+                stroke="#6f42c1" 
+                stroke-width="8" 
+                fill="transparent" 
+                r="40" 
+                cx="60" 
+                cy="60">
+        </circle>
+    </svg>
+    <div class="position-absolute" style="top: 50%; left: 50%; transform: translate(-50%, -50%);">
+        <div class="h4 mb-0" id="progressPercentage">0%</div>
+    </div>
+</div>

@@ -1,0 +1,631 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}صادرات گزارشات{% endblock %}
+
+{% block extra_css %}
+<!-- Custom Export CSS -->
+<style>
+    .export-card {
+        background: white;
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+        border: 1px solid #e9ecef;
+    }
+    
+    .export-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+    }
+    
+    .export-option {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 25px;
+        text-align: center;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        border: none;
+        width: 100%;
+    }
+    
+    .export-option:hover {
+        transform: scale(1.05);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    }
+    
+    .export-option i {
+        font-size: 3rem;
+        margin-bottom: 15px;
+        display: block;
+    }
+    
+    .export-option h5 {
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin-bottom: 10px;
+    }
+    
+    .export-option p {
+        font-size: 0.9rem;
+        opacity: 0.9;
+        margin-bottom: 0;
+    }
+    
+    .filter-section {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        border-radius: 15px;
+        padding: 25px;
+        margin-bottom: 30px;
+        color: white;
+    }
+    
+    .report-preview {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        margin-bottom: 30px;
+    }
+    
+    .preview-table {
+        font-size: 0.9rem;
+    }
+    
+    .preview-table th {
+        background: #f8f9fa;
+        font-weight: 600;
+        color: #495057;
+        border: none;
+        padding: 12px;
+    }
+    
+    .preview-table td {
+        padding: 12px;
+        border: none;
+        border-bottom: 1px solid #e9ecef;
+    }
+    
+    .preview-table tbody tr:hover {
+        background: #f8f9fa;
+    }
+    
+    .export-progress {
+        display: none;
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        margin-bottom: 30px;
+    }
+    
+    .progress-bar {
+        height: 20px;
+        border-radius: 10px;
+        background: linear-gradient(90deg, #28a745, #20c997);
+        transition: width 0.3s ease;
+    }
+    
+    .fade-in {
+        animation: fadeIn 0.6s ease-in;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .slide-in-left {
+        animation: slideInLeft 0.6s ease-out;
+    }
+    
+    @keyframes slideInLeft {
+        from { opacity: 0; transform: translateX(-50px); }
+        to { opacity: 1; transform: translateX(0); }
+    }
+    
+    .bounce-in {
+        animation: bounceIn 0.8s ease-out;
+    }
+    
+    @keyframes bounceIn {
+        0% { opacity: 0; transform: scale(0.3); }
+        50% { opacity: 1; transform: scale(1.05); }
+        70% { transform: scale(0.9); }
+        100% { opacity: 1; transform: scale(1); }
+    }
+    
+    .pulse {
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4" data-aos="fade-down">
+        <div class="col-12">
+            <div class="export-card">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h1 class="mb-3">
+                            <i class="fas fa-download me-3 text-primary"></i>
+                            صادرات گزارشات
+                        </h1>
+                        <p class="mb-0 fs-5 text-muted">صادرات گزارشات در فرمت‌های مختلف</p>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <i class="fas fa-file-export fa-4x text-primary opacity-25"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="row mb-4" data-aos="fade-up">
+        <div class="col-12">
+            <div class="filter-section">
+                <h4 class="mb-4">
+                    <i class="fas fa-filter me-2"></i>
+                    فیلترهای گزارش
+                </h4>
+                <form method="GET" id="exportFilterForm">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">نوع گزارش</label>
+                            <select class="form-control" name="type" id="reportType" onchange="updateReportType()">
+                                <option value="budget" {% if report_type == 'budget' %}selected{% endif %}>گزارش بودجه</option>
+                                <option value="tankhah" {% if report_type == 'tankhah' %}selected{% endif %}>گزارش تنخواه</option>
+                                <option value="factor" {% if report_type == 'factor' %}selected{% endif %}>گزارش فاکتور</option>
+                                <option value="payment" {% if report_type == 'payment' %}selected{% endif %}>گزارش دستورات پرداخت</option>
+                                <option value="returns" {% if report_type == 'returns' %}selected{% endif %}>گزارش برگشت‌ها</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">تاریخ شروع</label>
+                            <input type="date" class="form-control" name="start_date" value="{{ filters.start_date }}">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">تاریخ پایان</label>
+                            <input type="date" class="form-control" name="end_date" value="{{ filters.end_date }}">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">سازمان</label>
+                            <select class="form-control" name="organization" id="organization">
+                                <option value="">همه سازمان‌ها</option>
+                                <!-- Options will be loaded via AJAX -->
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-12 text-center">
+                            <button type="button" class="btn btn-light me-2" onclick="applyFilters()">
+                                <i class="fas fa-search me-2"></i>
+                                اعمال فیلتر
+                            </button>
+                            <button type="button" class="btn btn-outline-light" onclick="resetFilters()">
+                                <i class="fas fa-undo me-2"></i>
+                                پاک کردن
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Export Options -->
+    <div class="row mb-4">
+        <div class="col-lg-4 col-md-6 mb-4" data-aos="fade-up" data-aos-delay="100">
+            <button class="export-option" onclick="exportToPDF()">
+                <i class="fas fa-file-pdf"></i>
+                <h5>صادرات PDF</h5>
+                <p>گزارش کامل با قالب‌بندی حرفه‌ای</p>
+            </button>
+        </div>
+        
+        <div class="col-lg-4 col-md-6 mb-4" data-aos="fade-up" data-aos-delay="200">
+            <button class="export-option" onclick="exportToExcel()">
+                <i class="fas fa-file-excel"></i>
+                <h5>صادرات Excel</h5>
+                <p>داده‌ها در قالب جدول قابل ویرایش</p>
+            </button>
+        </div>
+        
+        <div class="col-lg-4 col-md-6 mb-4" data-aos="fade-up" data-aos-delay="300">
+            <button class="export-option" onclick="exportToCSV()">
+                <i class="fas fa-file-csv"></i>
+                <h5>صادرات CSV</h5>
+                <p>داده‌ها در فرمت متنی ساده</p>
+            </button>
+        </div>
+    </div>
+
+    <!-- Export Progress -->
+    <div class="row mb-4" id="exportProgress" style="display: none;">
+        <div class="col-12">
+            <div class="export-progress">
+                <h5 class="mb-3">
+                    <i class="fas fa-spinner fa-spin me-2"></i>
+                    در حال صادرات گزارش...
+                </h5>
+                <div class="progress mb-3" style="height: 20px;">
+                    <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+                </div>
+                <p class="mb-0 text-muted" id="progressText">آماده‌سازی داده‌ها...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Report Preview -->
+    <div class="row mb-4" data-aos="fade-up">
+        <div class="col-12">
+            <div class="report-preview">
+                <h5 class="mb-4">
+                    <i class="fas fa-eye me-2"></i>
+                    پیش‌نمایش گزارش
+                </h5>
+                <div class="table-responsive">
+                    <table class="table preview-table">
+                        <thead>
+                            <tr>
+                                {% if report_type == 'budget' %}
+                                    <th>سازمان</th>
+                                    <th>پروژه</th>
+                                    <th>ردیف بودجه</th>
+                                    <th>مبلغ تخصیص</th>
+                                    <th>تاریخ تخصیص</th>
+                                {% elif report_type == 'tankhah' %}
+                                    <th>شماره تنخواه</th>
+                                    <th>سازمان</th>
+                                    <th>پروژه</th>
+                                    <th>مبلغ</th>
+                                    <th>تاریخ</th>
+                                    <th>وضعیت</th>
+                                {% elif report_type == 'factor' %}
+                                    <th>شماره فاکتور</th>
+                                    <th>تنخواه</th>
+                                    <th>دسته‌بندی</th>
+                                    <th>مبلغ</th>
+                                    <th>تاریخ</th>
+                                    <th>وضعیت</th>
+                                {% elif report_type == 'payment' %}
+                                    <th>شماره دستور</th>
+                                    <th>سازمان</th>
+                                    <th>پروژه</th>
+                                    <th>دریافت‌کننده</th>
+                                    <th>مبلغ</th>
+                                    <th>تاریخ صدور</th>
+                                    <th>وضعیت</th>
+                                {% elif report_type == 'returns' %}
+                                    <th>سازمان</th>
+                                    <th>پروژه</th>
+                                    <th>مبلغ برگشت</th>
+                                    <th>تاریخ</th>
+                                    <th>توضیحات</th>
+                                {% endif %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in report_data|slice:":10" %}
+                            <tr>
+                                {% if report_type == 'budget' %}
+                                    <td>{{ item.organization.name|default:"نامشخص" }}</td>
+                                    <td>{{ item.project.name|default:"نامشخص" }}</td>
+                                    <td>{{ item.budget_item.name|default:"نامشخص" }}</td>
+                                    <td>{{ item.allocated_amount|floatformat:0 }}</td>
+                                    <td>{{ item.allocation_date|date:"Y/m/d" }}</td>
+                                {% elif report_type == 'tankhah' %}
+                                    <td>{{ item.number }}</td>
+                                    <td>{{ item.organization.name|default:"نامشخص" }}</td>
+                                    <td>{{ item.project.name|default:"نامشخص" }}</td>
+                                    <td>{{ item.amount|floatformat:0 }}</td>
+                                    <td>{{ item.date|date:"Y/m/d" }}</td>
+                                    <td><span class="badge bg-primary">{{ item.status.name|default:"نامشخص" }}</span></td>
+                                {% elif report_type == 'factor' %}
+                                    <td>{{ item.number }}</td>
+                                    <td>{{ item.tankhah.number|default:"نامشخص" }}</td>
+                                    <td>{{ item.category.name|default:"نامشخص" }}</td>
+                                    <td>{{ item.amount|floatformat:0 }}</td>
+                                    <td>{{ item.date|date:"Y/m/d" }}</td>
+                                    <td><span class="badge bg-success">{{ item.status.name|default:"نامشخص" }}</span></td>
+                                {% elif report_type == 'payment' %}
+                                    <td>{{ item.order_number }}</td>
+                                    <td>{{ item.organization.name|default:"نامشخص" }}</td>
+                                    <td>{{ item.project.name|default:"نامشخص" }}</td>
+                                    <td>{{ item.payee.name|default:"نامشخص" }}</td>
+                                    <td>{{ item.amount|floatformat:0 }}</td>
+                                    <td>{{ item.issue_date|date:"Y/m/d" }}</td>
+                                    <td><span class="badge bg-warning">{{ item.status.name|default:"نامشخص" }}</span></td>
+                                {% elif report_type == 'returns' %}
+                                    <td>{{ item.allocation.organization.name|default:"نامشخص" }}</td>
+                                    <td>{{ item.allocation.project.name|default:"نامشخص" }}</td>
+                                    <td>{{ item.amount|floatformat:0 }}</td>
+                                    <td>{{ item.timestamp|date:"Y/m/d" }}</td>
+                                    <td>{{ item.description|truncatechars:30|default:"نامشخص" }}</td>
+                                {% endif %}
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center text-muted">داده‌ای یافت نشد</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% if report_data|length > 10 %}
+                <div class="text-center mt-3">
+                    <small class="text-muted">نمایش 10 مورد از {{ report_data|length }} مورد</small>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Export Statistics -->
+    <div class="row mb-4" data-aos="fade-up">
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="export-card text-center">
+                <i class="fas fa-database fa-3x text-primary mb-3"></i>
+                <h4 class="text-primary">{{ report_data|length }}</h4>
+                <p class="text-muted mb-0">تعداد رکوردها</p>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="export-card text-center">
+                <i class="fas fa-calendar fa-3x text-success mb-3"></i>
+                <h4 class="text-success">
+                    {% if filters.start_date and filters.end_date %}
+                        {{ filters.start_date|date:"Y/m/d" }} - {{ filters.end_date|date:"Y/m/d" }}
+                    {% else %}
+                        همه تاریخ‌ها
+                    {% endif %}
+                </h4>
+                <p class="text-muted mb-0">بازه زمانی</p>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="export-card text-center">
+                <i class="fas fa-building fa-3x text-warning mb-3"></i>
+                <h4 class="text-warning">
+                    {% if filters.organization %}
+                        انتخاب شده
+                    {% else %}
+                        همه سازمان‌ها
+                    {% endif %}
+                </h4>
+                <p class="text-muted mb-0">سازمان</p>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="export-card text-center">
+                <i class="fas fa-chart-bar fa-3x text-info mb-3"></i>
+                <h4 class="text-info">
+                    {% if report_type == 'budget' %}
+                        بودجه
+                    {% elif report_type == 'tankhah' %}
+                        تنخواه
+                    {% elif report_type == 'factor' %}
+                        فاکتور
+                    {% elif report_type == 'payment' %}
+                        پرداخت
+                    {% elif report_type == 'returns' %}
+                        برگشت
+                    {% endif %}
+                </h4>
+                <p class="text-muted mb-0">نوع گزارش</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="row mb-4" data-aos="fade-up">
+        <div class="col-12 text-center">
+            <a href="{% url 'reports_dashboard:main_dashboard' %}" class="btn btn-primary btn-lg me-3">
+                <i class="fas fa-arrow-right me-2"></i>
+                بازگشت به داشبورد
+            </a>
+            <a href="{% url 'reports_dashboard:budget_analytics' %}" class="btn btn-success btn-lg me-3">
+                <i class="fas fa-chart-line me-2"></i>
+                تحلیل‌های پیشرفته
+            </a>
+            <button class="btn btn-info btn-lg" onclick="refreshExport()">
+                <i class="fas fa-sync-alt me-2"></i>
+                به‌روزرسانی
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- AOS Animation Library -->
+{#<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>#}
+<script src="{% static 'admin/js/aos.js' %}"></script>
+
+<script>
+// Initialize AOS
+AOS.init({
+    duration: 800,
+    easing: 'ease-in-out',
+    once: true
+});
+
+// Initialize when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    loadFilterOptions();
+    animateCards();
+});
+
+// Load filter options via AJAX
+function loadFilterOptions() {
+    // Load organizations
+    fetch('/api/organizations/')
+        .then(response => response.json())
+        .then(data => {
+            const orgSelect = document.getElementById('organization');
+            data.forEach(org => {
+                const option = document.createElement('option');
+                option.value = org.id;
+                option.textContent = org.name;
+                if (org.id == '{{ filters.organization }}') {
+                    option.selected = true;
+                }
+                orgSelect.appendChild(option);
+            });
+        });
+}
+
+// Animate cards
+function animateCards() {
+    const cards = document.querySelectorAll('.export-card');
+    cards.forEach((card, index) => {
+        setTimeout(() => {
+            card.classList.add('fade-in');
+        }, index * 100);
+    });
+}
+
+// Update report type
+function updateReportType() {
+    const reportType = document.getElementById('reportType').value;
+    // Update preview table headers based on report type
+    // This would typically involve AJAX to reload the preview
+    location.reload();
+}
+
+// Apply filters
+function applyFilters() {
+    const form = document.getElementById('exportFilterForm');
+    const formData = new FormData(form);
+    const params = new URLSearchParams(formData);
+    window.location.href = window.location.pathname + '?' + params.toString();
+}
+
+// Reset filters
+function resetFilters() {
+    document.getElementById('exportFilterForm').reset();
+    window.location.href = window.location.pathname;
+}
+
+// Export to PDF
+function exportToPDF() {
+    showExportProgress();
+    simulateProgress('PDF');
+    
+    // Simulate PDF export
+    setTimeout(() => {
+        hideExportProgress();
+        showSuccessMessage('گزارش PDF با موفقیت صادر شد');
+        // In real implementation, this would trigger actual PDF generation
+    }, 3000);
+}
+
+// Export to Excel
+function exportToExcel() {
+    showExportProgress();
+    simulateProgress('Excel');
+    
+    // Simulate Excel export
+    setTimeout(() => {
+        hideExportProgress();
+        showSuccessMessage('گزارش Excel با موفقیت صادر شد');
+        // In real implementation, this would trigger actual Excel generation
+    }, 2500);
+}
+
+// Export to CSV
+function exportToCSV() {
+    showExportProgress();
+    simulateProgress('CSV');
+    
+    // Simulate CSV export
+    setTimeout(() => {
+        hideExportProgress();
+        showSuccessMessage('گزارش CSV با موفقیت صادر شد');
+        // In real implementation, this would trigger actual CSV generation
+    }, 2000);
+}
+
+// Show export progress
+function showExportProgress() {
+    document.getElementById('exportProgress').style.display = 'block';
+    document.getElementById('progressBar').style.width = '0%';
+    document.getElementById('progressText').textContent = 'آماده‌سازی داده‌ها...';
+}
+
+// Hide export progress
+function hideExportProgress() {
+    document.getElementById('exportProgress').style.display = 'none';
+}
+
+// Simulate progress
+function simulateProgress(format) {
+    let progress = 0;
+    const progressBar = document.getElementById('progressBar');
+    const progressText = document.getElementById('progressText');
+    
+    const interval = setInterval(() => {
+        progress += Math.random() * 15;
+        if (progress > 100) progress = 100;
+        
+        progressBar.style.width = progress + '%';
+        
+        if (progress < 30) {
+            progressText.textContent = 'آماده‌سازی داده‌ها...';
+        } else if (progress < 60) {
+            progressText.textContent = 'تولید فایل ' + format + '...';
+        } else if (progress < 90) {
+            progressText.textContent = 'اعمال قالب‌بندی...';
+        } else {
+            progressText.textContent = 'تکمیل صادرات...';
+        }
+        
+        if (progress >= 100) {
+            clearInterval(interval);
+        }
+    }, 200);
+}
+
+// Show success message
+function showSuccessMessage(message) {
+    // Create success alert
+    const alert = document.createElement('div');
+    alert.className = 'alert alert-success alert-dismissible fade show position-fixed';
+    alert.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    alert.innerHTML = `
+        <i class="fas fa-check-circle me-2"></i>
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(alert);
+    
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+        if (alert.parentNode) {
+            alert.parentNode.removeChild(alert);
+        }
+    }, 5000);
+}
+
+// Refresh export page
+function refreshExport() {
+    location.reload();
+}
+</script>
+{% endblock %}

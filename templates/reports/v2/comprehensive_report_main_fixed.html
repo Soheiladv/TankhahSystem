@@ -1,0 +1,512 @@
+{% extends "base.html" %}
+{% load i18n static humanize jformat rcms_custom_filters %}
+
+{% block title %}{{ report_main_title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .card-header.bg-gradient-primary {
+        background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+    }
+    
+    .section-title {
+        position: relative;
+        padding-bottom: 10px;
+    }
+    
+    .section-title:after {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 50px;
+        height: 3px;
+        background: linear-gradient(90deg, #4e73df 0%, #224abe 100%);
+        border-radius: 3px;
+    }
+    
+    .org-row {
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .org-row:hover {
+        background-color: #f8f9fa !important;
+    }
+    
+    .budget-items-container {
+        min-height: 100px;
+    }
+    
+    .collapse-row {
+        transition: all 0.3s ease;
+    }
+    
+    .financial-summary .card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .financial-summary .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1) !important;
+    }
+    
+    .loading-spinner {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 3px solid #f3f3f3;
+        border-top: 3px solid #3498db;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    @media print {
+        .no-print {
+            display: none !important;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    {% csrf_token %}
+    
+    <!-- Header -->
+    <div class="report-header text-center mb-5">
+        <h1 class="display-5 fw-bold text-primary mb-3">{{ report_main_title }}</h1>
+        <p class="lead text-muted">{% translate "گزارش جامع بودجه سازمانی" %}</p>
+    </div>
+
+    <!-- Filters -->
+    <div class="card shadow-lg mb-5 border-0">
+        <div class="card-header bg-gradient-primary text-white py-3">
+            <h5 class="mb-0">
+                <i class="fas fa-filter me-2"></i>{% translate "فیلترهای گزارش" %}
+            </h5>
+        </div>
+        <div class="card-body">
+            <form method="get" class="row g-3" id="filterForm">
+                <div class="col-md-6">
+                    <div class="input-group">
+                        <span class="input-group-text bg-light">
+                            <i class="fas fa-calendar-alt text-primary"></i>
+                        </span>
+                        <input type="text" 
+                               class="form-control form-control-lg" 
+                               id="id_search_period" 
+                               name="search_period"
+                               placeholder="{% translate 'جستجوی دوره بودجه...' %}"
+                               value="{{ current_search_period|to_persian_number }}">
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary btn-lg w-100">
+                        <i class="fas fa-search me-2"></i>{% translate "اعمال فیلتر" %}
+                    </button>
+                </div>
+                <div class="col-md-2">
+                    <a href="{% url 'comprehensive_budget_report' %}" class="btn btn-outline-secondary btn-lg w-100">
+                        <i class="fas fa-times me-2"></i>{% translate "حذف فیلتر" %}
+                    </a>
+                </div>
+                <div class="col-md-2">
+                    <a href="?output_format=excel{% if current_search_period %}&search_period={{ current_search_period }}{% endif %}"
+                       class="btn btn-success btn-lg w-100">
+                        <i class="fas fa-file-excel me-2"></i>{% translate "خروجی Excel" %}
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Messages -->
+    {% if messages %}
+        <div class="mb-4">
+            {% for message in messages %}
+                <div class="alert alert-dismissible fade show alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %}">
+                    <div class="d-flex align-items-center">
+                        <i class="fas {% if message.tags == 'success' %}fa-check-circle{% elif message.tags == 'error' %}fa-exclamation-circle{% else %}fa-info-circle{% endif %} me-3"></i>
+                        <div>{{ message }}</div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Budget Periods -->
+    {% for period_data in budget_periods_data %}
+        <div class="card shadow-lg mb-5 border-0">
+            <div class="card-header bg-gradient-primary text-white py-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h3 class="mb-0">
+                        <i class="fas fa-calendar-check me-2"></i>
+                        {{ period_data.period.name|to_persian_number }}
+                        <small class="fs-6">({% translate "سازمان" %}: {{ period_data.period.organization.name|to_persian_number }})</small>
+                    </h3>
+                    <span class="badge bg-white text-primary fs-6">
+                        {{ period_data.summary.start_date_jalali|to_persian_number }} تا {{ period_data.summary.end_date_jalali|to_persian_number}}
+                    </span>
+                </div>
+            </div>
+            
+            <div class="card-body">
+                <!-- Financial Summary -->
+                <div class="financial-summary mb-4">
+                    <div class="row g-4">
+                        <div class="col-md-3">
+                            <div class="card bg-light h-100 border-0 shadow-sm">
+                                <div class="card-body text-center">
+                                    <h6 class="text-muted mb-3">{% translate "بودجه کل" %}</h6>
+                                    <h3 class="text-primary">{{ period_data.summary.total_budget|floatformat:0|format_negative }}</h3>
+                                    <small class="text-muted">{% translate "ریال" %}</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-light h-100 border-0 shadow-sm">
+                                <div class="card-body text-center">
+                                    <h6 class="text-muted mb-3">{% translate "تخصیص یافته" %}</h6>
+                                    <h3 class="text-info">{{ period_data.summary.total_allocated|floatformat:0|format_negative }}</h3>
+                                    <small class="text-muted">{% translate "ریال" %}</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-light h-100 border-0 shadow-sm">
+                                <div class="card-body text-center">
+                                    <h6 class="text-muted mb-3">{% translate "مصرف شده" %}</h6>
+                                    <h3 class="{% if period_data.summary.utilization_percentage > 90 %}text-danger{% elif period_data.summary.utilization_percentage > 70 %}text-warning{% else %}text-success{% endif %}">
+                                        {{ period_data.summary.net_consumed|floatformat:0|format_negative }}
+                                    </h3>
+                                    <small class="text-muted">{% translate "ریال" %}</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-light h-100 border-0 shadow-sm">
+                                <div class="card-body text-center">
+                                    <h6 class="text-muted mb-3">{% translate "مانده قابل مصرف" %}</h6>
+                                    <h3 class="{% if period_data.summary.utilization_percentage > 90 %}text-danger{% elif period_data.summary.utilization_percentage > 70 %}text-warning{% else %}text-success{% endif %}">
+                                        {{ period_data.summary.remaining|floatformat:0|format_negative }}
+                                    </h3>
+                                    <small class="text-muted">{% translate "ریال" %}</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Progress Bar -->
+                    <div class="progress mt-4" style="height: 10px;">
+                        <div class="progress-bar bg-{% if period_data.summary.utilization_percentage > 90 %}danger{% elif period_data.summary.utilization_percentage > 70 %}warning{% else %}success{% endif %}" 
+                             role="progressbar" 
+                             style="width: {{ period_data.summary.utilization_percentage }}%" 
+                             aria-valuenow="{{ period_data.summary.utilization_percentage|to_persian_number }}"
+                             aria-valuemin="0" 
+                             aria-valuemax="100">
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between mt-2">
+                        <small class="text-muted">0%</small>
+                        <small class="text-muted fw-bold">
+                            {% translate "درصد مصرف" %}: {{ period_data.summary.utilization_percentage|floatformat:0|to_persian_number }}%
+                        </small>
+                        <small class="text-muted">100%</small>
+                    </div>
+                </div>
+
+                <!-- Organizations -->
+                <div class="organizations-section">
+                    <h5 class="section-title mb-4">
+                        <i class="fas fa-sitemap me-2 text-primary"></i>
+                        <span class="text-primary">{% translate "وضعیت سازمان‌ها" %}</span>
+                    </h5>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped table-bordered">
+                            <thead class="table-light">
+                                <tr>
+                                    <th width="5%" class="text-center">#</th>
+                                    <th width="25%">{% translate "نام سازمان" %}</th>
+                                    <th width="10%" class="text-center">{% translate "کد" %}</th>
+                                    <th width="15%" class="text-end">{% translate "تخصیص" %}</th>
+                                    <th width="15%" class="text-end">{% translate "مصرف" %}</th>
+                                    <th width="15%" class="text-end">{% translate "مانده" %}</th>
+                                    <th width="10%" class="text-center">{% translate "درصد" %}</th>
+                                    <th width="5%" class="text-center">{% translate "سرفصل‌ها" %}</th>
+                                    <th width="10%" class="text-center no-print">{% translate "عملیات" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for org in period_data.organization_summaries %}
+                                    <tr class="org-row" 
+                                        data-bs-toggle="collapse" 
+                                        data-bs-target="#orgCollapse-{{ org.id }}"
+                                        aria-expanded="false" 
+                                        aria-controls="orgCollapse-{{ org.id }}">
+                                        <td class="text-center">{{ forloop.counter|to_persian_number }}</td>
+                                        <td>
+                                            <i class="fas fa-building me-2 text-muted"></i>
+                                            {{ org.name }}
+                                        </td>
+                                        <td class="text-center">{{ org.code|default:"-" }}</td>
+                                        <td class="text-end">{{ org.total_allocated_formatted|to_persian_number }}</td>
+                                        <td class="text-end">{{ org.net_consumed_formatted|to_persian_number }}</td>
+                                        <td class="text-end">{{ org.remaining_formatted|to_persian_number }}</td>
+                                        <td class="text-center">
+                                            <span class="badge rounded-pill bg-{% if org.utilization_percentage > 90 %}danger{% elif org.utilization_percentage > 70 %}warning{% else %}success{% endif %}">
+                                                {{ org.utilization_percentage|floatformat:0 }}%
+                                            </span>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge bg-primary rounded-pill">
+                                                {{ org.num_budget_items|to_persian_number }}
+                                            </span>
+                                        </td>
+                                        <td class="text-center no-print">
+                                            <button class="btn btn-sm btn-outline-primary btn-load-items"
+                                                    data-url="{{ org.budget_items_ajax_url }}"
+                                                    data-target="#budgetItemsContainer-{{ org.id }}"
+                                                    data-org-id="{{ org.id }}">
+                                                <i class="fas fa-list me-1"></i>
+                                                {% translate "نمایش" %}
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr class="collapse-row">
+                                        <td colspan="9" class="p-0 border-0">
+                                            <div class="collapse" id="orgCollapse-{{ org.id }}">
+                                                <div class="card card-body border-0 rounded-0 bg-light p-3">
+                                                    <div id="budgetItemsContainer-{{ org.id }}" class="budget-items-container">
+                                                        <div class="text-center py-4 text-muted">
+                                                            <i class="fas fa-circle-notch fa-spin fa-2x mb-3"></i>
+                                                            <p>{% translate "در حال بارگذاری سرفصل‌های بودجه..." %}</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="9" class="text-center py-5 text-muted">
+                                            <i class="fas fa-info-circle fa-2x mb-3"></i>
+                                            <p>{% translate "هیچ سازمانی برای این دوره بودجه یافت نشد." %}</p>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% empty %}
+        <div class="card shadow border-0">
+            <div class="card-body text-center py-5">
+                <i class="fas fa-calendar-times fa-3x text-muted mb-4"></i>
+                <h4 class="text-muted">{% translate "دوره بودجه‌ای یافت نشد" %}</h4>
+                <p class="text-muted">{% translate "هیچ دوره بودجه‌ای مطابق با فیلترهای شما وجود ندارد." %}</p>
+                <a href="{% url 'comprehensive_budget_report' %}" class="btn btn-primary mt-3">
+                    <i class="fas fa-redo me-2"></i>{% translate "بارگذاری مجدد" %}
+                </a>
+            </div>
+        </div>
+    {% endfor %}
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+        <nav aria-label="Page navigation" class="mt-5">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if current_search_period %}&search_period={{ current_search_period }}{% endif %}">
+                            <i class="fas fa-chevron-right me-1"></i>
+                            {% translate "قبلی" %}
+                        </a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">
+                            <i class="fas fa-chevron-right me-1"></i>
+                            {% translate "قبلی" %}
+                        </span>
+                    </li>
+                {% endif %}
+
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                        <li class="page-item active" aria-current="page">
+                            <span class="page-link">{{ num|to_persian_number }}</span>
+                        </li>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ num }}{% if current_search_period %}&search_period={{ current_search_period }}{% endif %}">
+                                {{ num|to_persian_number }}
+                            </a>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if current_search_period %}&search_period={{ current_search_period }}{% endif %}">
+                            {% translate "بعدی" %}
+                            <i class="fas fa-chevron-left ms-1"></i>
+                        </a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">
+                            {% translate "بعدی" %}
+                            <i class="fas fa-chevron-left ms-1"></i>
+                        </span>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Comprehensive Budget Report loaded');
+    
+    // مدیریت رویدادهای کلیک برای دکمه‌های بارگذاری سرفصل‌ها
+    document.querySelectorAll('.btn-load-items').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.stopPropagation();
+            e.preventDefault();
+            
+            const url = this.dataset.url;
+            const targetId = this.dataset.target;
+            const target = document.querySelector(targetId);
+            const orgId = this.dataset.orgId;
+            
+            console.log('Loading budget items for org:', orgId, 'URL:', url);
+            
+            if (!target || target.dataset.loaded) {
+                console.log('Target not found or already loaded');
+                return;
+            }
+            
+            // نمایش حالت بارگذاری
+            target.innerHTML = `
+                <div class="text-center py-4 text-muted">
+                    <div class="loading-spinner mb-3"></div>
+                    <p>{% translate "در حال بارگذاری سرفصل‌های بودجه..." %}</p>
+                </div>
+            `;
+            
+            // غیرفعال کردن دکمه در حین بارگذاری
+            this.disabled = true;
+            this.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>{% translate "در حال بارگذاری..." %}';
+            
+            // ارسال درخواست AJAX
+            fetch(url, {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                }
+            })
+            .then(response => {
+                console.log('Response status:', response.status);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Response data:', data);
+                if (data.html_content) {
+                    target.innerHTML = data.html_content;
+                    target.dataset.loaded = 'true';
+                    
+                    // تغییر آیکون دکمه پس از بارگذاری
+                    this.innerHTML = '<i class="fas fa-check me-1"></i>{% translate "بارگذاری شد" %}';
+                    this.classList.remove('btn-outline-primary');
+                    this.classList.add('btn-outline-success');
+                    
+                    // فعال کردن collapse
+                    const collapseElement = document.querySelector(`#orgCollapse-${orgId}`);
+                    if (collapseElement) {
+                        const bsCollapse = new bootstrap.Collapse(collapseElement, {
+                            show: true
+                        });
+                    }
+                } else {
+                    target.innerHTML = `
+                        <div class="alert alert-warning text-center">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            {% translate "داده‌ای برای نمایش وجود ندارد" %}
+                        </div>
+                    `;
+                }
+            })
+            .catch(error => {
+                console.error('Error loading budget items:', error);
+                target.innerHTML = `
+                    <div class="alert alert-danger text-center">
+                        <i class="fas fa-times-circle me-2"></i>
+                        {% translate "خطا در بارگذاری داده‌ها" %}: ${error.message}
+                    </div>
+                `;
+            })
+            .finally(() => {
+                this.disabled = false;
+            });
+        });
+    });
+    
+    // افزودن افکت hover به ردیف‌های جدول
+    document.querySelectorAll('.org-row').forEach(row => {
+        row.addEventListener('mouseenter', function() {
+            this.classList.add('table-active');
+        });
+        row.addEventListener('mouseleave', function() {
+            this.classList.remove('table-active');
+        });
+    });
+    
+    // باز کردن collapse با کلیک روی ردیف
+    document.querySelectorAll('[data-bs-toggle="collapse"]').forEach(element => {
+        element.addEventListener('click', function(e) {
+            // اگر کلیک روی دکمه بود، از اجرای collapse جلوگیری کن
+            if (e.target.closest('.btn-load-items')) {
+                return;
+            }
+            
+            const target = document.querySelector(this.dataset.bsTarget);
+            if (target) {
+                const bsCollapse = new bootstrap.Collapse(target, {
+                    toggle: true
+                });
+            }
+        });
+    });
+    
+    // مدیریت فرم فیلتر
+    const filterForm = document.getElementById('filterForm');
+    if (filterForm) {
+        filterForm.addEventListener('submit', function(e) {
+            const searchInput = document.getElementById('id_search_period');
+            if (searchInput && searchInput.value.trim() === '') {
+                // اگر فیلد جستجو خالی است، به صفحه اصلی برو
+                window.location.href = '{% url "comprehensive_budget_report" %}';
+                e.preventDefault();
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,875 @@
+/* ========================================
+   GLOBAL STYLES - سیستم جامع نظارتی بودجه بندی
+   ======================================== */
+
+/* ========================================
+   CSS VARIABLES & THEMES
+   ======================================== */
+
+:root {
+    /* Default Theme Variables */
+    --primary-color: #3b82f6;
+    --secondary-color: #6b7280;
+    --accent-color: #f59e0b;
+    --background-color: #f9fafb;
+    --surface-color: #ffffff;
+    --text-color: #1f2937;
+    --text-muted: #6b7280;
+    --border-color: #e5e7eb;
+    --shadow-color: rgba(0, 0, 0, 0.1);
+    --gradient-primary: linear-gradient(135deg, #f9fafb 0%, #fefdf8 50%, #3b82f6 100%);
+    --gradient-secondary: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+    --gradient-accent: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    
+    /* Typography */
+    --font-family: 'Parastoo', 'Yekan', 'IRANSans', sans-serif;
+    --font-size-base: 14px;
+    --font-size-sm: 12px;
+    --font-size-lg: 16px;
+    --font-size-xl: 18px;
+    
+    /* Spacing */
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 16px;
+    --spacing-lg: 24px;
+    --spacing-xl: 32px;
+    
+    /* Border Radius */
+    --border-radius-sm: 4px;
+    --border-radius-md: 8px;
+    --border-radius-lg: 12px;
+    --border-radius-xl: 16px;
+    
+    /* Transitions */
+    --transition-fast: 0.15s ease;
+    --transition-normal: 0.3s ease;
+    --transition-slow: 0.5s ease;
+}
+
+/* ========================================
+   THEME DEFINITIONS
+   ======================================== */
+
+/* Theme 1: Ocean - آبی و زرد */
+[data-theme="ocean"] {
+    --primary-color: #0ea5e9;
+    --secondary-color: #fbbf24;
+    --accent-color: #f0f9ff;
+    --background-color: #f0f9ff;
+    --surface-color: #fefce8;
+    --text-color: #0c4a6e;
+    --text-muted: #0369a1;
+    --border-color: #bae6fd;
+    --shadow-color: rgba(14, 165, 233, 0.1);
+    --gradient-primary: linear-gradient(135deg, #f0f9ff 0%, #fefce8 50%, #0ea5e9 100%);
+    --gradient-secondary: linear-gradient(135deg, #e0f2fe 0%, #fef3c7 100%);
+    --gradient-accent: linear-gradient(135deg, #0ea5e9 0%, #fbbf24 100%);
+}
+
+/* Theme 2: Sunset - نارنجی و قرمز */
+[data-theme="sunset"] {
+    --primary-color: #f97316;
+    --secondary-color: #ef4444;
+    --accent-color: #fef7ed;
+    --background-color: #fef7ed;
+    --surface-color: #fefce8;
+    --text-color: #9a3412;
+    --text-muted: #c2410c;
+    --border-color: #fed7aa;
+    --shadow-color: rgba(249, 115, 22, 0.1);
+    --gradient-primary: linear-gradient(135deg, #fef7ed 0%, #fefce8 50%, #f97316 100%);
+    --gradient-secondary: linear-gradient(135deg, #fed7aa 0%, #fef3c7 100%);
+    --gradient-accent: linear-gradient(135deg, #f97316 0%, #ef4444 100%);
+}
+
+/* Theme 3: Forest - سبز */
+[data-theme="forest"] {
+    --primary-color: #22c55e;
+    --secondary-color: #16a34a;
+    --accent-color: #f0fdf4;
+    --background-color: #f0fdf4;
+    --surface-color: #fefdf8;
+    --text-color: #14532d;
+    --text-muted: #15803d;
+    --border-color: #bbf7d0;
+    --shadow-color: rgba(34, 197, 94, 0.1);
+    --gradient-primary: linear-gradient(135deg, #f0fdf4 0%, #fefdf8 50%, #22c55e 100%);
+    --gradient-secondary: linear-gradient(135deg, #dcfce7 0%, #fef3c7 100%);
+    --gradient-accent: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+}
+
+/* Theme 4: Purple - بنفش و زرد */
+[data-theme="purple"] {
+    --primary-color: #a855f7;
+    --secondary-color: #eab308;
+    --accent-color: #faf5ff;
+    --background-color: #faf5ff;
+    --surface-color: #fefce8;
+    --text-color: #581c87;
+    --text-muted: #7c3aed;
+    --border-color: #e9d5ff;
+    --shadow-color: rgba(168, 85, 247, 0.1);
+    --gradient-primary: linear-gradient(135deg, #faf5ff 0%, #fefce8 50%, #a855f7 100%);
+    --gradient-secondary: linear-gradient(135deg, #e9d5ff 0%, #d8b4fe 100%);
+    --gradient-accent: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%);
+}
+
+/* Theme 5: Midnight - خاکستری تیره */
+[data-theme="midnight"] {
+    --primary-color: #334155;
+    --secondary-color: #475569;
+    --accent-color: #f8fafc;
+    --background-color: #f8fafc;
+    --surface-color: #f1f5f9;
+    --text-color: #1e293b;
+    --text-muted: #64748b;
+    --border-color: #e2e8f0;
+    --shadow-color: rgba(51, 65, 85, 0.1);
+    --gradient-primary: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    --gradient-secondary: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+    --gradient-accent: linear-gradient(135deg, #334155 0%, #1e293b 100%);
+}
+
+/* Theme 6: Mint - نعنایی */
+[data-theme="mint"] {
+    --primary-color: #077a7d;
+    --secondary-color: #7ae2cf;
+    --accent-color: #f5eedd;
+    --background-color: #f5eedd;
+    --surface-color: #f0fdfa;
+    --text-color: #06202b;
+    --text-muted: #077a7d;
+    --border-color: #7ae2cf;
+    --shadow-color: rgba(7, 122, 125, 0.1);
+    --gradient-primary: linear-gradient(135deg, #f5eedd 0%, #7ae2cf 50%, #077a7d 100%);
+    --gradient-secondary: linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 100%);
+    --gradient-accent: linear-gradient(135deg, #077a7d 0%, #7ae2cf 100%);
+}
+
+/* Theme 7: Warm - گرم */
+[data-theme="warm"] {
+    --primary-color: #ffa725;
+    --secondary-color: #6a9c89;
+    --accent-color: #fff5e4;
+    --background-color: #fff5e4;
+    --surface-color: #fef7ed;
+    --text-color: #2c7865;
+    --text-muted: #6a9c89;
+    --border-color: #c1d8c3;
+    --shadow-color: rgba(255, 167, 37, 0.1);
+    --gradient-primary: linear-gradient(135deg, #fff5e4 0%, #ffa725 50%, #6a9c89 100%);
+    --gradient-secondary: linear-gradient(135deg, #fef7ed 0%, #fed7aa 100%);
+    --gradient-accent: linear-gradient(135deg, #ffa725 0%, #6a9c89 100%);
+}
+
+/* Theme 8: Vibrant - زنده */
+[data-theme="vibrant"] {
+    --primary-color: #ff9800;
+    --secondary-color: #2c7865;
+    --accent-color: #d9edbf;
+    --background-color: #d9edbf;
+    --surface-color: #f0fdf4;
+    --text-color: #2c7865;
+    --text-muted: #6a9c89;
+    --border-color: #90d26d;
+    --shadow-color: rgba(255, 152, 0, 0.1);
+    --gradient-primary: linear-gradient(135deg, #d9edbf 0%, #ff9800 50%, #2c7865 100%);
+    --gradient-secondary: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+    --gradient-accent: linear-gradient(135deg, #ff9800 0%, #2c7865 100%);
+}
+
+/* Theme 9: Deep - عمیق */
+[data-theme="deep"] {
+    --primary-color: #01204e;
+    --secondary-color: #028391;
+    --accent-color: #f6dcac;
+    --background-color: #f6dcac;
+    --surface-color: #fef3c7;
+    --text-color: #01204e;
+    --text-muted: #028391;
+    --border-color: #feae6f;
+    --shadow-color: rgba(1, 32, 78, 0.1);
+    --gradient-primary: linear-gradient(135deg, #01204e 0%, #028391 50%, #f6dcac 100%);
+    --gradient-secondary: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    --gradient-accent: linear-gradient(135deg, #01204e 0%, #028391 100%);
+}
+
+/* Theme 10: Tropical - استوایی */
+[data-theme="tropical"] {
+    --primary-color: #219c90;
+    --secondary-color: #ffc700;
+    --accent-color: #fff455;
+    --background-color: #fff455;
+    --surface-color: #fef3c7;
+    --text-color: #219c90;
+    --text-muted: #6a9c89;
+    --border-color: #ee4e4e;
+    --shadow-color: rgba(33, 156, 144, 0.1);
+    --gradient-primary: linear-gradient(135deg, #219c90 0%, #fff455 50%, #ffc700 100%);
+    --gradient-secondary: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    --gradient-accent: linear-gradient(135deg, #219c90 0%, #ffc700 100%);
+}
+
+/* Theme 11: Dark - تاریک */
+[data-theme="dark"] {
+    --primary-color: #6366f1;
+    --secondary-color: #8b5cf6;
+    --accent-color: #f59e0b;
+    --background-color: #0f172a;
+    --surface-color: #1e293b;
+    --text-color: #f1f5f9;
+    --text-muted: #94a3b8;
+    --border-color: #334155;
+    --shadow-color: rgba(0, 0, 0, 0.3);
+    --gradient-primary: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #6366f1 100%);
+    --gradient-secondary: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+    --gradient-accent: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+}
+
+/* ========================================
+   BASE STYLES
+   ======================================== */
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-family);
+    font-size: var(--font-size-base);
+    line-height: 1.6;
+    background: var(--background-color);
+    color: var(--text-color);
+    transition: all var(--transition-normal);
+    margin: 0;
+    padding: 0;
+}
+
+/* ========================================
+   LAYOUT COMPONENTS
+   ======================================== */
+
+.main-content {
+    background: var(--surface-color);
+    border-color: var(--border-color);
+    min-height: 100vh;
+    transition: all var(--transition-normal);
+}
+
+.sidebar {
+    background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+    border-right: 1px solid var(--border-color);
+    transition: all var(--transition-normal);
+}
+
+/* ========================================
+   CARDS & SURFACES
+   ======================================== */
+
+.card {
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-lg);
+    box-shadow: 0 1px 3px var(--shadow-color);
+    transition: all var(--transition-normal);
+}
+
+.card:hover {
+    box-shadow: 0 4px 12px var(--shadow-color);
+    transform: translateY(-2px);
+}
+
+.card-header {
+    background: var(--gradient-secondary);
+    border-bottom: 1px solid var(--border-color);
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
+}
+
+.card-body {
+    padding: var(--spacing-md);
+}
+
+/* ========================================
+   TABLES - MODERN DESIGN
+   ======================================== */
+
+.table {
+    background: var(--surface-color);
+    border-radius: var(--border-radius-lg);
+    overflow: hidden;
+    box-shadow: 0 1px 3px var(--shadow-color);
+    border: 1px solid var(--border-color);
+}
+
+.table thead th {
+    background: var(--gradient-primary);
+    color: var(--text-color);
+    font-weight: 600;
+    border: none;
+    padding: var(--spacing-md);
+    text-align: center;
+    position: relative;
+}
+
+.table thead th::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--primary-color);
+}
+
+.table tbody tr {
+    transition: all var(--transition-fast);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.table tbody tr:hover {
+    background: var(--gradient-secondary);
+    transform: scale(1.01);
+}
+
+.table tbody tr:last-child {
+    border-bottom: none;
+}
+
+.table tbody td {
+    padding: var(--spacing-md);
+    border: none;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+    background: rgba(0, 0, 0, 0.02);
+}
+
+.table-striped tbody tr:nth-of-type(even) {
+    background: var(--surface-color);
+}
+
+/* Table Status Badges */
+.table .badge {
+    font-size: var(--font-size-sm);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--border-radius-md);
+    font-weight: 500;
+}
+
+.table .badge-success {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+}
+
+.table .badge-warning {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: white;
+}
+
+.table .badge-danger {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+}
+
+.table .badge-info {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: white;
+}
+
+/* ========================================
+   BUTTONS
+   ======================================== */
+
+.btn {
+    border-radius: var(--border-radius-md);
+    font-weight: 500;
+    transition: all var(--transition-normal);
+    border: none;
+    padding: var(--spacing-sm) var(--spacing-md);
+    font-size: var(--font-size-base);
+}
+
+.btn-primary {
+    background: var(--gradient-accent);
+    color: white;
+    box-shadow: 0 2px 4px var(--shadow-color);
+}
+
+.btn-primary:hover {
+    background: var(--secondary-color);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px var(--shadow-color);
+}
+
+.btn-secondary {
+    background: var(--gradient-secondary);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+}
+
+.btn-secondary:hover {
+    background: var(--primary-color);
+    color: white;
+    transform: translateY(-1px);
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+}
+
+.btn-warning {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: white;
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+}
+
+.btn-sm {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: var(--font-size-sm);
+}
+
+.btn-lg {
+    padding: var(--spacing-md) var(--spacing-lg);
+    font-size: var(--font-size-lg);
+}
+
+/* ========================================
+   FORMS
+   ======================================== */
+
+.form-control {
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-md);
+    color: var(--text-color);
+    padding: var(--spacing-sm) var(--spacing-md);
+    transition: all var(--transition-normal);
+}
+
+.form-control:focus {
+    background: var(--surface-color);
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    color: var(--text-color);
+}
+
+.form-label {
+    color: var(--text-color);
+    font-weight: 500;
+    margin-bottom: var(--spacing-xs);
+}
+
+.form-select {
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+}
+
+.form-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* ========================================
+   NAVIGATION
+   ======================================== */
+
+.navbar {
+    background: var(--gradient-primary);
+    border-bottom: 1px solid var(--border-color);
+    box-shadow: 0 2px 4px var(--shadow-color);
+}
+
+.navbar-brand {
+    color: var(--text-color);
+    font-weight: 600;
+}
+
+.nav-link {
+    color: var(--text-color);
+    transition: all var(--transition-normal);
+    border-radius: var(--border-radius-md);
+    padding: var(--spacing-sm) var(--spacing-md);
+}
+
+.nav-link:hover {
+    background: var(--gradient-secondary);
+    color: var(--primary-color);
+}
+
+.nav-link.active {
+    background: var(--primary-color);
+    color: white;
+}
+
+/* ========================================
+   ALERTS & NOTIFICATIONS
+   ======================================== */
+
+.alert {
+    border: none;
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-md);
+    margin-bottom: var(--spacing-md);
+    box-shadow: 0 2px 4px var(--shadow-color);
+}
+
+.alert-success {
+    background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+    color: #065f46;
+    border-left: 4px solid #10b981;
+}
+
+.alert-warning {
+    background: linear-gradient(135deg, #fef3c7, #fde68a);
+    color: #92400e;
+    border-left: 4px solid #f59e0b;
+}
+
+.alert-danger {
+    background: linear-gradient(135deg, #fee2e2, #fecaca);
+    color: #991b1b;
+    border-left: 4px solid #ef4444;
+}
+
+.alert-info {
+    background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+    color: #1e40af;
+    border-left: 4px solid #3b82f6;
+}
+
+/* ========================================
+   MODALS
+   ======================================== */
+
+.modal-content {
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-xl);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.modal-header {
+    background: var(--gradient-primary);
+    border-bottom: 1px solid var(--border-color);
+    border-radius: var(--border-radius-xl) var(--border-radius-xl) 0 0;
+}
+
+.modal-title {
+    color: var(--text-color);
+    font-weight: 600;
+}
+
+.modal-body {
+    padding: var(--spacing-lg);
+}
+
+.modal-footer {
+    border-top: 1px solid var(--border-color);
+    padding: var(--spacing-md) var(--spacing-lg);
+}
+
+/* ========================================
+   DROPDOWNS
+   ======================================== */
+
+.dropdown-menu {
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-lg);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.dropdown-item {
+    color: var(--text-color);
+    transition: all var(--transition-fast);
+    padding: var(--spacing-sm) var(--spacing-md);
+}
+
+.dropdown-item:hover {
+    background: var(--gradient-secondary);
+    color: var(--primary-color);
+}
+
+/* ========================================
+   PAGINATION
+   ======================================== */
+
+.pagination {
+    justify-content: center;
+    margin-top: var(--spacing-lg);
+}
+
+.page-link {
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    padding: var(--spacing-sm) var(--spacing-md);
+    margin: 0 2px;
+    border-radius: var(--border-radius-md);
+    transition: all var(--transition-normal);
+}
+
+.page-link:hover {
+    background: var(--primary-color);
+    color: white;
+    transform: translateY(-1px);
+}
+
+.page-item.active .page-link {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+    color: white;
+}
+
+/* ========================================
+   BADGES & LABELS
+   ======================================== */
+
+.badge {
+    font-size: var(--font-size-sm);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--border-radius-md);
+    font-weight: 500;
+}
+
+.badge-primary {
+    background: var(--gradient-accent);
+    color: white;
+}
+
+.badge-success {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+}
+
+.badge-warning {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: white;
+}
+
+.badge-danger {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+}
+
+.badge-info {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: white;
+}
+
+/* ========================================
+   UTILITIES
+   ======================================== */
+
+.text-primary {
+    color: var(--primary-color) !important;
+}
+
+.text-secondary {
+    color: var(--secondary-color) !important;
+}
+
+.text-muted {
+    color: var(--text-muted) !important;
+}
+
+.bg-primary {
+    background: var(--gradient-accent) !important;
+}
+
+.bg-secondary {
+    background: var(--gradient-secondary) !important;
+}
+
+.border {
+    border-color: var(--border-color) !important;
+}
+
+.shadow {
+    box-shadow: 0 1px 3px var(--shadow-color) !important;
+}
+
+.shadow-lg {
+    box-shadow: 0 10px 15px -3px var(--shadow-color) !important;
+}
+
+/* ========================================
+   ANIMATIONS
+   ======================================== */
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+.animate-slide-up {
+    animation: slideInUp 0.5s ease-out;
+}
+
+.animate-slide-down {
+    animation: slideInDown 0.5s ease-out;
+}
+
+/* ========================================
+   RESPONSIVE DESIGN
+   ======================================== */
+
+@media (max-width: 768px) {
+    .table-responsive {
+        border-radius: var(--border-radius-lg);
+    }
+    
+    .card {
+        margin-bottom: var(--spacing-md);
+    }
+    
+    .btn {
+        width: 100%;
+        margin-bottom: var(--spacing-sm);
+    }
+    
+    .modal-dialog {
+        margin: var(--spacing-md);
+    }
+}
+
+@media (max-width: 576px) {
+    :root {
+        --font-size-base: 12px;
+        --spacing-md: 12px;
+        --spacing-lg: 16px;
+    }
+    
+    .table tbody td {
+        padding: var(--spacing-sm);
+        font-size: var(--font-size-sm);
+    }
+    
+    .card-body {
+        padding: var(--spacing-sm);
+    }
+}
+
+/* ========================================
+   DARK MODE SPECIFIC STYLES
+   ======================================== */
+
+[data-theme="dark"] .table tbody tr:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="dark"] .table-striped tbody tr:nth-of-type(odd) {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+[data-theme="dark"] .form-control {
+    background: var(--surface-color);
+    color: var(--text-color);
+}
+
+[data-theme="dark"] .form-control:focus {
+    background: var(--surface-color);
+    color: var(--text-color);
+}
+
+[data-theme="dark"] .dropdown-menu {
+    background: var(--surface-color);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .modal-content {
+    background: var(--surface-color);
+    border-color: var(--border-color);
+}
+
+/* ========================================
+   CUSTOM SCROLLBAR
+   ======================================== */
+
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--background-color);
+    border-radius: var(--border-radius-sm);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: var(--border-radius-sm);
+    transition: all var(--transition-normal);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-color);
+}
+
+/* ========================================
+   PRINT STYLES
+   ======================================== */
+
+@media print {
+    .sidebar,
+    .navbar,
+    .btn,
+    .pagination {
+        display: none !important;
+    }
+    
+    .main-content {
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    
+    .card {
+        box-shadow: none !important;
+        border: 1px solid #000 !important;
+    }
+    
+    .table {
+        border: 1px solid #000 !important;
+    }
+    
+    .table th,
+    .table td {
+        border: 1px solid #000 !important;
+    }
+}

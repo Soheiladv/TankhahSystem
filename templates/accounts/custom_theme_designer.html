@@ -1,0 +1,561 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}طراحی تم سفارشی{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/global-styles.css' %}">
+<style>
+    .theme-designer {
+        background: var(--gradient-primary);
+        min-height: 100vh;
+        padding: 2rem 0;
+    }
+    
+    .designer-card {
+        background: var(--surface-color);
+        border-radius: var(--border-radius-xl);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        border: 1px solid var(--border-color);
+        overflow: hidden;
+    }
+    
+    .designer-header {
+        background: var(--gradient-accent);
+        color: white;
+        padding: 2rem;
+        text-align: center;
+    }
+    
+    .designer-body {
+        padding: 2rem;
+    }
+    
+    .color-picker-group {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .color-picker-item {
+        background: var(--surface-color);
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius-lg);
+        padding: 1.5rem;
+        transition: all var(--transition-normal);
+    }
+    
+    .color-picker-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px var(--shadow-color);
+    }
+    
+    .color-picker-label {
+        display: block;
+        font-weight: 600;
+        color: var(--text-color);
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+    }
+    
+    .color-picker {
+        width: 100%;
+        height: 50px;
+        border: none;
+        border-radius: var(--border-radius-md);
+        cursor: pointer;
+        transition: all var(--transition-normal);
+    }
+    
+    .color-picker:hover {
+        transform: scale(1.05);
+    }
+    
+    .slider-group {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .slider-item {
+        background: var(--surface-color);
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius-lg);
+        padding: 1.5rem;
+    }
+    
+    .slider-label {
+        display: block;
+        font-weight: 600;
+        color: var(--text-color);
+        margin-bottom: 0.5rem;
+    }
+    
+    .slider {
+        width: 100%;
+        height: 8px;
+        border-radius: 4px;
+        background: var(--gradient-secondary);
+        outline: none;
+        -webkit-appearance: none;
+    }
+    
+    .slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: var(--primary-color);
+        cursor: pointer;
+        box-shadow: 0 2px 4px var(--shadow-color);
+    }
+    
+    .slider::-moz-range-thumb {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: var(--primary-color);
+        cursor: pointer;
+        border: none;
+        box-shadow: 0 2px 4px var(--shadow-color);
+    }
+    
+    .preview-section {
+        background: var(--gradient-secondary);
+        border-radius: var(--border-radius-lg);
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+    
+    .preview-title {
+        color: var(--text-color);
+        font-weight: 600;
+        margin-bottom: 1rem;
+        text-align: center;
+    }
+    
+    .preview-components {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+    }
+    
+    .preview-card {
+        background: var(--surface-color);
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius-md);
+        padding: 1rem;
+        text-align: center;
+    }
+    
+    .preview-button {
+        background: var(--gradient-accent);
+        color: white;
+        border: none;
+        border-radius: var(--border-radius-md);
+        padding: 0.5rem 1rem;
+        margin: 0.5rem;
+        cursor: pointer;
+        transition: all var(--transition-normal);
+    }
+    
+    .preview-button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px var(--shadow-color);
+    }
+    
+    .preview-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1rem;
+    }
+    
+    .preview-table th,
+    .preview-table td {
+        padding: 0.5rem;
+        text-align: center;
+        border: 1px solid var(--border-color);
+    }
+    
+    .preview-table th {
+        background: var(--gradient-primary);
+        color: var(--text-color);
+        font-weight: 600;
+    }
+    
+    .preview-table tr:nth-child(even) {
+        background: var(--gradient-secondary);
+    }
+    
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin-top: 2rem;
+    }
+    
+    .btn-save {
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+        border: none;
+        border-radius: var(--border-radius-md);
+        padding: 1rem 2rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all var(--transition-normal);
+    }
+    
+    .btn-save:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+    }
+    
+    .btn-apply {
+        background: linear-gradient(135deg, #3b82f6, #2563eb);
+        color: white;
+        border: none;
+        border-radius: var(--border-radius-md);
+        padding: 1rem 2rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all var(--transition-normal);
+    }
+    
+    .btn-apply:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
+    }
+    
+    .btn-reset {
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+        color: white;
+        border: none;
+        border-radius: var(--border-radius-md);
+        padding: 1rem 2rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all var(--transition-normal);
+    }
+    
+    .btn-reset:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(239, 68, 68, 0.3);
+    }
+    
+    .live-preview {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: var(--surface-color);
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius-lg);
+        padding: 1rem;
+        box-shadow: 0 10px 25px var(--shadow-color);
+        z-index: 1000;
+        min-width: 200px;
+    }
+    
+    .live-preview h6 {
+        color: var(--text-color);
+        margin-bottom: 0.5rem;
+        text-align: center;
+    }
+    
+    .live-preview-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 0.5rem;
+    }
+    
+    .live-preview-color {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        margin-left: 0.5rem;
+        border: 1px solid var(--border-color);
+    }
+    
+    .live-preview-label {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+    }
+    
+    @media (max-width: 768px) {
+        .color-picker-group,
+        .slider-group {
+            grid-template-columns: 1fr;
+        }
+        
+        .action-buttons {
+            flex-direction: column;
+        }
+        
+        .live-preview {
+            position: relative;
+            top: auto;
+            right: auto;
+            margin-bottom: 2rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="theme-designer">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="designer-card">
+                    <div class="designer-header">
+                        <h2 class="mb-0">
+                            <i class="fas fa-palette me-2"></i>
+                            طراحی تم سفارشی
+                        </h2>
+                        <p class="mb-0 mt-2">رنگ‌ها و استایل‌های خود را انتخاب کنید</p>
+                    </div>
+                    
+                    <div class="designer-body">
+                        <form method="post" id="themeForm">
+                            {% csrf_token %}
+                            
+                            <!-- Live Preview -->
+                            <div class="live-preview">
+                                <h6>پیش‌نمایش زنده</h6>
+                                <div class="live-preview-item">
+                                    <span class="live-preview-label">رنگ اصلی:</span>
+                                    <div class="live-preview-color" id="previewPrimary"></div>
+                                </div>
+                                <div class="live-preview-item">
+                                    <span class="live-preview-label">رنگ ثانویه:</span>
+                                    <div class="live-preview-color" id="previewSecondary"></div>
+                                </div>
+                                <div class="live-preview-item">
+                                    <span class="live-preview-label">پس‌زمینه:</span>
+                                    <div class="live-preview-color" id="previewBackground"></div>
+                                </div>
+                                <div class="live-preview-item">
+                                    <span class="live-preview-label">سطح:</span>
+                                    <div class="live-preview-color" id="previewSurface"></div>
+                                </div>
+                            </div>
+                            
+                            <!-- Color Pickers -->
+                            <div class="color-picker-group">
+                                <div class="color-picker-item">
+                                    <label class="color-picker-label">رنگ اصلی</label>
+                                    <input type="color" 
+                                           class="color-picker" 
+                                           name="primary_color" 
+                                           id="primaryColor"
+                                           value="{{ custom_theme.primary_color|default:'#3b82f6' }}"
+                                           onchange="updatePreview()">
+                                </div>
+                                
+                                <div class="color-picker-item">
+                                    <label class="color-picker-label">رنگ ثانویه</label>
+                                    <input type="color" 
+                                           class="color-picker" 
+                                           name="secondary_color" 
+                                           id="secondaryColor"
+                                           value="{{ custom_theme.secondary_color|default:'#6b7280' }}"
+                                           onchange="updatePreview()">
+                                </div>
+                                
+                                <div class="color-picker-item">
+                                    <label class="color-picker-label">رنگ پس‌زمینه</label>
+                                    <input type="color" 
+                                           class="color-picker" 
+                                           name="background_color" 
+                                           id="backgroundColor"
+                                           value="{{ custom_theme.background_color|default:'#f9fafb' }}"
+                                           onchange="updatePreview()">
+                                </div>
+                                
+                                <div class="color-picker-item">
+                                    <label class="color-picker-label">رنگ سطح</label>
+                                    <input type="color" 
+                                           class="color-picker" 
+                                           name="surface_color" 
+                                           id="surfaceColor"
+                                           value="{{ custom_theme.surface_color|default:'#ffffff' }}"
+                                           onchange="updatePreview()">
+                                </div>
+                                
+                                <div class="color-picker-item">
+                                    <label class="color-picker-label">رنگ متن</label>
+                                    <input type="color" 
+                                           class="color-picker" 
+                                           name="text_color" 
+                                           id="textColor"
+                                           value="{{ custom_theme.text_color|default:'#1f2937' }}"
+                                           onchange="updatePreview()">
+                                </div>
+                            </div>
+                            
+                            <!-- Sliders -->
+                            <div class="slider-group">
+                                <div class="slider-item">
+                                    <label class="slider-label">شعاع گوشه‌ها: <span id="borderRadiusValue">{{ custom_theme.border_radius|default:'8' }}</span>px</label>
+                                    <input type="range" 
+                                           class="slider" 
+                                           name="border_radius" 
+                                           id="borderRadius"
+                                           min="0" 
+                                           max="20" 
+                                           value="{{ custom_theme.border_radius|default:'8' }}"
+                                           oninput="updateSliderValue('borderRadiusValue', this.value); updatePreview()">
+                                </div>
+                                
+                                <div class="slider-item">
+                                    <label class="slider-label">اندازه فونت: <span id="fontSizeValue">{{ custom_theme.font_size|default:'14' }}</span>px</label>
+                                    <input type="range" 
+                                           class="slider" 
+                                           name="font_size" 
+                                           id="fontSize"
+                                           min="12" 
+                                           max="18" 
+                                           value="{{ custom_theme.font_size|default:'14' }}"
+                                           oninput="updateSliderValue('fontSizeValue', this.value); updatePreview()">
+                                </div>
+                            </div>
+                            
+                            <!-- Preview Section -->
+                            <div class="preview-section">
+                                <h5 class="preview-title">پیش‌نمایش کامپوننت‌ها</h5>
+                                <div class="preview-components">
+                                    <div class="preview-card">
+                                        <h6>دکمه‌ها</h6>
+                                        <button class="preview-button" type="button">دکمه اصلی</button>
+                                        <button class="preview-button" type="button">دکمه ثانویه</button>
+                                    </div>
+                                    
+                                    <div class="preview-card">
+                                        <h6>جدول</h6>
+                                        <table class="preview-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>ستون 1</th>
+                                                    <th>ستون 2</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td>داده 1</td>
+                                                    <td>داده 2</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>داده 3</td>
+                                                    <td>داده 4</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    
+                                    <div class="preview-card">
+                                        <h6>فرم</h6>
+                                        <input type="text" class="form-control mb-2" placeholder="فیلد ورودی">
+                                        <select class="form-select">
+                                            <option>انتخاب کنید</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Action Buttons -->
+                            <div class="action-buttons">
+                                <button type="submit" class="btn-save">
+                                    <i class="fas fa-save me-2"></i>
+                                    ذخیره تم
+                                </button>
+                                
+                                <button type="button" class="btn-apply" onclick="applyCustomTheme()">
+                                    <i class="fas fa-check me-2"></i>
+                                    اعمال تم
+                                </button>
+                                
+                                <button type="button" class="btn-reset" onclick="resetTheme()">
+                                    <i class="fas fa-undo me-2"></i>
+                                    بازنشانی
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function updateSliderValue(elementId, value) {
+    document.getElementById(elementId).textContent = value;
+}
+
+function updatePreview() {
+    const primaryColor = document.getElementById('primaryColor').value;
+    const secondaryColor = document.getElementById('secondaryColor').value;
+    const backgroundColor = document.getElementById('backgroundColor').value;
+    const surfaceColor = document.getElementById('surfaceColor').value;
+    const textColor = document.getElementById('textColor').value;
+    const borderRadius = document.getElementById('borderRadius').value;
+    const fontSize = document.getElementById('fontSize').value;
+    
+    // Update preview colors
+    document.getElementById('previewPrimary').style.backgroundColor = primaryColor;
+    document.getElementById('previewSecondary').style.backgroundColor = secondaryColor;
+    document.getElementById('previewBackground').style.backgroundColor = backgroundColor;
+    document.getElementById('previewSurface').style.backgroundColor = surfaceColor;
+    
+    // Update CSS variables for live preview
+    document.documentElement.style.setProperty('--primary-color', primaryColor);
+    document.documentElement.style.setProperty('--secondary-color', secondaryColor);
+    document.documentElement.style.setProperty('--background-color', backgroundColor);
+    document.documentElement.style.setProperty('--surface-color', surfaceColor);
+    document.documentElement.style.setProperty('--text-color', textColor);
+    document.documentElement.style.setProperty('--border-radius-md', borderRadius + 'px');
+    document.documentElement.style.setProperty('--font-size-base', fontSize + 'px');
+}
+
+function applyCustomTheme() {
+    // Submit form to apply custom theme
+    const form = document.getElementById('themeForm');
+    const formData = new FormData(form);
+    
+    fetch('{% url "accounts:apply_custom_theme" %}', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    })
+    .then(response => {
+        if (response.ok) {
+            location.reload();
+        }
+    });
+}
+
+function resetTheme() {
+    // Reset to default values
+    document.getElementById('primaryColor').value = '#3b82f6';
+    document.getElementById('secondaryColor').value = '#6b7280';
+    document.getElementById('backgroundColor').value = '#f9fafb';
+    document.getElementById('surfaceColor').value = '#ffffff';
+    document.getElementById('textColor').value = '#1f2937';
+    document.getElementById('borderRadius').value = '8';
+    document.getElementById('fontSize').value = '14';
+    
+    updatePreview();
+}
+
+// Initialize preview on page load
+document.addEventListener('DOMContentLoaded', function() {
+    updatePreview();
+});
+</script>
+{% endblock %}

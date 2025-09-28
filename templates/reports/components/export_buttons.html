@@ -1,0 +1,333 @@
+<!-- Export Buttons Components Template -->
+
+<!-- Export Options -->
+<div class="row mb-4">
+    <div class="col-lg-4 col-md-6 mb-4" data-aos="fade-up" data-aos-delay="100">
+        <button class="export-option" onclick="exportToPDF()" data-export="pdf">
+            <i class="fas fa-file-pdf"></i>
+            <h5>صادرات PDF</h5>
+            <p>گزارش کامل با قالب‌بندی حرفه‌ای</p>
+        </button>
+    </div>
+    
+    <div class="col-lg-4 col-md-6 mb-4" data-aos="fade-up" data-aos-delay="200">
+        <button class="export-option" onclick="exportToExcel()" data-export="excel">
+            <i class="fas fa-file-excel"></i>
+            <h5>صادرات Excel</h5>
+            <p>داده‌ها در قالب جدول قابل ویرایش</p>
+        </button>
+    </div>
+    
+    <div class="col-lg-4 col-md-6 mb-4" data-aos="fade-up" data-aos-delay="300">
+        <button class="export-option" onclick="exportToCSV()" data-export="csv">
+            <i class="fas fa-file-csv"></i>
+            <h5>صادرات CSV</h5>
+            <p>داده‌ها در فرمت متنی ساده</p>
+        </button>
+    </div>
+</div>
+
+<!-- Export Progress -->
+<div class="row mb-4" id="exportProgress" style="display: none;">
+    <div class="col-12">
+        <div class="export-progress">
+            <h5 class="mb-3">
+                <i class="fas fa-spinner fa-spin me-2"></i>
+                در حال صادرات گزارش...
+            </h5>
+            <div class="progress mb-3" style="height: 20px;">
+                <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+            </div>
+            <p class="mb-0 text-muted" id="progressText">آماده‌سازی داده‌ها...</p>
+        </div>
+    </div>
+</div>
+
+<!-- Export Statistics -->
+<div class="row mb-4" data-aos="fade-up">
+    <div class="col-lg-3 col-md-6 mb-4">
+        <div class="export-card text-center">
+            <i class="fas fa-database fa-3x text-primary mb-3"></i>
+            <h4 class="text-primary" id="totalRecords">0</h4>
+            <p class="text-muted mb-0">تعداد رکوردها</p>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 mb-4">
+        <div class="export-card text-center">
+            <i class="fas fa-calendar fa-3x text-success mb-3"></i>
+            <h4 class="text-success" id="dateRange">همه تاریخ‌ها</h4>
+            <p class="text-muted mb-0">بازه زمانی</p>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 mb-4">
+        <div class="export-card text-center">
+            <i class="fas fa-building fa-3x text-warning mb-3"></i>
+            <h4 class="text-warning" id="organizationFilter">همه سازمان‌ها</h4>
+            <p class="text-muted mb-0">سازمان</p>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 mb-4">
+        <div class="export-card text-center">
+            <i class="fas fa-chart-bar fa-3x text-info mb-3"></i>
+            <h4 class="text-info" id="reportType">بودجه</h4>
+            <p class="text-muted mb-0">نوع گزارش</p>
+        </div>
+    </div>
+</div>
+
+<!-- Export History -->
+<div class="row mb-4" data-aos="fade-up">
+    <div class="col-12">
+        <div class="export-card">
+            <h5 class="mb-4">
+                <i class="fas fa-history me-2"></i>
+                تاریخچه صادرات
+            </h5>
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>تاریخ</th>
+                            <th>نوع گزارش</th>
+                            <th>فرمت</th>
+                            <th>تعداد رکورد</th>
+                            <th>وضعیت</th>
+                            <th>عملیات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="exportHistory">
+                        <tr>
+                            <td colspan="6" class="text-center text-muted">تاریخچه‌ای یافت نشد</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Export Settings -->
+<div class="row mb-4" data-aos="fade-up">
+    <div class="col-12">
+        <div class="export-card">
+            <h5 class="mb-4">
+                <i class="fas fa-cog me-2"></i>
+                تنظیمات صادرات
+            </h5>
+            <form id="exportSettingsForm">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">فرمت پیش‌فرض</label>
+                        <select class="form-control" name="default_format">
+                            <option value="pdf">PDF</option>
+                            <option value="excel">Excel</option>
+                            <option value="csv">CSV</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">تعداد رکورد در هر صفحه</label>
+                        <input type="number" class="form-control" name="records_per_page" value="1000" min="100" max="10000">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">شامل نمودارها</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="include_charts" checked>
+                            <label class="form-check-label">بله</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <button type="button" class="btn btn-primary" onclick="saveExportSettings()">
+                            <i class="fas fa-save me-2"></i>
+                            ذخیره تنظیمات
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// Export functions
+function exportToPDF() {
+    showExportProgress('PDF');
+    simulateProgress('PDF');
+    
+    // Simulate PDF export
+    setTimeout(() => {
+        hideExportProgress();
+        showSuccessMessage('گزارش PDF با موفقیت صادر شد');
+        addToExportHistory('PDF', 'موفق');
+    }, 3000);
+}
+
+function exportToExcel() {
+    showExportProgress('Excel');
+    simulateProgress('Excel');
+    
+    // Simulate Excel export
+    setTimeout(() => {
+        hideExportProgress();
+        showSuccessMessage('گزارش Excel با موفقیت صادر شد');
+        addToExportHistory('Excel', 'موفق');
+    }, 2500);
+}
+
+function exportToCSV() {
+    showExportProgress('CSV');
+    simulateProgress('CSV');
+    
+    // Simulate CSV export
+    setTimeout(() => {
+        hideExportProgress();
+        showSuccessMessage('گزارش CSV با موفقیت صادر شد');
+        addToExportHistory('CSV', 'موفق');
+    }, 2000);
+}
+
+// Show export progress
+function showExportProgress(format) {
+    const progressContainer = document.getElementById('exportProgress');
+    const progressBar = document.getElementById('progressBar');
+    const progressText = document.getElementById('progressText');
+    
+    if (progressContainer) {
+        progressContainer.style.display = 'block';
+        progressBar.style.width = '0%';
+        progressText.textContent = 'آماده‌سازی داده‌ها...';
+    }
+}
+
+// Hide export progress
+function hideExportProgress() {
+    const progressContainer = document.getElementById('exportProgress');
+    if (progressContainer) {
+        progressContainer.style.display = 'none';
+    }
+}
+
+// Simulate progress
+function simulateProgress(format) {
+    let progress = 0;
+    const progressBar = document.getElementById('progressBar');
+    const progressText = document.getElementById('progressText');
+    
+    const interval = setInterval(() => {
+        progress += Math.random() * 15;
+        if (progress > 100) progress = 100;
+        
+        progressBar.style.width = progress + '%';
+        
+        if (progress < 30) {
+            progressText.textContent = 'آماده‌سازی داده‌ها...';
+        } else if (progress < 60) {
+            progressText.textContent = `تولید فایل ${format}...`;
+        } else if (progress < 90) {
+            progressText.textContent = 'اعمال قالب‌بندی...';
+        } else {
+            progressText.textContent = 'تکمیل صادرات...';
+        }
+        
+        if (progress >= 100) {
+            clearInterval(interval);
+        }
+    }, 200);
+}
+
+// Add to export history
+function addToExportHistory(format, status) {
+    const historyTable = document.getElementById('exportHistory');
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('fa-IR');
+    const timeStr = now.toLocaleTimeString('fa-IR');
+    
+    const newRow = document.createElement('tr');
+    newRow.innerHTML = `
+        <td>${dateStr} ${timeStr}</td>
+        <td>گزارش بودجه</td>
+        <td><span class="badge bg-primary">${format}</span></td>
+        <td>${Math.floor(Math.random() * 1000) + 100}</td>
+        <td><span class="badge bg-success">${status}</span></td>
+        <td>
+            <button class="btn btn-sm btn-outline-primary" onclick="downloadExport('${format}')">
+                <i class="fas fa-download"></i>
+            </button>
+        </td>
+    `;
+    
+    // Remove "no data" row if exists
+    const noDataRow = historyTable.querySelector('tr td[colspan="6"]');
+    if (noDataRow) {
+        noDataRow.parentNode.remove();
+    }
+    
+    historyTable.insertBefore(newRow, historyTable.firstChild);
+}
+
+// Download export
+function downloadExport(format) {
+    // Simulate download
+    const link = document.createElement('a');
+    link.href = '#';
+    link.download = `report.${format.toLowerCase()}`;
+    link.click();
+    
+    showSuccessMessage(`فایل ${format} در حال دانلود است`);
+}
+
+// Save export settings
+function saveExportSettings() {
+    const formData = new FormData(document.getElementById('exportSettingsForm'));
+    const settings = Object.fromEntries(formData.entries());
+    
+    localStorage.setItem('exportSettings', JSON.stringify(settings));
+    showSuccessMessage('تنظیمات صادرات ذخیره شد');
+}
+
+// Load export settings
+function loadExportSettings() {
+    const settings = JSON.parse(localStorage.getItem('exportSettings') || '{}');
+    
+    Object.keys(settings).forEach(key => {
+        const element = document.querySelector(`[name="${key}"]`);
+        if (element) {
+            if (element.type === 'checkbox') {
+                element.checked = settings[key] === 'on';
+            } else {
+                element.value = settings[key];
+            }
+        }
+    });
+}
+
+// Show success message
+function showSuccessMessage(message) {
+    const alert = document.createElement('div');
+    alert.className = 'alert alert-success alert-dismissible fade show position-fixed';
+    alert.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    alert.innerHTML = `
+        <i class="fas fa-check-circle me-2"></i>
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(alert);
+    
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+        if (alert.parentNode) {
+            alert.parentNode.removeChild(alert);
+        }
+    }, 5000);
+}
+
+// Load settings on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadExportSettings();
+});
+</script>

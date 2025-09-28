@@ -1,77 +1,10 @@
-ERROR 2025-09-26 21:18:19 log log_response Internal Server Error: /workflow-management/stage-approvers/
-Traceback (most recent call last):
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\__init__.py", line 2123, in get_prep_value
-    return int(value)
-ValueError: invalid literal for int() with base 10: 'FACTOR'
-
-The above exception was the direct cause of the following exception:
-
-Traceback (most recent call last):
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
-    response = get_response(request)
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
-    response = wrapped_callback(request, *callback_args, **callback_kwargs)
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
-    return self.dispatch(request, *args, **kwargs)
-           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\contrib\auth\mixins.py", line 73, in dispatch
-    return super().dispatch(request, *args, **kwargs)
-           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\contrib\auth\mixins.py", line 109, in dispatch
-    return super().dispatch(request, *args, **kwargs)
-           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\views\generic\base.py", line 143, in dispatch
-    return handler(request, *args, **kwargs)
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\views\generic\list.py", line 174, in get
-    context = self.get_context_data()
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\core\views_workflow_management.py", line 1178, in get_context_data
-    tr_qs = tr_qs.filter(entity_type=selected_entity_type)
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1476, in filter
-    return self._filter_or_exclude(False, args, kwargs)
-           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1494, in _filter_or_exclude
-    clone._filter_or_exclude_inplace(negate, args, kwargs)
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1501, in _filter_or_exclude_inplace
-    self._query.add_q(Q(*args, **kwargs))
-    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1609, in add_q
-    clause, _ = self._add_q(q_object, self.used_aliases)
-                ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1641, in _add_q
-    child_clause, needed_inner = self.build_filter(
-                                 ~~~~~~~~~~~~~~~~~^
-        child,
-        ^^^^^^
-    ...<7 lines>...
-        update_join_types=update_join_types,
-        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    )
-    ^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1555, in build_filter
-    condition = self.build_lookup(lookups, col, value)
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1385, in build_lookup
-    lookup = lookup_class(lhs, rhs)
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\lookups.py", line 30, in __init__
-    self.rhs = self.get_prep_lookup()
-               ~~~~~~~~~~~~~~~~~~~~^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_lookups.py", line 156, in get_prep_lookup
-    self.rhs = target_field.get_prep_value(self.rhs)
-               ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\__init__.py", line 2125, in get_prep_value
-    raise e.__class__(
-        "Field '%s' expected a number but got %r." % (self.name, value),
-    ) from e
-ValueError: Field 'id' expected a number but got 'FACTOR'.
-ERROR 2025-09-26 21:18:19 basehttp log_message "GET /workflow-management/stage-approvers/?organization_id=1 HTTP/1.1" 500 179214
-ERROR 2025-09-26 21:18:32 log log_response Internal Server Error: /workflow-management/stage-approvers/
-Traceback (most recent call last):
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\__init__.py", line 2123, in get_prep_value
-    return int(value)
-ValueError: invalid literal for int() with base 10: 'FACTOR'
-
-The above exception was the direct cause of the following exception:
-
+ERROR 2025-09-28 14:32:46 log log_response Internal Server Error: /reports/reports/api/budget-items-for-org-period/25/1/
+ERROR 2025-09-28 14:32:46 basehttp log_message "GET /reports/reports/api/budget-items-for-org-period/25/1/ HTTP/1.1" 500 414
+ERROR 2025-09-28 14:46:03 log log_response Internal Server Error: /reports/reports/api/budget-items-for-org-period/25/1/
+ERROR 2025-09-28 14:46:03 basehttp log_message "GET /reports/reports/api/budget-items-for-org-period/25/1/ HTTP/1.1" 500 414
+ERROR 2025-09-28 14:46:07 log log_response Internal Server Error: /reports/reports/api/budget-items-for-org-period/23/1/
+ERROR 2025-09-28 14:46:07 basehttp log_message "GET /reports/reports/api/budget-items-for-org-period/23/1/ HTTP/1.1" 500 414
+ERROR 2025-09-28 14:48:03 log log_response Internal Server Error: /reports/reports/comprehensive-budget/
 Traceback (most recent call last):
   File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
     response = get_response(request)
@@ -80,118 +13,130 @@ Traceback (most recent call last):
   File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
     return self.dispatch(request, *args, **kwargs)
            ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\contrib\auth\mixins.py", line 73, in dispatch
-    return super().dispatch(request, *args, **kwargs)
-           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\contrib\auth\mixins.py", line 109, in dispatch
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\core\PermissionBase.py", line 274, in dispatch
     return super().dispatch(request, *args, **kwargs)
            ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
   File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\views\generic\base.py", line 143, in dispatch
     return handler(request, *args, **kwargs)
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\views\generic\list.py", line 174, in get
-    context = self.get_context_data()
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\core\views_workflow_management.py", line 1178, in get_context_data
-    tr_qs = tr_qs.filter(entity_type=selected_entity_type)
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1476, in filter
-    return self._filter_or_exclude(False, args, kwargs)
-           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1494, in _filter_or_exclude
-    clone._filter_or_exclude_inplace(negate, args, kwargs)
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1501, in _filter_or_exclude_inplace
-    self._query.add_q(Q(*args, **kwargs))
-    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1609, in add_q
-    clause, _ = self._add_q(q_object, self.used_aliases)
-                ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1641, in _add_q
-    child_clause, needed_inner = self.build_filter(
-                                 ~~~~~~~~~~~~~~~~~^
-        child,
-        ^^^^^^
-    ...<7 lines>...
-        update_join_types=update_join_types,
-        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    )
-    ^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1555, in build_filter
-    condition = self.build_lookup(lookups, col, value)
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1385, in build_lookup
-    lookup = lookup_class(lhs, rhs)
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\lookups.py", line 30, in __init__
-    self.rhs = self.get_prep_lookup()
-               ~~~~~~~~~~~~~~~~~~~~^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_lookups.py", line 156, in get_prep_lookup
-    self.rhs = target_field.get_prep_value(self.rhs)
-               ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\__init__.py", line 2125, in get_prep_value
-    raise e.__class__(
-        "Field '%s' expected a number but got %r." % (self.name, value),
-    ) from e
-ValueError: Field 'id' expected a number but got 'FACTOR'.
-ERROR 2025-09-26 21:18:32 basehttp log_message "GET /workflow-management/stage-approvers/?organization_id=1 HTTP/1.1" 500 179214
-ERROR 2025-09-26 21:21:02 log log_response Internal Server Error: /workflow-management/stage-approvers/
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\views\generic\list.py", line 175, in get
+    return self.render_to_response(context)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\ComprehensiveBudgetReportView.py", line 264, in render_to_response
+    response = self.generate_excel_report(report_data)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\ComprehensiveBudgetReportView.py", line 205, in generate_excel_report
+    sheet.title = _("گزارش جامع بودجه")
+    ^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\openpyxl\workbook\child.py", line 90, in title
+    m = INVALID_TITLE_REGEX.search(value)
+TypeError: expected string or bytes-like object, got '__proxy__'
+ERROR 2025-09-28 14:48:03 basehttp log_message "GET /reports/reports/comprehensive-budget/?output_format=excel HTTP/1.1" 500 143581
+ERROR 2025-09-28 14:48:07 log log_response Internal Server Error: /reports/reports/api/budget-items-for-org-period/25/1/
+ERROR 2025-09-28 14:48:07 basehttp log_message "GET /reports/reports/api/budget-items-for-org-period/25/1/ HTTP/1.1" 500 414
+ERROR 2025-09-28 14:48:45 log log_response Internal Server Error: /reports/reports/api/budget-items-for-org-period/25/1/
+ERROR 2025-09-28 14:48:45 basehttp log_message "GET /reports/reports/api/budget-items-for-org-period/25/1/ HTTP/1.1" 500 414
+ERROR 2025-09-28 14:51:25 log log_response Internal Server Error: /reports/reports/api/budget-items-for-org-period/25/1/
+ERROR 2025-09-28 14:51:25 basehttp log_message "GET /reports/reports/api/budget-items-for-org-period/25/1/ HTTP/1.1" 500 414
+ERROR 2025-09-28 14:51:25 log log_response Internal Server Error: /reports/reports/api/budget-items-for-org-period/25/1/
+ERROR 2025-09-28 14:51:25 basehttp log_message "GET /reports/reports/api/budget-items-for-org-period/25/1/ HTTP/1.1" 500 414
+ERROR 2025-09-28 14:51:28 log log_response Internal Server Error: /reports/reports/api/budget-items-for-org-period/25/1/
+ERROR 2025-09-28 14:51:28 basehttp log_message "GET /reports/reports/api/budget-items-for-org-period/25/1/ HTTP/1.1" 500 414
+ERROR 2025-09-28 14:51:29 log log_response Internal Server Error: /reports/reports/api/budget-items-for-org-period/25/1/
+ERROR 2025-09-28 14:51:29 basehttp log_message "GET /reports/reports/api/budget-items-for-org-period/25/1/ HTTP/1.1" 500 414
+ERROR 2025-09-28 14:55:08 log log_response Internal Server Error: /reports/reports/api/budget-items-for-org-period/25/1/
+ERROR 2025-09-28 14:55:08 basehttp log_message "GET /reports/reports/api/budget-items-for-org-period/25/1/ HTTP/1.1" 500 414
+ERROR 2025-09-28 14:55:56 log log_response Internal Server Error: /reports/reports/api/budget-items-for-org-period/25/1/
+ERROR 2025-09-28 14:55:56 basehttp log_message "GET /reports/reports/api/budget-items-for-org-period/25/1/ HTTP/1.1" 500 414
+ERROR 2025-09-28 14:56:28 log log_response Internal Server Error: /reports/reports/api/budget-items-for-org-period/25/1/
+ERROR 2025-09-28 14:56:28 basehttp log_message "GET /reports/reports/api/budget-items-for-org-period/25/1/ HTTP/1.1" 500 414
+ERROR 2025-09-28 14:57:34 log log_response Internal Server Error: /reports/reports/api/budget-items-for-org-period/23/1/
+ERROR 2025-09-28 14:57:34 basehttp log_message "GET /reports/reports/api/budget-items-for-org-period/23/1/ HTTP/1.1" 500 414
+ERROR 2025-09-28 14:57:58 exception response_for_exception Invalid HTTP_HOST header: 'testserver'. You may need to add 'testserver' to ALLOWED_HOSTS.
 Traceback (most recent call last):
   File "D:\Python312\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
     response = get_response(request)
-  File "D:\Python312\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+  File "D:\Python312\Lib\site-packages\django\utils\deprecation.py", line 128, in __call__
+    response = self.process_request(request)
+  File "D:\Python312\Lib\site-packages\django\middleware\common.py", line 48, in process_request
+    host = request.get_host()
+  File "D:\Python312\Lib\site-packages\django\http\request.py", line 151, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: 'testserver'. You may need to add 'testserver' to ALLOWED_HOSTS.
+ERROR 2025-09-28 14:59:05 log log_response Internal Server Error: /reports/reports/api/budget-items-for-org-period/25/1/
+ERROR 2025-09-28 14:59:05 basehttp log_message "GET /reports/reports/api/budget-items-for-org-period/25/1/ HTTP/1.1" 500 414
+ERROR 2025-09-28 14:59:33 log log_response Internal Server Error: /reports/reports/comprehensive-budget/
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
     response = wrapped_callback(request, *callback_args, **callback_kwargs)
-  File "D:\Python312\Lib\site-packages\django\views\generic\base.py", line 104, in view
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
     return self.dispatch(request, *args, **kwargs)
            ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\Python312\Lib\site-packages\django\contrib\auth\mixins.py", line 73, in dispatch
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\core\PermissionBase.py", line 274, in dispatch
     return super().dispatch(request, *args, **kwargs)
            ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\Python312\Lib\site-packages\django\contrib\auth\mixins.py", line 109, in dispatch
-    return super().dispatch(request, *args, **kwargs)
-           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\Python312\Lib\site-packages\django\views\generic\base.py", line 143, in dispatch
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\views\generic\base.py", line 143, in dispatch
     return handler(request, *args, **kwargs)
-  File "D:\Python312\Lib\site-packages\django\views\generic\list.py", line 174, in get
-    context = self.get_context_data()
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\core\views_workflow_management.py", line 1180, in get_context_data
-    entity_type_obj = EntityType.objects.get(code=selected_entity_type, is_active=True)
-  File "D:\Python312\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
-    return getattr(self.get_queryset(), name)(*args, **kwargs)
-           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
-  File "D:\Python312\Lib\site-packages\django\db\models\query.py", line 635, in get
-    clone = self._chain() if self.query.combinator else self.filter(*args, **kwargs)
-                                                        ~~~~~~~~~~~^^^^^^^^^^^^^^^^^
-  File "D:\Python312\Lib\site-packages\django\db\models\query.py", line 1476, in filter
-    return self._filter_or_exclude(False, args, kwargs)
-           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
-  File "D:\Python312\Lib\site-packages\django\db\models\query.py", line 1494, in _filter_or_exclude
-    clone._filter_or_exclude_inplace(negate, args, kwargs)
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\Python312\Lib\site-packages\django\db\models\query.py", line 1501, in _filter_or_exclude_inplace
-    self._query.add_q(Q(*args, **kwargs))
-    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
-  File "D:\Python312\Lib\site-packages\django\db\models\sql\query.py", line 1609, in add_q
-    clause, _ = self._add_q(q_object, self.used_aliases)
-                ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\Python312\Lib\site-packages\django\db\models\sql\query.py", line 1641, in _add_q
-    child_clause, needed_inner = self.build_filter(
-                                 ~~~~~~~~~~~~~~~~~^
-        child,
-        ^^^^^^
-    ...<7 lines>...
-        update_join_types=update_join_types,
-        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    )
-    ^
-  File "D:\Python312\Lib\site-packages\django\db\models\sql\query.py", line 1491, in build_filter
-    lookups, parts, reffed_expression = self.solve_lookup_type(arg, summarize)
-                                        ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
-  File "D:\Python312\Lib\site-packages\django\db\models\sql\query.py", line 1303, in solve_lookup_type
-    _, field, _, lookup_parts = self.names_to_path(lookup_splitted, self.get_meta())
-                                ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\Python312\Lib\site-packages\django\db\models\sql\query.py", line 1768, in names_to_path
-    raise FieldError(
-    ...<2 lines>...
-    )
-django.core.exceptions.FieldError: Cannot resolve keyword 'is_active' into field. Choices are: code, content_type, content_type_id, created_at, id, name, transition, userruleoverride
-ERROR 2025-09-26 21:21:02 basehttp log_message "GET /workflow-management/stage-approvers/?organization_id=1 HTTP/1.1" 500 174424
-ERROR 2025-09-26 21:25:55 log log_response Internal Server Error: /workflow-management/stage-approvers/
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\views\generic\list.py", line 175, in get
+    return self.render_to_response(context)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\ComprehensiveBudgetReportView.py", line 264, in render_to_response
+    response = self.generate_excel_report(report_data)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\ComprehensiveBudgetReportView.py", line 205, in generate_excel_report
+    sheet.title = _("گزارش جامع بودجه")
+    ^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\openpyxl\workbook\child.py", line 90, in title
+    m = INVALID_TITLE_REGEX.search(value)
+TypeError: expected string or bytes-like object, got '__proxy__'
+ERROR 2025-09-28 14:59:33 basehttp log_message "GET /reports/reports/comprehensive-budget/?output_format=excel HTTP/1.1" 500 143758
+ERROR 2025-09-28 14:59:41 log log_response Internal Server Error: /reports/reports/api/budget-items-for-org-period/25/1/
+ERROR 2025-09-28 14:59:41 basehttp log_message "GET /reports/reports/api/budget-items-for-org-period/25/1/ HTTP/1.1" 500 414
+ERROR 2025-09-28 14:59:48 log log_response Internal Server Error: /reports/reports/api/budget-items-for-org-period/25/1/
+ERROR 2025-09-28 14:59:48 basehttp log_message "GET /reports/reports/api/budget-items-for-org-period/25/1/ HTTP/1.1" 500 414
+ERROR 2025-09-28 15:00:25 log log_response Internal Server Error: /reports/reports/api/budget-items-for-org-period/25/1/
+ERROR 2025-09-28 15:00:25 basehttp log_message "GET /reports/reports/api/budget-items-for-org-period/25/1/ HTTP/1.1" 500 414
+ERROR 2025-09-28 15:00:28 log log_response Internal Server Error: /reports/reports/api/budget-items-for-org-period/25/1/
+ERROR 2025-09-28 15:00:28 basehttp log_message "GET /reports/reports/api/budget-items-for-org-period/25/1/ HTTP/1.1" 500 414
+ERROR 2025-09-28 15:00:29 log log_response Internal Server Error: /reports/reports/api/budget-items-for-org-period/25/1/
+ERROR 2025-09-28 15:00:29 basehttp log_message "GET /reports/reports/api/budget-items-for-org-period/25/1/ HTTP/1.1" 500 414
+ERROR 2025-09-28 15:00:49 log log_response Internal Server Error: /reports/reports/api/budget-items-for-org-period/25/1/
+ERROR 2025-09-28 15:00:49 basehttp log_message "GET /reports/reports/api/budget-items-for-org-period/25/1/ HTTP/1.1" 500 414
+ERROR 2025-09-28 15:06:01 log log_response Internal Server Error: /reports/reports/api/budget-items-for-org-period/25/1/
+ERROR 2025-09-28 15:06:01 basehttp log_message "GET /reports/reports/api/budget-items-for-org-period/25/1/ HTTP/1.1" 500 414
+ERROR 2025-09-28 15:06:51 log log_response Internal Server Error: /tankhah/factors/80/edit/
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\core\PermissionBase.py", line 274, in dispatch
+    return super().dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\views\generic\base.py", line 143, in dispatch
+    return handler(request, *args, **kwargs)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\views\generic\edit.py", line 201, in get
+    self.object = self.get_object()
+                  ~~~~~~~~~~~~~~~^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\view_FactorUpdate.py", line 563, in get_object
+    initial_stage = WorkflowStage.objects.order_by('order').first()
+                    ^^^^^^^^^^^^^
+NameError: name 'WorkflowStage' is not defined
+ERROR 2025-09-28 15:06:51 basehttp log_message "GET /tankhah/factors/80/edit/ HTTP/1.1" 500 114014
+ERROR 2025-09-28 15:50:49 exception response_for_exception Invalid HTTP_HOST header: 'www.modircomplex.ir'. You may need to add 'www.modircomplex.ir' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\utils\deprecation.py", line 128, in __call__
+    response = self.process_request(request)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\middleware\common.py", line 48, in process_request
+    host = request.get_host()
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\http\request.py", line 151, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: 'www.modircomplex.ir'. You may need to add 'www.modircomplex.ir' to ALLOWED_HOSTS.
+ERROR 2025-09-28 19:35:50 log log_response Internal Server Error: /
 Traceback (most recent call last):
   File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
     response = get_response(request)
@@ -203,75 +148,15 @@ Traceback (most recent call last):
   File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\contrib\auth\mixins.py", line 73, in dispatch
     return super().dispatch(request, *args, **kwargs)
            ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\contrib\auth\mixins.py", line 109, in dispatch
-    return super().dispatch(request, *args, **kwargs)
-           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
   File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\views\generic\base.py", line 143, in dispatch
     return handler(request, *args, **kwargs)
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\views\generic\list.py", line 174, in get
-    context = self.get_context_data()
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\core\views_workflow_management.py", line 1180, in get_context_data
-    entity_type_obj = EntityType.objects.get(code=selected_entity_type, is_active=True)
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
-    return getattr(self.get_queryset(), name)(*args, **kwargs)
-           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 635, in get
-    clone = self._chain() if self.query.combinator else self.filter(*args, **kwargs)
-                                                        ~~~~~~~~~~~^^^^^^^^^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1476, in filter
-    return self._filter_or_exclude(False, args, kwargs)
-           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1494, in _filter_or_exclude
-    clone._filter_or_exclude_inplace(negate, args, kwargs)
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1501, in _filter_or_exclude_inplace
-    self._query.add_q(Q(*args, **kwargs))
-    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1609, in add_q
-    clause, _ = self._add_q(q_object, self.used_aliases)
-                ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1641, in _add_q
-    child_clause, needed_inner = self.build_filter(
-                                 ~~~~~~~~~~~~~~~~~^
-        child,
-        ^^^^^^
-    ...<7 lines>...
-        update_join_types=update_join_types,
-        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    )
-    ^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1491, in build_filter
-    lookups, parts, reffed_expression = self.solve_lookup_type(arg, summarize)
-                                        ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1303, in solve_lookup_type
-    _, field, _, lookup_parts = self.names_to_path(lookup_splitted, self.get_meta())
-                                ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1768, in names_to_path
-    raise FieldError(
-    ...<2 lines>...
-    )
-django.core.exceptions.FieldError: Cannot resolve keyword 'is_active' into field. Choices are: code, content_type, content_type_id, created_at, id, name, transition, userruleoverride
-ERROR 2025-09-26 21:25:55 basehttp log_message "GET /workflow-management/stage-approvers/?organization_id=1 HTTP/1.1" 500 174731
-ERROR 2025-09-26 22:10:41 log log_response Internal Server Error: /workflow-management/org-access-tree/
-Traceback (most recent call last):
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 510, in parse
-    compile_func = self.tags[command]
-                   ~~~~~~~~~^^^^^^^^^
-KeyError: 'trans'
-
-During handling of the above exception, another exception occurred:
-
-Traceback (most recent call last):
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
-    response = get_response(request)
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\core\handlers\base.py", line 220, in _get_response
-    response = response.render()
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\response.py", line 114, in render
-    self.content = self.rendered_content
-                   ^^^^^^^^^^^^^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\response.py", line 92, in rendered_content
-    return template.render(context, self._request)
-           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\BudgetsSystem\view\view_Dashboard.py", line 1169, in get
+    return render(request, self.template_name, context)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\loader.py", line 62, in render_to_string
+    return template.render(context, request)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
   File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\backends\django.py", line 107, in render
     return self.template.render(context)
            ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
@@ -313,453 +198,15 @@ Traceback (most recent call last):
   File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
     return self.render(context)
            ~~~~~~~~~~~^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\loader_tags.py", line 199, in render
-    template = context.template.engine.select_template(template_name)
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\engine.py", line 208, in select_template
-    return self.get_template(template_name)
-           ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\engine.py", line 177, in get_template
-    template, origin = self.find_template(template_name)
-                       ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\engine.py", line 159, in find_template
-    template = loader.get_template(name, skip=skip)
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\loaders\cached.py", line 57, in get_template
-    template = super().get_template(template_name, skip)
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\loaders\base.py", line 28, in get_template
-    return Template(
-        contents,
-    ...<2 lines>...
-        self.engine,
-    )
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 154, in __init__
-    self.nodelist = self.compile_nodelist()
-                    ~~~~~~~~~~~~~~~~~~~~~^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 196, in compile_nodelist
-    nodelist = parser.parse()
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 518, in parse
-    raise self.error(token, e)
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 516, in parse
-    compiled_result = compile_func(self, token)
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\defaulttags.py", line 962, in do_if
-    nodelist = parser.parse(("elif", "else", "endif"))
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 512, in parse
-    self.invalid_block_tag(token, command, parse_until)
-    ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 563, in invalid_block_tag
-    raise self.error(
-    ...<8 lines>...
-    )
-django.template.exceptions.TemplateSyntaxError: Invalid block tag on line 11: 'trans', expected 'elif', 'else' or 'endif'. Did you forget to register or load this tag?
-ERROR 2025-09-26 22:10:43 log log_response Internal Server Error: /workflow-management/org-access-tree/
-Traceback (most recent call last):
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 510, in parse
-    compile_func = self.tags[command]
-                   ~~~~~~~~~^^^^^^^^^
-KeyError: 'trans'
-
-During handling of the above exception, another exception occurred:
-
-Traceback (most recent call last):
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
-    response = get_response(request)
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\core\handlers\base.py", line 220, in _get_response
-    response = response.render()
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\response.py", line 114, in render
-    self.content = self.rendered_content
-                   ^^^^^^^^^^^^^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\response.py", line 92, in rendered_content
-    return template.render(context, self._request)
-           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\backends\django.py", line 107, in render
-    return self.template.render(context)
-           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 171, in render
-    return self._render(context)
-           ~~~~~~~~~~~~^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 163, in _render
-    return self.nodelist.render(context)
-           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 1008, in render
-    return SafeString("".join([node.render_annotated(context) for node in self]))
-                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
-    return self.render(context)
-           ~~~~~~~~~~~^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\loader_tags.py", line 159, in render
-    return compiled_parent._render(context)
-           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 163, in _render
-    return self.nodelist.render(context)
-           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 1008, in render
-    return SafeString("".join([node.render_annotated(context) for node in self]))
-                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
-    return self.render(context)
-           ~~~~~~~~~~~^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\loader_tags.py", line 65, in render
-    result = block.nodelist.render(context)
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 1008, in render
-    return SafeString("".join([node.render_annotated(context) for node in self]))
-                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
-    return self.render(context)
-           ~~~~~~~~~~~^^^^^^^^^
   File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\defaulttags.py", line 243, in render
     nodelist.append(node.render_annotated(context))
                     ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
   File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
     return self.render(context)
            ~~~~~~~~~~~^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\loader_tags.py", line 199, in render
-    template = context.template.engine.select_template(template_name)
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\engine.py", line 208, in select_template
-    return self.get_template(template_name)
-           ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\engine.py", line 177, in get_template
-    template, origin = self.find_template(template_name)
-                       ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\engine.py", line 159, in find_template
-    template = loader.get_template(name, skip=skip)
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\loaders\cached.py", line 57, in get_template
-    template = super().get_template(template_name, skip)
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\loaders\base.py", line 28, in get_template
-    return Template(
-        contents,
-    ...<2 lines>...
-        self.engine,
-    )
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 154, in __init__
-    self.nodelist = self.compile_nodelist()
-                    ~~~~~~~~~~~~~~~~~~~~~^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 196, in compile_nodelist
-    nodelist = parser.parse()
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 518, in parse
-    raise self.error(token, e)
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 516, in parse
-    compiled_result = compile_func(self, token)
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\defaulttags.py", line 962, in do_if
-    nodelist = parser.parse(("elif", "else", "endif"))
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 512, in parse
-    self.invalid_block_tag(token, command, parse_until)
-    ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 563, in invalid_block_tag
-    raise self.error(
-    ...<8 lines>...
-    )
-django.template.exceptions.TemplateSyntaxError: Invalid block tag on line 11: 'trans', expected 'elif', 'else' or 'endif'. Did you forget to register or load this tag?
-ERROR 2025-09-26 22:10:43 basehttp log_message "GET /workflow-management/org-access-tree/ HTTP/1.1" 500 375779
-ERROR 2025-09-26 22:11:54 log log_response Internal Server Error: /workflow-management/org-access-tree/
-Traceback (most recent call last):
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
-    response = get_response(request)
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\core\handlers\base.py", line 220, in _get_response
-    response = response.render()
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\response.py", line 114, in render
-    self.content = self.rendered_content
-                   ^^^^^^^^^^^^^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\response.py", line 92, in rendered_content
-    return template.render(context, self._request)
-           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\backends\django.py", line 107, in render
-    return self.template.render(context)
-           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 171, in render
-    return self._render(context)
-           ~~~~~~~~~~~~^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 163, in _render
-    return self.nodelist.render(context)
-           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 1008, in render
-    return SafeString("".join([node.render_annotated(context) for node in self]))
-                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
-    return self.render(context)
-           ~~~~~~~~~~~^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\loader_tags.py", line 159, in render
-    return compiled_parent._render(context)
-           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 163, in _render
-    return self.nodelist.render(context)
-           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 1008, in render
-    return SafeString("".join([node.render_annotated(context) for node in self]))
-                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
-    return self.render(context)
-           ~~~~~~~~~~~^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\loader_tags.py", line 65, in render
-    result = block.nodelist.render(context)
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 1008, in render
-    return SafeString("".join([node.render_annotated(context) for node in self]))
-                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
-    return self.render(context)
-           ~~~~~~~~~~~^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\defaulttags.py", line 243, in render
-    nodelist.append(node.render_annotated(context))
-                    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
-    return self.render(context)
-           ~~~~~~~~~~~^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\loader_tags.py", line 199, in render
-    template = context.template.engine.select_template(template_name)
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\engine.py", line 208, in select_template
-    return self.get_template(template_name)
-           ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\engine.py", line 177, in get_template
-    template, origin = self.find_template(template_name)
-                       ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\engine.py", line 159, in find_template
-    template = loader.get_template(name, skip=skip)
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\loaders\cached.py", line 57, in get_template
-    template = super().get_template(template_name, skip)
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\loaders\base.py", line 28, in get_template
-    return Template(
-        contents,
-    ...<2 lines>...
-        self.engine,
-    )
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 154, in __init__
-    self.nodelist = self.compile_nodelist()
-                    ~~~~~~~~~~~~~~~~~~~~~^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 196, in compile_nodelist
-    nodelist = parser.parse()
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 518, in parse
-    raise self.error(token, e)
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 516, in parse
-    compiled_result = compile_func(self, token)
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\defaulttags.py", line 962, in do_if
-    nodelist = parser.parse(("elif", "else", "endif"))
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 518, in parse
-    raise self.error(token, e)
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 516, in parse
-    compiled_result = compile_func(self, token)
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\defaulttags.py", line 862, in do_for
-    nodelist_loop = parser.parse(
-        (
-    ...<2 lines>...
-        )
-    )
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 518, in parse
-    raise self.error(token, e)
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 516, in parse
-    compiled_result = compile_func(self, token)
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\defaulttags.py", line 1540, in do_with
-    nodelist = parser.parse(("endwith",))
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 518, in parse
-    raise self.error(token, e)
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 516, in parse
-    compiled_result = compile_func(self, token)
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\defaulttags.py", line 862, in do_for
-    nodelist_loop = parser.parse(
-        (
-    ...<2 lines>...
-        )
-    )
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 518, in parse
-    raise self.error(token, e)
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 516, in parse
-    compiled_result = compile_func(self, token)
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\defaulttags.py", line 862, in do_for
-    nodelist_loop = parser.parse(
-        (
-    ...<2 lines>...
-        )
-    )
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 518, in parse
-    raise self.error(token, e)
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 516, in parse
-    compiled_result = compile_func(self, token)
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\defaulttags.py", line 1531, in do_with
-    extra_context = token_kwargs(remaining_bits, parser, support_legacy=True)
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 1119, in token_kwargs
-    kwargs[key] = parser.compile_filter(value)
-                  ~~~~~~~~~~~~~~~~~~~~~^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 605, in compile_filter
-    return FilterExpression(token, self)
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 706, in __init__
-    raise TemplateSyntaxError(
-    ...<2 lines>...
-    )
-django.template.exceptions.TemplateSyntaxError: Could not parse the remainder: '(pk' from '(pk'
-ERROR 2025-09-26 22:11:54 basehttp log_message "GET /workflow-management/org-access-tree/ HTTP/1.1" 500 468825
-ERROR 2025-09-26 22:11:59 log log_response Internal Server Error: /workflow-management/org-access-tree/
-Traceback (most recent call last):
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
-    response = get_response(request)
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\core\handlers\base.py", line 220, in _get_response
-    response = response.render()
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\response.py", line 114, in render
-    self.content = self.rendered_content
-                   ^^^^^^^^^^^^^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\response.py", line 92, in rendered_content
-    return template.render(context, self._request)
-           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\backends\django.py", line 107, in render
-    return self.template.render(context)
-           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 171, in render
-    return self._render(context)
-           ~~~~~~~~~~~~^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 163, in _render
-    return self.nodelist.render(context)
-           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 1008, in render
-    return SafeString("".join([node.render_annotated(context) for node in self]))
-                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
-    return self.render(context)
-           ~~~~~~~~~~~^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\loader_tags.py", line 159, in render
-    return compiled_parent._render(context)
-           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 163, in _render
-    return self.nodelist.render(context)
-           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 1008, in render
-    return SafeString("".join([node.render_annotated(context) for node in self]))
-                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
-    return self.render(context)
-           ~~~~~~~~~~~^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\loader_tags.py", line 65, in render
-    result = block.nodelist.render(context)
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 1008, in render
-    return SafeString("".join([node.render_annotated(context) for node in self]))
-                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
-    return self.render(context)
-           ~~~~~~~~~~~^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\defaulttags.py", line 243, in render
-    nodelist.append(node.render_annotated(context))
-                    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
-    return self.render(context)
-           ~~~~~~~~~~~^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\loader_tags.py", line 199, in render
-    template = context.template.engine.select_template(template_name)
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\engine.py", line 208, in select_template
-    return self.get_template(template_name)
-           ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\engine.py", line 177, in get_template
-    template, origin = self.find_template(template_name)
-                       ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\engine.py", line 159, in find_template
-    template = loader.get_template(name, skip=skip)
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\loaders\cached.py", line 57, in get_template
-    template = super().get_template(template_name, skip)
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\loaders\base.py", line 28, in get_template
-    return Template(
-        contents,
-    ...<2 lines>...
-        self.engine,
-    )
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 154, in __init__
-    self.nodelist = self.compile_nodelist()
-                    ~~~~~~~~~~~~~~~~~~~~~^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 196, in compile_nodelist
-    nodelist = parser.parse()
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 518, in parse
-    raise self.error(token, e)
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 516, in parse
-    compiled_result = compile_func(self, token)
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\defaulttags.py", line 962, in do_if
-    nodelist = parser.parse(("elif", "else", "endif"))
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 518, in parse
-    raise self.error(token, e)
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 516, in parse
-    compiled_result = compile_func(self, token)
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\defaulttags.py", line 862, in do_for
-    nodelist_loop = parser.parse(
-        (
-    ...<2 lines>...
-        )
-    )
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 518, in parse
-    raise self.error(token, e)
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 516, in parse
-    compiled_result = compile_func(self, token)
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\defaulttags.py", line 1540, in do_with
-    nodelist = parser.parse(("endwith",))
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 518, in parse
-    raise self.error(token, e)
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 516, in parse
-    compiled_result = compile_func(self, token)
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\defaulttags.py", line 862, in do_for
-    nodelist_loop = parser.parse(
-        (
-    ...<2 lines>...
-        )
-    )
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 518, in parse
-    raise self.error(token, e)
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 516, in parse
-    compiled_result = compile_func(self, token)
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\defaulttags.py", line 862, in do_for
-    nodelist_loop = parser.parse(
-        (
-    ...<2 lines>...
-        )
-    )
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 518, in parse
-    raise self.error(token, e)
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 516, in parse
-    compiled_result = compile_func(self, token)
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\defaulttags.py", line 1531, in do_with
-    extra_context = token_kwargs(remaining_bits, parser, support_legacy=True)
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 1119, in token_kwargs
-    kwargs[key] = parser.compile_filter(value)
-                  ~~~~~~~~~~~~~~~~~~~~~^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 605, in compile_filter
-    return FilterExpression(token, self)
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 706, in __init__
-    raise TemplateSyntaxError(
-    ...<2 lines>...
-    )
-django.template.exceptions.TemplateSyntaxError: Could not parse the remainder: '(pk' from '(pk'
-ERROR 2025-09-26 22:11:59 basehttp log_message "GET /workflow-management/org-access-tree/ HTTP/1.1" 500 468825
-ERROR 2025-09-26 23:32:26 log log_response Internal Server Error: /workflow/user-guide/
-Traceback (most recent call last):
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
-    response = get_response(request)
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\core\handlers\base.py", line 220, in _get_response
-    response = response.render()
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\response.py", line 114, in render
-    self.content = self.rendered_content
-                   ^^^^^^^^^^^^^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\response.py", line 92, in rendered_content
-    return template.render(context, self._request)
-           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\backends\django.py", line 107, in render
-    return self.template.render(context)
-           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 171, in render
-    return self._render(context)
-           ~~~~~~~~~~~~^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 163, in _render
-    return self.nodelist.render(context)
-           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 1008, in render
-    return SafeString("".join([node.render_annotated(context) for node in self]))
-                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
-    return self.render(context)
-           ~~~~~~~~~~~^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\loader_tags.py", line 159, in render
-    return compiled_parent._render(context)
-           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 163, in _render
-    return self.nodelist.render(context)
-           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 1008, in render
-    return SafeString("".join([node.render_annotated(context) for node in self]))
-                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
-    return self.render(context)
-           ~~~~~~~~~~~^^^^^^^^^
-  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\loader_tags.py", line 65, in render
-    result = block.nodelist.render(context)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\defaulttags.py", line 327, in render
+    return nodelist.render(context)
+           ~~~~~~~~~~~~~~~^^^^^^^^^
   File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 1008, in render
     return SafeString("".join([node.render_annotated(context) for node in self]))
                                ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
@@ -773,5 +220,1764 @@ Traceback (most recent call last):
            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\resolvers.py", line 831, in _reverse_with_prefix
     raise NoReverseMatch(msg)
-django.urls.exceptions.NoReverseMatch: Reverse for 'post_rule_assignment_list' not found. 'post_rule_assignment_list' is not a valid view function or pattern name.
-ERROR 2025-09-26 23:32:26 basehttp log_message "GET /workflow/user-guide/ HTTP/1.1" 500 195198
+django.urls.exceptions.NoReverseMatch: Reverse for 'budget_allocation_report_enhanced' with no arguments not found. 1 pattern(s) tried: ['reports/budget\\-allocation/(?P<pk>[0-9]+)/report\\-enhanced/\\Z']
+ERROR 2025-09-28 19:35:50 basehttp log_message "GET / HTTP/1.1" 500 269766
+ERROR 2025-09-28 19:36:54 log log_response Internal Server Error: /
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\contrib\auth\mixins.py", line 73, in dispatch
+    return super().dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\views\generic\base.py", line 143, in dispatch
+    return handler(request, *args, **kwargs)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\BudgetsSystem\view\view_Dashboard.py", line 1169, in get
+    return render(request, self.template_name, context)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\loader.py", line 62, in render_to_string
+    return template.render(context, request)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\backends\django.py", line 107, in render
+    return self.template.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 171, in render
+    return self._render(context)
+           ~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\loader_tags.py", line 159, in render
+    return compiled_parent._render(context)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\loader_tags.py", line 65, in render
+    result = block.nodelist.render(context)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\defaulttags.py", line 243, in render
+    nodelist.append(node.render_annotated(context))
+                    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\defaulttags.py", line 243, in render
+    nodelist.append(node.render_annotated(context))
+                    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\defaulttags.py", line 327, in render
+    return nodelist.render(context)
+           ~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\defaulttags.py", line 480, in render
+    url = reverse(view_name, args=args, kwargs=kwargs, current_app=current_app)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\base.py", line 88, in reverse
+    return resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\resolvers.py", line 831, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'budget_allocation_report_enhanced' with no arguments not found. 1 pattern(s) tried: ['reports/budget\\-allocation/(?P<pk>[0-9]+)/report\\-enhanced/\\Z']
+ERROR 2025-09-28 19:36:54 basehttp log_message "GET / HTTP/1.1" 500 270188
+ERROR 2025-09-28 19:37:01 log log_response Internal Server Error: /
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\contrib\auth\mixins.py", line 73, in dispatch
+    return super().dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\views\generic\base.py", line 143, in dispatch
+    return handler(request, *args, **kwargs)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\BudgetsSystem\view\view_Dashboard.py", line 1169, in get
+    return render(request, self.template_name, context)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\loader.py", line 62, in render_to_string
+    return template.render(context, request)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\backends\django.py", line 107, in render
+    return self.template.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 171, in render
+    return self._render(context)
+           ~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\loader_tags.py", line 159, in render
+    return compiled_parent._render(context)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\loader_tags.py", line 65, in render
+    result = block.nodelist.render(context)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\defaulttags.py", line 243, in render
+    nodelist.append(node.render_annotated(context))
+                    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\defaulttags.py", line 243, in render
+    nodelist.append(node.render_annotated(context))
+                    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\defaulttags.py", line 327, in render
+    return nodelist.render(context)
+           ~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\defaulttags.py", line 480, in render
+    url = reverse(view_name, args=args, kwargs=kwargs, current_app=current_app)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\base.py", line 88, in reverse
+    return resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\resolvers.py", line 831, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for '/reports/budget-allocation/84/report-enhanced/' not found. '/reports/budget-allocation/84/report-enhanced/' is not a valid view function or pattern name.
+ERROR 2025-09-28 19:37:01 basehttp log_message "GET / HTTP/1.1" 500 268252
+ERROR 2025-09-28 19:37:20 log log_response Internal Server Error: /
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\contrib\auth\mixins.py", line 73, in dispatch
+    return super().dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\views\generic\base.py", line 143, in dispatch
+    return handler(request, *args, **kwargs)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\BudgetsSystem\view\view_Dashboard.py", line 1169, in get
+    return render(request, self.template_name, context)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\loader.py", line 62, in render_to_string
+    return template.render(context, request)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\backends\django.py", line 107, in render
+    return self.template.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 171, in render
+    return self._render(context)
+           ~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\loader_tags.py", line 159, in render
+    return compiled_parent._render(context)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\loader_tags.py", line 65, in render
+    result = block.nodelist.render(context)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\defaulttags.py", line 243, in render
+    nodelist.append(node.render_annotated(context))
+                    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\defaulttags.py", line 243, in render
+    nodelist.append(node.render_annotated(context))
+                    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\defaulttags.py", line 327, in render
+    return nodelist.render(context)
+           ~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\defaulttags.py", line 480, in render
+    url = reverse(view_name, args=args, kwargs=kwargs, current_app=current_app)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\base.py", line 88, in reverse
+    return resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\resolvers.py", line 831, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for '/reports/budget-allocation/84/report-enhanced/' not found. '/reports/budget-allocation/84/report-enhanced/' is not a valid view function or pattern name.
+ERROR 2025-09-28 19:37:20 basehttp log_message "GET / HTTP/1.1" 500 268295
+ERROR 2025-09-28 19:37:28 log log_response Internal Server Error: /
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\contrib\auth\mixins.py", line 73, in dispatch
+    return super().dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\views\generic\base.py", line 143, in dispatch
+    return handler(request, *args, **kwargs)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\BudgetsSystem\view\view_Dashboard.py", line 1169, in get
+    return render(request, self.template_name, context)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\loader.py", line 62, in render_to_string
+    return template.render(context, request)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\backends\django.py", line 107, in render
+    return self.template.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 171, in render
+    return self._render(context)
+           ~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\loader_tags.py", line 159, in render
+    return compiled_parent._render(context)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\loader_tags.py", line 65, in render
+    result = block.nodelist.render(context)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\defaulttags.py", line 243, in render
+    nodelist.append(node.render_annotated(context))
+                    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\defaulttags.py", line 243, in render
+    nodelist.append(node.render_annotated(context))
+                    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\defaulttags.py", line 327, in render
+    return nodelist.render(context)
+           ~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\defaulttags.py", line 480, in render
+    url = reverse(view_name, args=args, kwargs=kwargs, current_app=current_app)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\base.py", line 88, in reverse
+    return resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\resolvers.py", line 831, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for '/reports/budget-allocation/84/report-enhanced/' not found. '/reports/budget-allocation/84/report-enhanced/' is not a valid view function or pattern name.
+ERROR 2025-09-28 19:37:28 basehttp log_message "GET / HTTP/1.1" 500 268295
+ERROR 2025-09-28 19:37:30 log log_response Internal Server Error: /
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\contrib\auth\mixins.py", line 73, in dispatch
+    return super().dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\views\generic\base.py", line 143, in dispatch
+    return handler(request, *args, **kwargs)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\BudgetsSystem\view\view_Dashboard.py", line 1169, in get
+    return render(request, self.template_name, context)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\loader.py", line 62, in render_to_string
+    return template.render(context, request)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\backends\django.py", line 107, in render
+    return self.template.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 171, in render
+    return self._render(context)
+           ~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\loader_tags.py", line 159, in render
+    return compiled_parent._render(context)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\loader_tags.py", line 65, in render
+    result = block.nodelist.render(context)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\defaulttags.py", line 243, in render
+    nodelist.append(node.render_annotated(context))
+                    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\defaulttags.py", line 243, in render
+    nodelist.append(node.render_annotated(context))
+                    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\defaulttags.py", line 327, in render
+    return nodelist.render(context)
+           ~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\defaulttags.py", line 480, in render
+    url = reverse(view_name, args=args, kwargs=kwargs, current_app=current_app)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\base.py", line 88, in reverse
+    return resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\resolvers.py", line 831, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for '/reports/budget-allocation/84/report-enhanced/' not found. '/reports/budget-allocation/84/report-enhanced/' is not a valid view function or pattern name.
+ERROR 2025-09-28 19:37:30 basehttp log_message "GET / HTTP/1.1" 500 268295
+ERROR 2025-09-28 19:38:06 log log_response Internal Server Error: /
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\contrib\auth\mixins.py", line 73, in dispatch
+    return super().dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\views\generic\base.py", line 143, in dispatch
+    return handler(request, *args, **kwargs)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\BudgetsSystem\view\view_Dashboard.py", line 1169, in get
+    return render(request, self.template_name, context)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\loader.py", line 62, in render_to_string
+    return template.render(context, request)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\backends\django.py", line 107, in render
+    return self.template.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 171, in render
+    return self._render(context)
+           ~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\loader_tags.py", line 159, in render
+    return compiled_parent._render(context)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\loader_tags.py", line 65, in render
+    result = block.nodelist.render(context)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\defaulttags.py", line 243, in render
+    nodelist.append(node.render_annotated(context))
+                    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\defaulttags.py", line 243, in render
+    nodelist.append(node.render_annotated(context))
+                    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\defaulttags.py", line 327, in render
+    return nodelist.render(context)
+           ~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\defaulttags.py", line 480, in render
+    url = reverse(view_name, args=args, kwargs=kwargs, current_app=current_app)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\base.py", line 88, in reverse
+    return resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\resolvers.py", line 831, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'budget_allocation_report_enhanced' with no arguments not found. 1 pattern(s) tried: ['reports/budget\\-allocation/(?P<pk>[0-9]+)/report\\-enhanced/\\Z']
+ERROR 2025-09-28 19:38:06 basehttp log_message "GET / HTTP/1.1" 500 270225
+ERROR 2025-09-28 19:38:09 log log_response Internal Server Error: /
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\contrib\auth\mixins.py", line 73, in dispatch
+    return super().dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\views\generic\base.py", line 143, in dispatch
+    return handler(request, *args, **kwargs)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\BudgetsSystem\view\view_Dashboard.py", line 1169, in get
+    return render(request, self.template_name, context)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\loader.py", line 62, in render_to_string
+    return template.render(context, request)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\backends\django.py", line 107, in render
+    return self.template.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 171, in render
+    return self._render(context)
+           ~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\loader_tags.py", line 159, in render
+    return compiled_parent._render(context)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\loader_tags.py", line 65, in render
+    result = block.nodelist.render(context)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\defaulttags.py", line 243, in render
+    nodelist.append(node.render_annotated(context))
+                    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\defaulttags.py", line 243, in render
+    nodelist.append(node.render_annotated(context))
+                    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\defaulttags.py", line 327, in render
+    return nodelist.render(context)
+           ~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\defaulttags.py", line 480, in render
+    url = reverse(view_name, args=args, kwargs=kwargs, current_app=current_app)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\base.py", line 88, in reverse
+    return resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\resolvers.py", line 831, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'budget_allocation_report_enhanced' with no arguments not found. 1 pattern(s) tried: ['reports/budget\\-allocation/(?P<pk>[0-9]+)/report\\-enhanced/\\Z']
+ERROR 2025-09-28 19:38:09 basehttp log_message "GET / HTTP/1.1" 500 270225
+ERROR 2025-09-28 19:38:15 log log_response Internal Server Error: /
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\contrib\auth\mixins.py", line 73, in dispatch
+    return super().dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\views\generic\base.py", line 143, in dispatch
+    return handler(request, *args, **kwargs)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\BudgetsSystem\view\view_Dashboard.py", line 1169, in get
+    return render(request, self.template_name, context)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\loader.py", line 62, in render_to_string
+    return template.render(context, request)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\backends\django.py", line 107, in render
+    return self.template.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 171, in render
+    return self._render(context)
+           ~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\loader_tags.py", line 159, in render
+    return compiled_parent._render(context)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\loader_tags.py", line 65, in render
+    result = block.nodelist.render(context)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\defaulttags.py", line 243, in render
+    nodelist.append(node.render_annotated(context))
+                    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\defaulttags.py", line 243, in render
+    nodelist.append(node.render_annotated(context))
+                    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\defaulttags.py", line 327, in render
+    return nodelist.render(context)
+           ~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\defaulttags.py", line 480, in render
+    url = reverse(view_name, args=args, kwargs=kwargs, current_app=current_app)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\base.py", line 88, in reverse
+    return resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\resolvers.py", line 831, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'budget_allocation_report_enhanced' with no arguments not found. 1 pattern(s) tried: ['reports/budget\\-allocation/(?P<pk>[0-9]+)/report\\-enhanced/\\Z']
+ERROR 2025-09-28 19:38:15 basehttp log_message "GET / HTTP/1.1" 500 262274
+ERROR 2025-09-28 19:42:17 log log_response Internal Server Error: /reports/budget/warnings/
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\core\PermissionBase.py", line 274, in dispatch
+    return super().dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\views\generic\base.py", line 143, in dispatch
+    return handler(request, *args, **kwargs)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\views\generic\list.py", line 154, in get
+    self.object_list = self.get_queryset()
+                       ~~~~~~~~~~~~~~~~~^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\budgets_reports\view_budgets_reports.py", line 61, in get_queryset
+    budget_allocation = allocation.budget_allocation
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-09-28 19:42:17 basehttp log_message "GET /reports/budget/warnings/ HTTP/1.1" 500 114785
+ERROR 2025-09-28 19:42:25 log log_response Internal Server Error: /reports/budget/warnings/
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\core\PermissionBase.py", line 274, in dispatch
+    return super().dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\views\generic\base.py", line 143, in dispatch
+    return handler(request, *args, **kwargs)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\views\generic\list.py", line 154, in get
+    self.object_list = self.get_queryset()
+                       ~~~~~~~~~~~~~~~~~^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\budgets_reports\view_budgets_reports.py", line 61, in get_queryset
+    budget_allocation = allocation.budget_allocation
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-09-28 19:42:25 basehttp log_message "GET /reports/budget/warnings/ HTTP/1.1" 500 114922
+ERROR 2025-09-28 19:42:26 log log_response Internal Server Error: /reports/budget/warnings/
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\core\PermissionBase.py", line 274, in dispatch
+    return super().dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\views\generic\base.py", line 143, in dispatch
+    return handler(request, *args, **kwargs)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\views\generic\list.py", line 154, in get
+    self.object_list = self.get_queryset()
+                       ~~~~~~~~~~~~~~~~~^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\budgets_reports\view_budgets_reports.py", line 61, in get_queryset
+    budget_allocation = allocation.budget_allocation
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-09-28 19:42:26 basehttp log_message "GET /reports/budget/warnings/ HTTP/1.1" 500 114922
+ERROR 2025-09-28 21:06:01 log log_response Internal Server Error: /accounts/login/
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\base.py", line 71, in reverse
+    extra, resolver = resolver.namespace_dict[ns]
+                      ~~~~~~~~~~~~~~~~~~~~~~~^^^^
+KeyError: 'reports_dashboard'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\core\handlers\base.py", line 220, in _get_response
+    response = response.render()
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\response.py", line 114, in render
+    self.content = self.rendered_content
+                   ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\response.py", line 92, in rendered_content
+    return template.render(context, self._request)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\backends\django.py", line 107, in render
+    return self.template.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 171, in render
+    return self._render(context)
+           ~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\loader_tags.py", line 159, in render
+    return compiled_parent._render(context)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\defaulttags.py", line 480, in render
+    url = reverse(view_name, args=args, kwargs=kwargs, current_app=current_app)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\base.py", line 82, in reverse
+    raise NoReverseMatch("%s is not a registered namespace" % key)
+django.urls.exceptions.NoReverseMatch: 'reports_dashboard' is not a registered namespace
+ERROR 2025-09-28 21:06:01 basehttp log_message "GET /accounts/login/ HTTP/1.1" 500 172138
+ERROR 2025-09-28 21:06:01 log log_response Internal Server Error: /accounts/login/
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\base.py", line 71, in reverse
+    extra, resolver = resolver.namespace_dict[ns]
+                      ~~~~~~~~~~~~~~~~~~~~~~~^^^^
+KeyError: 'reports_dashboard'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\core\handlers\base.py", line 220, in _get_response
+    response = response.render()
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\response.py", line 114, in render
+    self.content = self.rendered_content
+                   ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\response.py", line 92, in rendered_content
+    return template.render(context, self._request)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\backends\django.py", line 107, in render
+    return self.template.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 171, in render
+    return self._render(context)
+           ~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\loader_tags.py", line 159, in render
+    return compiled_parent._render(context)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\defaulttags.py", line 480, in render
+    url = reverse(view_name, args=args, kwargs=kwargs, current_app=current_app)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\base.py", line 82, in reverse
+    raise NoReverseMatch("%s is not a registered namespace" % key)
+django.urls.exceptions.NoReverseMatch: 'reports_dashboard' is not a registered namespace
+ERROR 2025-09-28 21:06:01 basehttp log_message "GET /accounts/login/ HTTP/1.1" 500 171761
+ERROR 2025-09-28 21:09:42 log log_response Internal Server Error: /accounts/login/
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\urls\base.py", line 71, in reverse
+    extra, resolver = resolver.namespace_dict[ns]
+                      ~~~~~~~~~~~~~~~~~~~~~~~^^^^
+KeyError: 'reports_dashboard'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "D:\Python312\Lib\site-packages\django\core\handlers\base.py", line 220, in _get_response
+    response = response.render()
+  File "D:\Python312\Lib\site-packages\django\template\response.py", line 114, in render
+    self.content = self.rendered_content
+                   ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\response.py", line 92, in rendered_content
+    return template.render(context, self._request)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\backends\django.py", line 107, in render
+    return self.template.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 171, in render
+    return self._render(context)
+           ~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\loader_tags.py", line 159, in render
+    return compiled_parent._render(context)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\defaulttags.py", line 480, in render
+    url = reverse(view_name, args=args, kwargs=kwargs, current_app=current_app)
+  File "D:\Python312\Lib\site-packages\django\urls\base.py", line 82, in reverse
+    raise NoReverseMatch("%s is not a registered namespace" % key)
+django.urls.exceptions.NoReverseMatch: 'reports_dashboard' is not a registered namespace
+ERROR 2025-09-28 21:09:42 basehttp log_message "GET /accounts/login/ HTTP/1.1" 500 173049
+ERROR 2025-09-28 21:09:42 log log_response Internal Server Error: /accounts/login/
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\urls\base.py", line 71, in reverse
+    extra, resolver = resolver.namespace_dict[ns]
+                      ~~~~~~~~~~~~~~~~~~~~~~~^^^^
+KeyError: 'reports_dashboard'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "D:\Python312\Lib\site-packages\django\core\handlers\base.py", line 220, in _get_response
+    response = response.render()
+  File "D:\Python312\Lib\site-packages\django\template\response.py", line 114, in render
+    self.content = self.rendered_content
+                   ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\response.py", line 92, in rendered_content
+    return template.render(context, self._request)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\backends\django.py", line 107, in render
+    return self.template.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 171, in render
+    return self._render(context)
+           ~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\loader_tags.py", line 159, in render
+    return compiled_parent._render(context)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\defaulttags.py", line 480, in render
+    url = reverse(view_name, args=args, kwargs=kwargs, current_app=current_app)
+  File "D:\Python312\Lib\site-packages\django\urls\base.py", line 82, in reverse
+    raise NoReverseMatch("%s is not a registered namespace" % key)
+django.urls.exceptions.NoReverseMatch: 'reports_dashboard' is not a registered namespace
+ERROR 2025-09-28 21:09:42 basehttp log_message "GET /accounts/login/ HTTP/1.1" 500 172535
+ERROR 2025-09-28 21:09:44 log log_response Internal Server Error: /accounts/login/
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\urls\base.py", line 71, in reverse
+    extra, resolver = resolver.namespace_dict[ns]
+                      ~~~~~~~~~~~~~~~~~~~~~~~^^^^
+KeyError: 'reports_dashboard'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "D:\Python312\Lib\site-packages\django\core\handlers\base.py", line 220, in _get_response
+    response = response.render()
+  File "D:\Python312\Lib\site-packages\django\template\response.py", line 114, in render
+    self.content = self.rendered_content
+                   ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\response.py", line 92, in rendered_content
+    return template.render(context, self._request)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\backends\django.py", line 107, in render
+    return self.template.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 171, in render
+    return self._render(context)
+           ~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\loader_tags.py", line 159, in render
+    return compiled_parent._render(context)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\defaulttags.py", line 480, in render
+    url = reverse(view_name, args=args, kwargs=kwargs, current_app=current_app)
+  File "D:\Python312\Lib\site-packages\django\urls\base.py", line 82, in reverse
+    raise NoReverseMatch("%s is not a registered namespace" % key)
+django.urls.exceptions.NoReverseMatch: 'reports_dashboard' is not a registered namespace
+ERROR 2025-09-28 21:09:44 basehttp log_message "GET /accounts/login/ HTTP/1.1" 500 173049
+ERROR 2025-09-28 21:09:44 log log_response Internal Server Error: /accounts/login/
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\urls\base.py", line 71, in reverse
+    extra, resolver = resolver.namespace_dict[ns]
+                      ~~~~~~~~~~~~~~~~~~~~~~~^^^^
+KeyError: 'reports_dashboard'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "D:\Python312\Lib\site-packages\django\core\handlers\base.py", line 220, in _get_response
+    response = response.render()
+  File "D:\Python312\Lib\site-packages\django\template\response.py", line 114, in render
+    self.content = self.rendered_content
+                   ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\response.py", line 92, in rendered_content
+    return template.render(context, self._request)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\backends\django.py", line 107, in render
+    return self.template.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 171, in render
+    return self._render(context)
+           ~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\loader_tags.py", line 159, in render
+    return compiled_parent._render(context)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\defaulttags.py", line 480, in render
+    url = reverse(view_name, args=args, kwargs=kwargs, current_app=current_app)
+  File "D:\Python312\Lib\site-packages\django\urls\base.py", line 82, in reverse
+    raise NoReverseMatch("%s is not a registered namespace" % key)
+django.urls.exceptions.NoReverseMatch: 'reports_dashboard' is not a registered namespace
+ERROR 2025-09-28 21:09:44 basehttp log_message "GET /accounts/login/ HTTP/1.1" 500 172535
+ERROR 2025-09-28 21:09:58 log log_response Internal Server Error: /accounts/login/
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\urls\base.py", line 71, in reverse
+    extra, resolver = resolver.namespace_dict[ns]
+                      ~~~~~~~~~~~~~~~~~~~~~~~^^^^
+KeyError: 'reports_dashboard'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "D:\Python312\Lib\site-packages\django\core\handlers\base.py", line 220, in _get_response
+    response = response.render()
+  File "D:\Python312\Lib\site-packages\django\template\response.py", line 114, in render
+    self.content = self.rendered_content
+                   ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\response.py", line 92, in rendered_content
+    return template.render(context, self._request)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\backends\django.py", line 107, in render
+    return self.template.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 171, in render
+    return self._render(context)
+           ~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\loader_tags.py", line 159, in render
+    return compiled_parent._render(context)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\defaulttags.py", line 480, in render
+    url = reverse(view_name, args=args, kwargs=kwargs, current_app=current_app)
+  File "D:\Python312\Lib\site-packages\django\urls\base.py", line 82, in reverse
+    raise NoReverseMatch("%s is not a registered namespace" % key)
+django.urls.exceptions.NoReverseMatch: 'reports_dashboard' is not a registered namespace
+ERROR 2025-09-28 21:09:58 basehttp log_message "GET /accounts/login/ HTTP/1.1" 500 170949
+ERROR 2025-09-28 21:10:27 log log_response Internal Server Error: /accounts/login/
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\urls\base.py", line 71, in reverse
+    extra, resolver = resolver.namespace_dict[ns]
+                      ~~~~~~~~~~~~~~~~~~~~~~~^^^^
+KeyError: 'reports_dashboard'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "D:\Python312\Lib\site-packages\django\core\handlers\base.py", line 220, in _get_response
+    response = response.render()
+  File "D:\Python312\Lib\site-packages\django\template\response.py", line 114, in render
+    self.content = self.rendered_content
+                   ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\response.py", line 92, in rendered_content
+    return template.render(context, self._request)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\backends\django.py", line 107, in render
+    return self.template.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 171, in render
+    return self._render(context)
+           ~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\loader_tags.py", line 159, in render
+    return compiled_parent._render(context)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\defaulttags.py", line 480, in render
+    url = reverse(view_name, args=args, kwargs=kwargs, current_app=current_app)
+  File "D:\Python312\Lib\site-packages\django\urls\base.py", line 82, in reverse
+    raise NoReverseMatch("%s is not a registered namespace" % key)
+django.urls.exceptions.NoReverseMatch: 'reports_dashboard' is not a registered namespace
+ERROR 2025-09-28 21:10:27 basehttp log_message "GET /accounts/login/ HTTP/1.1" 500 170949
+ERROR 2025-09-28 21:11:01 log log_response Internal Server Error: /accounts/login/
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\urls\base.py", line 71, in reverse
+    extra, resolver = resolver.namespace_dict[ns]
+                      ~~~~~~~~~~~~~~~~~~~~~~~^^^^
+KeyError: 'reports_dashboard'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "D:\Python312\Lib\site-packages\django\core\handlers\base.py", line 220, in _get_response
+    response = response.render()
+  File "D:\Python312\Lib\site-packages\django\template\response.py", line 114, in render
+    self.content = self.rendered_content
+                   ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\response.py", line 92, in rendered_content
+    return template.render(context, self._request)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\backends\django.py", line 107, in render
+    return self.template.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 171, in render
+    return self._render(context)
+           ~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\loader_tags.py", line 159, in render
+    return compiled_parent._render(context)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\defaulttags.py", line 480, in render
+    url = reverse(view_name, args=args, kwargs=kwargs, current_app=current_app)
+  File "D:\Python312\Lib\site-packages\django\urls\base.py", line 82, in reverse
+    raise NoReverseMatch("%s is not a registered namespace" % key)
+django.urls.exceptions.NoReverseMatch: 'reports_dashboard' is not a registered namespace
+ERROR 2025-09-28 21:11:01 basehttp log_message "GET /accounts/login/ HTTP/1.1" 500 170949
+ERROR 2025-09-28 21:11:13 log log_response Internal Server Error: /accounts/login/
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\urls\base.py", line 71, in reverse
+    extra, resolver = resolver.namespace_dict[ns]
+                      ~~~~~~~~~~~~~~~~~~~~~~~^^^^
+KeyError: 'reports_dashboard'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "D:\Python312\Lib\site-packages\django\core\handlers\base.py", line 220, in _get_response
+    response = response.render()
+  File "D:\Python312\Lib\site-packages\django\template\response.py", line 114, in render
+    self.content = self.rendered_content
+                   ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\response.py", line 92, in rendered_content
+    return template.render(context, self._request)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\backends\django.py", line 107, in render
+    return self.template.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 171, in render
+    return self._render(context)
+           ~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\loader_tags.py", line 159, in render
+    return compiled_parent._render(context)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\defaulttags.py", line 480, in render
+    url = reverse(view_name, args=args, kwargs=kwargs, current_app=current_app)
+  File "D:\Python312\Lib\site-packages\django\urls\base.py", line 82, in reverse
+    raise NoReverseMatch("%s is not a registered namespace" % key)
+django.urls.exceptions.NoReverseMatch: 'reports_dashboard' is not a registered namespace
+ERROR 2025-09-28 21:11:13 basehttp log_message "GET /accounts/login/ HTTP/1.1" 500 173049
+ERROR 2025-09-28 21:11:13 log log_response Internal Server Error: /accounts/login/
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\urls\base.py", line 71, in reverse
+    extra, resolver = resolver.namespace_dict[ns]
+                      ~~~~~~~~~~~~~~~~~~~~~~~^^^^
+KeyError: 'reports_dashboard'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "D:\Python312\Lib\site-packages\django\core\handlers\base.py", line 220, in _get_response
+    response = response.render()
+  File "D:\Python312\Lib\site-packages\django\template\response.py", line 114, in render
+    self.content = self.rendered_content
+                   ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\response.py", line 92, in rendered_content
+    return template.render(context, self._request)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\backends\django.py", line 107, in render
+    return self.template.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 171, in render
+    return self._render(context)
+           ~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\loader_tags.py", line 159, in render
+    return compiled_parent._render(context)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\defaulttags.py", line 480, in render
+    url = reverse(view_name, args=args, kwargs=kwargs, current_app=current_app)
+  File "D:\Python312\Lib\site-packages\django\urls\base.py", line 82, in reverse
+    raise NoReverseMatch("%s is not a registered namespace" % key)
+django.urls.exceptions.NoReverseMatch: 'reports_dashboard' is not a registered namespace
+ERROR 2025-09-28 21:11:13 basehttp log_message "GET /accounts/login/ HTTP/1.1" 500 172535
+ERROR 2025-09-28 21:11:52 log log_response Internal Server Error: /accounts/login/
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\urls\base.py", line 71, in reverse
+    extra, resolver = resolver.namespace_dict[ns]
+                      ~~~~~~~~~~~~~~~~~~~~~~~^^^^
+KeyError: 'reports_dashboard'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "D:\Python312\Lib\site-packages\django\core\handlers\base.py", line 220, in _get_response
+    response = response.render()
+  File "D:\Python312\Lib\site-packages\django\template\response.py", line 114, in render
+    self.content = self.rendered_content
+                   ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\response.py", line 92, in rendered_content
+    return template.render(context, self._request)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\backends\django.py", line 107, in render
+    return self.template.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 171, in render
+    return self._render(context)
+           ~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\loader_tags.py", line 159, in render
+    return compiled_parent._render(context)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\defaulttags.py", line 480, in render
+    url = reverse(view_name, args=args, kwargs=kwargs, current_app=current_app)
+  File "D:\Python312\Lib\site-packages\django\urls\base.py", line 82, in reverse
+    raise NoReverseMatch("%s is not a registered namespace" % key)
+django.urls.exceptions.NoReverseMatch: 'reports_dashboard' is not a registered namespace
+ERROR 2025-09-28 21:11:52 basehttp log_message "GET /accounts/login/ HTTP/1.1" 500 170949
+ERROR 2025-09-28 21:12:31 log log_response Internal Server Error: /accounts/login/
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\urls\base.py", line 71, in reverse
+    extra, resolver = resolver.namespace_dict[ns]
+                      ~~~~~~~~~~~~~~~~~~~~~~~^^^^
+KeyError: 'reports_dashboard'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "D:\Python312\Lib\site-packages\django\core\handlers\base.py", line 220, in _get_response
+    response = response.render()
+  File "D:\Python312\Lib\site-packages\django\template\response.py", line 114, in render
+    self.content = self.rendered_content
+                   ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\response.py", line 92, in rendered_content
+    return template.render(context, self._request)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\backends\django.py", line 107, in render
+    return self.template.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 171, in render
+    return self._render(context)
+           ~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\loader_tags.py", line 159, in render
+    return compiled_parent._render(context)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\defaulttags.py", line 480, in render
+    url = reverse(view_name, args=args, kwargs=kwargs, current_app=current_app)
+  File "D:\Python312\Lib\site-packages\django\urls\base.py", line 82, in reverse
+    raise NoReverseMatch("%s is not a registered namespace" % key)
+django.urls.exceptions.NoReverseMatch: 'reports_dashboard' is not a registered namespace
+ERROR 2025-09-28 21:12:31 basehttp log_message "GET /accounts/login/ HTTP/1.1" 500 170949
+ERROR 2025-09-28 21:13:01 log log_response Internal Server Error: /accounts/login/
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\urls\base.py", line 71, in reverse
+    extra, resolver = resolver.namespace_dict[ns]
+                      ~~~~~~~~~~~~~~~~~~~~~~~^^^^
+KeyError: 'reports_dashboard'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "D:\Python312\Lib\site-packages\django\core\handlers\base.py", line 220, in _get_response
+    response = response.render()
+  File "D:\Python312\Lib\site-packages\django\template\response.py", line 114, in render
+    self.content = self.rendered_content
+                   ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\response.py", line 92, in rendered_content
+    return template.render(context, self._request)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\backends\django.py", line 107, in render
+    return self.template.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 171, in render
+    return self._render(context)
+           ~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\loader_tags.py", line 159, in render
+    return compiled_parent._render(context)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\defaulttags.py", line 480, in render
+    url = reverse(view_name, args=args, kwargs=kwargs, current_app=current_app)
+  File "D:\Python312\Lib\site-packages\django\urls\base.py", line 82, in reverse
+    raise NoReverseMatch("%s is not a registered namespace" % key)
+django.urls.exceptions.NoReverseMatch: 'reports_dashboard' is not a registered namespace
+ERROR 2025-09-28 21:13:01 basehttp log_message "GET /accounts/login/ HTTP/1.1" 500 170949
+ERROR 2025-09-28 21:13:26 log log_response Internal Server Error: /accounts/login/
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\urls\base.py", line 71, in reverse
+    extra, resolver = resolver.namespace_dict[ns]
+                      ~~~~~~~~~~~~~~~~~~~~~~~^^^^
+KeyError: 'reports_dashboard'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "D:\Python312\Lib\site-packages\django\core\handlers\base.py", line 220, in _get_response
+    response = response.render()
+  File "D:\Python312\Lib\site-packages\django\template\response.py", line 114, in render
+    self.content = self.rendered_content
+                   ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\response.py", line 92, in rendered_content
+    return template.render(context, self._request)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\backends\django.py", line 107, in render
+    return self.template.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 171, in render
+    return self._render(context)
+           ~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\loader_tags.py", line 159, in render
+    return compiled_parent._render(context)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\defaulttags.py", line 480, in render
+    url = reverse(view_name, args=args, kwargs=kwargs, current_app=current_app)
+  File "D:\Python312\Lib\site-packages\django\urls\base.py", line 82, in reverse
+    raise NoReverseMatch("%s is not a registered namespace" % key)
+django.urls.exceptions.NoReverseMatch: 'reports_dashboard' is not a registered namespace
+ERROR 2025-09-28 21:13:26 basehttp log_message "GET /accounts/login/ HTTP/1.1" 500 170949
+ERROR 2025-09-28 21:15:29 log log_response Internal Server Error: /reports/budget/warnings/
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\core\PermissionBase.py", line 274, in dispatch
+    return super().dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\views\generic\base.py", line 143, in dispatch
+    return handler(request, *args, **kwargs)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\views\generic\list.py", line 154, in get
+    self.object_list = self.get_queryset()
+                       ~~~~~~~~~~~~~~~~~^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\budgets_reports\view_budgets_reports.py", line 61, in get_queryset
+    budget_allocation = allocation.budget_allocation
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-09-28 21:15:29 basehttp log_message "GET /reports/budget/warnings/ HTTP/1.1" 500 114785
+ERROR 2025-09-28 21:23:10 log log_response Internal Server Error: /reports/dashboard/analytics/
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "D:\Python312\Lib\site-packages\django\core\handlers\base.py", line 220, in _get_response
+    response = response.render()
+  File "D:\Python312\Lib\site-packages\django\template\response.py", line 114, in render
+    self.content = self.rendered_content
+                   ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\response.py", line 90, in rendered_content
+    template = self.resolve_template(self.template_name)
+  File "D:\Python312\Lib\site-packages\django\template\response.py", line 72, in resolve_template
+    return select_template(template, using=self.using)
+  File "D:\Python312\Lib\site-packages\django\template\loader.py", line 42, in select_template
+    return engine.get_template(template_name)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\backends\django.py", line 79, in get_template
+    return Template(self.engine.get_template(template_name), self)
+                    ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\engine.py", line 177, in get_template
+    template, origin = self.find_template(template_name)
+                       ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\template\engine.py", line 159, in find_template
+    template = loader.get_template(name, skip=skip)
+  File "D:\Python312\Lib\site-packages\django\template\loaders\cached.py", line 57, in get_template
+    template = super().get_template(template_name, skip)
+  File "D:\Python312\Lib\site-packages\django\template\loaders\base.py", line 28, in get_template
+    return Template(
+        contents,
+    ...<2 lines>...
+        self.engine,
+    )
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 154, in __init__
+    self.nodelist = self.compile_nodelist()
+                    ~~~~~~~~~~~~~~~~~~~~~^^
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 196, in compile_nodelist
+    nodelist = parser.parse()
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 518, in parse
+    raise self.error(token, e)
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 516, in parse
+    compiled_result = compile_func(self, token)
+  File "D:\Python312\Lib\site-packages\django\template\loader_tags.py", line 295, in do_extends
+    nodelist = parser.parse()
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 518, in parse
+    raise self.error(token, e)
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 516, in parse
+    compiled_result = compile_func(self, token)
+  File "D:\Python312\Lib\site-packages\django\template\loader_tags.py", line 234, in do_block
+    nodelist = parser.parse(("endblock",))
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 518, in parse
+    raise self.error(token, e)
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 516, in parse
+    compiled_result = compile_func(self, token)
+  File "D:\Python312\Lib\site-packages\django\template\defaulttags.py", line 962, in do_if
+    nodelist = parser.parse(("elif", "else", "endif"))
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 489, in parse
+    raise self.error(token, e)
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 487, in parse
+    filter_expression = self.compile_filter(token.contents)
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 605, in compile_filter
+    return FilterExpression(token, self)
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 701, in __init__
+    filter_func = parser.find_filter(filter_name)
+  File "D:\Python312\Lib\site-packages\django\template\base.py", line 611, in find_filter
+    raise TemplateSyntaxError("Invalid filter: '%s'" % filter_name)
+django.template.exceptions.TemplateSyntaxError: Invalid filter: 'div'
+ERROR 2025-09-28 21:23:11 basehttp log_message "GET /reports/dashboard/analytics/ HTTP/1.1" 500 315359
+ERROR 2025-09-28 22:03:01 log log_response Internal Server Error: /all_links/
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\core\handlers\base.py", line 220, in _get_response
+    response = response.render()
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\response.py", line 114, in render
+    self.content = self.rendered_content
+                   ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\response.py", line 92, in rendered_content
+    return template.render(context, self._request)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\backends\django.py", line 107, in render
+    return self.template.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 171, in render
+    return self._render(context)
+           ~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\loader_tags.py", line 159, in render
+    return compiled_parent._render(context)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\loader_tags.py", line 65, in render
+    result = block.nodelist.render(context)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\defaulttags.py", line 243, in render
+    nodelist.append(node.render_annotated(context))
+                    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\defaulttags.py", line 480, in render
+    url = reverse(view_name, args=args, kwargs=kwargs, current_app=current_app)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\base.py", line 88, in reverse
+    return resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\resolvers.py", line 831, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'dashboard' not found. 'dashboard' is not a valid view function or pattern name.
+ERROR 2025-09-28 22:03:01 basehttp log_message "GET /all_links/ HTTP/1.1" 500 213887
+ERROR 2025-09-28 22:37:42 log log_response Internal Server Error: /accounts/custom-theme-designer/
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\contrib\auth\decorators.py", line 60, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\accounts\views.py", line 1480, in custom_theme_designer
+    if hasattr(request.user, 'profile') and request.user.profile.custom_theme_data:
+                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'CustomProfile' object has no attribute 'custom_theme_data'
+ERROR 2025-09-28 22:37:42 basehttp log_message "GET /accounts/custom-theme-designer/ HTTP/1.1" 500 99565
+ERROR 2025-09-28 22:38:56 log log_response Internal Server Error: /accounts/custom-theme-designer/
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\contrib\auth\decorators.py", line 60, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\accounts\views.py", line 1480, in custom_theme_designer
+    if hasattr(request.user, 'profile') and request.user.profile.custom_theme_data:
+                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'CustomProfile' object has no attribute 'custom_theme_data'
+ERROR 2025-09-28 22:38:56 basehttp log_message "GET /accounts/custom-theme-designer/ HTTP/1.1" 500 99565
+ERROR 2025-09-28 22:46:45 exception response_for_exception Invalid HTTP_HOST header: 'testserver'. You may need to add 'testserver' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "D:\Python312\Lib\site-packages\django\utils\deprecation.py", line 128, in __call__
+    response = self.process_request(request)
+  File "D:\Python312\Lib\site-packages\django\middleware\common.py", line 48, in process_request
+    host = request.get_host()
+  File "D:\Python312\Lib\site-packages\django\http\request.py", line 151, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: 'testserver'. You may need to add 'testserver' to ALLOWED_HOSTS.
+ERROR 2025-09-28 22:54:16 exception response_for_exception Invalid HTTP_HOST header: 'testserver'. You may need to add 'testserver' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "D:\Python312\Lib\site-packages\django\utils\deprecation.py", line 128, in __call__
+    response = self.process_request(request)
+  File "D:\Python312\Lib\site-packages\django\middleware\common.py", line 48, in process_request
+    host = request.get_host()
+  File "D:\Python312\Lib\site-packages\django\http\request.py", line 151, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: 'testserver'. You may need to add 'testserver' to ALLOWED_HOSTS.
+ERROR 2025-09-28 22:54:42 exception response_for_exception Invalid HTTP_HOST header: 'testserver'. You may need to add 'testserver' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "D:\Python312\Lib\site-packages\django\utils\deprecation.py", line 128, in __call__
+    response = self.process_request(request)
+  File "D:\Python312\Lib\site-packages\django\middleware\common.py", line 48, in process_request
+    host = request.get_host()
+  File "D:\Python312\Lib\site-packages\django\http\request.py", line 151, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: 'testserver'. You may need to add 'testserver' to ALLOWED_HOSTS.

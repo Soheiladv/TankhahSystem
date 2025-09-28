@@ -1,0 +1,514 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .api-documentation {
+        background: #f8f9fa;
+        min-height: 100vh;
+        padding: 20px 0;
+    }
+    
+    .api-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 40px 0;
+        margin-bottom: 30px;
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    
+    .api-stats {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        margin-bottom: 30px;
+    }
+    
+    .stat-card {
+        text-align: center;
+        padding: 20px;
+        border-radius: 8px;
+        background: linear-gradient(45deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+        margin: 10px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    
+    .stat-card h3 {
+        font-size: 2.5rem;
+        margin: 0;
+        font-weight: bold;
+    }
+    
+    .stat-card p {
+        margin: 5px 0 0 0;
+        font-size: 1.1rem;
+        opacity: 0.9;
+    }
+    
+    .category-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        margin-bottom: 30px;
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .category-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+    }
+    
+    .category-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 25px;
+        position: relative;
+    }
+    
+    .category-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/><circle cx="50" cy="10" r="0.5" fill="white" opacity="0.1"/><circle cx="10" cy="60" r="0.5" fill="white" opacity="0.1"/><circle cx="90" cy="40" r="0.5" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+        opacity: 0.3;
+    }
+    
+    .category-title {
+        font-size: 1.8rem;
+        font-weight: bold;
+        margin: 0 0 10px 0;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .category-description {
+        font-size: 1.1rem;
+        opacity: 0.9;
+        margin: 0;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .api-item {
+        border-bottom: 1px solid #e9ecef;
+        padding: 25px;
+        transition: background-color 0.3s ease;
+    }
+    
+    .api-item:hover {
+        background-color: #f8f9fa;
+    }
+    
+    .api-item:last-child {
+        border-bottom: none;
+    }
+    
+    .api-name {
+        font-size: 1.4rem;
+        font-weight: bold;
+        color: #2c3e50;
+        margin: 0 0 10px 0;
+        display: flex;
+        align-items: center;
+    }
+    
+    .api-name::before {
+        content: '🔌';
+        margin-left: 10px;
+        font-size: 1.2rem;
+    }
+    
+    .api-class {
+        font-family: 'Courier New', monospace;
+        background: #e9ecef;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.9rem;
+        color: #495057;
+        margin-left: 10px;
+    }
+    
+    .api-url {
+        background: #28a745;
+        color: white;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: bold;
+        margin: 10px 0;
+        display: inline-block;
+        font-family: 'Courier New', monospace;
+    }
+    
+    .api-method {
+        background: #007bff;
+        color: white;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        font-weight: bold;
+        margin-left: 10px;
+    }
+    
+    .api-description {
+        color: #6c757d;
+        font-size: 1.1rem;
+        margin: 15px 0;
+        line-height: 1.6;
+    }
+    
+    .api-permissions {
+        background: #fff3cd;
+        border: 1px solid #ffeaa7;
+        color: #856404;
+        padding: 8px 12px;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        margin: 10px 0;
+        display: inline-block;
+    }
+    
+    .api-features {
+        margin: 15px 0;
+    }
+    
+    .api-features h6 {
+        color: #495057;
+        font-weight: bold;
+        margin: 0 0 10px 0;
+        font-size: 1rem;
+    }
+    
+    .feature-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .feature-list li {
+        padding: 5px 0;
+        color: #6c757d;
+        position: relative;
+        padding-right: 25px;
+    }
+    
+    .feature-list li::before {
+        content: '✓';
+        position: absolute;
+        right: 0;
+        color: #28a745;
+        font-weight: bold;
+    }
+    
+    .api-usage {
+        background: #e3f2fd;
+        border-right: 4px solid #2196f3;
+        padding: 15px;
+        border-radius: 0 8px 8px 0;
+        margin: 15px 0;
+    }
+    
+    .api-usage h6 {
+        color: #1976d2;
+        font-weight: bold;
+        margin: 0 0 8px 0;
+        font-size: 1rem;
+    }
+    
+    .api-usage p {
+        margin: 0;
+        color: #424242;
+        font-size: 0.95rem;
+        line-height: 1.5;
+    }
+    
+    .template-info {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        padding: 10px 15px;
+        border-radius: 6px;
+        font-family: 'Courier New', monospace;
+        font-size: 0.9rem;
+        color: #495057;
+        margin: 10px 0;
+    }
+    
+    .search-box {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        margin-bottom: 30px;
+    }
+    
+    .search-input {
+        width: 100%;
+        padding: 12px 20px;
+        border: 2px solid #e9ecef;
+        border-radius: 25px;
+        font-size: 1.1rem;
+        transition: border-color 0.3s ease;
+    }
+    
+    .search-input:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
+    .no-results {
+        text-align: center;
+        padding: 40px;
+        color: #6c757d;
+        font-size: 1.2rem;
+    }
+    
+    .copy-btn {
+        background: #6c757d;
+        color: white;
+        border: none;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        cursor: pointer;
+        margin-left: 10px;
+        transition: background-color 0.3s ease;
+    }
+    
+    .copy-btn:hover {
+        background: #5a6268;
+    }
+    
+    .copy-btn.copied {
+        background: #28a745;
+    }
+    
+    @media (max-width: 768px) {
+        .api-header {
+            padding: 20px 0;
+        }
+        
+        .category-title {
+            font-size: 1.5rem;
+        }
+        
+        .api-name {
+            font-size: 1.2rem;
+        }
+        
+        .stat-card h3 {
+            font-size: 2rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="api-documentation">
+    <div class="container">
+        <!-- Header -->
+        <div class="api-header text-center">
+            <div class="container">
+                <h1 class="display-4 mb-3">
+                    <i class="fas fa-code"></i>
+                    {{ page_title }}
+                </h1>
+                <p class="lead mb-0">{{ page_description }}</p>
+            </div>
+        </div>
+
+        <!-- Statistics -->
+        <div class="api-stats">
+            <div class="row text-center">
+                <div class="col-md-4">
+                    <div class="stat-card">
+                        <h3>{{ total_apis }}</h3>
+                        <p>تعداد کل API ها</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stat-card">
+                        <h3>{{ total_categories }}</h3>
+                        <p>دسته‌بندی API ها</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stat-card">
+                        <h3>{% if user.is_staff %}فعال{% else %}غیرفعال{% endif %}</h3>
+                        <p>وضعیت دسترسی</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search Box -->
+        <div class="search-box">
+            <div class="row">
+                <div class="col-md-8 mx-auto">
+                    <input type="text" class="search-input" id="apiSearch" placeholder="جستجو در API ها... (نام، URL، توضیحات)">
+                </div>
+            </div>
+        </div>
+
+        <!-- API Categories -->
+        <div id="apiCategories">
+            {% for category_key, category in apis.items %}
+            <div class="category-card" data-category="{{ category.title|lower }}">
+                <div class="category-header">
+                    <h2 class="category-title">{{ category.title }}</h2>
+                    <p class="category-description">{{ category.description }}</p>
+                </div>
+                
+                <div class="category-apis">
+                    {% for api in category.apis %}
+                    <div class="api-item" data-api-name="{{ api.name|lower }}" data-api-url="{{ api.url|lower }}" data-api-desc="{{ api.description|lower }}">
+                        <div class="api-name">
+                            {{ api.name }}
+                            <span class="api-class">{{ api.class_name }}</span>
+                        </div>
+                        
+                        <div class="d-flex align-items-center mb-3">
+                            <span class="api-url">{{ api.url }}</span>
+                            <span class="api-method">{{ api.method }}</span>
+                            <button class="copy-btn" onclick="copyToClipboard('{{ api.url }}')" title="کپی URL">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="api-description">
+                            {{ api.description }}
+                        </div>
+                        
+                        <div class="api-permissions">
+                            <strong>مجوزها:</strong> {{ api.permissions }}
+                        </div>
+                        
+                        {% if api.template %}
+                        <div class="template-info">
+                            <strong>Template:</strong> {{ api.template }}
+                        </div>
+                        {% endif %}
+                        
+                        <div class="api-features">
+                            <h6>ویژگی‌ها:</h6>
+                            <ul class="feature-list">
+                                {% for feature in api.features %}
+                                <li>{{ feature }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        
+                        <div class="api-usage">
+                            <h6>کاربرد:</h6>
+                            <p>{{ api.usage }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- No Results Message -->
+        <div id="noResults" class="no-results" style="display: none;">
+            <i class="fas fa-search fa-3x mb-3"></i>
+            <h4>نتیجه‌ای یافت نشد</h4>
+            <p>لطفاً کلمات کلیدی دیگری را امتحان کنید.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('apiSearch');
+    const apiCategories = document.getElementById('apiCategories');
+    const noResults = document.getElementById('noResults');
+    
+    searchInput.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        let hasResults = false;
+        
+        // جستجو در تمامی API ها
+        const apiItems = document.querySelectorAll('.api-item');
+        const categoryCards = document.querySelectorAll('.category-card');
+        
+        apiItems.forEach(item => {
+            const apiName = item.dataset.apiName || '';
+            const apiUrl = item.dataset.apiUrl || '';
+            const apiDesc = item.dataset.apiDesc || '';
+            
+            if (apiName.includes(searchTerm) || apiUrl.includes(searchTerm) || apiDesc.includes(searchTerm)) {
+                item.style.display = 'block';
+                hasResults = true;
+            } else {
+                item.style.display = 'none';
+            }
+        });
+        
+        // نمایش/مخفی کردن دسته‌بندی‌ها
+        categoryCards.forEach(card => {
+            const visibleItems = card.querySelectorAll('.api-item[style*="block"], .api-item:not([style*="none"])');
+            if (visibleItems.length > 0) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+        
+        // نمایش پیام عدم وجود نتیجه
+        if (hasResults) {
+            noResults.style.display = 'none';
+            apiCategories.style.display = 'block';
+        } else {
+            noResults.style.display = 'block';
+            apiCategories.style.display = 'none';
+        }
+    });
+});
+
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(function() {
+        // نمایش پیام موفقیت
+        const btn = event.target.closest('.copy-btn');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-check"></i>';
+        btn.classList.add('copied');
+        
+        setTimeout(function() {
+            btn.innerHTML = originalText;
+            btn.classList.remove('copied');
+        }, 2000);
+    }).catch(function(err) {
+        console.error('خطا در کپی کردن: ', err);
+        alert('خطا در کپی کردن URL');
+    });
+}
+
+// انیمیشن ورود
+document.addEventListener('DOMContentLoaded', function() {
+    const cards = document.querySelectorAll('.category-card');
+    cards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        
+        setTimeout(() => {
+            card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, index * 100);
+    });
+});
+</script>
+{% endblock %}

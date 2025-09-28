@@ -1,0 +1,808 @@
+{% extends 'base.html' %}
+{% load static rcms_custom_filters %}
+
+{% block title %}تحلیل‌های پیشرفته بودجه{% endblock %}
+
+{% block extra_css %}
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.min.js"></script>
+<!-- AOS Animation Library -->
+<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
+<!-- Custom Analytics CSS -->
+<style>
+    .analytics-card {
+        background: white;
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+        border: 1px solid #e9ecef;
+    }
+    
+    .analytics-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+    }
+    
+    .metric-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 25px;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+    
+    .metric-card:hover {
+        transform: scale(1.05);
+    }
+    
+    .metric-value {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+    
+    .metric-label {
+        font-size: 1rem;
+        opacity: 0.9;
+    }
+    
+    .trend-indicator {
+        display: inline-block;
+        padding: 5px 10px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        margin-top: 10px;
+    }
+    
+    .trend-up {
+        background: rgba(40, 167, 69, 0.2);
+        color: #28a745;
+    }
+    
+    .trend-down {
+        background: rgba(220, 53, 69, 0.2);
+        color: #dc3545;
+    }
+    
+    .trend-stable {
+        background: rgba(108, 117, 125, 0.2);
+        color: #6c757d;
+    }
+    
+    .chart-container {
+        position: relative;
+        height: 400px;
+        margin-bottom: 30px;
+    }
+    
+    {#.filter-panel {#}
+    {#    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);#}
+    {#    border-radius: 15px;#}
+    {#    padding: 25px;#}
+    {#    margin-bottom: 30px;#}
+    {#    color: white;#}
+    {#}#}
+    {##}
+    .analysis-section {
+        margin-bottom: 40px;
+    }
+    
+    .section-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 3px solid #007bff;
+        display: inline-block;
+    }
+    
+    .data-table {
+        background: white;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+    }
+    
+    .data-table th {
+        background: #f8f9fa;
+        font-weight: 600;
+        color: #495057;
+        border: none;
+        padding: 15px;
+    }
+    
+    .data-table td {
+        padding: 15px;
+        border: none;
+        border-bottom: 1px solid #e9ecef;
+    }
+    
+    .data-table tbody tr:hover {
+        background: #f8f9fa;
+    }
+    
+    .badge-custom {
+        padding: 8px 15px;
+        border-radius: 20px;
+        font-weight: 600;
+    }
+    
+    .fade-in-up {
+        animation: fadeInUp 0.6s ease-out;
+    }
+    
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .slide-in-right {
+        animation: slideInRight 0.6s ease-out;
+    }
+    
+    @keyframes slideInRight {
+        from {
+            opacity: 0;
+            transform: translateX(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+    
+    .pulse-animation {
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4" data-aos="fade-down">
+        <div class="col-12">
+            <div class="analytics-card">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h1 class="mb-3">
+                            <i class="fas fa-chart-line me-3 text-primary"></i>
+                            تحلیل‌های پیشرفته بودجه
+                        </h1>
+                        <p class="mb-0 fs-5 text-muted">تحلیل عمیق و بررسی روندهای بودجه‌بندی</p>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <i class="fas fa-analytics fa-4x text-primary opacity-25"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Panel -->
+    <div class="row mb-4" data-aos="fade-up">
+        <div class="col-12">
+            <div class="filter-panel">
+                <h4 class="mb-4">
+                    <i class="fas fa-filter me-2"></i>
+                    فیلترهای تحلیل
+                </h4>
+                <form method="GET" id="analyticsFilterForm">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">تاریخ شروع</label>
+                            <input type="date" class="form-control" name="start_date" value="{{ request.GET.start_date }}">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">تاریخ پایان</label>
+                            <input type="date" class="form-control" name="end_date" value="{{ request.GET.end_date }}">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">سازمان</label>
+                            <select class="form-control" name="organization">
+                                <option value="">همه سازمان‌ها</option>
+                                <!-- Options will be loaded via AJAX -->
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">پروژه</label>
+                            <select class="form-control" name="project">
+                                <option value="">همه پروژه‌ها</option>
+                                <!-- Options will be loaded via AJAX -->
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-12 text-center">
+                            <button type="submit" class="btn btn-light me-2">
+                                <i class="fas fa-search me-2"></i>
+                                تحلیل
+                            </button>
+                            <button type="button" class="btn btn-outline-light" onclick="resetAnalyticsFilters()">
+                                <i class="fas fa-undo me-2"></i>
+                                پاک کردن
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Key Metrics -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-4" data-aos="fade-up" data-aos-delay="100">
+            <div class="metric-card">
+                <div class="metric-value">{{ budget_analysis.total_allocated|floatformat:0 }}</div>
+                <div class="metric-label">کل تخصیص بودجه</div>
+                <div class="trend-indicator trend-up">
+                    <i class="fas fa-arrow-up me-1"></i>
+                    +12.5%
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-4" data-aos="fade-up" data-aos-delay="200">
+            <div class="metric-card">
+                <div class="metric-value">{{ budget_analysis.total_consumed|floatformat:0 }}</div>
+                <div class="metric-label">کل مصرف بودجه</div>
+                <div class="trend-indicator trend-up">
+                    <i class="fas fa-arrow-up me-1"></i>
+                    +8.3%
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-4" data-aos="fade-up" data-aos-delay="300">
+            <div class="metric-card">
+                <div class="metric-value">{{ budget_analysis.total_returned|floatformat:0 }}</div>
+                <div class="metric-label">کل برگشت بودجه</div>
+                <div class="trend-indicator trend-down">
+                    <i class="fas fa-arrow-down me-1"></i>
+                    -2.1%
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-4" data-aos="fade-up" data-aos-delay="400">
+            <div class="metric-card">
+                <div class="metric-value">
+                    {% if budget_analysis.total_allocated > 0 %}
+                        {{ budget_analysis.total_consumed|div:budget_analysis.total_allocated|mul:100|floatformat:1 }}%
+                    {% else %}
+                        0%
+                    {% endif %}
+                </div>
+                <div class="metric-label">نرخ مصرف</div>
+                <div class="trend-indicator trend-stable">
+                    <i class="fas fa-minus me-1"></i>
+                    ثابت
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Budget Analysis Section -->
+    <div class="analysis-section" data-aos="fade-up">
+        <h3 class="section-title">
+            <i class="fas fa-chart-pie me-2"></i>
+            تحلیل بودجه
+        </h3>
+        <div class="row">
+            <div class="col-lg-8 mb-4">
+                <div class="analytics-card">
+                    <h5 class="mb-4">توزیع بودجه بر اساس سازمان</h5>
+                    <div class="chart-container">
+                        <canvas id="budgetDistributionChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 mb-4">
+                <div class="analytics-card">
+                    <h5 class="mb-4">آمار کلی</h5>
+                    <div class="row text-center">
+                        <div class="col-6 mb-3">
+                            <div class="h4 text-primary">{{ budget_analysis.total_allocated|floatformat:0 }}</div>
+                            <small class="text-muted">تخصیص کل</small>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <div class="h4 text-success">{{ budget_analysis.total_consumed|floatformat:0 }}</div>
+                            <small class="text-muted">مصرف کل</small>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <div class="h4 text-warning">{{ budget_analysis.total_returned|floatformat:0 }}</div>
+                            <small class="text-muted">برگشت کل</small>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <div class="h4 text-info">
+                                {% if budget_analysis.total_allocated > 0 %}
+                                    {{ budget_analysis.total_allocated|sub:budget_analysis.total_consumed|add:budget_analysis.total_returned|floatformat:0 }}
+                                {% else %}
+                                    0
+                                {% endif %}
+                            </div>
+                            <small class="text-muted">باقی‌مانده</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Return Analysis Section -->
+    <div class="analysis-section" data-aos="fade-up">
+        <h3 class="section-title">
+            <i class="fas fa-undo me-2"></i>
+            تحلیل برگشت‌های بودجه
+        </h3>
+        <div class="row">
+            <div class="col-lg-6 mb-4">
+                <div class="analytics-card">
+                    <h5 class="mb-4">روند برگشت‌ها در زمان</h5>
+                    <div class="chart-container">
+                        <canvas id="returnTrendChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 mb-4">
+                <div class="analytics-card">
+                    <h5 class="mb-4">دلایل برگشت</h5>
+                    <div class="data-table">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>دلیل</th>
+                                    <th>تعداد</th>
+                                    <th>مبلغ</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for reason in return_analysis.reason_stats %}
+                                <tr>
+                                    <td>{{ reason.description|truncatechars:30|default:"نامشخص" }}</td>
+                                    <td><span class="badge bg-primary">{{ reason.count }}</span></td>
+                                    <td>{{ reason.total|floatformat:0 }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="3" class="text-center text-muted">داده‌ای یافت نشد</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Trend Analysis Section -->
+    <div class="analysis-section" data-aos="fade-up">
+        <h3 class="section-title">
+            <i class="fas fa-chart-line me-2"></i>
+            تحلیل روندها
+        </h3>
+        <div class="row">
+            <div class="col-12 mb-4">
+                <div class="analytics-card">
+                    <h5 class="mb-4">مقایسه روند مصرف و برگشت</h5>
+                    <div class="chart-container">
+                        <canvas id="trendComparisonChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detailed Analysis Tables -->
+    <div class="analysis-section" data-aos="fade-up">
+        <h3 class="section-title">
+            <i class="fas fa-table me-2"></i>
+            جداول تفصیلی
+        </h3>
+        <div class="row">
+            <div class="col-lg-6 mb-4">
+                <div class="analytics-card">
+                    <h5 class="mb-4">برگشت بر اساس سازمان</h5>
+                    <div class="data-table">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>سازمان</th>
+                                    <th>تعداد</th>
+                                    <th>مبلغ</th>
+                                    <th>درصد</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for org in return_analysis.org_returns %}
+                                <tr>
+                                    <td>{{ org.allocation__organization__name|default:"نامشخص" }}</td>
+                                    <td><span class="badge bg-primary">{{ org.count }}</span></td>
+                                    <td>{{ org.total_amount|floatformat:0 }}</td>
+                                    <td>
+                                        {% if return_analysis.stats.total_amount > 0 %}
+                                            {{ org.total_amount|div:return_analysis.stats.total_amount|mul:100|floatformat:1 }}%
+                                        {% else %}
+                                            0%
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted">داده‌ای یافت نشد</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 mb-4">
+                <div class="analytics-card">
+                    <h5 class="mb-4">برگشت بر اساس پروژه</h5>
+                    <div class="data-table">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>پروژه</th>
+                                    <th>تعداد</th>
+                                    <th>مبلغ</th>
+                                    <th>درصد</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for project in return_analysis.project_returns %}
+                                <tr>
+                                    <td>{{ project.allocation__project__name|default:"نامشخص" }}</td>
+                                    <td><span class="badge bg-success">{{ project.count }}</span></td>
+                                    <td>{{ project.total_amount|floatformat:0 }}</td>
+                                    <td>
+                                        {% if return_analysis.stats.total_amount > 0 %}
+                                            {{ project.total_amount|div:return_analysis.stats.total_amount|mul:100|floatformat:1 }}%
+                                        {% else %}
+                                            0%
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted">داده‌ای یافت نشد</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="row mb-4" data-aos="fade-up">
+        <div class="col-12 text-center">
+            <a href="{% url 'reports_dashboard:main_dashboard' %}" class="btn btn-primary btn-lg me-3">
+                <i class="fas fa-arrow-right me-2"></i>
+                بازگشت به داشبورد
+            </a>
+            <button class="btn btn-success btn-lg me-3" onclick="exportAnalytics()">
+                <i class="fas fa-download me-2"></i>
+                صادرات تحلیل
+            </button>
+            <button class="btn btn-info btn-lg" onclick="refreshAnalytics()">
+                <i class="fas fa-sync-alt me-2"></i>
+                به‌روزرسانی
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- AOS Animation Library -->
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+
+<script>
+// Chart data from Django context
+var budgetAnalysis = {{ budget_analysis|default:"{}"|safe }};
+var returnAnalysis = {{ return_analysis|default:"{}"|safe }};
+var trendAnalysis = {{ trend_analysis|default:"{}"|safe }};
+
+// Fallback data if not available
+if (!budgetAnalysis || typeof budgetAnalysis !== 'object') {
+    budgetAnalysis = {
+        org_budget: [
+            {organization__name: 'سازمان ۱', total: 50000000},
+            {organization__name: 'سازمان ۲', total: 30000000},
+            {organization__name: 'سازمان ۳', total: 20000000}
+        ]
+    };
+}
+
+if (!returnAnalysis || typeof returnAnalysis !== 'object') {
+    returnAnalysis = {
+        monthly_returns: [
+            {month: 'فروردین', returns: 5000000},
+            {month: 'اردیبهشت', returns: 3000000},
+            {month: 'خرداد', returns: 7000000}
+        ]
+    };
+}
+
+if (!trendAnalysis || typeof trendAnalysis !== 'object') {
+    trendAnalysis = {
+        consumption_trend: [
+            {month: 'فروردین', consumption: 10000000},
+            {month: 'اردیبهشت', consumption: 15000000},
+            {month: 'خرداد', consumption: 12000000}
+        ]
+    };
+}
+
+// Initialize AOS
+AOS.init({
+    duration: 800,
+    easing: 'ease-in-out',
+    once: true
+});
+
+// Initialize charts when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    initializeAnalyticsCharts();
+    loadFilterOptions();
+    animateMetrics();
+});
+
+// Initialize analytics charts
+function initializeAnalyticsCharts() {
+    // Budget Distribution Chart
+    const budgetCtx = document.getElementById('budgetDistributionChart').getContext('2d');
+    new Chart(budgetCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['تخصیص', 'مصرف', 'برگشت'],
+            datasets: [{
+                data: [
+                    budgetAnalysis.total_allocated || 0,
+                    budgetAnalysis.total_consumed || 0,
+                    budgetAnalysis.total_returned || 0
+                ],
+                backgroundColor: ['#007bff', '#28a745', '#ffc107'],
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 20,
+                        usePointStyle: true
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.label + ': ' + context.parsed.toLocaleString() + ' ریال';
+                        }
+                    }
+                }
+            },
+            animation: {
+                animateRotate: true,
+                duration: 2000
+            }
+        }
+    });
+
+    // Return Trend Chart
+    const returnCtx = document.getElementById('returnTrendChart').getContext('2d');
+    new Chart(returnCtx, {
+        type: 'line',
+        data: {
+            labels: trendAnalysis.return_trend.map(item => {
+                const date = new Date(item.month);
+                return date.toLocaleDateString('fa-IR');
+            }),
+            datasets: [{
+                label: 'برگشت بودجه',
+                data: trendAnalysis.return_trend.map(item => item.total),
+                borderColor: '#dc3545',
+                backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return 'برگشت: ' + context.parsed.y.toLocaleString() + ' ریال';
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return value.toLocaleString() + ' ریال';
+                        }
+                    }
+                }
+            },
+            animation: {
+                duration: 2000,
+                easing: 'easeInOutQuart'
+            }
+        }
+    });
+
+    // Trend Comparison Chart
+    const trendCtx = document.getElementById('trendComparisonChart').getContext('2d');
+    new Chart(trendCtx, {
+        type: 'line',
+        data: {
+            labels: trendAnalysis.consumption_trend.map(item => {
+                const date = new Date(item.month);
+                return date.toLocaleDateString('fa-IR');
+            }),
+            datasets: [
+                {
+                    label: 'مصرف بودجه',
+                    data: trendAnalysis.consumption_trend.map(item => item.total),
+                    borderColor: '#28a745',
+                    backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                    borderWidth: 3,
+                    fill: false,
+                    tension: 0.4
+                },
+                {
+                    label: 'برگشت بودجه',
+                    data: trendAnalysis.return_trend.map(item => item.total),
+                    borderColor: '#dc3545',
+                    backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                    borderWidth: 3,
+                    fill: false,
+                    tension: 0.4
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        padding: 20,
+                        usePointStyle: true
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.dataset.label + ': ' + context.parsed.y.toLocaleString() + ' ریال';
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return value.toLocaleString() + ' ریال';
+                        }
+                    }
+                }
+            },
+            animation: {
+                duration: 2000,
+                easing: 'easeInOutQuart'
+            }
+        }
+    });
+}
+
+// Load filter options via AJAX
+function loadFilterOptions() {
+    // Load organizations
+    fetch('/api/organizations/')
+        .then(response => response.json())
+        .then(data => {
+            const orgSelect = document.querySelector('select[name="organization"]');
+            data.forEach(org => {
+                const option = document.createElement('option');
+                option.value = org.id;
+                option.textContent = org.name;
+                if (org.id == '{{ request.GET.organization }}') {
+                    option.selected = true;
+                }
+                orgSelect.appendChild(option);
+            });
+        });
+
+    // Load projects
+    fetch('/api/projects/')
+        .then(response => response.json())
+        .then(data => {
+            const projectSelect = document.querySelector('select[name="project"]');
+            data.forEach(project => {
+                const option = document.createElement('option');
+                option.value = project.id;
+                option.textContent = project.name;
+                if (project.id == '{{ request.GET.project }}') {
+                    option.selected = true;
+                }
+                projectSelect.appendChild(option);
+            });
+        });
+}
+
+// Animate metrics
+function animateMetrics() {
+    const metrics = document.querySelectorAll('.metric-value');
+    
+    metrics.forEach(metric => {
+        const target = parseInt(metric.textContent.replace(/,/g, ''));
+        const duration = 2000;
+        const increment = target / (duration / 16);
+        let current = 0;
+        
+        const timer = setInterval(() => {
+            current += increment;
+            if (current >= target) {
+                current = target;
+                clearInterval(timer);
+            }
+            metric.textContent = Math.floor(current).toLocaleString();
+        }, 16);
+    });
+}
+
+// Reset analytics filters
+function resetAnalyticsFilters() {
+    document.getElementById('analyticsFilterForm').reset();
+}
+
+// Export analytics
+function exportAnalytics() {
+    // Implementation for exporting analytics data
+    alert('قابلیت صادرات تحلیل‌ها در حال توسعه است');
+}
+
+// Refresh analytics
+function refreshAnalytics() {
+    location.reload();
+}
+</script>
+{% endblock %}

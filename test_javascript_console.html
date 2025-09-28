@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تست JavaScript Console</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container py-5">
+        <h1 class="text-center mb-5">🧪 تست JavaScript Console</h1>
+        
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">مراحل تست JavaScript</h5>
+            </div>
+            <div class="card-body">
+                <ol>
+                    <li class="mb-3">
+                        <strong>باز کردن صفحه گزارش:</strong>
+                        <a href="http://127.0.0.1:8000/reports/reports/comprehensive-budget/" 
+                           target="_blank" class="btn btn-primary btn-sm ms-2">
+                            <i class="fas fa-external-link-alt me-1"></i>باز کردن صفحه
+                        </a>
+                    </li>
+                    <li class="mb-3">
+                        <strong>باز کردن Developer Tools:</strong>
+                        <ul>
+                            <li>فشار دادن <kbd>F12</kbd> یا <kbd>Ctrl+Shift+I</kbd></li>
+                            <li>رفتن به تب <strong>Console</strong></li>
+                        </ul>
+                    </li>
+                    <li class="mb-3">
+                        <strong>بررسی پیام‌های Console:</strong>
+                        <ul>
+                            <li>پیام <code>Comprehensive Budget Report loaded</code> باید نمایش داده شود</li>
+                            <li>هیچ خطای قرمز نباید وجود داشته باشد</li>
+                        </ul>
+                    </li>
+                    <li class="mb-3">
+                        <strong>کلیک روی دکمه "نمایش":</strong>
+                        <ul>
+                            <li>روی دکمه "نمایش" در ردیف سازمان کلیک کنید</li>
+                            <li>پیام <code>Loading budget items for org: ...</code> باید نمایش داده شود</li>
+                            <li>پیام <code>Response status: 200</code> باید نمایش داده شود</li>
+                            <li>پیام <code>Response data: ...</code> باید نمایش داده شود</li>
+                        </ul>
+                    </li>
+                    <li class="mb-3">
+                        <strong>بررسی نتیجه:</strong>
+                        <ul>
+                            <li>اگر خطا وجود دارد، آن را کپی کنید</li>
+                            <li>اگر موفقیت‌آمیز است، سرفصل‌های بودجه باید نمایش داده شوند</li>
+                        </ul>
+                    </li>
+                </ol>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">مشکلات احتمالی و راه‌حل</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>مشکلات JavaScript:</h6>
+                        <ul>
+                            <li><strong>خطای CORS:</strong> مشکل در تنظیمات سرور</li>
+                            <li><strong>خطای CSRF:</strong> مشکل در token</li>
+                            <li><strong>خطای 404:</strong> URL اشتباه</li>
+                            <li><strong>خطای 500:</strong> مشکل در سرور</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>راه‌حل‌ها:</h6>
+                        <ul>
+                            <li>بررسی Network tab در Developer Tools</li>
+                            <li>بررسی Console برای خطاها</li>
+                            <li>بررسی Elements tab برای HTML</li>
+                            <li>بررسی Sources tab برای JavaScript</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0">تست دستی</h5>
+            </div>
+            <div class="card-body">
+                <p>برای تست دستی، مراحل زیر را انجام دهید:</p>
+                <ol>
+                    <li>صفحه گزارش را باز کنید</li>
+                    <li>F12 را فشار دهید</li>
+                    <li>به تب Console بروید</li>
+                    <li>کد زیر را در Console تایپ کنید:</li>
+                </ol>
+                <pre class="bg-light p-3 rounded"><code>// تست بارگذاری سرفصل‌های بودجه
+document.querySelectorAll('.btn-load-items').forEach(button => {
+    console.log('Button found:', button);
+    console.log('URL:', button.dataset.url);
+    console.log('Target:', button.dataset.target);
+});
+
+// تست کلیک
+document.querySelector('.btn-load-items').click();</code></pre>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

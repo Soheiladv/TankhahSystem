@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لینک‌های گزارش جامع بودجه</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container py-5">
+        <h1 class="text-center mb-5">🔗 تگ‌های لینک برای گزارش جامع بودجه</h1>
+        
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">1️⃣ لینک ساده HTML</h5>
+                    </div>
+                    <div class="card-body">
+                        <pre><code>&lt;a href="{% url "comprehensive_budget_report" %}" class="btn btn-primary"&gt;
+    &lt;i class="fas fa-chart-bar me-2"&gt;&lt;/i&gt;گزارش جامع بودجه
+&lt;/a&gt;</code></pre>
+                        <a href="http://127.0.0.1:8000/reports/reports/comprehensive-budget/" class="btn btn-primary">
+                            <i class="fas fa-chart-bar me-2"></i>گزارش جامع بودجه
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">2️⃣ لینک با استایل Bootstrap</h5>
+                    </div>
+                    <div class="card-body">
+                        <pre><code>&lt;a href="{% url "comprehensive_budget_report" %}" class="btn btn-success btn-lg"&gt;
+    &lt;i class="fas fa-file-alt me-2"&gt;&lt;/i&gt;گزارش جامع بودجه
+&lt;/a&gt;</code></pre>
+                        <a href="http://127.0.0.1:8000/reports/reports/comprehensive-budget/" class="btn btn-success btn-lg">
+                            <i class="fas fa-file-alt me-2"></i>گزارش جامع بودجه
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">3️⃣ لینک در منوی ناوبری</h5>
+                    </div>
+                    <div class="card-body">
+                        <pre><code>&lt;li class="nav-item"&gt;
+    &lt;a class="nav-link" href="{% url "comprehensive_budget_report" %}"&gt;
+        &lt;i class="fas fa-chart-pie me-2"&gt;&lt;/i&gt;گزارش جامع بودجه
+    &lt;/a&gt;
+&lt;/li&gt;</code></pre>
+                        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+                            <div class="container-fluid">
+                                <ul class="navbar-nav">
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="http://127.0.0.1:8000/reports/reports/comprehensive-budget/">
+                                            <i class="fas fa-chart-pie me-2"></i>گزارش جامع بودجه
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="mb-0">4️⃣ لینک در کارت</h5>
+                    </div>
+                    <div class="card-body">
+                        <pre><code>&lt;div class="card"&gt;
+    &lt;div class="card-body text-center"&gt;
+        &lt;h5 class="card-title"&gt;گزارش جامع بودجه&lt;/h5&gt;
+        &lt;p class="card-text"&gt;نمایش کامل وضعیت بودجه سازمانی&lt;/p&gt;
+        &lt;a href="{% url "comprehensive_budget_report" %}" class="btn btn-primary"&gt;
+            &lt;i class="fas fa-eye me-2"&gt;&lt;/i&gt;مشاهده گزارش
+        &lt;/a&gt;
+    &lt;/div&gt;
+&lt;/div&gt;</code></pre>
+                        <div class="card">
+                            <div class="card-body text-center">
+                                <h5 class="card-title">گزارش جامع بودجه</h5>
+                                <p class="card-text">نمایش کامل وضعیت بودجه سازمانی</p>
+                                <a href="http://127.0.0.1:8000/reports/reports/comprehensive-budget/" class="btn btn-primary">
+                                    <i class="fas fa-eye me-2"></i>مشاهده گزارش
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-12 mb-4">
+                <div class="card">
+                    <div class="card-header bg-dark text-white">
+                        <h5 class="mb-0">5️⃣ لینک در داشبورد</h5>
+                    </div>
+                    <div class="card-body">
+                        <pre><code>&lt;div class="row"&gt;
+    &lt;div class="col-md-4"&gt;
+        &lt;div class="card bg-gradient-primary text-white"&gt;
+            &lt;div class="card-body"&gt;
+                &lt;div class="d-flex justify-content-between"&gt;
+                    &lt;div&gt;
+                        &lt;h4 class="card-title"&gt;گزارش جامع بودجه&lt;/h4&gt;
+                        &lt;p class="card-text"&gt;وضعیت کلی بودجه سازمان&lt;/p&gt;
+                    &lt;/div&gt;
+                    &lt;div class="align-self-center"&gt;
+                        &lt;i class="fas fa-chart-line fa-3x"&gt;&lt;/i&gt;
+                    &lt;/div&gt;
+                &lt;/div&gt;
+                &lt;a href="{% url "comprehensive_budget_report" %}" class="btn btn-light btn-sm"&gt;
+                    &lt;i class="fas fa-arrow-left me-1"&gt;&lt;/i&gt;مشاهده
+                &lt;/a&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+&lt;/div&gt;</code></pre>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="card bg-gradient-primary text-white">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between">
+                                            <div>
+                                                <h4 class="card-title">گزارش جامع بودجه</h4>
+                                                <p class="card-text">وضعیت کلی بودجه سازمان</p>
+                                            </div>
+                                            <div class="align-self-center">
+                                                <i class="fas fa-chart-line fa-3x"></i>
+                                            </div>
+                                        </div>
+                                        <a href="http://127.0.0.1:8000/reports/reports/comprehensive-budget/" class="btn btn-light btn-sm">
+                                            <i class="fas fa-arrow-left me-1"></i>مشاهده
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-12 mb-4">
+                <div class="card">
+                    <div class="card-header bg-secondary text-white">
+                        <h5 class="mb-0">6️⃣ لینک مستقیم (بدون Django template)</h5>
+                    </div>
+                    <div class="card-body">
+                        <pre><code>&lt;a href="http://127.0.0.1:8000/reports/reports/comprehensive-budget/" 
+   class="btn btn-outline-primary" 
+   target="_blank"&gt;
+    &lt;i class="fas fa-external-link-alt me-2"&gt;&lt;/i&gt;گزارش جامع بودجه
+&lt;/a&gt;</code></pre>
+                        <a href="http://127.0.0.1:8000/reports/reports/comprehensive-budget/" 
+                           class="btn btn-outline-primary" 
+                           target="_blank">
+                            <i class="fas fa-external-link-alt me-2"></i>گزارش جامع بودجه
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="alert alert-info mt-4">
+            <h5><i class="fas fa-info-circle me-2"></i>نکات مهم:</h5>
+            <ul class="mb-0">
+                <li><strong>URL Pattern:</strong> <code>comprehensive_budget_report</code></li>
+                <li><strong>مسیر کامل:</strong> <code>http://127.0.0.1:8000/reports/reports/comprehensive-budget/</code></li>
+                <li><strong>استفاده در Django:</strong> از <code>{% url "comprehensive_budget_report" %}</code> استفاده کنید</li>
+                <li><strong>استفاده مستقیم:</strong> از URL کامل استفاده کنید</li>
+            </ul>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

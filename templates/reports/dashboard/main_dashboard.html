@@ -1,0 +1,964 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}داشبورد گزارشات - آمار بودجه{% endblock %}
+
+{% block extra_css %}
+<!-- AOS Animation Library -->
+<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+<!-- Custom Dashboard CSS -->
+<!-- <link href="{% static 'reports/css/dashboard.css' %}" rel="stylesheet"> -->
+<style>
+    /* Dashboard Color Scheme - Clean & Professional */
+    .dashboard-container {
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        min-height: 100vh;
+        padding: 20px;
+    }
+    
+    .dashboard-header {
+        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+        box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
+    }
+    
+    .dashboard-header h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin: 0;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .dashboard-header p {
+        font-size: 1.1rem;
+        margin: 10px 0 0 0;
+        opacity: 0.9;
+    }
+    
+    /* Statistics Cards */
+    .stats-card {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        margin-bottom: 20px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        border: 1px solid #e2e8f0;
+        transition: all 0.3s ease;
+    }
+    
+    .stats-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    }
+    
+    .stats-card .card-title {
+        color: #64748b;
+        font-size: 0.9rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 10px;
+    }
+    
+    .stats-card .card-value {
+        color: #1e293b;
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin: 0;
+    }
+    
+    .stats-card .card-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: white;
+        margin-bottom: 15px;
+    }
+    
+    /* Color variants for different stat types */
+    .stats-card.budget .card-icon { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+    .stats-card.tankhah .card-icon { background: linear-gradient(135deg, #10b981, #059669); }
+    .stats-card.factor .card-icon { background: linear-gradient(135deg, #f59e0b, #d97706); }
+    .stats-card.payment .card-icon { background: linear-gradient(135deg, #ef4444, #dc2626); }
+    .stats-card.project .card-icon { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+    .stats-card.return .card-icon { background: linear-gradient(135deg, #06b6d4, #0891b2); }
+    
+    /* Chart Containers */
+    .chart-container {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        margin-bottom: 20px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        border: 1px solid #e2e8f0;
+    }
+    
+    .chart-container h5 {
+        color: #1e293b;
+        font-weight: 600;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #e2e8f0;
+    }
+    
+    .chart-wrapper {
+        position: relative;
+        height: 400px;
+        margin: 20px 0;
+    }
+    
+    .chart-wrapper canvas {
+        max-height: 400px !important;
+    }
+    
+    /* Loading state for charts */
+    .chart-loading {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 400px;
+        color: #64748b;
+        font-size: 1.1rem;
+    }
+    
+    .chart-loading::before {
+        content: '📊';
+        margin-left: 8px;
+        animation: pulse 2s infinite;
+    }
+    
+    /* Progress rings */
+    .progress-ring-circle {
+        stroke-dasharray: 251.2;
+        stroke-dashoffset: 251.2;
+        transition: stroke-dashoffset 0.5s ease-in-out;
+    }
+    
+    /* Responsive design */
+    @media (max-width: 768px) {
+        .dashboard-container {
+            padding: 10px;
+        }
+        
+        .dashboard-header {
+            padding: 20px;
+        }
+        
+        .dashboard-header h1 {
+            font-size: 2rem;
+        }
+        
+        .stats-card .card-value {
+            font-size: 2rem;
+        }
+        
+        .chart-wrapper {
+            height: 300px;
+        }
+    }
+    
+    /* Animation keyframes */
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+    
+    @keyframes slideInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .animate-slide-up {
+        animation: slideInUp 0.6s ease-out;
+    }
+    
+    .fade-in {
+        animation: fadeIn 0.6s ease-in;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .slide-in-left {
+        animation: slideInLeft 0.6s ease-out;
+    }
+    
+    @keyframes slideInLeft {
+        from { opacity: 0; transform: translateX(-50px); }
+        to { opacity: 1; transform: translateX(0); }
+    }
+    
+    .pulse {
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+    
+    .bounce-in {
+        animation: bounceIn 0.8s ease-out;
+    }
+    
+    @keyframes bounceIn {
+        0% { opacity: 0; transform: scale(0.3); }
+        50% { opacity: 1; transform: scale(1.05); }
+        70% { transform: scale(0.9); }
+        100% { opacity: 1; transform: scale(1); }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="dashboard-container">
+    <!-- Header Section -->
+    <div class="dashboard-header" data-aos="fade-down">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1>
+                    <i class="fas fa-chart-line me-3"></i>
+                    داشبورد گزارشات بودجه
+                </h1>
+                <p>آمار کامل و تحلیل‌های پیشرفته سیستم بودجه‌بندی</p>
+            </div>
+            <div class="col-md-4 text-end">
+                <i class="fas fa-chart-pie fa-5x" style="opacity: 0.2;"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters Section -->
+    <div class="row mb-4" data-aos="fade-up">
+        <div class="col-12">
+            <div class="filter-section">
+                <h4 class="filter-title" style="color: var(--gray-700);">
+                    فیلترهای پیشرفته
+                </h4>
+                <form method="GET" id="filterForm">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">تاریخ شروع</label>
+                            <input type="date" class="form-control" name="start_date" id="start_date">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">تاریخ پایان</label>
+                            <input type="date" class="form-control" name="end_date" id="end_date">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">سازمان</label>
+                            <select class="form-select" name="organization" id="organization">
+                                <option value="">همه سازمان‌ها</option>
+                                <!-- Options will be loaded via AJAX -->
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">پروژه</label>
+                            <select class="form-select" name="project" id="project">
+                                <option value="">همه پروژه‌ها</option>
+                                <!-- Options will be loaded via AJAX -->
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-12 text-center">
+                            <button type="submit" class="btn btn-primary me-2">
+                                <i class="fas fa-search me-2"></i>
+                                اعمال فیلتر
+                            </button>
+                            <button type="button" class="btn btn-secondary" onclick="resetFilters()">
+                                <i class="fas fa-undo me-2"></i>
+                                پاک کردن
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <!-- Budget Statistics -->
+        <div class="col-lg-3 col-md-6 mb-4" data-aos="fade-up" data-aos-delay="100">
+            <div class="stats-card budget animate-slide-up">
+                <div class="card-icon">
+                    <i class="fas fa-wallet"></i>
+                </div>
+                <div class="card-title">کل بودجه</div>
+                <div class="card-value" id="totalBudget">{{ budget_stats.total_budget|floatformat:0 }}</div>
+                <div class="mt-3">
+                    <small style="color: #64748b;">
+                        <i class="fas fa-chart-line me-1"></i>
+                        تخصیص: {{ budget_stats.total_allocated|floatformat:0 }}
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tankhah Statistics -->
+        <div class="col-lg-3 col-md-6 mb-4" data-aos="fade-up" data-aos-delay="200">
+            <div class="stats-card tankhah animate-slide-up">
+                <div class="card-icon">
+                    <i class="fas fa-file-invoice"></i>
+                </div>
+                <div class="card-title">تعداد تنخواه‌ها</div>
+                <div class="card-value" id="totalTankhah">{{ tankhah_stats.total_count }}</div>
+                <div class="mt-3">
+                    <small style="color: #64748b;">
+                        <i class="fas fa-money-bill-wave me-1"></i>
+                        مبلغ: {{ tankhah_stats.total_amount|floatformat:0 }}
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Factor Statistics -->
+        <div class="col-lg-3 col-md-6 mb-4" data-aos="fade-up" data-aos-delay="300">
+            <div class="stats-card factor animate-slide-up">
+                <div class="card-icon">
+                    <i class="fas fa-receipt"></i>
+                </div>
+                <div class="card-title">تعداد فاکتورها</div>
+                <div class="card-value" id="totalFactors">{{ factor_stats.total_count }}</div>
+                <div class="mt-3">
+                    <small style="color: #64748b;">
+                        <i class="fas fa-calculator me-1"></i>
+                        مبلغ: {{ factor_stats.total_amount|floatformat:0 }}
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment Statistics -->
+        <div class="col-lg-3 col-md-6 mb-4" data-aos="fade-up" data-aos-delay="400">
+            <div class="stats-card payment animate-slide-up">
+                <div class="card-icon">
+                    <i class="fas fa-credit-card"></i>
+                </div>
+                <div class="card-title">دستورات پرداخت</div>
+                <div class="card-value" id="totalPayments">{{ payment_stats.total_count }}</div>
+                <div class="mt-3">
+                    <small style="color: #64748b;">
+                        <i class="fas fa-dollar-sign me-1"></i>
+                        مبلغ: {{ payment_stats.total_amount|floatformat:0 }}
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Budget Return Statistics -->
+    <div class="row mb-4" data-aos="fade-up" data-aos-delay="500">
+        <div class="col-12">
+            <div class="stat-card return position-relative">
+                <i class="fas fa-undo stat-icon"></i>
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h4 class="mb-3">
+                            <i class="fas fa-chart-pie me-2"></i>
+                            آمار برگشت‌های بودجه
+                        </h4>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="text-center">
+                                    <div class="h2 text-primary">{{ return_stats.total_count }}</div>
+                                    <small class="text-muted">تعداد برگشت‌ها</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="text-center">
+                                    <div class="h2 text-success">{{ return_stats.total_amount|floatformat:0 }}</div>
+                                    <small class="text-muted">مبلغ کل برگشتی (ریال)</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="text-center">
+                                    <div class="h2 text-warning">{{ budget_stats.return_percentage|floatformat:1 }}%</div>
+                                    <small class="text-muted">درصد برگشت از کل بودجه</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center">
+                            <svg class="progress-ring" width="120" height="120">
+                                <circle class="progress-ring-circle" 
+                                        stroke="#6f42c1" 
+                                        stroke-width="8" 
+                                        fill="transparent" 
+                                        r="40" 
+                                        cx="60" 
+                                        cy="60"
+                                        style="stroke-dashoffset: {{ budget_stats.return_percentage|floatformat:0 }};">
+                                </circle>
+                            </svg>
+                            <div class="position-absolute" style="top: 50%; left: 50%; transform: translate(-50%, -50%);">
+                                <div class="h4 mb-0">{{ budget_stats.return_percentage|floatformat:1 }}%</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="row mb-4">
+        <!-- Budget Distribution Chart -->
+        <div class="col-lg-6 mb-4" data-aos="fade-right">
+            <div class="chart-container">
+                <h5>
+                    <i class="fas fa-chart-pie me-2" style="color: #3b82f6;"></i>
+                    توزیع بودجه بر اساس سازمان
+                </h5>
+                <div class="chart-wrapper">
+                    <canvas id="budgetDistributionChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Monthly Consumption Chart -->
+        <div class="col-lg-6 mb-4" data-aos="fade-left">
+            <div class="chart-container">
+                <h5>
+                    <i class="fas fa-chart-line me-2" style="color: #10b981;"></i>
+                    روند مصرف بودجه (ماهانه)
+                </h5>
+                <div class="chart-wrapper">
+                    <canvas id="monthlyConsumptionChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <!-- Tankhah Status Chart -->
+        <div class="col-lg-6 mb-4" data-aos="fade-right">
+            <div class="chart-container">
+                <h5>
+                    <i class="fas fa-chart-bar me-2" style="color: #f59e0b;"></i>
+                    وضعیت تنخواه‌ها
+                </h5>
+                <div class="chart-wrapper">
+                    <canvas id="tankhahStatusChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Factor Category Chart -->
+        <div class="col-lg-6 mb-4" data-aos="fade-left">
+            <div class="chart-container">
+                <h5>
+                    <i class="fas fa-chart-doughnut me-2" style="color: #8b5cf6;"></i>
+                    دسته‌بندی فاکتورها
+                </h5>
+                <div class="chart-wrapper">
+                    <canvas id="factorCategoryChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detailed Statistics Tables -->
+    <div class="row mb-4">
+        <!-- Budget Returns by Organization -->
+        <div class="col-lg-6 mb-4" data-aos="fade-up">
+            <div class="chart-container">
+                <h5 class="mb-4">
+                    <i class="fas fa-building me-2" style="color: #ef4444;"></i>
+                    برگشت بودجه بر اساس سازمان
+                </h5>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>سازمان</th>
+                                <th>تعداد</th>
+                                <th>مبلغ (ریال)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for org in return_stats.org_returns %}
+                            <tr>
+                                <td>{{ org.allocation__organization__name|default:"نامشخص" }}</td>
+                                <td><span class="badge bg-primary">{{ org.count }}</span></td>
+                                <td>{{ org.total_amount|floatformat:0 }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3" class="text-center text-muted">داده‌ای یافت نشد</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Budget Returns by Project -->
+        <div class="col-lg-6 mb-4" data-aos="fade-up">
+            <div class="chart-container">
+                <h5 class="mb-4">
+                    <i class="fas fa-project-diagram me-2 text-success"></i>
+                    برگشت بودجه بر اساس پروژه
+                </h5>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>پروژه</th>
+                                <th>تعداد</th>
+                                <th>مبلغ (ریال)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for project in return_stats.project_returns %}
+                            <tr>
+                                <td>{{ project.allocation__project__name|default:"نامشخص" }}</td>
+                                <td><span class="badge bg-success">{{ project.count }}</span></td>
+                                <td>{{ project.total_amount|floatformat:0 }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3" class="text-center text-muted">داده‌ای یافت نشد</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="row mb-4" data-aos="fade-up">
+        <div class="col-12 text-center">
+            <a href="{% url 'reports_dashboard:budget_analytics' %}" class="btn btn-primary btn-lg me-3">
+                <i class="fas fa-chart-line me-2"></i>
+                تحلیل‌های پیشرفته
+            </a>
+            <a href="{% url 'reports_dashboard:export_reports' %}" class="btn btn-success btn-lg me-3">
+                <i class="fas fa-download me-2"></i>
+                صادرات گزارشات
+            </a>
+            <button class="btn btn-info btn-lg" onclick="refreshDashboard()">
+                <i class="fas fa-sync-alt me-2"></i>
+                به‌روزرسانی
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.min.js"></script>
+<!-- AOS Animation Library -->
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+
+<script>
+// Chart data from Django context
+var chartData = {{ chart_data|safe }};
+
+// Fallback data if chartData is not available
+if (!chartData || typeof chartData !== 'object') {
+    chartData = {
+        org_budget: [
+            {organization__name: 'سازمان ۱', total: 50000000},
+            {organization__name: 'سازمان ۲', total: 30000000},
+            {organization__name: 'سازمان ۳', total: 20000000}
+        ],
+        monthly_consumption: [
+            {month: 'فروردین', consumption: 10000000},
+            {month: 'اردیبهشت', consumption: 15000000},
+            {month: 'خرداد', consumption: 12000000},
+            {month: 'تیر', consumption: 18000000},
+            {month: 'مرداد', consumption: 20000000},
+            {month: 'شهریور', consumption: 16000000}
+        ],
+        tankhah_status: [
+            {status__name: 'تایید شده', count: 25},
+            {status__name: 'در انتظار', count: 15},
+            {status__name: 'رد شده', count: 5}
+        ],
+        factor_category: [
+            {category__name: 'اداری', count: 30},
+            {category__name: 'عملیاتی', count: 20},
+            {category__name: 'پشتیبانی', count: 10}
+        ]
+    };
+}
+
+// Initialize AOS
+AOS.init({
+    duration: 800,
+    easing: 'ease-in-out',
+    once: true
+});
+
+// Chart data from Django context
+var chartData = {{ chart_data|default:"{}"|safe }};
+
+// Initialize charts when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize AOS animations
+    if (typeof AOS !== 'undefined') {
+        AOS.init({
+            duration: 1000,
+            once: true
+        });
+    }
+    
+    // Load filter options
+    loadFilterOptions();
+    
+    // Initialize charts with delay to ensure DOM is ready
+    setTimeout(function() {
+        initializeCharts();
+    }, 500);
+    
+    // Animate counters
+    animateCounters();
+});
+
+// Initialize all charts
+function initializeCharts() {
+    try {
+        // Check if Chart.js is loaded
+        if (typeof Chart === 'undefined') {
+            console.error('Chart.js is not loaded');
+            return;
+        }
+        
+        // Check if chart data is available
+        if (!chartData || typeof chartData !== 'object') {
+            console.error('Chart data is not available');
+            return;
+        }
+        
+        // Budget Distribution Chart
+        var budgetCtx = document.getElementById('budgetDistributionChart');
+        if (!budgetCtx) {
+            console.error('Budget distribution chart canvas not found');
+            return;
+        }
+        new Chart(budgetCtx, {
+        type: 'doughnut',
+        data: {
+            labels: (chartData.org_budget || []).map(function(item) { return item.organization__name || 'نامشخص'; }),
+            datasets: [{
+                data: (chartData.org_budget || []).map(function(item) { return item.total || 0; }),
+                backgroundColor: [
+                    '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6',
+                    '#06b6d4', '#84cc16', '#f97316', '#ec4899', '#6366f1'
+                ],
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 20,
+                        usePointStyle: true
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.label + ': ' + context.parsed.toLocaleString() + ' ریال';
+                        }
+                    }
+                }
+            },
+            animation: {
+                animateRotate: true,
+                duration: 2000
+            }
+        }
+    });
+
+    // Monthly Consumption Chart
+    var consumptionCtx = document.getElementById('monthlyConsumptionChart').getContext('2d');
+    new Chart(consumptionCtx, {
+        type: 'line',
+        data: {
+            labels: (chartData.monthly_consumption || []).map(function(item) {
+                var date = new Date(item.month);
+                return date.toLocaleDateString('fa-IR');
+            }),
+            datasets: [{
+                label: 'مصرف بودجه',
+                data: (chartData.monthly_consumption || []).map(function(item) { return item.total || 0; }),
+                borderColor: '#10b981',
+                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return 'مصرف: ' + context.parsed.y.toLocaleString() + ' ریال';
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return value.toLocaleString() + ' ریال';
+                        }
+                    }
+                }
+            },
+            animation: {
+                duration: 2000,
+                easing: 'easeInOutQuart'
+            }
+        }
+    });
+
+    // Tankhah Status Chart
+    var tankhahCtx = document.getElementById('tankhahStatusChart').getContext('2d');
+    new Chart(tankhahCtx, {
+        type: 'bar',
+        data: {
+            labels: (chartData.tankhah_status || []).map(function(item) { return item.status__name || 'نامشخص'; }),
+            datasets: [{
+                label: 'تعداد تنخواه‌ها',
+                data: (chartData.tankhah_status || []).map(function(item) { return item.count || 0; }),
+                backgroundColor: '#3b82f6',
+                borderColor: '#1d4ed8',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            },
+            animation: {
+                duration: 2000,
+                easing: 'easeInOutBounce'
+            }
+        }
+    });
+
+    // Factor Category Chart
+    var factorCtx = document.getElementById('factorCategoryChart').getContext('2d');
+    new Chart(factorCtx, {
+        type: 'pie',
+        data: {
+            labels: (chartData.factor_category || []).map(function(item) { return item.category__name || 'نامشخص'; }),
+            datasets: [{
+                data: (chartData.factor_category || []).map(function(item) { return item.total || 0; }),
+                backgroundColor: [
+                    '#f59e0b', '#3b82f6', '#10b981', '#ef4444', '#8b5cf6',
+                    '#06b6d4', '#84cc16', '#f97316', '#ec4899', '#6366f1'
+                ],
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 20,
+                        usePointStyle: true
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.label + ': ' + context.parsed.toLocaleString() + ' ریال';
+                        }
+                    }
+                }
+            },
+            animation: {
+                animateRotate: true,
+                duration: 2000
+            }
+        }
+    });
+    
+    console.log('All charts initialized successfully');
+    } catch (error) {
+        console.error('Error initializing charts:', error);
+    }
+}
+
+// Load filter options via AJAX
+function loadFilterOptions() {
+    // Load organizations
+    fetch('/reports/api/organizations/')
+        .then(function(response) {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(function(data) {
+            var orgSelect = document.getElementById('organization');
+            if (orgSelect && Array.isArray(data)) {
+                data.forEach(function(org) {
+                    var option = document.createElement('option');
+                    option.value = org.id;
+                    option.textContent = org.name;
+                    orgSelect.appendChild(option);
+                });
+            }
+        })
+        .catch(function(error) {
+            console.error('Error loading organizations:', error);
+        });
+
+    // Load projects
+    fetch('/reports/api/projects/')
+        .then(function(response) {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(function(data) {
+            var projectSelect = document.getElementById('project');
+            if (projectSelect && Array.isArray(data)) {
+                data.forEach(function(project) {
+                    var option = document.createElement('option');
+                    option.value = project.id;
+                    option.textContent = project.name;
+                    projectSelect.appendChild(option);
+                });
+            }
+        })
+        .catch(function(error) {
+            console.error('Error loading projects:', error);
+        });
+}
+
+// Animate counters
+function animateCounters() {
+    var counters = document.querySelectorAll('.stat-value');
+    
+    counters.forEach(function(counter) {
+        var target = parseInt(counter.textContent.replace(/,/g, ''));
+        var duration = 2000;
+        var increment = target / (duration / 16);
+        var current = 0;
+        
+        var timer = setInterval(function() {
+            current += increment;
+            if (current >= target) {
+                current = target;
+                clearInterval(timer);
+            }
+            counter.textContent = Math.floor(current).toLocaleString();
+        }, 16);
+    });
+}
+
+// Reset filters
+function resetFilters() {
+    document.getElementById('filterForm').reset();
+}
+
+// Refresh dashboard
+function refreshDashboard() {
+    location.reload();
+}
+
+// Progress ring animation
+function animateProgressRing() {
+    var circle = document.querySelector('.progress-ring-circle');
+    if (!circle) return;
+    
+    var percentage = {{ budget_stats.return_percentage|default:0|floatformat:0 }};
+    var circumference = 2 * Math.PI * 40;
+    var offset = circumference - (percentage / 100) * circumference;
+    
+    circle.style.strokeDashoffset = offset;
+}
+
+// Initialize progress ring animation
+setTimeout(animateProgressRing, 1000);
+
+// Fix pDatepicker issues
+$(document).ready(function() {
+    // Check if pDatepicker is available
+    if (typeof $.fn.pDatepicker !== 'undefined') {
+        // Initialize Persian datepicker if available
+        $('#start_date, #end_date').pDatepicker({
+            format: 'YYYY/MM/DD',
+            calendar: {
+                persian: {
+                    locale: 'fa',
+                    showHint: true,
+                    leapYearMode: 'algorithmic'
+                }
+            }
+        });
+    } else {
+        // Fallback to regular date input
+        console.log('pDatepicker not available, using regular date inputs');
+    }
+});
+
+// Chart update function for theme changes
+function updateChartsForTheme() {
+    // Reinitialize charts with new theme colors
+    if (typeof initializeCharts === 'function') {
+        setTimeout(function() {
+            initializeCharts();
+        }, 100);
+    }
+}
+</script>
+
+</div> <!-- End dashboard-container -->
+{% endblock %}
