@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, include
 from reports.ComprehensiveBudgetReportView import (
     ComprehensiveBudgetReportView,
     APIOrganizationsForPeriodView,
@@ -55,8 +55,15 @@ from reports.TransitionAccess.export_views import (
     CopyUserPermissionsView,
     GetUserPermissionsSummaryView
 )
+from reports.views_staff_api_docs import StaffAPIDocumentationView
+from reports.dashboard.urls import urlpatterns as dashboard_urls
+from reports.api.urls import urlpatterns as api_urls
 
 urlpatterns += [
+    # Dashboard Reports
+    path('dashboard/', include('reports.dashboard.urls')),
+    # API endpoints
+    path('api/', include('reports.api.urls')),
     # گزارش دسترسی‌های کاربر
     path(
         'user-permissions/',
@@ -99,6 +106,13 @@ urlpatterns += [
         'user-permissions/<int:user_id>/summary/',
         GetUserPermissionsSummaryView.as_view(),
         name='get_user_permissions_summary'
+    ),
+
+    # مستندات API های سیستم (فقط برای staff)
+    path(
+        'staff/api-documentation/',
+        StaffAPIDocumentationView.as_view(),
+        name='staff_api_documentation'
     ),
 
 ]

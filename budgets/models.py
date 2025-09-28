@@ -122,6 +122,7 @@ class BudgetPeriod(models.Model):
             ('budgetperiod_view', _("نمایش دوره بودجه")),
             ('budgetperiod_delete', _("حذف دوره بودجه")),
             ('budgetperiod_archive', _("بایگانی دوره بودجه")),
+            ('budgetperiod_reports', _("بایگانی دوره بودجه")),
         ]
 
     def __str__(self):

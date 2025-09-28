@@ -11,16 +11,6 @@ logger = logging.getLogger(__name__)
 from django.shortcuts import render
 from django.utils.translation import gettext_lazy as _
 
-# Calculation Functions Import
-from budgets.budget_calculations import (
-    get_project_total_budget,
-    get_project_used_budget,
-    get_project_remaining_budget
-)
-
-def pdate(request):
-    return render(request, template_name='budgets/pdate.html')
-
 def about(request):
     return render(request, template_name='about.html')
 

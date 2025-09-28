@@ -137,6 +137,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'core.context_processors.version_info',
                 'budgets.context_processors.payment_order_stats',
+                'accounts.context_processors.user_theme',
             ],
         },
     },

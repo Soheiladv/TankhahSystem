@@ -202,12 +202,8 @@ class CustomProfile(models.Model):
     bio = models.TextField(blank=True, verbose_name=_("بیوگرافی"))
     zip_code = models.CharField(max_length=10, blank=True, verbose_name=_("کد پستی"))
     description = models.TextField(blank=True, verbose_name=_("توضیحات"))
-    theme = models.CharField(max_length=20, default='light', choices=[
-        ('light', 'روشن'),
-        ('dark', 'تاریک'),
-        ('blue', 'آبی'),
-        ('green', 'سبز'),
-    ])
+    theme = models.CharField(max_length=20, default='default', choices=[])
+    custom_theme_data = models.JSONField(null=True, blank=True, verbose_name=_("داده‌های تم سفارشی"))
 
     class Meta:
         verbose_name = _("پروفایل سفارشی")
@@ -223,6 +219,12 @@ class CustomProfile(models.Model):
 
     def __str__(self):
         return f"{self.first_name} {self.last_name} - {self.user.username}"
+    
+    @classmethod
+    def get_theme_choices(cls):
+        """دریافت choices تم‌ها به صورت پویا"""
+        from .theme_config import get_theme_choices
+        return get_theme_choices()
 class Role(models.Model):
     name = models.CharField(max_length=150, unique=True, verbose_name=_("عنوان نقش"))
     permissions = models.ManyToManyField(Permission, blank=True, verbose_name=_("مجوزها"), related_name='roles')

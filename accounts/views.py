@@ -1420,13 +1420,81 @@ class LockStatusView(BaseTimeLockView):
 def set_theme(request):
     if request.method == 'POST':
         theme = request.POST.get('theme')
-        if theme in ['light', 'dark', 'blue', 'green']:
+        # دریافت تم‌های معتبر از مدل
+        valid_themes = [choice[0] for choice in CustomProfile.get_theme_choices()]
+        if theme in valid_themes:
             # اگر پروفایل وجود ندارد، آن را ایجاد کنید
             if not hasattr(request.user, 'profile'):
                 CustomProfile.objects.create(user=request.user, theme=theme)
             else:
                 request.user.profile.theme = theme
                 request.user.profile.save()
+            messages.success(request, f'تم {theme} با موفقیت اعمال شد!')
+    return redirect(request.META.get('HTTP_REFERER', 'index'))
+
+@login_required
+def custom_theme_designer(request):
+    """ویو برای طراحی تم سفارشی"""
+    if request.method == 'POST':
+        # دریافت پارامترهای طراحی
+        primary_color = request.POST.get('primary_color', '#3b82f6')
+        secondary_color = request.POST.get('secondary_color', '#6b7280')
+        background_color = request.POST.get('background_color', '#f9fafb')
+        surface_color = request.POST.get('surface_color', '#ffffff')
+        text_color = request.POST.get('text_color', '#1f2937')
+        border_radius = request.POST.get('border_radius', '8')
+        font_size = request.POST.get('font_size', '14')
+        
+        # ذخیره در پروفایل کاربر
+        if not hasattr(request.user, 'profile'):
+            CustomProfile.objects.create(
+                user=request.user,
+                custom_theme_data={
+                    'primary_color': primary_color,
+                    'secondary_color': secondary_color,
+                    'background_color': background_color,
+                    'surface_color': surface_color,
+                    'text_color': text_color,
+                    'border_radius': border_radius,
+                    'font_size': font_size,
+                }
+            )
+        else:
+            request.user.profile.custom_theme_data = {
+                'primary_color': primary_color,
+                'secondary_color': secondary_color,
+                'background_color': background_color,
+                'surface_color': surface_color,
+                'text_color': text_color,
+                'border_radius': border_radius,
+                'font_size': font_size,
+            }
+            request.user.profile.save()
+        
+        messages.success(request, 'تم سفارشی شما با موفقیت ذخیره شد!')
+        return redirect('accounts:custom_theme_designer')
+    
+    # دریافت داده‌های تم سفارشی موجود
+    custom_theme = None
+    if hasattr(request.user, 'profile') and request.user.profile.custom_theme_data:
+        custom_theme = request.user.profile.custom_theme_data
+    
+    context = {
+        'custom_theme': custom_theme,
+        'page_title': 'طراحی تم سفارشی',
+    }
+    return render(request, 'accounts/custom_theme_designer.html', context)
+
+@login_required
+def apply_custom_theme(request):
+    """اعمال تم سفارشی"""
+    if hasattr(request.user, 'profile') and request.user.profile.custom_theme_data:
+        request.user.profile.theme = 'custom'
+        request.user.profile.save()
+        messages.success(request, 'تم سفارشی شما اعمال شد!')
+    else:
+        messages.error(request, 'تم سفارشی‌ای یافت نشد!')
+    
     return redirect(request.META.get('HTTP_REFERER', 'index'))
 
 @login_required

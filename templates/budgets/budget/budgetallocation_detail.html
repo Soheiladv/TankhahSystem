@@ -20,6 +20,8 @@
         <div class="card-header text-white d-flex justify-content-between align-items-center">
             <h3 class="mb-0"><i class="bi bi-info-circle me-2"></i>{% trans "جزئیات تخصیص بودجه" %}</h3>
             <div>
+                <a href="{% url 'budget_allocation_report_enhanced' budget_allocation.pk %}" class="btn btn-outline-light btn-sm me-2"><i class="fas fa-chart-line"></i> {% trans "گزارش پیشرفته" %}</a>
+                <a href="{% url 'budget_allocation_report' budget_allocation.pk %}" class="btn btn-outline-light btn-sm me-2"><i class="fas fa-file-alt"></i> {% trans "گزارش ساده" %}</a>
                 <a href="{% url 'budgetallocation_update' budget_allocation.pk %}" class="btn btn-outline-light btn-sm me-2"><i class="bi bi-pencil"></i> {% trans "ویرایش" %}</a>
                 <a href="{% url 'budgetallocation_list' %}" class="btn btn-outline-light btn-sm"><i class="bi bi-arrow-right"></i> {% trans "بازگشت" %}</a>
             </div>

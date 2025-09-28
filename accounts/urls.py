@@ -13,7 +13,7 @@ from accounts import views
 from accounts.views import (AdvancedProfileSearchView, user_management_view, dashboard_view,
                             ActiveUserListView, TimeLockCreateView, TimeLockListView,
                             SetTimeLockView, lock_status, set_theme, terminate_session,
-                            ProfileUpdateView, active_users_view,  # AssignRoleToUserView,
+                            ProfileUpdateView, active_users_view, custom_theme_designer, apply_custom_theme,
                             )
 from .views import (
     RoleListView, RoleCreateView, RoleUpdateView, RoleDeleteView,
@@ -197,6 +197,8 @@ urlpatterns = [
                   path('heartbeat/', heartbeat_view, name='heartbeat'),
 
                   path('set_theme/', set_theme, name='set_theme'),# User Color
+                  path('custom-theme-designer/', custom_theme_designer, name='custom_theme_designer'),
+                  path('apply-custom-theme/', apply_custom_theme, name='apply_custom_theme'),
 
                   path('get_cities/', views.get_cities, name='get_cities'),  # گرفتن شهر
 

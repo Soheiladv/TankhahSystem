@@ -241,6 +241,18 @@
                         </td>
                         <td>
                             <div class="d-flex flex-wrap gap-2">
+                                <a href="{% url 'budget_allocation_report_enhanced' allocation.id %}"
+                                   class="btn btn-sm btn-outline-success"
+                                   title="{% trans 'گزارش پیشرفته' %}"
+                                   data-bs-toggle="tooltip">
+                                    <i class="fas fa-chart-line"></i>
+                                </a>
+                                <a href="{% url 'budget_allocation_report' allocation.id %}"
+                                   class="btn btn-sm btn-outline-primary"
+                                   title="{% trans 'گزارش ساده' %}"
+                                   data-bs-toggle="tooltip">
+                                    <i class="fas fa-file-alt"></i>
+                                </a>
                                 <a href="{% url 'budgetallocation_detail' allocation.id %}"
                                    class="btn btn-sm btn-outline-info"
                                    title="{% trans 'جزئیات' %}"

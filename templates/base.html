@@ -25,6 +25,10 @@
     <!-- استایل‌های سفارشی -->
     <link rel="stylesheet" href="{% static 'admin/css/budgetsStyle.css' %}">
     <link rel="stylesheet" href="{% static 'css/notification-animations.css' %}">
+    <!-- Dashboard Reports CSS -->
+    <!-- <link rel="stylesheet" href="{% static 'reports/css/dashboard.css' %}"> -->
+    <!-- Global Styles CSS -->
+    <link rel="stylesheet" href="{% static 'css/global-styles.css' %}">
 
     {% block extra_css %}{% endblock %}
 
@@ -38,6 +42,341 @@
 
         body {
             font-family: 'Parastoo', 'Yekan', 'IRANSans', sans-serif;
+        }
+
+        /* Global Theme Variables */
+        :root {
+            --primary-color: #3b82f6;
+            --secondary-color: #6b7280;
+            --accent-color: #f59e0b;
+            --background-color: #f9fafb;
+            --surface-color: #ffffff;
+            --text-color: #1f2937;
+            --text-muted: #6b7280;
+            --border-color: #e5e7eb;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --gradient-primary: linear-gradient(135deg, #f9fafb 0%, #fefdf8 50%, #3b82f6 100%);
+            --gradient-secondary: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+            --gradient-accent: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+        }
+
+        /* Theme 1: Ocean - آبی و زرد */
+        [data-theme="ocean"] {
+            --primary-color: #0ea5e9;
+            --secondary-color: #fbbf24;
+            --accent-color: #f0f9ff;
+            --background-color: #f0f9ff;
+            --surface-color: #fefce8;
+            --text-color: #0c4a6e;
+            --text-muted: #0369a1;
+            --border-color: #bae6fd;
+            --shadow-color: rgba(14, 165, 233, 0.1);
+            --gradient-primary: linear-gradient(135deg, #f0f9ff 0%, #fefce8 50%, #0ea5e9 100%);
+            --gradient-secondary: linear-gradient(135deg, #e0f2fe 0%, #fef3c7 100%);
+            --gradient-accent: linear-gradient(135deg, #0ea5e9 0%, #fbbf24 100%);
+        }
+
+        /* Theme 2: Sunset - نارنجی و قرمز */
+        [data-theme="sunset"] {
+            --primary-color: #f97316;
+            --secondary-color: #ef4444;
+            --accent-color: #fef7ed;
+            --background-color: #fef7ed;
+            --surface-color: #fefce8;
+            --text-color: #9a3412;
+            --text-muted: #c2410c;
+            --border-color: #fed7aa;
+            --shadow-color: rgba(249, 115, 22, 0.1);
+            --gradient-primary: linear-gradient(135deg, #fef7ed 0%, #fefce8 50%, #f97316 100%);
+            --gradient-secondary: linear-gradient(135deg, #fed7aa 0%, #fef3c7 100%);
+            --gradient-accent: linear-gradient(135deg, #f97316 0%, #ef4444 100%);
+        }
+
+        /* Theme 3: Forest - سبز */
+        [data-theme="forest"] {
+            --primary-color: #22c55e;
+            --secondary-color: #16a34a;
+            --accent-color: #f0fdf4;
+            --background-color: #f0fdf4;
+            --surface-color: #fefdf8;
+            --text-color: #14532d;
+            --text-muted: #15803d;
+            --border-color: #bbf7d0;
+            --shadow-color: rgba(34, 197, 94, 0.1);
+            --gradient-primary: linear-gradient(135deg, #f0fdf4 0%, #fefdf8 50%, #22c55e 100%);
+            --gradient-secondary: linear-gradient(135deg, #dcfce7 0%, #fef3c7 100%);
+            --gradient-accent: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+        }
+
+        /* Theme 4: Purple - بنفش و زرد */
+        [data-theme="purple"] {
+            --primary-color: #a855f7;
+            --secondary-color: #eab308;
+            --accent-color: #faf5ff;
+            --background-color: #faf5ff;
+            --surface-color: #fefce8;
+            --text-color: #581c87;
+            --text-muted: #7c3aed;
+            --border-color: #e9d5ff;
+            --shadow-color: rgba(168, 85, 247, 0.1);
+            --gradient-primary: linear-gradient(135deg, #faf5ff 0%, #fefce8 50%, #a855f7 100%);
+            --gradient-secondary: linear-gradient(135deg, #e9d5ff 0%, #d8b4fe 100%);
+            --gradient-accent: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%);
+        }
+
+        /* Theme 5: Midnight - خاکستری تیره */
+        [data-theme="midnight"] {
+            --primary-color: #334155;
+            --secondary-color: #475569;
+            --accent-color: #f8fafc;
+            --background-color: #f8fafc;
+            --surface-color: #f1f5f9;
+            --text-color: #1e293b;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --shadow-color: rgba(51, 65, 85, 0.1);
+            --gradient-primary: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            --gradient-secondary: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+            --gradient-accent: linear-gradient(135deg, #334155 0%, #1e293b 100%);
+        }
+
+        /* Theme 6: Mint - نعنایی */
+        [data-theme="mint"] {
+            --primary-color: #077a7d;
+            --secondary-color: #7ae2cf;
+            --accent-color: #f5eedd;
+            --background-color: #f5eedd;
+            --surface-color: #f0fdfa;
+            --text-color: #06202b;
+            --text-muted: #077a7d;
+            --border-color: #7ae2cf;
+            --shadow-color: rgba(7, 122, 125, 0.1);
+            --gradient-primary: linear-gradient(135deg, #f5eedd 0%, #7ae2cf 50%, #077a7d 100%);
+            --gradient-secondary: linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 100%);
+            --gradient-accent: linear-gradient(135deg, #077a7d 0%, #7ae2cf 100%);
+        }
+
+        /* Theme 7: Warm - گرم */
+        [data-theme="warm"] {
+            --primary-color: #ffa725;
+            --secondary-color: #6a9c89;
+            --accent-color: #fff5e4;
+            --background-color: #fff5e4;
+            --surface-color: #fef7ed;
+            --text-color: #2c7865;
+            --text-muted: #6a9c89;
+            --border-color: #c1d8c3;
+            --shadow-color: rgba(255, 167, 37, 0.1);
+            --gradient-primary: linear-gradient(135deg, #fff5e4 0%, #ffa725 50%, #6a9c89 100%);
+            --gradient-secondary: linear-gradient(135deg, #fef7ed 0%, #fed7aa 100%);
+            --gradient-accent: linear-gradient(135deg, #ffa725 0%, #6a9c89 100%);
+        }
+
+        /* Theme 8: Vibrant - زنده */
+        [data-theme="vibrant"] {
+            --primary-color: #ff9800;
+            --secondary-color: #2c7865;
+            --accent-color: #d9edbf;
+            --background-color: #d9edbf;
+            --surface-color: #f0fdf4;
+            --text-color: #2c7865;
+            --text-muted: #6a9c89;
+            --border-color: #90d26d;
+            --shadow-color: rgba(255, 152, 0, 0.1);
+            --gradient-primary: linear-gradient(135deg, #d9edbf 0%, #ff9800 50%, #2c7865 100%);
+            --gradient-secondary: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            --gradient-accent: linear-gradient(135deg, #ff9800 0%, #2c7865 100%);
+        }
+
+        /* Theme 9: Deep - عمیق */
+        [data-theme="deep"] {
+            --primary-color: #01204e;
+            --secondary-color: #028391;
+            --accent-color: #f6dcac;
+            --background-color: #f6dcac;
+            --surface-color: #fef3c7;
+            --text-color: #01204e;
+            --text-muted: #028391;
+            --border-color: #feae6f;
+            --shadow-color: rgba(1, 32, 78, 0.1);
+            --gradient-primary: linear-gradient(135deg, #01204e 0%, #028391 50%, #f6dcac 100%);
+            --gradient-secondary: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            --gradient-accent: linear-gradient(135deg, #01204e 0%, #028391 100%);
+        }
+
+        /* Theme 10: Tropical - استوایی */
+        [data-theme="tropical"] {
+            --primary-color: #219c90;
+            --secondary-color: #ffc700;
+            --accent-color: #fff455;
+            --background-color: #fff455;
+            --surface-color: #fef3c7;
+            --text-color: #219c90;
+            --text-muted: #6a9c89;
+            --border-color: #ee4e4e;
+            --shadow-color: rgba(33, 156, 144, 0.1);
+            --gradient-primary: linear-gradient(135deg, #219c90 0%, #fff455 50%, #ffc700 100%);
+            --gradient-secondary: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            --gradient-accent: linear-gradient(135deg, #219c90 0%, #ffc700 100%);
+        }
+
+        /* Theme 11: Dark - تاریک */
+        [data-theme="dark"] {
+            --primary-color: #6366f1;
+            --secondary-color: #8b5cf6;
+            --accent-color: #f59e0b;
+            --background-color: #0f172a;
+            --surface-color: #1e293b;
+            --text-color: #f1f5f9;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+            --shadow-color: rgba(0, 0, 0, 0.3);
+            --gradient-primary: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #6366f1 100%);
+            --gradient-secondary: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            --gradient-accent: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        }
+
+        /* Apply theme to body and main elements */
+        body {
+            background: var(--background-color);
+            color: var(--text-color);
+            transition: all 0.3s ease;
+        }
+
+        .main-content {
+            background: var(--surface-color);
+            border-color: var(--border-color);
+        }
+
+        .card {
+            background: var(--surface-color);
+            border-color: var(--border-color);
+            box-shadow: 0 1px 3px var(--shadow-color);
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .btn-primary:hover {
+            background: var(--secondary-color);
+            border-color: var(--secondary-color);
+        }
+
+        .text-primary {
+            color: var(--primary-color) !important;
+        }
+
+        .text-muted {
+            color: var(--text-muted) !important;
+        }
+
+        .border {
+            border-color: var(--border-color) !important;
+        }
+
+        /* Beautiful Theme Selector Styles */
+        .sidebar-theme-selector {
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 10px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .sidebar-theme-header h6 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #ffffff;
+        }
+
+        .sidebar-theme-options {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .theme-row {
+            display: flex;
+            gap: 8px;
+            justify-content: space-between;
+        }
+
+        .sidebar-theme-option {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 8px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            background: rgba(255, 255, 255, 0.05);
+            position: relative;
+        }
+
+        .sidebar-theme-option:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .sidebar-theme-option input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .sidebar-theme-option input[type="radio"]:checked + .theme-preview {
+            border: 2px solid #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+            transform: scale(1.1);
+        }
+
+        .sidebar-theme-option input[type="radio"]:checked ~ .theme-name {
+            color: #3b82f6;
+            font-weight: bold;
+        }
+
+        .theme-preview {
+            width: 35px;
+            height: 25px;
+            border-radius: 6px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+            margin-bottom: 5px;
+        }
+
+        .theme-name {
+            font-size: 10px;
+            color: #ffffff;
+            text-align: center;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .theme-form-actions {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 15px;
+        }
+
+        .theme-form-actions .btn {
+            font-size: 12px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .theme-form-actions .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         }
 
         /* استایل برای اعلان‌ها */
@@ -205,7 +544,7 @@
                 <i class="fas fa-home"></i>{% trans "خانه" %}
             </a>
         </li>
-        <li class="nav-item">
+        {% comment %} <li class="nav-item">
             <a href="{% url 'index' %}" class="nav-link animate__animated animate__fadeInRight">
                 <i class="fas fa-tachometer-alt"></i>{% trans "داشبورد" %}
             </a>
@@ -242,11 +581,86 @@
             </a>
         </li>
         <li class="nav-item">
+            <a href="{% url 'reports_dashboard:main_dashboard' %}" class="nav-link animate__animated animate__fadeInRight">
+                <i class="fas fa-chart-line"></i>{% trans "گزارشات و آمار" %}
+            </a>
+        </li>
+         {% endcomment %}
+        <!-- Theme Selector in Sidebar -->
+        <li class="nav-item">
+            <div class="nav-link animate__animated animate__fadeInRight" style="cursor: pointer;" id="sidebarThemeToggle">
+                <i class="fas fa-palette"></i>{% trans "انتخاب تم" %}
+            </div>
+        </li>
+        
+        <!-- Custom Theme Designer -->
+        <li class="nav-item">
+            <a class="nav-link animate__animated animate__fadeInRight" href="{% url 'accounts:custom_theme_designer' %}">
+                <i class="fas fa-paint-brush"></i>{% trans "طراحی تم سفارشی" %}
+            </a>
+        </li>
+        <li class="nav-item">
             <a href="{% url 'guide' %}" class="nav-link animate__animated animate__fadeInRight">
                 <i class="fas fa-book-open"></i>{% trans "راهنما" %}
             </a>
         </li>
+        {% if user.is_staff or user.is_superuser %}
+        <li class="nav-item">
+            <a href="{% url 'staff_api_documentation' %}" class="nav-link animate__animated animate__fadeInRight">
+                <i class="fas fa-code"></i>{% trans "مستندات API" %}
+            </a>
+        </li>
+        {% endif %}
     </ul>
+
+    <!-- Beautiful Theme Selector in Sidebar -->
+    <div class="sidebar-theme-selector" id="sidebarThemeSelector" style="display: none;">
+        <div class="sidebar-theme-header">
+            <h6 class="text-white mb-3 d-flex align-items-center">
+                <i class="fas fa-palette me-2"></i>
+                انتخاب تم رنگی
+            </h6>
+        </div>
+        
+        <!-- Beautiful Theme Form -->
+        <form method="post" action="{% url 'accounts:set_theme' %}" class="theme-form">
+            {% csrf_token %}
+            <div class="sidebar-theme-options">
+                {% for theme_value, theme_name in available_themes %}
+                    {% if forloop.counter0|divisibleby:2 %}
+                        <div class="theme-row">
+                    {% endif %}
+                    
+                    <label class="sidebar-theme-option" data-theme="{{ theme_value }}">
+                        <input type="radio" name="theme" value="{{ theme_value }}" {% if user_theme == theme_value or forloop.first and not user_theme %}checked{% endif %}>
+                        <div class="theme-preview" style="background: {% if theme_value == 'custom' and custom_theme_data %}linear-gradient(135deg, {{ custom_theme_data.primary_color }} 0%, {{ custom_theme_data.secondary_color }} 50%, {{ custom_theme_data.background_color }} 100%){% else %}var(--gradient-primary){% endif %};"></div>
+                        <span class="theme-name">{{ theme_name }}</span>
+                    </label>
+                    
+                    {% if forloop.counter|divisibleby:2 or forloop.last %}
+                        </div>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if custom_theme_data %}
+                <div class="theme-row">
+                    <label class="sidebar-theme-option" data-theme="custom">
+                        <input type="radio" name="theme" value="custom" {% if user_theme == 'custom' %}checked{% endif %}>
+                        <div class="theme-preview" style="background: linear-gradient(135deg, {{ custom_theme_data.primary_color }} 0%, {{ custom_theme_data.secondary_color }} 50%, {{ custom_theme_data.background_color }} 100%);"></div>
+                        <span class="theme-name">سفارشی</span>
+                    </label>
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="theme-form-actions mt-3">
+                <button type="submit" class="btn btn-primary btn-sm w-100">
+                    <i class="fas fa-check me-1"></i>
+                    اعمال تم
+                </button>
+            </div>
+        </form>
+    </div>
 
     <div class="p-3 mt-auto">
         {% if user.is_authenticated %}
@@ -278,14 +692,12 @@
     </div>
 </div>
  
-        <main class="content" id="mainContent">
-            <div class="container-fluid mt-5 pt-3">
-                {% block content %}{% endblock %}
-            </div>
-        </main>
-         
-       
-
+    <main class="content" id="mainContent">
+        <div class="container-fluid mt-5 pt-3">
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+      
 <footer class="footer animate__animated animate__fadeInUp">
     <div class="container">
         <p>© 1404 {% trans "سیستم جامع بودجه بندی سازمانی و تنخواه‌گردانی" %}. {% trans "همه حقوق محفوظ است." %}</p>
@@ -303,6 +715,8 @@
 <script src="{% static 'admin/js/sweetalert2@11.js' %}"></script>
 <script src="{% static 'admin/js/persian_datepicker_init.js' %}"></script>
 <script src="{% static 'admin/js/lock_warning_badges.js' %}"></script>
+<!-- Dashboard Reports JavaScript -->
+<script src="{% static 'reports/js/dashboard.js' %}"></script>
 
 <script>
     $(document).ready(function () {
@@ -665,6 +1079,51 @@
     });
 </script>
 {% block extra_js %}{% endblock %}
+
+<script>
+// Simple Sidebar Theme Management
+document.addEventListener('DOMContentLoaded', function() {
+    // Theme toggle
+    document.getElementById('sidebarThemeToggle').addEventListener('click', function() {
+        var themeSelector = document.getElementById('sidebarThemeSelector');
+        if (themeSelector.style.display === 'none') {
+            themeSelector.style.display = 'block';
+        } else {
+            themeSelector.style.display = 'none';
+        }
+    });
+    
+    // Auto-submit form when theme is selected
+    document.querySelectorAll('input[name="theme"]').forEach(function(radio) {
+        radio.addEventListener('change', function() {
+            // Auto-submit form after a short delay
+            setTimeout(function() {
+                radio.closest('form').submit();
+            }, 300);
+        });
+    });
+    
+    // Load theme from user profile
+    var currentTheme = '{{ user_theme|default:"default" }}';
+    var customThemeData = {{ custom_theme_data|default:"null"|safe }};
+    
+    if (currentTheme === 'custom' && customThemeData) {
+        // Apply custom theme
+        document.documentElement.style.setProperty('--primary-color', customThemeData.primary_color);
+        document.documentElement.style.setProperty('--secondary-color', customThemeData.secondary_color);
+        document.documentElement.style.setProperty('--background-color', customThemeData.background_color);
+        document.documentElement.style.setProperty('--surface-color', customThemeData.surface_color);
+        document.documentElement.style.setProperty('--text-color', customThemeData.text_color);
+        document.documentElement.style.setProperty('--border-radius-md', customThemeData.border_radius + 'px');
+        document.documentElement.style.setProperty('--font-size-base', customThemeData.font_size + 'px');
+        document.documentElement.setAttribute('data-theme', 'custom');
+    } else if (currentTheme && currentTheme !== 'default') {
+        document.documentElement.setAttribute('data-theme', currentTheme);
+    } else {
+        document.documentElement.setAttribute('data-theme', 'default');
+    }
+});
+</script>
 
 </body>
 </html>

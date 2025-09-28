@@ -70,28 +70,55 @@ dashboard_links = {
         {'name': _('آمار دستورات پرداخت'), 'url': 'paymentorder_stats', 'icon': 'fas fa-chart-bar'},
     ],
     'گزارشات': [
+        {'name': _('داشبورد گزارشات پیشرفته'), 'url': 'reports_dashboard:main_dashboard', 'icon': 'fas fa-chart-line', 'note': 'داشبورد جدید با آمار کامل و چارت‌های تعاملی'},
+        {'name': _('تحلیل‌های پیشرفته بودجه'), 'url': 'reports_dashboard:budget_analytics', 'icon': 'fas fa-chart-bar', 'note': 'تحلیل‌های عمیق و روندهای بودجه'},
+        {'name': _('صادرات گزارشات'), 'url': 'reports_dashboard:export_reports', 'icon': 'fas fa-download', 'note': 'صادرات گزارشات در فرمت‌های مختلف'},
         {'name': _('درخت سیستم'), 'url': 'comprehensive_budget_report', 'icon': 'fas fa-chart-line'},
         # نمودار خطی برای روند
         # {'name': _('روند تنخواه'), 'url': 'dashboard_flows', 'icon': 'fas fa-chart-line'},  # نمودار خطی برای روند
-        {'name': _('BI گزارشات'), 'url': 'financialDashboardView', 'icon': 'fas fa-chart-pie'},
+       {'name': _('BI گزارشات'), 'url': 'financialDashboardView', 'icon': 'fas fa-chart-pie'},
         # نمودار دایره‌ای برای گزارشات BI
         # {'name': _('گزارش جزئیات تنخواه'), 'url': 'tankhah_detail', 'icon': 'fas fa-file-alt'}, # فایل متنی برای جزئیات
-        {'name': _('گزارش لحظه‌ای از بودجه‌بندی'), 'url': 'budgetrealtimeReportView', 'icon': 'fas fa-tachometer-alt'},
+       {'name': _('گزارش لحظه‌ای از بودجه‌بندی'), 'url': 'budgetrealtimeReportView', 'icon': 'fas fa-tachometer-alt'},
         # سرعت‌سنج برای لحظه‌ای
-        {'name': _('گزارشات دستور پرداخت'), 'url': 'payment_order_report', 'icon': 'fas fa-tachometer-alt'},
+       {'name': _('گزارشات دستور پرداخت'), 'url': 'payment_order_report', 'icon': 'fas fa-tachometer-alt'},
         # سرعت‌سنج برای لحظه‌ای
-        {'name': _('گزارش رد/تایید فاکتور'), 'url': 'advance_factor_status_review',
+       {'name': _('گزارش رد/تایید فاکتور'), 'url': 'advance_factor_status_review',
          'permission': 'tankhah.factor_view', 'icon': 'fas fa-file-invoice'},  # فاکتور خالی
-        {'name': _(' گزارش وضعیت فاکتورها '), 'url': 'factor_status_dashboard', 'permission': 'tankhah.factor_view',
+       {'name': _(' گزارش وضعیت فاکتورها '), 'url': 'factor_status_dashboard', 'permission': 'tankhah.factor_view',
          'icon': 'fas fa-file-invoice'},  # فاکتور خالی
+       {'name': _('گزارش تخصیص بودجه'), 'url': 'budgetallocation_list', 'permission': 'budgets.view_budgetallocation',
+         'icon': 'fas fa-file-invoice-dollar'},  # گزارش تخصیص بودجه
+       {'name': _('گزارش پیشرفته (مثال)'), 'url': 'budget_allocation_report_enhanced', 'url_kwargs': {'pk': 84}, 'permission': 'budgets.view_budgetallocation',
+         'icon': 'fas fa-chart-line', 'note': 'گزارش پیشرفته برای تخصیص بودجه شماره 84'},  # گزارش پیشرفته
+       {'name': _('هشدارهای بودجه'), 'url': 'budget_warning_report', 'permission': 'budgets.view_budgetallocation',
+         'icon': 'fas fa-exclamation-triangle'},  # هشدارهای بودجه
     ],
     'گزارشات جامع مدیرعامل': [
+        {'name': _('داشبورد گزارشات پیشرفته'), 'url': 'reports_dashboard:main_dashboard', 'icon': 'fas fa-chart-line', 'note': 'داشبورد جدید با آمار کامل و چارت‌های تعاملی'},
+        {'name': _('تحلیل‌های پیشرفته بودجه'), 'url': 'reports_dashboard:budget_analytics', 'icon': 'fas fa-chart-bar', 'note': 'تحلیل‌های عمیق و روندهای بودجه'},
+        {'name': _('صادرات گزارشات'), 'url': 'reports_dashboard:export_reports', 'icon': 'fas fa-download', 'note': 'صادرات گزارشات در فرمت‌های مختلف'},
         {'name': _('داشبورد اجرایی'), 'url': 'executive_dashboard', 'icon': 'fas fa-tachometer-alt'},
         {'name': _('گزارشات بودجه (کلی)'), 'url': 'comprehensive_budget_report', 'icon': 'fas fa-chart-bar'},
         {'name': _('گزارشات فاکتور (کلی)'), 'url': 'comprehensive_factor_report', 'icon': 'fas fa-file-invoice'},
         {'name': _('گزارشات تنخواه (کلی)'), 'url': 'comprehensive_tankhah_report', 'icon': 'fas fa-money-bill-wave'},
         {'name': _('گزارشات عملکرد مالی'), 'url': 'financial_performance_report', 'icon': 'fas fa-chart-line'},
         {'name': _('گزارشات تحلیلی'), 'url': 'analytical_reports', 'icon': 'fas fa-chart-pie'},
+    ],
+    'گزارشات پیشرفته': [
+        {'name': _('داشبورد گزارشات پیشرفته'), 'url': 'reports_dashboard:main_dashboard', 'icon': 'fas fa-chart-line', 'note': 'داشبورد جدید با آمار کامل و چارت‌های تعاملی'},
+        {'name': _('تحلیل‌های پیشرفته بودجه'), 'url': 'reports_dashboard:budget_analytics', 'icon': 'fas fa-chart-bar', 'note': 'تحلیل‌های عمیق و روندهای بودجه'},
+        {'name': _('صادرات گزارشات'), 'url': 'reports_dashboard:export_reports', 'icon': 'fas fa-download', 'note': 'صادرات گزارشات در فرمت‌های مختلف'},
+        {'name': _('گزارش پیشرفته (مثال)'), 'url': 'budget_allocation_report_enhanced', 'url_kwargs': {'pk': 84}, 'permission': 'budgets.view_budgetallocation',
+         'icon': 'fas fa-chart-line', 'note': 'گزارش پیشرفته برای تخصیص بودجه شماره 84'},
+        {'name': _('لیست تخصیص‌های بودجه'), 'url': 'budgetallocation_list', 'permission': 'budgets.view_budgetallocation',
+         'icon': 'fas fa-list', 'note': 'برای دسترسی به گزارش پیشرفته سایر تخصیص‌ها، ابتدا از این لیست تخصیص مورد نظر را انتخاب کنید'},
+        {'name': _('لیست تنخواه‌ها'), 'url': 'tankhah_list', 'permission': 'tankhah.view_tankhah',
+         'icon': 'fas fa-list-alt', 'note': 'برای دسترسی به گزارش مالی تنخواه، ابتدا از این لیست تنخواه مورد نظر را انتخاب کنید'},
+        {'name': _('گزارش هشدارهای بودجه'), 'url': 'budget_warning_report', 'permission': 'budgets.view_budgetallocation',
+         'icon': 'fas fa-exclamation-triangle'},
+        {'name': _('گزارش دستورات پرداخت'), 'url': 'payment_order_report', 'permission': 'budgets.view_paymentorder',
+         'icon': 'fas fa-receipt'},
     ],
     'عنوان مرکز هزینه (پروژه)': [
         {'name': _('فهرست مرکز هزینه (پروژه)'), 'url': 'project_list', 'permission': 'core.view_project',
@@ -140,6 +167,9 @@ dashboard_links = {
         {'name': _('راهنمای بودجه‌بندی'), 'url': 'budget_Help', 'icon': 'fas fa-question-circle'},
         # علامت سوال برای راهنما
         {'name': _('راهنمای سیستم '), 'url': 'soft_help', 'icon': 'fas fa-question-circle'},  # علامت سوال برای راهنما
+
+        {'name': _('مستندات API'), 'url': 'staff_api_documentation',  'permission': 'is_staff,is_superuser','icon': 'fas fa-code '},  # علامت سوال برای راهنما
+
     ],
 }
 
@@ -740,6 +770,13 @@ class DashboardView(LoginRequiredMixin, View):
             self.final_version = FinalVersion.calculate_final_version()
         except Exception:
             self.final_version = "نامشخص"
+        
+        # Import the new dashboard views for integration
+        try:
+            from reports.dashboard.views import DashboardMainView
+            self.dashboard_main_view = DashboardMainView()
+        except ImportError:
+            self.dashboard_main_view = None
 
     def get_jalali_month_name(self, month_number):
         j_months_fa = ["فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"]
@@ -867,6 +904,32 @@ class DashboardView(LoginRequiredMixin, View):
 
         return stats
 
+    def get_enhanced_dashboard_stats(self):
+        """دریافت آمار پیشرفته از داشبورد جدید"""
+        if not self.dashboard_main_view:
+            return {}
+        
+        try:
+            # دریافت آمار از داشبورد جدید
+            budget_stats = self.dashboard_main_view.get_budget_statistics()
+            tankhah_stats = self.dashboard_main_view.get_tankhah_statistics()
+            factor_stats = self.dashboard_main_view.get_factor_statistics()
+            payment_stats = self.dashboard_main_view.get_payment_statistics()
+            return_stats = self.dashboard_main_view.get_budget_return_statistics()
+            chart_data = self.dashboard_main_view.get_chart_data()
+            
+            return {
+                'enhanced_budget_stats': budget_stats,
+                'enhanced_tankhah_stats': tankhah_stats,
+                'enhanced_factor_stats': factor_stats,
+                'enhanced_payment_stats': payment_stats,
+                'enhanced_return_stats': return_stats,
+                'enhanced_chart_data': chart_data,
+            }
+        except Exception as e:
+            logger.error(f"خطا در دریافت آمار پیشرفته: {e}")
+            return {}
+
     def get_context_data(self, request):
         context = {}
         user = request.user
@@ -878,6 +941,11 @@ class DashboardView(LoginRequiredMixin, View):
         # اطلاعات پایه
         context['title'] = _("داشبورد سیستم جامع نظارتی بر تنخواه و بودجه")
         context['version'] = self.final_version
+        
+        # اضافه کردن لینک به داشبورد جدید
+        context['new_dashboard_url'] = 'reports_dashboard:main_dashboard'
+        context['analytics_dashboard_url'] = 'reports_dashboard:budget_analytics'
+        context['export_dashboard_url'] = 'reports_dashboard:export_reports'
 
         # دسترسی‌ها
         context['can_view_budget_stats'] = True
@@ -898,6 +966,10 @@ class DashboardView(LoginRequiredMixin, View):
 
         # لینک‌های داشبورد
         context['dashboard_links'] = dashboard_links
+        
+        # اضافه کردن آمار پیشرفته از داشبورد جدید
+        enhanced_stats = self.get_enhanced_dashboard_stats()
+        context.update(enhanced_stats)
 
         # تنظیمات سیستم (SystemSettings Dashboard)
         try:
@@ -929,22 +1001,31 @@ class DashboardView(LoginRequiredMixin, View):
         context['pending_approval_count'] = context.get('pending_tankhah_count', 0)
         context['recent_rejected_factors'] = context.get('rejected_factors_count', 0)
 
-        # آمار بودجه
+        # آمار بودجه - بهینه‌سازی شده
         if context['can_view_budget_stats']:
             try:
-                active_budget_periods = BudgetPeriod.objects.filter(is_active=True, is_completed=False)
-                total_allocated = active_budget_periods.aggregate(total=Coalesce(Sum('total_amount'), Decimal('0')))['total']
-                total_consumed = BudgetTransaction.objects.filter(
-                    allocation__budget_period__in=active_budget_periods,
-                    transaction_type='CONSUMPTION'
-                ).aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total']
+                # استفاده از آمار پیشرفته اگر در دسترس باشد
+                if 'enhanced_budget_stats' in context and context['enhanced_budget_stats']:
+                    enhanced_stats = context['enhanced_budget_stats']
+                    context['total_allocated_budget'] = enhanced_stats.get('total_allocated', Decimal('0'))
+                    context['total_consumed_budget'] = enhanced_stats.get('total_consumed', Decimal('0'))
+                    context['remaining_total_budget'] = enhanced_stats.get('remaining', Decimal('0'))
+                    context['percentage_consumed_budget'] = float(enhanced_stats.get('consumption_percentage', 0))
+                else:
+                    # محاسبه سنتی در صورت عدم دسترسی به آمار پیشرفته
+                    active_budget_periods = BudgetPeriod.objects.filter(is_active=True, is_completed=False)
+                    total_allocated = active_budget_periods.aggregate(total=Coalesce(Sum('total_amount'), Decimal('0')))['total']
+                    total_consumed = BudgetTransaction.objects.filter(
+                        allocation__budget_period__in=active_budget_periods,
+                        transaction_type='CONSUMPTION'
+                    ).aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total']
 
-                context['total_allocated_budget'] = total_allocated or Decimal('10000000')
-                context['total_consumed_budget'] = total_consumed or Decimal('4000000')
-                context['remaining_total_budget'] = (total_allocated - total_consumed) or Decimal('6000000')
-                context['percentage_consumed_budget'] = (
-                    (total_consumed / total_allocated * 100) if total_allocated > 0 else 0
-                )
+                    context['total_allocated_budget'] = total_allocated or Decimal('10000000')
+                    context['total_consumed_budget'] = total_consumed or Decimal('4000000')
+                    context['remaining_total_budget'] = (total_allocated - total_consumed) or Decimal('6000000')
+                    context['percentage_consumed_budget'] = (
+                        (total_consumed / total_allocated * 100) if total_allocated > 0 else 0
+                    )
 
                 # مصرف بودجه بر اساس دسته
                 try:
@@ -1011,11 +1092,22 @@ class DashboardView(LoginRequiredMixin, View):
                 context['budget_category_consumption'] = {'labels': json.dumps([]), 'values': json.dumps([])}
                 context['budget_vs_actual_data'] = {'labels': json.dumps([]), 'allocated': json.dumps([]), 'consumed': json.dumps([])}
 
-        # آمار تنخواه
+        # آمار تنخواه - بهینه‌سازی شده
         if context['can_view_tankhah_stats']:
             try:
-                tankhah_stats = self._get_tankhah_stats()
-                context.update(tankhah_stats)
+                # استفاده از آمار پیشرفته اگر در دسترس باشد
+                if 'enhanced_tankhah_stats' in context and context['enhanced_tankhah_stats']:
+                    enhanced_tankhah = context['enhanced_tankhah_stats']
+                    context['total_allocated_tankhah'] = enhanced_tankhah.get('total_amount', Decimal('0'))
+                    context['active_tankhah_count'] = enhanced_tankhah.get('total_count', 0)
+                    
+                    # محاسبه آمار اضافی
+                    tankhah_stats = self._get_tankhah_stats()
+                    context.update(tankhah_stats)
+                else:
+                    # محاسبه سنتی
+                    tankhah_stats = self._get_tankhah_stats()
+                    context.update(tankhah_stats)
             except Exception as e:
                 logger.error(f"خطا در محاسبه آمار تنخواه: {e}", exc_info=True)
                 context['tankhah_stats_error'] = True

@@ -38,7 +38,7 @@
                     <div class="row">
                         {% for link_item in links_list %}
                             <div class="col-lg-3 col-md-4 col-sm-6 mb-3"><a
-                                    href="{% if link_item.url %}{% url link_item.url %}{% else %}#{% endif %}"
+                                    href="{% if link_item.direct_url %}{{ link_item.direct_url }}{% elif link_item.url_kwargs %}{% url link_item.url link_item.url_kwargs.pk %}{% elif link_item.url %}{% url link_item.url %}{% else %}#{% endif %}"
                                     class="btn btn-outline-primary btn-block d-flex align-items-center justify-content-start py-2 text-truncate">
                                 <i class="{{ link_item.icon|default:'fas fa-caret-left' }} mr-2"></i>
                                 <span>{{ link_item.name }}</span> </a>
@@ -52,77 +52,7 @@
             </div>
         </div>
     </div>
-{%comment%}داشبورد تنظیمات سیستم {% endcomment %} 
-    <div class="accordion mb-4 animate__animated animate__fadeInUp" id="accordionSystemSettings">
-        <div class="accordion-item dashboard-card">
-            <h2 class="accordion-header" id="headingSystemSettings">
-                <button class="accordion-button" type="button" data-bs-toggle="collapse"
-                        data-bs-target="#collapseSystemSettings" aria-expanded="true"
-                        aria-controls="collapseSystemSettings">
-                    <i class="fas fa-sliders-h mr-2"></i>{% translate "تنظیمات کل سامانه (SystemSettings)" %}
-                </button>
-            </h2>
-            <div id="collapseSystemSettings" class="accordion-collapse collapse show"
-                 aria-labelledby="headingSystemSettings" data-bs-parent="#accordionSystemSettings">
-                <div class="accordion-body">
-                    {% if system_settings %}
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <div class="metric-box">
-                                    <strong>{% translate "اجبار ترتیب سلسله‌مراتبی تأیید" %}:</strong>
-                                    <span class="badge" style="background: {{ system_settings_info.enforce_strict_approval_order|yesno:'var(--success-color),var(--danger-color)' }}; color:#fff;">
-                                        {{ system_settings_info.enforce_strict_approval_order|yesno:_('فعال,غیرفعال') }}
-                                    </span>
-                                </div>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <div class="metric-box">
-                                    <strong>{% translate "اجازه دور زدن چارت سازمانی" %}:</strong>
-                                    <span class="badge" style="background: {{ system_settings_info.allow_bypass_org_chart|yesno:'var(--warning-color),#6c757d' }}; color:#fff;">
-                                        {{ system_settings_info.allow_bypass_org_chart|yesno:_('فعال,غیرفعال') }}
-                                    </span>
-                                </div>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <div class="metric-box">
-                                    <strong>{% translate "اجازه اقدام بدون پست فعال" %}:</strong>
-                                    <span class="badge" style="background: {{ system_settings_info.allow_action_without_org_chart|yesno:'var(--warning-color),#6c757d' }}; color:#fff;">
-                                        {{ system_settings_info.allow_action_without_org_chart|yesno:_('فعال,غیرفعال') }}
-                                    </span>
-                                </div>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <div class="metric-box">
-                                    <strong>{% translate "سقف پیش‌فرض تنخواه (ریال)" %}:</strong>
-                                    <span class="num-format">{{ system_settings_info.tankhah_payment_ceiling_default|default:0|floatformat:0 }}</span>
-                                    <span class="badge" style="background: {{ system_settings_info.tankhah_payment_ceiling_enabled_default|yesno:'var(--success-color),#6c757d' }}; color:#fff;">
-                                        {{ system_settings_info.tankhah_payment_ceiling_enabled_default|yesno:_('فعال,غیرفعال') }}
-                                    </span>
-                                </div>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <div class="metric-box">
-                                    <strong>{% translate "درصد قفل‌شده بودجه (پیش‌فرض)" %}:</strong>
-                                    {{ system_settings_info.budget_locked_percentage_default|default:0 }}%
-                                </div>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <div class="metric-box">
-                                    <strong>{% translate "آستانه هشدار بودجه (پیش‌فرض)" %}:</strong>
-                                    {{ system_settings_info.budget_warning_threshold_default|default:0 }}%
-                                    <span class="badge badge-info">{{ system_settings_info.budget_warning_action_default|default:"NOTIFY" }}</span>
-                                </div>
-                            </div>
-                        </div>
-                    {% else %}
-                        <div class="alert alert-warning">
-                            {% translate "تنظیمات سیستم ایجاد نشده است. از پنل ادمین یک رکورد SystemSettings بسازید." %}
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
+ 
     <div class="accordion mb-4 animate__animated animate__fadeInUp animate__delay-0.1s" id="accordionBudgetOverview">
         <div class="accordion-item dashboard-card">
             <h2 class="accordion-header" id="headingBudgetOverview"
