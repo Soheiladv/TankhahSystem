@@ -1,787 +1,885 @@
 {% extends 'base.html' %}
+{% load i18n  jformat rcms_custom_filters %}
 {% load static %}
-{% load i18n %}
- 
-{% load humanize %}
 
-{% block title %}جزئیات دستور پرداخت - {{ payment_order.order_number }}{% endblock %}
-
+{% block title %}{% trans "  جزئیات دستور پرداخت " %}- {{ payment_order.order_number }}{% endblock %}
 {% block extra_css %}
-        <link rel="stylesheet" href="{% static 'admin/css/budgetsStyle.css' %}">
 
 <style>
-:root {
-    --primary: #4361ee;
-    --success: #06d6a0;
-    --warning: #ffd166;
-    --danger: #ef476f;
-    --dark: #1e1e2c;
-    --light: #f8f9fa;
-    --gray: #6c757d;
-    --border-radius: 12px;
-    --box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-    --transition: all 0.3s ease;
-}
-
-.detail-header {
-    background: linear-gradient(135deg, var(--primary) 0%, #6a11cb 100%);
-    color: white;
-    border-radius: var(--border-radius);
-    padding: 30px;
-    margin-bottom: 30px;
-    text-align: center;
-    position: relative;
-    overflow: hidden;
-}
-
-.detail-header::before {
-    content: '';
-    position: absolute;
-    top: -20px;
-    right: -20px;
-    width: 120px;
-    height: 120px;
-    background: rgba(255,255,255,0.1);
-    border-radius: 50%;
-}
-
-.detail-header::after {
-    content: '';
-    position: absolute;
-    bottom: -30px;
-    left: -30px;
-    width: 160px;
-    height: 160px;
-    background: rgba(255,255,255,0.05);
-    border-radius: 50%;
-}
-
-.detail-header h1 {
-    font-size: 2.2rem;
-    font-weight: 700;
-    margin-bottom: 10px;
-    position: relative;
-    z-index: 1;
-}
-
-.detail-header .order-number {
-    font-size: 1.3rem;
-    opacity: 0.9;
-    margin-bottom: 15px;
-    position: relative;
-    z-index: 1;
-}
-
-.archive-badge {
-    background: rgba(255,255,255,0.2);
-    color: white;
-    padding: 6px 15px;
-    border-radius: 20px;
-    font-size: 0.9rem;
-    font-weight: 500;
-    position: relative;
-    z-index: 1;
-}
-
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 20px;
-    margin-bottom: 30px;
-}
-
-.stat-card {
-    background: white;
-    border-radius: var(--border-radius);
-    padding: 25px;
-    text-align: center;
-    box-shadow: var(--box-shadow);
-    border: 1px solid rgba(67, 97, 238, 0.1);
-    transition: var(--transition);
-}
-
-.stat-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 15px 35px rgba(0,0,0,0.1);
-}
-
-.stat-card h4 {
-    font-size: 2.5rem;
-    font-weight: 700;
-    margin: 0;
-    color: var(--primary);
-}
-
-.stat-card p {
-    margin: 10px 0 0 0;
-    color: var(--gray);
-    font-weight: 500;
-}
-
-.info-card {
-    background: white;
-    border-radius: var(--border-radius);
-    padding: 30px;
-    margin-bottom: 30px;
-    box-shadow: var(--box-shadow);
-}
-
-.info-card h5 {
-    color: var(--dark);
-    font-weight: 700;
-    margin-bottom: 25px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.info-card h5 i {
-    color: var(--primary);
-    font-size: 1.4rem;
-}
-
-.info-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 20px;
-}
-
-.info-item {
-    display: flex;
-    flex-direction: column;
-    padding: 15px;
-    background: var(--light);
-    border-radius: 10px;
-    border-left: 4px solid var(--primary);
-}
-
-.info-label {
-    font-size: 0.9rem;
-    color: var(--gray);
-    margin-bottom: 5px;
-    font-weight: 500;
-}
-
-.info-value {
-    font-size: 1.1rem;
-    color: var(--dark);
-    font-weight: 600;
-}
-
-.status-badge {
-    padding: 6px 14px;
-    border-radius: 20px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-}
-
-.status-draft { background-color: #fff8e1; color: #f57c00; border: 1px solid #ffecb3; }
-.status-approved { background-color: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
-.status-paid { background-color: #e3f2fd; color: #1565c0; border: 1px solid #bbdefb; }
-.status-rejected { background-color: #ffebee; color: #c62828; border: 1px solid #ffcdd2; }
-.status-cancelled { background-color: #f5f5f5; color: #616161; border: 1px solid #e0e0e0; }
-
-.factors-section {
-    background: white;
-    border-radius: var(--border-radius);
-    padding: 30px;
-    margin-bottom: 30px;
-    box-shadow: var(--box-shadow);
-}
-
-.factors-section h5 {
-    color: var(--dark);
-    font-weight: 700;
-    margin-bottom: 25px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.factors-section h5 i {
-    color: var(--primary);
-    font-size: 1.4rem;
-}
-
-.factors-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-    gap: 20px;
-}
-
-.factor-card {
-    background: white;
-    border-radius: var(--border-radius);
-    padding: 20px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-    border: 1px solid rgba(0,0,0,0.05);
-    transition: var(--transition);
-}
-
-.factor-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
-    border-color: rgba(67, 97, 238, 0.2);
-}
-
-.factor-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
-    padding-bottom: 15px;
-    border-bottom: 1px solid #eee;
-}
-
-.factor-number {
-    font-weight: 700;
-    color: var(--primary);
-    font-size: 1.1rem;
-}
-
-.factor-amount {
-    font-weight: 700;
-    color: var(--success);
-    background: rgba(6, 214, 160, 0.1);
-    padding: 5px 12px;
-    border-radius: 20px;
-}
-
-.factor-details {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-}
-
-.factor-detail {
-    display: flex;
-    flex-direction: column;
-}
-
-.factor-detail-label {
-    font-size: 0.8rem;
-    color: var(--gray);
-    margin-bottom: 3px;
-}
-
-.factor-detail-value {
-    font-size: 0.9rem;
-    color: var(--dark);
-    font-weight: 500;
-}
-
-.no-data {
-    text-align: center;
-    padding: 40px 20px;
-    color: var(--gray);
-}
-
-.no-data i {
-    font-size: 4rem;
-    margin-bottom: 20px;
-    opacity: 0.5;
-    color: var(--primary);
-}
-
-.no-data h5 {
-    font-weight: 600;
-    margin-bottom: 10px;
-}
-
-.action-buttons {
-    display: flex;
-    gap: 15px;
-    flex-wrap: wrap;
-    margin-bottom: 30px;
-    justify-content: center;
-}
-
-.btn-action {
-    border-radius: 25px;
-    padding: 12px 25px;
-    font-weight: 600;
-    transition: var(--transition);
-    border: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    text-decoration: none;
-}
-
-.btn-approve {
-    background: linear-gradient(135deg, var(--success) 0%, #05a380 100%);
-    color: white;
-}
-
-.btn-approve:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(6, 214, 160, 0.4);
-    color: white;
-}
-
-.btn-archive {
-    background: linear-gradient(135deg, var(--warning) 0%, #ff9e00 100%);
-    color: white;
-}
-
-.btn-archive:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(255, 193, 7, 0.4);
-    color: white;
-}
-
-.btn-unarchive {
-    background: linear-gradient(135deg, var(--primary) 0%, #5a67d8 100%);
-    color: white;
-}
-
-.btn-unarchive:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(67, 97, 238, 0.4);
-    color: white;
-}
-
-.btn-back {
-    background: #f8f9fa;
-    color: var(--gray);
-    border: 1px solid #e9ecef;
-}
-
-.btn-back:hover {
-    background: #e9ecef;
-    color: var(--dark);
-    transform: translateY(-2px);
-}
-
-.approval-logs {
-    background: white;
-    border-radius: var(--border-radius);
-    padding: 30px;
-    box-shadow: var(--box-shadow);
-}
-
-.approval-logs h5 {
-    color: var(--dark);
-    font-weight: 700;
-    margin-bottom: 25px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.approval-logs h5 i {
-    color: var(--primary);
-    font-size: 1.4rem;
-}
-
-.logs-container {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-.log-item {
-    background: var(--light);
-    border-radius: 10px;
-    padding: 20px;
-    border-left: 4px solid var(--primary);
-}
-
-.log-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
-}
-
-.log-user {
-    font-weight: 600;
-    color: var(--dark);
-}
-
-.log-time {
-    font-size: 0.85rem;
-    color: var(--gray);
-}
-
-.log-action {
-    font-size: 0.9rem;
-    font-weight: 500;
-    margin-bottom: 8px;
-}
-
-.action-approved { color: var(--success); }
-.action-rejected { color: var(--danger); }
-.action-created { color: var(--primary); }
-
-.log-comment {
-    font-size: 0.9rem;
-    color: var(--gray);
-    background: rgba(0,0,0,0.03);
-    padding: 10px 15px;
-    border-radius: 8px;
-    margin-top: 10px;
-}
-
-/* Animation */
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(30px);
+    :root {
+        --primary: #6366f1;
+        --primary-dark: #4f46e5;
+        --primary-light: #818cf8;
+        --secondary: #ec4899;
+        --success: #10b981;
+        --warning: #f59e0b;
+        --danger: #ef4444;
+        --info: #06b6d4;
+        --light: #f8fafc;
+        --dark: #1e293b;
+        --gray: #64748b;
+        --border-radius: 20px;
+        --border-radius-sm: 12px;
+        --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+        --shadow-lg: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        --shadow-xl: 0 35px 60px -15px rgba(0, 0, 0, 0.3);
+        --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        --glass: rgba(255, 255, 255, 0.25);
+        --glass-border: rgba(255, 255, 255, 0.18);
     }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
 
-.animate-fadeInUp {
-    animation: fadeInUp 0.6s ease forwards;
-}
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
 
-/* Responsive */
-@media (max-width: 768px) {
-    .stats-grid {
-        grid-template-columns: 1fr;
+    body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        font-family: 'Vazirmatn', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        line-height: 1.6;
+        color: var(--dark);
+        padding: 20px;
     }
-    
-    .info-grid {
-        grid-template-columns: 1fr;
+
+    .main-container {
+        background: rgba(255, 255, 255, 0.92);
+        backdrop-filter: blur(20px);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-xl);
+        margin: 0 auto;
+        max-width: 1400px;
+        overflow: hidden;
+        border: 1px solid var(--glass-border);
     }
-    
-    .factors-container {
-        grid-template-columns: 1fr;
+
+    /* Header Styles */
+    .header {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+        color: white;
+        padding: 40px;
+        position: relative;
+        overflow: hidden;
     }
-    
-    .action-buttons {
-        flex-direction: column;
+
+    .header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        animation: float 8s ease-in-out infinite;
     }
-    
-    .btn-action {
-        width: 100%;
-        justify-content: center;
+
+    .header::after {
+        content: '';
+        position: absolute;
+        bottom: -50px;
+        left: -50px;
+        width: 150px;
+        height: 150px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 50%;
+        animation: float 6s ease-in-out infinite reverse;
     }
-    
-    .log-header {
-        flex-direction: column;
+
+    @keyframes float {
+        0%, 100% { transform: translateY(0px) rotate(0deg); }
+        50% { transform: translateY(-20px) rotate(180deg); }
+    }
+
+    .header-content {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        justify-content: space-between;
         align-items: flex-start;
-        gap: 5px;
+        flex-wrap: wrap;
+        gap: 20px;
     }
-    
-    .detail-header h1 {
+
+    .header-text {
+        flex: 1;
+        min-width: 300px;
+    }
+
+    .header-title {
+        font-size: 2.5rem;
+        font-weight: 800;
+        margin-bottom: 8px;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .header-subtitle {
+        font-size: 1.2rem;
+        opacity: 0.9;
+        margin-bottom: 20px;
+    }
+
+    .header-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        align-items: flex-end;
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 24px;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 0.95rem;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255,255,255,0.2);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .status-draft { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
+    .status-approved { background: rgba(16, 185, 129, 0.2); color: #10b981; }
+    .status-paid { background: rgba(37, 99, 235, 0.2); color: #2563eb; }
+    .status-rejected { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+    .status-pending { background: rgba(251, 191, 36, 0.2); color: #fbbf24; }
+
+    /* Content Section */
+    .content-section {
+        padding: 40px;
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 24px;
+        margin-bottom: 50px;
+    }
+
+    .stat-card {
+        background: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.7) 100%);
+        border-radius: var(--border-radius);
+        padding: 32px;
+        text-align: center;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--glass-border);
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
+        backdrop-filter: blur(10px);
+    }
+
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--primary), var(--secondary));
+    }
+
+    .stat-card:hover {
+        transform: translateY(-8px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .stat-icon {
+        font-size: 2.5rem;
+        margin-bottom: 16px;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .stat-number {
+        font-size: 2.8rem;
+        font-weight: 800;
+        color: var(--primary);
+        margin-bottom: 8px;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .stat-label {
+        color: var(--gray);
+        font-weight: 600;
+        font-size: 1rem;
+    }
+
+    /* Info Sections */
+    .info-section {
+        background: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.7) 100%);
+        border-radius: var(--border-radius);
+        padding: 40px;
+        margin-bottom: 32px;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--glass-border);
+        backdrop-filter: blur(10px);
+    }
+
+    .section-title {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--dark);
+        margin-bottom: 32px;
+        padding-bottom: 16px;
+        border-bottom: 2px solid rgba(99, 102, 241, 0.1);
+    }
+
+    .section-title i {
+        color: var(--primary);
         font-size: 1.8rem;
     }
-    
-    .detail-header .order-number {
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 24px;
+    }
+
+    .info-item {
+        background: rgba(248, 250, 252, 0.7);
+        border-radius: var(--border-radius-sm);
+        padding: 24px;
+        border-left: 4px solid var(--primary);
+        transition: var(--transition);
+        backdrop-filter: blur(5px);
+    }
+
+    .info-item:hover {
+        transform: translateX(4px);
+        box-shadow: 0 8px 20px rgba(99, 102, 241, 0.15);
+    }
+
+    .info-label {
+        font-size: 0.85rem;
+        color: var(--gray);
+        font-weight: 600;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .info-value {
+        font-size: 1.1rem;
+        color: var(--dark);
+        font-weight: 700;
+    }
+
+    /* Factors Grid */
+    .factors-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 24px;
+    }
+
+    .factor-card {
+        background: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.7) 100%);
+        border-radius: var(--border-radius);
+        padding: 28px;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--glass-border);
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
+        backdrop-filter: blur(10px);
+    }
+
+    .factor-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, var(--success), var(--info));
+    }
+
+    .factor-card:hover {
+        transform: translateY(-6px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .factor-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .factor-number {
+        font-weight: 700;
+        color: var(--primary);
+        font-size: 1.2rem;
+    }
+
+    .factor-amount {
+        background: linear-gradient(135deg, var(--success), #059669);
+        color: white;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-weight: 700;
+        font-size: 0.95rem;
+        box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);
+    }
+
+    .factor-details {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+    }
+
+    .factor-detail {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .factor-detail-label {
+        font-size: 0.8rem;
+        color: var(--gray);
+        font-weight: 600;
+        margin-bottom: 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .factor-detail-value {
+        font-size: 0.95rem;
+        color: var(--dark);
+        font-weight: 600;
+    }
+
+    /* Action Buttons */
+    .action-buttons {
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+        justify-content: center;
+        margin: 50px 0 30px;
+    }
+
+    .btn-modern {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 16px 32px;
+        border-radius: 50px;
+        font-weight: 700;
+        font-size: 1rem;
+        text-decoration: none;
+        transition: var(--transition);
+        border: none;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+    }
+
+    .btn-modern::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+        transition: left 0.7s;
+    }
+
+    .btn-modern:hover::before {
+        left: 100%;
+    }
+
+    .btn-primary-modern {
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        color: white;
+    }
+
+    .btn-primary-modern:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 25px rgba(99, 102, 241, 0.4);
+        color: white;
+    }
+
+    .btn-success-modern {
+        background: linear-gradient(135deg, var(--success), #059669);
+        color: white;
+    }
+
+    .btn-success-modern:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4);
+        color: white;
+    }
+
+    .btn-warning-modern {
+        background: linear-gradient(135deg, var(--warning), #d97706);
+        color: white;
+    }
+
+    .btn-warning-modern:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 25px rgba(245, 158, 11, 0.4);
+        color: white;
+    }
+
+    .btn-secondary-modern {
+        background: linear-gradient(135deg, var(--gray), #475569);
+        color: white;
+    }
+
+    .btn-secondary-modern:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 25px rgba(100, 116, 139, 0.4);
+        color: white;
+    }
+
+    /* Logs Container */
+    .logs-container {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .log-item {
+        background: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.7) 100%);
+        border-radius: var(--border-radius);
+        padding: 24px;
+        box-shadow: var(--shadow);
+        border-left: 4px solid var(--primary);
+        transition: var(--transition);
+        backdrop-filter: blur(10px);
+    }
+
+    .log-item:hover {
+        transform: translateX(4px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .log-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+    }
+
+    .log-user {
+        font-weight: 700;
+        color: var(--dark);
         font-size: 1.1rem;
     }
-}
+
+    .log-time {
+        color: var(--gray);
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+
+    .log-action {
+        font-size: 1rem;
+        font-weight: 600;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .action-approved { color: var(--success); }
+    .action-rejected { color: var(--danger); }
+    .action-created { color: var(--primary); }
+
+    .log-comment {
+        background: rgba(248, 250, 252, 0.7);
+        border-radius: 8px;
+        padding: 16px;
+        margin-top: 12px;
+        border-left: 3px solid var(--info);
+        backdrop-filter: blur(5px);
+    }
+
+    /* No Data State */
+    .no-data {
+        text-align: center;
+        padding: 60px 20px;
+        color: var(--gray);
+    }
+
+    .no-data i {
+        font-size: 4rem;
+        margin-bottom: 24px;
+        color: var(--primary);
+        opacity: 0.6;
+    }
+
+    .no-data h5 {
+        font-weight: 700;
+        margin-bottom: 12px;
+        color: var(--dark);
+    }
+
+    .no-data p {
+        font-size: 1.1rem;
+        opacity: 0.8;
+    }
+
+    /* Animations */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .animate-fadeInUp {
+        animation: fadeInUp 0.6s ease forwards;
+    }
+
+    /* Responsive */
+    @media (max-width: 1024px) {
+        .header-content {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        
+        .header-actions {
+            align-items: flex-start;
+            width: 100%;
+        }
+    }
+
+    @media (max-width: 768px) {
+        body {
+            padding: 10px;
+        }
+        
+        .main-container {
+            border-radius: 16px;
+        }
+        
+        .header {
+            padding: 24px;
+        }
+        
+        .header-title {
+            font-size: 2rem;
+        }
+        
+        .content-section {
+            padding: 24px;
+        }
+        
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .info-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .factors-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .action-buttons {
+            flex-direction: column;
+        }
+        
+        .btn-modern {
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .log-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .header-title {
+            font-size: 1.8rem;
+        }
+        
+        .stat-number {
+            font-size: 2.5rem;
+        }
+        
+        .section-title {
+            font-size: 1.3rem;
+        }
+        
+        .factor-details {
+            grid-template-columns: 1fr;
+        }
+    }
 </style>
 {% endblock %}
-
+ 
 {% block content %}
-<div class="container-fluid">
-    <!-- هدر جزئیات -->
-    <div class="detail-header animate__animated animate__fadeInDown">
-        <h1><i class="fas fa-file-invoice"></i> جزئیات دستور پرداخت</h1>
-        <div class="order-number">{{ payment_order.order_number|default:"نامشخص" }}</div>
-        {% if payment_order.is_archived %}
-        <span class="archive-badge"><i class="fas fa-archive"></i> آرشیو شده</span>
-        {% endif %}
-    </div>
-
-    <!-- آمار کلی -->
-    <div class="stats-grid">
-        <div class="stat-card animate__animated animate__fadeInUp" style="animation-delay: 0.1s;">
-            <h4>{{ factors_stats.total_count|default:0 }}</h4>
-            <p>تعداد فاکتورها</p>
-        </div>
-        <div class="stat-card animate__animated animate__fadeInUp" style="animation-delay: 0.2s;">
-            <h4>{{ factors_stats.total_amount|floatformat:0|intcomma|default:0 }}</h4>
-            <p>مجموع مبلغ فاکتورها</p>
-        </div>
-        <div class="stat-card animate__animated animate__fadeInUp" style="animation-delay: 0.3s;">
-            <h4>{{ payment_order.amount|floatformat:0|intcomma|default:0 }}</h4>
-            <p>مبلغ دستور پرداخت</p>
-        </div>
-    </div>
-
-    <!-- اطلاعات اصلی -->
-    <div class="info-card animate__animated animate__fadeInUp" style="animation-delay: 0.4s;">
-        <h5><i class="fas fa-info-circle"></i> اطلاعات اصلی</h5>
-        <div class="info-grid">
-            <div class="info-item">
-                <span class="info-label">شماره دستور:</span>
-                <span class="info-value">{{ payment_order.order_number|default:"نامشخص" }}</span>
-            </div>
-            <div class="info-item">
-                <span class="info-label">تاریخ صدور:</span>
-                <span class="info-value">{{ payment_order.issue_date|date:"Y/m/d"|default:"نامشخص" }}</span>
-            </div>
-            <div class="info-item">
-                <span class="info-label">مبلغ:</span>
-                <span class="info-value">{{ payment_order.amount|floatformat:0|intcomma|default:0 }} ریال</span>
-            </div>
-            <div class="info-item">
-                <span class="info-label">وضعیت:</span>
-                <span class="info-value">
-                    <span class="status-badge status-{{ payment_order.status.code|lower|default:'draft' }}">
-                        <i class="fas fa-circle-notch"></i> {{ payment_order.status.name|default:"پیش‌نویس" }}
-                    </span>
-                </span>
-            </div>
-            <div class="info-item">
-                <span class="info-label">سازمان:</span>
-                <span class="info-value">{{ payment_order.organization.name|default:"نامشخص" }}</span>
-            </div>
-            <div class="info-item">
-                <span class="info-label">دریافت‌کننده:</span>
-                <span class="info-value">{{ payment_order.payee.name|default:"نامشخص" }}</span>
-            </div>
-            <div class="info-item">
-                <span class="info-label">ایجادکننده:</span>
-                <span class="info-value">{{ payment_order.created_by.get_full_name|default:payment_order.created_by.username }}</span>
-            </div>
-            <div class="info-item">
-                <span class="info-label">تاریخ ایجاد:</span>
-                <span class="info-value">{{ payment_order.created_at|date:"Y/m/d H:i"|default:"نامشخص" }}</span>
-            </div>
-            {% if payment_order.description %}
-            <div class="info-item">
-                <span class="info-label">توضیحات:</span>
-                <span class="info-value">{{ payment_order.description }}</span>
-            </div>
-            {% endif %}
-        </div>
-    </div>
-
-    <!-- فاکتورهای مرتبط -->
-    {% if related_factors %}
-    <div class="factors-section animate__animated animate__fadeInUp" style="animation-delay: 0.5s;">
-        <h5><i class="fas fa-file-invoice"></i> فاکتورهای مرتبط ({{ related_factors.count }} مورد)</h5>
-        <div class="factors-container">
-            {% for factor in related_factors %}
-            <div class="factor-card">
-                <div class="factor-header">
-                    <span class="factor-number">{{ factor.factor_number|default:factor.number }}</span>
-                    <span class="factor-amount">{{ factor.amount|floatformat:0|intcomma }} ریال</span>
+    <div class="main-container">
+        <!-- Header Section -->
+        <div class="header">
+            <div class="header-content">
+                <div class="header-text">
+                    <h1 class="header-title">
+                        <i class="fas fa-file-invoice-dollar"></i>
+                        جزئیات دستور پرداخت
+                    </h1>
+                    <div class="header-subtitle">{{ payment_order.order_number }}</div>
                 </div>
-                <div class="factor-details">
-                    <div class="factor-detail">
-                        <span class="factor-detail-label">تاریخ:</span>
-                        <span class="factor-detail-value">{{ factor.created_at|date:"Y/m/d" }}</span>
+                <div class="header-actions">
+                    <div class="status-badge status-{{ payment_order.status.code|default:'pending'|lower }}">
+                        <i class="fas fa-info-circle"></i>
+                        {{ payment_order.status.name|default:"—" }}
                     </div>
-                    <div class="factor-detail">
-                        <span class="factor-detail-label">وضعیت:</span>
-                        <span class="factor-detail-value">{{ factor.status.name }}</span>
+                    <div class="header-meta">
+                        <small>
+                            آخرین بروزرسانی:
+                            {% if payment_order.updated_at %}
+                                {{ payment_order.updated_at|jformat:"%Y/%m/%d %H:%M"|to_persian_number }}
+                            {% else %}
+                                {{ payment_order.created_at|jformat:"%Y/%m/%d %H:%M"|to_persian_number }}
+                            {% endif %}
+                        </small>
                     </div>
-                    <div class="factor-detail">
-                        <span class="factor-detail-label">سازمان:</span>
-                        <span class="factor-detail-value">{{ factor.organization.name }}</span>
-                    </div>
-                    {% if factor.payee %}
-                    <div class="factor-detail">
-                        <span class="factor-detail-label">دریافت‌کننده:</span>
-                        <span class="factor-detail-value">{{ factor.payee.name }}</span>
-                    </div>
-                    {% endif %}
                 </div>
             </div>
-            {% endfor %}
         </div>
-    </div>
-    {% else %}
-    <div class="info-card animate__animated animate__fadeInUp" style="animation-delay: 0.5s;">
-        <div class="no-data">
-            <i class="fas fa-file-invoice"></i>
-            <h5>هیچ فاکتوری مرتبط نیست</h5>
-            <p>این دستور پرداخت فاکتور مرتبطی ندارد.</p>
-        </div>
-    </div>
-    {% endif %}
 
-    <!-- دکمه‌های عملیات -->
-    <div class="action-buttons animate__animated animate__fadeInUp" style="animation-delay: 0.6s;">
-        {% if can_approve and not payment_order.is_archived %}
-        <a href="{% url 'paymentorder_approval' payment_order.pk %}" class="btn-action btn-approve">
-            <i class="fas fa-check"></i> تایید/رد
-        </a>
-        {% endif %}
-        
-        {% if can_archive and payment_order.can_be_archived and not payment_order.is_archived %}
-        <button type="button" class="btn-action btn-archive" onclick="archiveOrder({{ payment_order.pk }})">
-            <i class="fas fa-archive"></i> آرشیو
-        </button>
-        {% elif can_archive and payment_order.is_archived %}
-        <button type="button" class="btn-action btn-unarchive" onclick="unarchiveOrder({{ payment_order.pk }})">
-            <i class="fas fa-box-open"></i> خارج از آرشیو
-        </button>
-        {% endif %}
-        
-        <a href="{% url 'paymentorder_management_list' %}" class="btn-action btn-back">
-            <i class="fas fa-arrow-right"></i> بازگشت به لیست
-        </a>
-    </div>
-
-    <!-- تاریخچه تاییدات -->
-    {% if approval_logs %}
-    <div class="approval-logs animate__animated animate__fadeInUp" style="animation-delay: 0.7s;">
-        <h5><i class="fas fa-history"></i> تاریخچه تاییدات</h5>
-        <div class="logs-container">
-            {% for log in approval_logs %}
-            <div class="log-item">
-                <div class="log-header">
-                    <span class="log-user">{{ log.user.get_full_name|default:log.user.username }}</span>
-                    <span class="log-time">{{ log.timestamp|date:"Y/m/d H:i" }}</span>
-                </div>
-                <div>
-                    <span class="log-action action-{{ log.action|lower }}">
-                        <i class="fas fa-{% if log.action == 'approved' %}check-circle{% elif log.action == 'rejected' %}times-circle{% else %}plus-circle{% endif %}"></i>
-                        {{ log.get_action_display }}
-                    </span>
-                    {% if log.comment %}
-                    <div class="log-comment mt-2">
-                        <strong><i class="fas fa-comment"></i> یادداشت:</strong> {{ log.comment }}
+        <div class="content-section">
+            <!-- آمار کلی -->
+            <div class="stats-grid">
+                <div class="stat-card animate-fadeInUp" style="animation-delay: 0.1s;">
+                    <div class="stat-icon">
+                        <i class="fas fa-receipt"></i>
                     </div>
-                    {% endif %}
+                    <div class="stat-number">{{ factors_stats.total_count|default:0|to_persian_number }}</div>
+                    <div class="stat-label">تعداد فاکتورها</div>
+                </div>
+                <div class="stat-card animate-fadeInUp" style="animation-delay: 0.2s;">
+                    <div class="stat-icon">
+                        <i class="fas fa-money-bill-wave"></i>
+                    </div>
+                    <div class="stat-number">{{ factors_stats.total_amount|default:0|floatformat:0|format_negative }}</div>
+                    <div class="stat-label">مجموع مبلغ فاکتورها (ریال)</div>
+                </div>
+                <div class="stat-card animate-fadeInUp" style="animation-delay: 0.3s;">
+                    <div class="stat-icon">
+                        <i class="fas fa-file-invoice"></i>
+                    </div>
+                    <div class="stat-number">{{ payment_order.amount|default:0|floatformat:0|format_negative }}</div>
+                    <div class="stat-label">مبلغ دستور پرداخت (ریال)</div>
                 </div>
             </div>
-            {% endfor %}
+
+            <!-- اطلاعات اصلی -->
+            <div class="info-section animate-fadeInUp" style="animation-delay: 0.4s;">
+                <h5 class="section-title">
+                    <i class="fas fa-info-circle"></i>
+                    اطلاعات اصلی
+                </h5>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">شماره دستور</div>
+                        <div class="info-value">{{ payment_order.order_number }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">تاریخ صدور</div>
+                        <div class="info-value">
+                            {% if payment_order.issue_date %}
+                                {{ payment_order.issue_date|jformat:"%Y/%m/%d"|to_persian_number }}
+                            {% else %}
+                                —
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">مبلغ</div>
+                        <div class="info-value">{{ payment_order.amount|default:0|floatformat:0|format_negative }} ریال</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">وضعیت</div>
+                        <div class="info-value">
+                            <span class="status-badge status-{{ payment_order.status.code|default:'pending'|lower }}">
+                                <i class="fas fa-info-circle"></i>
+                                {{ payment_order.status.name|default:"—" }}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">سازمان</div>
+                        <div class="info-value">{{ payment_order.organization.name }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">دریافت‌کننده</div>
+                        <div class="info-value">{{ payment_order.payee|default:"—" }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">ایجادکننده</div>
+                        <div class="info-value">{{ payment_order.created_by.get_full_name|default:payment_order.created_by.username }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">تاریخ ایجاد</div>
+                        <div class="info-value">{{ payment_order.created_at|jformat:"%Y/%m/%d %H:%M"|to_persian_number }}</div>
+                    </div>
+                    <div class="info-item" style="grid-column: 1 / -1;">
+                        <div class="info-label">توضیحات</div>
+                        <div class="info-value">{{ payment_order.description|default:"—" }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- فاکتورهای مرتبط -->
+            <div class="info-section animate-fadeInUp" style="animation-delay: 0.5s;">
+                <h5 class="section-title">
+                    <i class="fas fa-file-invoice"></i>
+                    فاکتورهای مرتبط ({{ factors_stats.total_count|default:0|to_persian_number }} مورد)
+                </h5>
+                <div class="factors-grid">
+                    {% for f in related_factors %}
+                    <div class="factor-card">
+                        <div class="factor-header">
+                            <span class="factor-number">{{ f.number|default:f.id }}</span>
+                            <span class="factor-amount">{{ f.amount|default:0|floatformat:0|format_negative }} ریال</span>
+                        </div>
+                        <div class="factor-details">
+                            <div class="factor-detail">
+                                <div class="factor-detail-label">تاریخ</div>
+                                <div class="factor-detail-value">{% if f.issue_date %}{{ f.issue_date|jformat:"%Y/%m/%d"|to_persian_number }}{% else %}—{% endif %}</div>
+                            </div>
+                            <div class="factor-detail">
+                                <div class="factor-detail-label">وضعیت</div>
+                                <div class="factor-detail-value">{{ f.status.name|default:"—" }}</div>
+                            </div>
+                            <div class="factor-detail">
+                                <div class="factor-detail-label">سازمان</div>
+                                <div class="factor-detail-value">{{ f.organization.name|default:"—" }}</div>
+                            </div>
+                            <div class="factor-detail">
+                                <div class="factor-detail-label">دریافت‌کننده</div>
+                                <div class="factor-detail-value">{{ f.payee|default:"—" }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="no-data">
+                        <i class="fas fa-info-circle"></i>
+                        <h5>فاکتوری مرتبط یافت نشد</h5>
+                        <p>برای این دستور پرداخت، فاکتور مرتبطی ثبت نشده است.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- دکمه‌های عملیات -->
+            <div class="action-buttons animate-fadeInUp" style="animation-delay: 0.6s;">
+                {% if can_approve %}
+                <a href="{% url 'paymentorder_approval' payment_order.pk %}" class="btn-modern btn-success-modern">
+                    <i class="fas fa-check-circle"></i>
+                    تایید/رد
+                </a>
+                {% endif %}
+
+                {% if can_archive %}
+                <form method="post" action="{% url 'paymentorder_archive' payment_order.pk %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-modern btn-warning-modern">
+                        <i class="fas fa-archive"></i>
+                        آرشیو
+                    </button>
+                </form>
+                {% endif %}
+
+                <a href="{% url 'paymentorder_detail_print' payment_order.pk %}" class="btn-modern btn-primary-modern" target="_blank">
+                    <i class="fas fa-print"></i>
+                    چاپ
+                </a>
+
+                <a href="{% url 'paymentorder_management_list' %}" class="btn-modern btn-secondary-modern">
+                    <i class="fas fa-arrow-right"></i>
+                    بازگشت به لیست
+                </a>
+            </div>
+
+            <!-- تاریخچه تاییدات -->
+            <div class="info-section animate-fadeInUp" style="animation-delay: 0.7s;">
+                <h5 class="section-title">
+                    <i class="fas fa-history"></i>
+                    تاریخچه تاییدات
+                </h5>
+                <div class="logs-container">
+                    {% for log in approval_logs %}
+                    <div class="log-item">
+                        <div class="log-header">
+                            <span class="log-user">{{ log.user.get_full_name|default:log.user.username }}</span>
+                            <span class="log-time">{{ log.timestamp|jformat:"%Y/%m/%d %H:%M"|to_persian_number }}</span>
+                        </div>
+                        <div>
+                            <span class="log-action {% if log.action.code == 'APPROVED' %}action-approved{% elif log.action.code == 'REJECTED' %}action-rejected{% else %}action-created{% endif %}">
+                                <i class="fas {% if log.action.code == 'APPROVED' %}fa-check-circle{% elif log.action.code == 'REJECTED' %}fa-times-circle{% else %}fa-plus-circle{% endif %}"></i>
+                                {{ log.action.name|default:"—" }}
+                            </span>
+                            {% if log.comment %}
+                            <div class="log-comment">
+                                <strong><i class="fas fa-comment"></i> یادداشت:</strong> {{ log.comment }}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="no-data">
+                        <i class="fas fa-info-circle"></i>
+                        <h5>تاریخچه‌ای ثبت نشده است</h5>
+                        <p>هیچ اقدام تاییدی برای این دستور پرداخت ثبت نشده است.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
         </div>
     </div>
-    {% endif %}
-</div>
-
-<!-- Modal برای تایید عملیات -->
-<div class="modal fade" id="confirmModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title"><i class="fas fa-check-circle"></i> تایید عملیات</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p id="confirmMessage"></p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                    <i class="fas fa-times"></i> لغو
-                </button>
-                <button type="button" class="btn btn-primary" id="confirmAction">
-                    <i class="fas fa-check"></i> تایید
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-{% endblock %}
-
-{% block extra_js %}
-<!-- Bootstrap JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-<script>
-function archiveOrder(orderId) {
-    showConfirmModal('آیا مطمئن هستید که می‌خواهید این دستور پرداخت را آرشیو کنید؟', () => {
-        fetch(`/budgets/payment-orders/${orderId}/archive/`, {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': getCSRFToken(),
-                'Content-Type': 'application/json',
-            },
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                showToast('دستور پرداخت با موفقیت آرشیو شد', 'success');
-                setTimeout(() => location.reload(), 1500);
-            } else {
-                showToast('خطا: ' + data.message, 'error');
-            }
-        })
-        .catch(error => {
-            showToast('خطا در انجام عملیات', 'error');
-            console.error('Error:', error);
+    {% endblock %}
+    {% block extra_js %}
+    <script>
+        // انیمیشن اسکرول
+        document.addEventListener('DOMContentLoaded', function() {
+            const animatedElements = document.querySelectorAll('.animate-fadeInUp');
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, {
+                threshold: 0.1
+            });
+            
+            animatedElements.forEach(element => {
+                element.style.opacity = '0';
+                element.style.transform = 'translateY(30px)';
+                element.style.transition = 'all 0.6s ease';
+                observer.observe(element);
+            });
         });
-    });
-}
-
-function unarchiveOrder(orderId) {
-    showConfirmModal('آیا مطمئن هستید که می‌خواهید این دستور پرداخت را از آرشیو خارج کنید؟', () => {
-        fetch(`/budgets/payment-orders/${orderId}/unarchive/`, {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': getCSRFToken(),
-                'Content-Type': 'application/json',
-            },
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                showToast('دستور پرداخت با موفقیت از آرشیو خارج شد', 'success');
-                setTimeout(() => location.reload(), 1500);
-            } else {
-                showToast('خطا: ' + data.message, 'error');
-            }
-        })
-        .catch(error => {
-            showToast('خطا در انجام عملیات', 'error');
-            console.error('Error:', error);
-        });
-    });
-}
-
-function showConfirmModal(message, callback) {
-    document.getElementById('confirmMessage').textContent = message;
-    const confirmBtn = document.getElementById('confirmAction');
-    confirmBtn.onclick = callback;
-    new bootstrap.Modal(document.getElementById('confirmModal')).show();
-}
-
-function getCSRFToken() {
-    return document.querySelector('[name=csrfmiddlewaretoken]').value;
-}
-
-function showToast(message, type = 'info') {
-    // پیاده‌سازی ساده toast
-    const toast = document.createElement('div');
-    toast.className = `position-fixed top-0 end-0 p-3 toast-${type}`;
-    toast.style.zIndex = '9999';
-    toast.innerHTML = `
-        <div class="toast show" role="alert">
-            <div class="toast-header">
-                <strong class="me-auto">اعلان</strong>
-                <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
-            </div>
-            <div class="toast-body">${message}</div>
-        </div>
-    `;
-    document.body.appendChild(toast);
-    
-    setTimeout(() => {
-        document.body.removeChild(toast);
-    }, 3000);
-}
-
-// انیمیشن اسکرول
-document.addEventListener('DOMContentLoaded', function() {
-    const animatedElements = document.querySelectorAll('.animate__animated');
-    
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                const animation = entry.target.getAttribute('data-animation');
-                entry.target.classList.add(animation);
-            }
-        });
-    });
-    
-    animatedElements.forEach(element => {
-        observer.observe(element);
-    });
-});
-</script>
-{% endblock %}
+    </script>
+    {% endblock %}

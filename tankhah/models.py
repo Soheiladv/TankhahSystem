@@ -321,7 +321,7 @@ class Tankhah(models.Model):
                 from core.models import PostAction
                 if user_post and PostAction.objects.filter(
                         post=user_post.post, stage=current_status, action_type__code='ISSUE_PAYMENT_ORDER',
-                        entity_type='FACTOR', is_active=True).exists():
+                        entity_type='فاکتور', is_active=True).exists():
                     target_payee = factor.payee
                     if not target_payee:
                         logger.warning(f"No payee for Factor {factor.number}")
@@ -373,7 +373,7 @@ class Tankhah(models.Model):
             return next_posts
 
         # گرفتن مرحله بعدی برای دستور پرداخت
-        next_stage = self.current_stage.get_next_stage(entity_type='PAYMENTORDER')
+        next_stage = self.current_stage.get_next_stage(entity_type='دستور پرداخت')
         if next_stage:
             next_posts = list(next_stage.posts.all())  # فرض بر این است که هر Stage دارای psts مرتبط است
 
@@ -640,7 +640,7 @@ class Factor(models.Model):
             status_code = getattr(self.status, 'code', None)
             is_final_reject = getattr(self.status, 'is_final_reject', False)
 
-            if (status_code == 'REJECT' or is_final_reject) and not self.rejected_reason:
+            if (status_code == 'رد شده' or is_final_reject) and not self.rejected_reason:
                 raise ValidationError({
                     "rejected_reason": _("برای رد کردن فاکتور، نوشتن دلیل الزامی است.")
                 })
@@ -721,7 +721,7 @@ class Factor(models.Model):
             super().save(*args, **kwargs)
 
             # اگر فاکتور پرداخت شده است، تراکنش بودجه ایجاد شود
-            if self.status and self.status.code == 'PAID' and (not original_status or original_status != self.status):
+            if self.status and self.status.is_paid and (not original_status or original_status != self.status):
                 logger.info(
                     f"Factor {self.number} marked as PAID. Creating CONSUMPTION transaction."
                 )
@@ -742,20 +742,29 @@ class Factor(models.Model):
             if original_status != self.status and current_user:
                 user_post = current_user.userpost_set.filter(is_active=True).first()
                 if user_post:
-                    action = 'APPROVE' if self.status.code in ['APPROVED', 'PAID'] else 'REJECT'
-                    ApprovalLog.objects.create(
-                        factor=self,
-                        action=action,
-                        stage=self.tankhah.current_stage,
-                        user=current_user,
-                        post=user_post.post,
-                        content_type=ContentType.objects.get_for_model(self),
-                        object_id=self.id,
-                        comment=f"تغییر وضعیت فاکتور به {self.status.name} توسط {current_user.get_full_name()}",
-                        changed_field='status'
-                    )
+                    # تعیین نوع اقدام بر اساس وضعیت جدید
+                    from core.dynamic_config import DynamicSystemManager
+                    if self.status and self.status.is_final_approve:
+                        action = self._get_action_by_type(DynamicSystemManager.get_action_for_approve())
+                    elif self.status and self.status.is_rejected:
+                        action = self._get_action_by_type(DynamicSystemManager.get_action_for_reject())
+                    else:
+                        action = self._get_action_by_type(DynamicSystemManager.get_action_for_change())
+                    
+                    if action:
+                        ApprovalLog.objects.create(
+                            factor=self,
+                            action=action,
+                            from_status=original_status,
+                            to_status=self.status,
+                            user=current_user,
+                            post=user_post.post,
+                            content_type=ContentType.objects.get_for_model(self),
+                            object_id=self.id,
+                            comment=f"تغییر وضعیت فاکتور به {self.status.name} توسط {current_user.get_full_name()}"
+                        )
             # ارسال اعلان In-App برای فاکتور تأیید شده
-            if self.status and self.status.code == 'APPROVED' and self.status != getattr(original_status,
+            if self.status and self.status.is_final_approve and self.status != getattr(original_status,
                                                                                          'code', None):
                 try:
                     factor_users = self.related_users.all()
@@ -776,26 +785,116 @@ class Factor(models.Model):
                 except Exception as e:
                     logger.error(f"ارسال اعلان فاکتور {self.number} با send_notification ناموفق بود: {e}")
 
+            # ایجاد خودکار دستور پرداخت برای فاکتور تأیید شده
+            if self.status and self.status.is_final_approve and (not original_status or not original_status.is_final_approve):
+                self._create_payment_order_for_approved_factor(current_user)
+
+    def _get_status_by_entity_and_type(self, entity_type, status_type):
+        """
+        پیدا کردن وضعیت بر اساس نوع موجودیت و نوع وضعیت
+        """
+        from core.dynamic_config import DynamicSystemManager
+        return DynamicSystemManager.find_status_by_entity_and_type(entity_type, status_type)
+
+    def _get_action_by_type(self, action_type):
+        """
+        پیدا کردن Action بر اساس نوع
+        """
+        from core.dynamic_config import DynamicSystemManager
+        return DynamicSystemManager.find_action_by_type(action_type)
+
+    def _create_payment_order_for_approved_factor(self, current_user):
+        """
+        ایجاد خودکار دستور پرداخت برای فاکتور تأیید شده
+        """
+        try:
+            from budgets.models import PaymentOrder
+            from core.models import Status
+            
+            # بررسی اینکه آیا قبلاً دستور پرداخت ایجاد شده یا نه
+            if self.payment_orders.exists():
+                logger.info(f"Payment order already exists for Factor {self.number}")
+                return
+            
+            # بررسی وجود payee
+            if not self.payee:
+                logger.warning(f"No payee for Factor {self.number}, cannot create payment order")
+                return
+            
+            # دریافت وضعیت پیش‌نویس دستور پرداخت
+            from core.dynamic_config import DynamicSystemManager
+            po_draft_status = self._get_status_by_entity_and_type(
+                DynamicSystemManager.get_entity_type_for_payment_order(), 
+                'is_initial'
+            )
+            
+            # دریافت پست کاربر فعلی
+            user_post = current_user.userpost_set.filter(is_active=True).first()
+            if not user_post:
+                logger.warning(f"No active post for user {current_user.username}")
+                return
+            
+            # ایجاد دستور پرداخت
+            payment_order = PaymentOrder(
+                tankhah=self.tankhah,
+                related_tankhah=self.tankhah,
+                amount=self.amount,
+                description=f"پرداخت برای فاکتور {self.number}",
+                organization=self.tankhah.organization,
+                project=self.tankhah.project if hasattr(self.tankhah, 'project') else None,
+                created_by=current_user,
+                created_by_post=user_post.post,
+                issue_date=timezone.now().date(),
+                payee=self.payee,
+                min_signatures=1,  # می‌تواند بر اساس تنظیمات سیستم تغییر کند
+                status=po_draft_status
+            )
+            payment_order.save()
+            
+            # اتصال فاکتور به دستور پرداخت
+            payment_order.related_factors.add(self)
+            
+            logger.info(f"Payment order {payment_order.order_number} created for Factor {self.number}")
+            
+        except Exception as e:
+            logger.error(f"Error creating payment order for Factor {self.number}: {e}")
+
     def revert_to_pending(self, user):
         from core.models import Status
-        if not self.status or self.status.code != 'REJECT':
+        if not self.status or not self.status.is_rejected:
             return
         with transaction.atomic():
-            pending_status = Status.objects.get(code='PENDING_APPROVAL')
+            # پیدا کردن وضعیت در انتظار تأیید
+            from core.dynamic_config import DynamicSystemManager
+            pending_status = self._get_status_by_entity_and_type(
+                DynamicSystemManager.get_entity_type_for_factor(), 
+                'is_pending'
+            )
+            
+            if not pending_status:
+                logger.error(f"No pending status found for Factor {self.number}")
+                return
+                
             self.status = pending_status
             self.is_locked = False
             self.save(update_fields=['status', 'is_locked'])
-            ApprovalLog.objects.create(
-                factor=self,
-                action='STAGE_CHANGE',
-                stage=self.tankhah.current_stage,
-                user=user,
-                post=user.userpost_set.filter(is_active=True).first().post,
-                content_type=ContentType.objects.get_for_model(self),
-                object_id=self.id,
-                comment=f"فاکتور {self.number} به وضعیت در انتظار تأیید بازگشت.",
-                changed_field='status'
-            )
+            
+            # پیدا کردن Action مناسب
+            from core.dynamic_config import DynamicSystemManager
+            action = self._get_action_by_type(DynamicSystemManager.get_action_for_change())
+            
+            if action:
+                ApprovalLog.objects.create(
+                    factor=self,
+                    action=action,
+                    from_status=self.status,
+                    to_status=pending_status,
+                    user=user,
+                    post=user.userpost_set.filter(is_active=True).first().post,
+                    content_type=ContentType.objects.get_for_model(self),
+                    object_id=self.id,
+                    comment=f"فاکتور {self.number} به وضعیت در انتظار تأیید بازگشت."
+                )
             FactorHistory.objects.create(
                 factor=self,
                 change_type=FactorHistory.ChangeType.STATUS_CHANGE,
@@ -819,7 +918,7 @@ class Factor(models.Model):
             self.save(update_fields=['is_locked', 'status'])
             ApprovalLog.objects.create(
                 factor=self,
-                action='APPROVE',
+                action='تأیید',
                 stage=self.tankhah.current_stage,
                 user=user,
                 post=user.userpost_set.filter(is_active=True).first().post,
@@ -1056,7 +1155,7 @@ class FactorHistory(models.Model):
     class ChangeType(models.TextChoices):
         CREATION = 'CREATION', _('ایجاد')
         UPDATE = 'UPDATE', _('ویرایش')
-        STATUS_CHANGE = 'STATUS_CHANGE', _('تغییر وضعیت')
+        STATUS_CHANGE = 'تغییر وضعیت', _('تغییر وضعیت')
         DELETION = 'DELETION', _('حذف')
 
     factor = models.ForeignKey('Factor', on_delete=models.CASCADE, related_name='history', verbose_name=_('فاکتور'))
@@ -1088,32 +1187,46 @@ class StageApprover(models.Model):
     is_active = models.BooleanField(default=True, verbose_name="وضعیت فعال")
     entity_type = models.CharField(
         max_length=50,
-        choices=(('TANKHAH', _('تنخواه')), ('BUDGET_ALLOCATION', _('تخصیص بودجه')),
-                 ('FACTOR', _('فاکتور'))),
-
-        default='TANKHAH',
-        verbose_name=_("نوع موجودیت")
+        verbose_name=_("نوع موجودیت"),
+        help_text=_("نوع موجودیت که این تأییدکننده برای آن تعریف شده است")
     )
     action = models.CharField(
-        max_length=20,
-        choices=[('APPROVE', 'تأیید'), ('REJECT', 'رد'), ('PARTIAL', 'نیمه‌تأیید')],
+        max_length=50,
+        verbose_name=_("اقدام"),
+        help_text=_("نوع اقدامی که این تأییدکننده مجاز به انجام آن است"),
         blank=True,
         null=True
     )
+    organization = models.ForeignKey(
+        'core.Organization', 
+        on_delete=models.CASCADE, 
+        verbose_name=_("سازمان"),
+        help_text=_("سازمانی که این تأییدکننده در آن فعال است")
+    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("تاریخ ایجاد"))
+    updated_at = models.DateTimeField(auto_now=True, verbose_name=_("تاریخ به‌روزرسانی"))
 
     def __str__(self):
-        return f"{self.post} - تأییدکننده برای {self.get_entity_type_display()} در {self.stage}"
+        return f"{self.post} - تأییدکننده برای {self.entity_type} در {self.stage}"
+
+    def get_entity_type_display(self):
+        """نمایش نوع موجودیت"""
+        return self.entity_type
+
+    def get_action_display(self):
+        """نمایش اقدام"""
+        return self.action or _("همه اقدامات")
 
     class Meta:
         verbose_name = _('تأییدکننده مرحله')
         verbose_name_plural = _('تأییدکنندگان مرحله')
-        unique_together = ('stage', 'post', 'entity_type')
+        unique_together = ('stage', 'post', 'entity_type', 'organization')
         default_permissions = ()
         permissions = [
-            ('stageapprover__view', 'نمایش تأییدکننده مرحله'),
-            ('stageapprover__add', 'افزودن تأییدکننده مرحله'),
-            ('stageapprover__Update', 'بروزرسانی تأییدکننده مرحله'),
-            ('stageapprover__delete', 'حــذف تأییدکننده مرحله'),
+            ('stageapprover_view', 'نمایش تأییدکننده مرحله'),
+            ('stageapprover_add', 'افزودن تأییدکننده مرحله'),
+            ('stageapprover_change', 'ویرایش تأییدکننده مرحله'),
+            ('stageapprover_delete', 'حذف تأییدکننده مرحله'),
         ]
 
 class TankhahFinalApproval(models.Model):

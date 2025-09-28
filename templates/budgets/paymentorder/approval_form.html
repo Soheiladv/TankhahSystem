@@ -42,7 +42,7 @@
                             <div class="col-md-6">
                                 <p><strong>{% trans "شماره دستور:" %}</strong> {{ payment_order.order_number }}</p>
                                 <p><strong>{% trans "مبلغ:" %}</strong>
-                                    <span class="text-success fs-5">{{ payment_order.amount|floatformat:0|to_persian_number }}</span>
+                                    <span class="text-success fs-5">{{ payment_order.amount|floatformat:0|format_negative}}</span>
                                     <small class="text-muted">{% trans "ریال" %}</small>
                                 </p>
                                 <p><strong>{% trans "دریافت‌کننده:" %}</strong>
@@ -103,22 +103,62 @@
                                 <a href="{% url 'tankhah_detail' payment_order.tankhah.pk %}" class="text-decoration-none">
                                     {{ payment_order.tankhah.number }}
                                 </a>
-                                <small class="text-muted">({{ payment_order.tankhah.amount|floatformat:0|to_persian_number }} ریال)</small>
+                                <small class="text-muted">({{ payment_order.tankhah.amount|floatformat:0|format_negative }} ریال)</small>
                             </div>
                         {% endif %}
                     </div>
                 </div>
 
-                <!-- تاییدکنندگان موثر در گردش کار -->
+                <!-- مدیریت گردش کار و تاییدکنندگان -->
                 <div class="card mb-4">
-                    <div class="card-header bg-info text-white">
-                        <h5 class="mb-0">{% trans "تاییدکنندگان موثر در گردش کار" %}</h5>
+                    <div class="card-header bg-gradient-primary text-white">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="fas fa-sitemap me-2"></i>
+                                {% trans "مدیریت گردش کار و تاییدکنندگان" %}
+                            </h5>
+                            <div class="d-flex gap-2">
+                                <span class="badge bg-light text-dark">
+                                    <i class="fas fa-users me-1"></i>
+                                    {{ authorized_users|length|default:0 }} {% trans "کاربر مجاز" %}
+                                </span>
+                                <span class="badge bg-{% if approval_required_count == approval_done_count %}success{% else %}warning text-dark{% endif %}">
+                                    <i class="fas fa-check-circle me-1"></i>
+                                    {{ approval_done_count|default:0 }}/{{ approval_required_count|default:0 }} {% trans "تایید شده" %}
+                                </span>
+                            </div>
+                        </div>
                     </div>
                     <div class="card-body">
+                        <!-- تب‌های اطلاعات -->
+                        <ul class="nav nav-tabs mb-3" id="approvalTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="workflow-tab" data-bs-toggle="tab" data-bs-target="#workflow" type="button" role="tab">
+                                    <i class="fas fa-sitemap me-1"></i>
+                                    {% trans "گردش کار" %}
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="approvers-tab" data-bs-toggle="tab" data-bs-target="#approvers" type="button" role="tab">
+                                    <i class="fas fa-users me-1"></i>
+                                    {% trans "تاییدکنندگان" %}
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="authorized-tab" data-bs-toggle="tab" data-bs-target="#authorized" type="button" role="tab">
+                                    <i class="fas fa-user-check me-1"></i>
+                                    {% trans "کاربران مجاز" %}
+                                </button>
+                            </li>
+                        </ul>
+
+                        <div class="tab-content" id="approvalTabsContent">
+                            <!-- تب گردش کار -->
+                            <div class="tab-pane fade show active" id="workflow" role="tabpanel">
                         {% if approval_tree %}
                             <div class="table-responsive">
                                 <table class="table table-striped align-middle">
-                                    <thead>
+                                            <thead class="table-dark">
                                         <tr>
                                             <th class="text-end">{% trans "پست" %}</th>
                                             <th class="text-end">{% trans "نام کاربر" %}</th>
@@ -131,26 +171,56 @@
                                         {% for node in approval_tree %}
                                             {% for log in node.approvals %}
                                                 <tr>
-                                                    <td class="text-end">{{ node.post.name }}</td>
-                                                    <td class="text-end">{{ log.user.get_full_name|default:log.user.username }}</td>
+                                                            <td class="text-end">
+                                                                <div class="d-flex align-items-center">
+                                                                    <i class="fas fa-user-tie me-2 text-primary"></i>
+                                                                    <strong>{{ node.post.name }}</strong>
+                                                                </div>
+                                                            </td>
+                                                            <td class="text-end">
+                                                                <div class="d-flex align-items-center">
+                                                                    <i class="fas fa-user me-2 text-info"></i>
+                                                                    {{ log.user.get_full_name|default:log.user.username }}
+                                                                </div>
+                                                            </td>
                                                     <td class="text-end">
                                                         {% if log.action.code == 'APPROVED' %}
-                                                            <span class="badge bg-success">{% trans "تایید شده" %}</span>
+                                                                    <span class="badge bg-success">
+                                                                        <i class="fas fa-check me-1"></i>{% trans "تایید شده" %}
+                                                                    </span>
                                                         {% elif log.action.code == 'REJECTED' %}
-                                                            <span class="badge bg-danger">{% trans "رد شده" %}</span>
+                                                                    <span class="badge bg-danger">
+                                                                        <i class="fas fa-times me-1"></i>{% trans "رد شده" %}
+                                                                    </span>
                                                         {% else %}
-                                                            <span class="badge bg-secondary">{% trans "در انتظار" %}</span>
+                                                                    <span class="badge bg-secondary">
+                                                                        <i class="fas fa-clock me-1"></i>{% trans "در انتظار" %}
+                                                                    </span>
                                                         {% endif %}
                                                     </td>
-                                                    <td class="text-end">{{ log.action.name|default:"—" }}</td>
-                                                    <td class="text-end">{{ log.timestamp|jformat:"%Y/%m/%d %H:%M"|to_persian_number }}</td>
+                                                            <td class="text-end">
+                                                                <span class="badge bg-info">{{ log.action.name|default:"—" }}</span>
+                                                            </td>
+                                                            <td class="text-end">
+                                                                <small class="text-muted">
+                                                                    <i class="fas fa-calendar me-1"></i>
+                                                                    {{ log.timestamp|jformat:"%Y/%m/%d %H:%M"|to_persian_number }}
+                                                                </small>
+                                                            </td>
                                                 </tr>
                                             {% empty %}
                                                 <tr>
-                                                    <td class="text-end">{{ node.post.name }}</td>
+                                                            <td class="text-end">
+                                                                <div class="d-flex align-items-center">
+                                                                    <i class="fas fa-user-tie me-2 text-primary"></i>
+                                                                    <strong>{{ node.post.name }}</strong>
+                                                                </div>
+                                                            </td>
                                                     <td class="text-end">—</td>
                                                     <td class="text-end">
-                                                        <span class="badge bg-warning text-dark">{% trans "در انتظار تایید" %}</span>
+                                                                <span class="badge bg-warning text-dark">
+                                                                    <i class="fas fa-clock me-1"></i>{% trans "در انتظار تایید" %}
+                                                                </span>
                                                     </td>
                                                     <td class="text-end">—</td>
                                                     <td class="text-end">—</td>
@@ -158,15 +228,156 @@
                                             {% endfor %}
                                         {% empty %}
                                             <tr>
-                                                <td colspan="5" class="text-center text-muted">{% trans "اطلاعات تاییدکنندگان برای این وضعیت یافت نشد." %}</td>
+                                                        <td colspan="5" class="text-center text-muted py-4">
+                                                            <i class="fas fa-info-circle me-2"></i>
+                                                            {% trans "اطلاعات تاییدکنندگان برای این وضعیت یافت نشد." %}
+                                                        </td>
                                             </tr>
                                         {% endfor %}
                                     </tbody>
                                 </table>
                             </div>
                         {% else %}
-                            <div class="p-3 text-muted">{% trans "درخت تایید برای این دستور پرداخت موجود نیست." %}</div>
+                                    <div class="text-center py-4">
+                                        <i class="fas fa-exclamation-triangle fa-3x text-muted mb-3"></i>
+                                        <h6 class="text-muted">{% trans "درخت تایید برای این دستور پرداخت موجود نیست." %}</h6>
+                                        <p class="text-muted small">{% trans "لطفاً با مدیر سیستم تماس بگیرید." %}</p>
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- تب تاییدکنندگان -->
+                            <div class="tab-pane fade" id="approvers" role="tabpanel">
+                                {% if approval_tree %}
+                                    <div class="row">
+                                        {% for node in approval_tree %}
+                                            <div class="col-md-6 mb-3">
+                                                <div class="card border-{% if node.approved %}success{% else %}warning{% endif %}">
+                                                    <div class="card-header bg-{% if node.approved %}success{% else %}warning{% endif %} text-white">
+                                                        <div class="d-flex justify-content-between align-items-center">
+                                                            <h6 class="mb-0">
+                                                                <i class="fas fa-user-tie me-2"></i>
+                                                                {{ node.post.name }}
+                                                            </h6>
+                                                            {% if node.approved %}
+                                                                <span class="badge bg-light text-success">
+                                                                    <i class="fas fa-check me-1"></i>{% trans "تایید شد" %}
+                                                                </span>
+                                                            {% else %}
+                                                                <span class="badge bg-light text-warning">
+                                                                    <i class="fas fa-clock me-1"></i>{% trans "در انتظار" %}
+                                                                </span>
+                                                            {% endif %}
+                                                        </div>
+                                                    </div>
+                                                    <div class="card-body">
+                                                        {% if node.approvals %}
+                                                            {% for log in node.approvals %}
+                                                                <div class="d-flex align-items-center mb-2">
+                                                                    <div class="flex-grow-1">
+                                                                        <strong>{{ log.user.get_full_name|default:log.user.username }}</strong>
+                                                                        <br>
+                                                                        <small class="text-muted">
+                                                                            <i class="fas fa-calendar me-1"></i>
+                                                                            {{ log.timestamp|jformat:"%Y/%m/%d %H:%M"|to_persian_number }}
+                                                                        </small>
+                                                                    </div>
+                                                                    <div class="text-end">
+                                                                        <span class="badge bg-{% if log.action.code == 'APPROVED' %}success{% elif log.action.code == 'REJECTED' %}danger{% else %}secondary{% endif %}">
+                                                                            {{ log.action.name|default:"—" }}
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
+                                                            {% endfor %}
+                                                        {% else %}
+                                                            <div class="text-center text-muted">
+                                                                <i class="fas fa-user-clock fa-2x mb-2"></i>
+                                                                <p class="mb-0">{% trans "در انتظار تایید" %}</p>
+                                                            </div>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    <div class="text-center py-4">
+                                        <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                                        <h6 class="text-muted">{% trans "هیچ تاییدکننده‌ای یافت نشد" %}</h6>
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- تب کاربران مجاز -->
+                            <div class="tab-pane fade" id="authorized" role="tabpanel">
+                                {% if authorized_users %}
+                                    <div class="table-responsive">
+                                        <table class="table table-striped">
+                                            <thead class="table-dark">
+                                                <tr>
+                                                    <th>{% trans "کاربر" %}</th>
+                                                    <th>{% trans "پست" %}</th>
+                                                    <th>{% trans "وضعیت" %}</th>
+                                                    <th>{% trans "نوع کاربر" %}</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for auth_user in authorized_users %}
+                                                    <tr>
+                                                        <td>
+                                                            <div class="d-flex align-items-center">
+                                                                <i class="fas fa-user me-2 text-primary"></i>
+                                                                <div>
+                                                                    <strong>{{ auth_user.full_name }}</strong>
+                                                                    <br>
+                                                                    <small class="text-muted">@{{ auth_user.username }}</small>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            <div class="d-flex align-items-center">
+                                                                <i class="fas fa-user-tie me-2 text-info"></i>
+                                                                <div>
+                                                                    <strong>{{ auth_user.post_name }}</strong>
+                                                                    <br>
+                                                                    <small class="text-muted">{{ auth_user.organization }}</small>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            {% if auth_user.has_approved %}
+                                                                <span class="badge bg-success">
+                                                                    <i class="fas fa-check me-1"></i>{% trans "تایید کرده" %}
+                                                                </span>
+                                                            {% else %}
+                                                                <span class="badge bg-warning text-dark">
+                                                                    <i class="fas fa-clock me-1"></i>{% trans "در انتظار" %}
+                                                                </span>
+                                                            {% endif %}
+                                                        </td>
+                                                        <td>
+                                                            {% if auth_user.is_superuser %}
+                                                                <span class="badge bg-danger">{% trans "سوپروایزر" %}</span>
+                                                            {% elif auth_user.is_staff %}
+                                                                <span class="badge bg-warning text-dark">{% trans "استاف" %}</span>
+                                                            {% else %}
+                                                                <span class="badge bg-info">{% trans "کاربر عادی" %}</span>
+                                                            {% endif %}
+                                                        </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                                    <div class="text-center py-4">
+                                        <i class="fas fa-user-times fa-3x text-muted mb-3"></i>
+                                        <h6 class="text-muted">{% trans "هیچ کاربر مجازی یافت نشد" %}</h6>
+                                        <p class="text-muted small">{% trans "لطفاً با مدیر سیستم تماس بگیرید." %}</p>
+                                    </div>
                         {% endif %}
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -227,69 +438,73 @@
                                 </div>
                             {% endif %}
 
-                            <!-- اقدامات مجاز بر اساس Transition -->
-                            <h6 class="mb-3"><i class="fas fa-random me-2"></i>{% trans "اقدامات مجاز" %}</h6>
-                            {% if available_transitions %}
-                                <!-- فرم انتخاب گذار با Select2 و AJAX -->
-                                <form method="post" class="row g-2 align-items-end mb-3" id="transition-form">
-                                    {% csrf_token %}
-                                    <div class="col-md-8">
-                                        <label class="form-label">{% trans "انتخاب اقدام" %}</label>
-                                        <!-- Select2 با AJAX برای لود تنبل گذارها -->
-                                        <select id="transition-select" name="transition_id" class="form-select"
-                                                style="width:100%">
-                                            <!-- آیتم‌های اولیه (اختیاری) -->
-                                            <option value="">{% trans "در حال بارگذاری..." %}</option>
-                                        </select>
+                            <!-- وضعیت فعلی -->
+                            <div class="alert alert-info mb-3">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    <div>
+                                        <strong>وضعیت فعلی:</strong> {{ payment_order.status.name }}
+                                        <br>
+                                        <small class="text-muted">
+                                            <i class="fas fa-building me-1"></i>
+                                            سازمان: {{ payment_order.organization.name }}
+                                        </small>
                                     </div>
-                                    <div class="col-md-4 d-grid">
-                                        <button type="submit" class="btn btn-success" id="apply-transition-btn"
-                                                disabled>
-                                            <i class="fas fa-play me-2"></i>{% trans "اعمال" %}
-                                        </button>
                                     </div>
-                                </form>
+                                    </div>
 
-                                <!-- دکمه‌های سریع تایید/رد -->
-                                <div class="d-flex flex-wrap gap-2 mb-3">
-                                    {% for t in available_transitions %}
+                            <!-- اقدامات مجاز -->
+                            <h6 class="mb-3">
+                                <i class="fas fa-tasks me-2"></i>
+                                {% trans "اقدامات مجاز" %}
+                                <span class="badge bg-primary ms-2">{{ available_transitions|length }}</span>
+                            </h6>
+                            
+                            {% if available_transitions %}
+                                <!-- دکمه‌های اقدامات -->
+                                <div class="d-flex flex-wrap gap-2 mb-4">
+                                    {% for transition in available_transitions %}
                                         <form method="post" class="d-inline">
                                             {% csrf_token %}
-                                            <input type="hidden" name="transition_id" value="{{ t.id }}">
-                                            <button type="submit" class="btn btn-outline-primary btn-sm">
-                                                <span class="me-1">{{ t.action.name }}</span>
-                                                <span class="badge bg-info">→ {{ t.to_status.name }}</span>
+                                            <input type="hidden" name="transition_id" value="{{ transition.id }}">
+                                            
+                                            <button type="submit" class="btn btn-{{ transition.action.button_style|default:'outline-secondary' }} btn-lg" 
+                                                    onclick="return confirm('{{ transition.action.confirmation_message|default:'آیا از انجام این اقدام اطمینان دارید؟' }}')">
+                                                <i class="fas fa-{{ transition.action.icon|default:'cog' }} me-2"></i>
+                                                <strong>{{ transition.action.display_name|default:transition.action.name }}</strong>
+                                                <small class="d-block text-muted">→ {{ transition.to_status.name }}</small>
                                             </button>
                                         </form>
                                     {% endfor %}
                                 </div>
 
-                                <!-- دکمه‌های اصلی تایید/رد -->
-                                <div class="d-flex justify-content-between">
+                                <!-- دکمه‌های کنترلی -->
+                                <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
                                     <div class="btn-group">
-                                        <a href="{% url 'paymentorder_management_list' %}" class="btn btn-secondary">
-                                            <i class="fas fa-times me-2"></i>{% trans "لغو" %}
+                                        <a href="{% url 'paymentorder_management_list' %}" class="btn btn-outline-secondary">
+                                            <i class="fas fa-arrow-left me-2"></i>
+                                            <strong>بازگشت به لیست</strong>
                                         </a>
                                         {% if can_revert %}
-                                            <button type="button" class="btn btn-danger" onclick="showRevertConfirmation()">
-                                                <i class="fas fa-undo me-2"></i>{% trans "بازگشت به وضعیت قبلی" %}
+                                            <button type="button" class="btn btn-outline-warning" onclick="showRevertConfirmation()">
+                                                <i class="fas fa-undo me-2"></i>
+                                                <strong>بازگشت به وضعیت قبلی</strong>
                                             </button>
                                         {% endif %}
                                     </div>
+                                    
                                     <div class="btn-group">
                                         {% if user_has_previous_approval %}
                                             <button type="button" class="btn btn-warning" onclick="showChangeConfirmation()">
-                                                <i class="fas fa-edit me-2"></i>{% trans "تغییر تصمیم" %}
-                                            </button>
-                                        {% else %}
-                                            <button type="submit" form="transition-form" class="btn btn-primary" id="submitBtn">
-                                                <i class="fas fa-check me-2"></i>{% trans "تایید تغییرات" %}
+                                                <i class="fas fa-edit me-2"></i>
+                                                <strong>تغییر تصمیم قبلی</strong>
                                             </button>
                                         {% endif %}
                                     </div>
                                 </div>
                             {% else %}
                                 <div class="alert alert-info mb-0">
+                                    <i class="fas fa-info-circle me-2"></i>
                                     {% trans "هیچ گذار مجازی برای وضعیت فعلی در این سازمان تعریف نشده است." %}
                                 </div>
                             {% endif %}
@@ -316,103 +531,48 @@
 
             <!-- نوار کناری -->
             <div class="col-lg-4">
-                <!-- درخت تایید -->
+                <!-- خلاصه وضعیت -->
                 <div class="card mb-4">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h6 class="mb-0">{% trans "درخت تایید" %}</h6>
-                        <span class="badge bg-{% if approval_required_count == approval_done_count %}success{% else %}secondary{% endif %}">
-                        {{ approval_done_count|default:0 }}/{{ approval_required_count|default:0 }}
-                    </span>
-                    </div>
-                    <div class="card-body">
-                        {% if approval_tree %}
-                            <ul class="list-group list_group-flush">
-                                {% for node in approval_tree %}
-                                    <li class="list-group-item d-flex justify-content-between align-items-start">
-                                        <div class="ms-2 me-auto">
-                                            <div class="fw-bold">{{ node.post.name }}</div>
-                                            {% if node.approvals %}
-                                                {% for log in node.approvals %}
-                                                    <div class="small text-muted">
-                                                        {{ log.user.get_full_name|default:log.user.username }}
-                                                        - {{ log.timestamp|jformat:"%Y/%m/%d %H:%M"|to_persian_number }}
-                                                    </div>
-                                                {% endfor %}
-                                            {% else %}
-                                                <div class="small text-muted">{% trans "در انتظار تایید" %}</div>
-                                            {% endif %}
-                                        </div>
-                                        <span class="badge rounded-pill bg-{% if node.approved %}success{% else %}warning text-dark{% endif %}">
-                                        {% if node.approved %}{% trans "تایید شد" %}{% else %}
-                                            {% trans "در انتظار" %}{% endif %}
-                                    </span>
-                                    </li>
-                                {% endfor %}
-                            </ul>
-                        {% else %}
-                            <div class="text-muted small">{% trans "قواعد تایید برای این وضعیت تعریف نشده است." %}</div>
-                        {% endif %}
-                    </div>
-                </div>
-
-                <!-- لیست کاربران مجاز -->
-                {% if authorized_users %}
-                <div class="card mb-4">
-                    <div class="card-header bg-primary text-white">
+                    <div class="card-header bg-gradient-info text-white">
                         <h6 class="mb-0">
-                            <i class="fas fa-users me-2"></i>{% trans "کاربران مجاز برای تایید" %}
+                            <i class="fas fa-chart-pie me-2"></i>
+                            {% trans "خلاصه وضعیت" %}
                         </h6>
                     </div>
                     <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-sm table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>{% trans "کاربر" %}</th>
-                                        <th>{% trans "پست" %}</th>
-                                        <th>{% trans "وضعیت" %}</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for auth_user in authorized_users %}
-                                        <tr>
-                                            <td>
-                                                <strong>{{ auth_user.full_name }}</strong>
-                                                <br>
-                                                <small class="text-muted">@{{ auth_user.username }}</small>
-                                            </td>
-                                            <td>
-                                                {{ auth_user.post_name }}
-                                                <br>
-                                                <small class="text-muted">{{ auth_user.organization }}</small>
-                                            </td>
-                                            <td>
-                                                {% if auth_user.has_approved %}
-                                                    <span class="badge bg-success">
-                                                        <i class="fas fa-check me-1"></i>{% trans "تایید کرده" %}
-                                                    </span>
-                                                {% else %}
-                                                    <span class="badge bg-warning">
-                                                        <i class="fas fa-clock me-1"></i>{% trans "در انتظار" %}
-                                                    </span>
-                                                {% endif %}
-                                                <br>
-                                                {% if auth_user.is_superuser %}
-                                                    <span class="badge bg-danger badge-sm">{% trans "سوپروایزر" %}</span>
-                                                {% elif auth_user.is_staff %}
-                                                    <span class="badge bg-warning badge-sm">{% trans "استاف" %}</span>
-                                                {% else %}
-                                                    <span class="badge bg-info badge-sm">{% trans "کاربر عادی" %}</span>
-                                                {% endif %}
-                                            </td>
-                                        </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
+                        <div class="row text-center">
+                            <div class="col-6">
+                                <div class="border-end">
+                                    <h4 class="text-primary mb-1">{{ authorized_users|length|default:0 }}</h4>
+                                    <small class="text-muted">{% trans "کاربر مجاز" %}</small>
+                                                    </div>
+                                        </div>
+                            <div class="col-6">
+                                <h4 class="text-{% if approval_required_count == approval_done_count %}success{% else %}warning{% endif %} mb-1">
+                                    {{ approval_done_count|default:0 }}/{{ approval_required_count|default:0 }}
+                                </h4>
+                                <small class="text-muted">{% trans "تایید شده" %}</small>
                     </div>
                 </div>
+
+                        {% if approval_required_count and approval_required_count > 0 %}
+                            <div class="mt-3">
+                                <div class="progress" style="height: 8px;">
+                                    <div class="progress-bar bg-{% if approval_required_count == approval_done_count %}success{% else %}warning{% endif %}" 
+                                         role="progressbar" 
+                                         style="width: {% widthratio approval_done_count approval_required_count 100 %}%"
+                                         aria-valuenow="{{ approval_done_count|default:0 }}" 
+                                         aria-valuemin="0" 
+                                         aria-valuemax="{{ approval_required_count }}">
+                        </div>
+                    </div>
+                                <small class="text-muted mt-1 d-block">
+                                    {% widthratio approval_done_count approval_required_count 100 %}% {% trans "تکمیل شده" %}
+                                </small>
+                </div>
                 {% endif %}
+                    </div>
+                </div>
 
                 <!-- تاریخچه اقدامات -->
                 <div class="card mb-4">
@@ -480,6 +640,16 @@
     {% comment %} <script src="{% url 'admin/js/select2.min.js' %}"></script> {% endcomment %}
     <script>
         $(document).ready(function () {
+            // فعال‌سازی تب‌های Bootstrap
+            var triggerTabList = [].slice.call(document.querySelectorAll('#approvalTabs button'))
+            triggerTabList.forEach(function (triggerEl) {
+                var tabTrigger = new bootstrap.Tab(triggerEl)
+                
+                triggerEl.addEventListener('click', function (event) {
+                    event.preventDefault()
+                    tabTrigger.show()
+                })
+            })
             // مقداردهی اولیه Select2 با AJAX
             $('#transition-select').select2({
                 // تنظیمات AJAX برای لود تنبل گذارها

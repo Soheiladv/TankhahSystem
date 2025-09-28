@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
 from django_jalali.admin.filters import JDateFieldListFilter
 from core.models import Organization, OrganizationType, Project, Post, UserPost, PostHistory, \
-    SystemSettings, Branch, Transition, Action, EntityType, Status, PostAction, PostRuleAssignment, UserRuleOverride
+    SystemSettings, Branch, Transition, Action, EntityType, Status, PostAction, PostRuleAssignment, UserRuleOverride, DynamicConfiguration
 
 # AccessRule و WorkflowStage حذف شده‌اند - از Transition, Action, EntityType, Status استفاده می‌شود
 
@@ -59,16 +59,46 @@ class BranchAdmin(admin.ModelAdmin):
 
 @admin.register(Transition)
 class TransitionAdmin(admin.ModelAdmin):
-    list_display = ('name', 'entity_type', 'from_status', 'action', 'to_status', 'organization', 'is_active')
-    list_filter = ('entity_type', 'organization', 'is_active', 'action', 'from_status', 'to_status')
-    search_fields = ('name', 'entity_type__name', 'action__name')
+    list_display = ('name', 'entity_type', 'from_status', 'action', 'to_status', 'organization', 'is_active', 'created_at')
+    list_filter = ('entity_type', 'organization', 'is_active', 'action', 'from_status', 'to_status', 'created_at')
+    search_fields = ('name', 'entity_type__name', 'action__name', 'organization__name')
     filter_horizontal = ('allowed_posts',)
+    autocomplete_fields = ('from_status', 'to_status', 'action', 'entity_type', 'organization')
+    
+    fieldsets = (
+        (_('اطلاعات اصلی'), {
+            'fields': ('name', 'entity_type', 'from_status', 'action', 'to_status', 'organization', 'is_active')
+        }),
+        (_('پست‌های مجاز'), {
+            'fields': ('allowed_posts',),
+            'description': _('پست‌هایی که مجاز به انجام این انتقال هستند')
+        }),
+        (_('تاریخ‌ها'), {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    readonly_fields = ('created_at', 'updated_at')
 
 @admin.register(Action)
 class ActionAdmin(admin.ModelAdmin):
-    list_display = ('name', 'code', 'is_active')
-    list_filter = ('is_active',)
+    list_display = ('name', 'code', 'description', 'is_active', 'created_at')
+    list_filter = ('is_active', 'created_at')
     search_fields = ('name', 'code', 'description')
+    list_editable = ('is_active',)
+    
+    fieldsets = (
+        (_('اطلاعات اصلی'), {
+            'fields': ('name', 'code', 'description', 'is_active')
+        }),
+        (_('تاریخ‌ها'), {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    readonly_fields = ('created_at', 'updated_at')
 
 @admin.register(EntityType)
 class EntityTypeAdmin(admin.ModelAdmin):
@@ -77,9 +107,19 @@ class EntityTypeAdmin(admin.ModelAdmin):
 
 @admin.register(Status)
 class StatusAdmin(admin.ModelAdmin):
-    list_display = ('name', 'code', 'is_initial', 'is_final_approve', 'is_final_reject', 'is_active')
-    list_filter = ('is_initial', 'is_final_approve', 'is_final_reject', 'is_active')
-    search_fields = ('name', 'code', 'description')
+    list_display = ('name', 'code', 'entity_type', 'is_initial', 'is_final_approve', 'is_final_reject', 'is_pending', 'is_paid', 'is_rejected', 'is_active')
+    list_filter = ('entity_type', 'is_initial', 'is_final_approve', 'is_final_reject', 'is_pending', 'is_paid', 'is_rejected', 'is_active')
+    search_fields = ('name', 'code', 'description', 'entity_type')
+    list_editable = ('is_initial', 'is_final_approve', 'is_final_reject', 'is_pending', 'is_paid', 'is_rejected', 'is_active')
+    
+    fieldsets = (
+        (_('اطلاعات اصلی'), {
+            'fields': ('name', 'code', 'entity_type', 'description')
+        }),
+        (_('ویژگی‌های وضعیت'), {
+            'fields': ('is_initial', 'is_final_approve', 'is_final_reject', 'is_pending', 'is_paid', 'is_rejected', 'is_active')
+        }),
+    )
 
 @admin.register(PostAction)
 class PostActionAdmin(admin.ModelAdmin):
@@ -120,3 +160,31 @@ class UserRuleOverrideAdmin(admin.ModelAdmin):
     list_filter = ('organization', 'entity_type', 'is_enabled', 'action')
     search_fields = ('user__username', 'organization__name', 'action__code', 'entity_type__code', 'post__name')
     autocomplete_fields = ('user', 'organization', 'action', 'entity_type', 'post')
+
+
+@admin.register(DynamicConfiguration)
+class DynamicConfigurationAdmin(admin.ModelAdmin):
+    list_display = ('key', 'value', 'category', 'is_active', 'updated_at')
+    list_filter = ('category', 'is_active', 'created_at', 'updated_at')
+    search_fields = ('key', 'value', 'description', 'category')
+    list_editable = ('value', 'is_active')
+    ordering = ('category', 'key')
+    
+    fieldsets = (
+        (_('اطلاعات اصلی'), {
+            'fields': ('key', 'value', 'category', 'is_active')
+        }),
+        (_('توضیحات'), {
+            'fields': ('description',),
+            'classes': ('collapse',)
+        }),
+        (_('تاریخ‌ها'), {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    readonly_fields = ('created_at', 'updated_at')
+    
+    def get_queryset(self, request):
+        return super().get_queryset(request).order_by('category', 'key')

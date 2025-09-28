@@ -18,7 +18,7 @@ from django.views.decorators.csrf import csrf_exempt
 import json
 import logging
 
-from core.models import Organization, Post, Status,UserPost, Action, Transition, PostAction, EntityType
+from core.models import Organization, Post, Status,UserPost, Action, Transition, PostAction, EntityType, TransitionTemplate
 from core.models import PostRuleAssignment
 from core.workflow_management import WorkflowRuleManager
 from tankhah.models import StageApprover
@@ -129,11 +129,255 @@ class OrganizationAccessTreeView(LoginRequiredMixin, PermissionRequiredMixin, Te
                             created_by=user,
                         )
 
+                # ایجاد Transition ها برای همه entity_type ها
+                self._create_transitions_for_entity_type(org, user, entity_type)
+
             return JsonResponse({'success': True})
         except Exception as e:
             logger.error(f"خطا در ذخیره درخت دسترسی: {e}")
             return JsonResponse({'success': False, 'message': str(e)}, status=400)
 
+    def _create_transitions_for_entity_type(self, organization, user, entity_type):
+        """
+        ایجاد Transition های مورد نیاز برای entity_type مشخص بر اساس PostRuleAssignment ها
+        """
+        try:
+            from core.models import EntityType, Status
+            
+            # دریافت EntityType
+            if isinstance(entity_type, str):
+                entity_type = EntityType.objects.filter(code=entity_type).first()
+            
+            if not entity_type:
+                logger.warning(f"EntityType {entity_type} یافت نشد")
+                return
+            
+            # دریافت PostRuleAssignment های فعال برای این سازمان و entity_type
+            active_assignments = PostRuleAssignment.objects.filter(
+                organization=organization,
+                entity_type=entity_type.code,
+                is_active=True
+            ).select_related('action', 'post')
+            
+            if not active_assignments.exists():
+                logger.info(f"هیچ PostRuleAssignment فعالی برای {entity_type.code} یافت نشد")
+                return
+            
+            # دریافت Status های موجود
+            statuses = Status.objects.filter(is_active=True)
+            status_map = {s.code: s for s in statuses}
+            
+            # دریافت Action های موجود
+            actions = Action.objects.filter(is_active=True)
+            action_map = {a.code: a for a in actions}
+            
+            # حذف Transition های قبلی برای این سازمان و entity_type
+            Transition.objects.filter(
+                organization=organization,
+                entity_type=entity_type,
+                is_active=True
+            ).delete()
+            
+            # ایجاد Transition های جدید بر اساس PostRuleAssignment ها
+            transitions_created = []
+            
+            for assignment in active_assignments:
+                action_code = assignment.action.code
+                action_obj = assignment.action
+                
+                # تعیین وضعیت‌های مبدا و مقصد بر اساس action (دینامیک)
+                transition_config = self._get_transition_config(action_code, entity_type.code, status_map)
+                if not transition_config:
+                    logger.warning(f"پیکربندی Transition برای {action_code} در {entity_type.code} یافت نشد")
+                    continue
+                
+                from_status = transition_config['from_status']
+                to_status = transition_config['to_status']
+                transition_name = transition_config['name'].format(organization_name=organization.name)
+                
+                # بررسی وجود وضعیت‌های مورد نیاز
+                if not from_status or not to_status:
+                    logger.warning(f"وضعیت‌های مورد نیاز برای {action_code} یافت نشد")
+                    continue
+                
+                # بررسی وجود Transition مشابه
+                existing_transition = Transition.objects.filter(
+                    organization=organization,
+                    entity_type=entity_type,
+                    from_status=from_status,
+                    action=action_obj,
+                    to_status=to_status,
+                    is_active=True
+                ).first()
+                
+                if existing_transition:
+                    # اضافه کردن پست به Transition موجود
+                    existing_transition.allowed_posts.add(assignment.post)
+                    logger.info(f"پست {assignment.post.name} به Transition موجود اضافه شد")
+                else:
+                    # ایجاد Transition جدید
+                    transition = Transition.objects.create(
+                        name=transition_name,
+                        entity_type=entity_type,
+                        from_status=from_status,
+                        action=action_obj,
+                        to_status=to_status,
+                        organization=organization,
+                        created_by=user,
+                        is_active=True
+                    )
+                    
+                    # اضافه کردن پست‌های مجاز
+                    transition.allowed_posts.add(assignment.post)
+                    
+                    transitions_created.append(transition)
+                    logger.info(f"Transition ایجاد شد: {transition.name}")
+            
+            logger.info(f"تعداد {len(transitions_created)} Transition جدید برای {entity_type.code} ایجاد شد")
+                    
+        except Exception as e:
+            logger.error(f"خطا در ایجاد Transition های {entity_type.code}: {e}")
+
+    def _get_transition_config(self, action_code, entity_type_code, status_map):
+        """
+        دریافت پیکربندی Transition بر اساس action و entity_type از دیتابیس
+        """
+        try:
+            # جستجوی TransitionTemplate در دیتابیس
+            template = TransitionTemplate.objects.filter(
+                entity_type_code=entity_type_code,
+                action_code=action_code,
+                is_active=True
+            ).first()
+            
+            if template:
+                return {
+                    'from_status': status_map.get(template.from_status_code),
+                    'to_status': status_map.get(template.to_status_code),
+                    'name': template.name_template or f'{action_code} - {{organization_name}}'
+                }
+            
+            # اگر TransitionTemplate یافت نشد، از الگوی پیش‌فرض استفاده کن
+            return self._get_default_transition_config(action_code, entity_type_code, status_map)
+            
+        except Exception as e:
+            logger.warning(f"خطا در دریافت TransitionTemplate: {e}")
+            return self._get_default_transition_config(action_code, entity_type_code, status_map)
+    
+    def _get_default_transition_config(self, action_code, entity_type_code, status_map):
+        """
+        دریافت پیکربندی پیش‌فرض Transition (فقط در صورت عدم وجود TransitionTemplate)
+        """
+        try:
+            # دریافت نام action از دیتابیس
+            action = Action.objects.filter(code=action_code, is_active=True).first()
+            action_name = action.name if action else action_code
+            
+            # جستجوی الگوی پیش‌فرض در دیتابیس
+            default_template = TransitionTemplate.objects.filter(
+                entity_type_code=entity_type_code,
+                action_code=action_code,
+                is_active=True
+            ).first()
+            
+            if default_template:
+                return {
+                    'from_status': status_map.get(default_template.from_status_code),
+                    'to_status': status_map.get(default_template.to_status_code),
+                    'name': default_template.name_template or f'{action_name} - {{organization_name}}'
+                }
+            
+            # اگر هیچ تمپلیتی یافت نشد، از الگوی هوشمند استفاده کن
+            return self._get_smart_transition_config(action_code, entity_type_code, status_map, action_name)
+            
+        except Exception as e:
+            logger.warning(f"خطا در دریافت پیکربندی پیش‌فرض: {e}")
+            return None
+    
+    def _get_smart_transition_config(self, action_code, entity_type_code, status_map, action_name):
+        """
+        ایجاد پیکربندی هوشمند بر اساس الگوهای موجود در دیتابیس
+        """
+        try:
+            # جستجوی الگوهای مشابه در دیتابیس
+            similar_templates = TransitionTemplate.objects.filter(
+                action_code=action_code,
+                is_active=True
+            ).values('from_status_code', 'to_status_code').distinct()
+            
+            if similar_templates.exists():
+                # استفاده از الگوی مشابه
+                template = similar_templates.first()
+                return {
+                    'from_status': status_map.get(template['from_status_code']),
+                    'to_status': status_map.get(template['to_status_code']),
+                    'name': f'{action_name} - {{organization_name}}'
+                }
+            
+            # اگر هیچ الگویی یافت نشد، از الگوی پیش‌فرض سیستم استفاده کن
+            return self._get_system_default_config(action_code, entity_type_code, status_map, action_name)
+            
+        except Exception as e:
+            logger.warning(f"خطا در ایجاد پیکربندی هوشمند: {e}")
+            return None
+    
+    def _get_system_default_config(self, action_code, entity_type_code, status_map, action_name):
+        """
+        الگوی پیش‌فرض سیستم (فقط در صورت عدم وجود هر گونه تمپلیت)
+        """
+        try:
+            # جستجوی الگوهای موجود در دیتابیس برای action مشابه
+            existing_transitions = Transition.objects.filter(
+                action__code=action_code,
+                is_active=True
+            ).values('from_status__code', 'to_status__code').distinct()
+            
+            if existing_transitions.exists():
+                # استفاده از الگوی موجود
+                transition = existing_transitions.first()
+                from_status = status_map.get(transition['from_status__code'])
+                to_status = status_map.get(transition['to_status__code'])
+                
+                if from_status and to_status:
+                    return {
+                        'from_status': from_status,
+                        'to_status': to_status,
+                        'name': f'{action_name} - {{organization_name}}'
+                    }
+            
+            # اگر هیچ الگویی یافت نشد، از PostAction های موجود استفاده کن
+            return self._get_from_post_actions(action_code, entity_type_code, status_map, action_name)
+            
+        except Exception as e:
+            logger.warning(f"خطا در دریافت الگوی سیستم: {e}")
+            return None
+    
+    def _get_from_post_actions(self, action_code, entity_type_code, status_map, action_name):
+        """
+        دریافت الگو از PostAction های موجود
+        """
+        try:
+            # جستجوی PostAction های موجود
+            post_actions = PostAction.objects.filter(
+                action_type=action_code,
+                entity_type=entity_type_code,
+                is_active=True
+            ).select_related('stage').distinct()
+            
+            if post_actions.exists():
+                # استفاده از stage موجود
+                stage = post_actions.first().stage
+                return {
+                    'from_status': stage,
+                    'to_status': stage,  # یا وضعیت بعدی را از Transition های موجود پیدا کن
+                    'name': f'{action_name} - {{organization_name}}'
+                }
+            
+            return None
+            
+        except Exception as e:
+            logger.warning(f"خطا در دریافت از PostAction: {e}")
+            return None
 
 
 # class WorkflowTemplateListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
@@ -392,7 +636,7 @@ class StatusListView(LoginRequiredMixin, ListView):
     template_name = 'core/workflow/Status/status_list.html'
     context_object_name = 'statuses'
     paginate_by = 20
-
+    
     def get_queryset(self):
         return Status.objects.filter(is_active=True).order_by('name')
 
@@ -405,7 +649,7 @@ class StatusCreateView(LoginRequiredMixin, CreateView):
     template_name = 'core/workflow/Status/status_form.html'
     fields = ['name', 'code', 'description', 'is_initial', 'is_final_approve', 'is_final_reject']
     success_url = reverse_lazy('workflow_management:status_list')
-
+    
     def form_valid(self, form):
         form.instance.created_by = self.request.user
         form.instance.is_active = True
@@ -429,7 +673,7 @@ class StatusDeleteView(LoginRequiredMixin, DeleteView):
     model = Status
     template_name = 'core/workflow/Status/confirm_retire.html'
     success_url = reverse_lazy('workflow_management:status_list')
-
+    
     def delete(self, request, *args, **kwargs):
         self.object = self.get_object()
         self.object.is_active = False
@@ -445,7 +689,7 @@ class ActionListView(LoginRequiredMixin, ListView):
     template_name = 'core/workflow/Action/action_list.html'
     context_object_name = 'actions'
     paginate_by = 20
-
+    
     def get_queryset(self):
         qs = Action.objects.filter(is_active=True)
         q = self.request.GET.get('q')
@@ -648,7 +892,7 @@ class ActionCreateView(LoginRequiredMixin, CreateView):
     template_name = 'core/workflow/Action/action_form.html'
     fields = ['name', 'code', 'description']
     success_url = reverse_lazy('workflow_management:action_list')
-
+    
     def form_valid(self, form):
         form.instance.created_by = self.request.user
         form.instance.is_active = True
@@ -672,7 +916,7 @@ class ActionDeleteView(LoginRequiredMixin, DeleteView):
     model = Action
     template_name = 'core/workflow/Action/confirm_retire.html'
     success_url = reverse_lazy('workflow_management:action_list')
-
+    
     def delete(self, request, *args, **kwargs):
         self.object = self.get_object()
         self.object.is_active = False
@@ -700,12 +944,12 @@ def simple_workflow_dashboard(request):
         actions_count = Action.objects.filter(is_active=True).count()
         assignments_count = PostRuleAssignment.objects.filter(is_active=True).count()
         transitions_count = Transition.objects.filter(is_active=True).count()
-
+        
         # آمار اخیر
         recent_statuses = Status.objects.filter(is_active=True).order_by('-created_at')[:5]
         recent_actions = Action.objects.filter(is_active=True).order_by('-created_at')[:5]
         recent_assignments = PostRuleAssignment.objects.filter(is_active=True).order_by('-created_at')[:5]
-
+        
         # آمار بر اساس نوع موجودیت
         entity_stats = {}
         for entity_type in ['TANKHAH', 'FACTOR', 'PAYMENTORDER']:
@@ -713,11 +957,11 @@ def simple_workflow_dashboard(request):
                 'statuses': Status.objects.filter(is_active=True).count(),
                 'actions': Action.objects.filter(is_active=True).count(),
                 'assignments': PostRuleAssignment.objects.filter(
-                    is_active=True,
+                    is_active=True, 
                     entity_type=entity_type
                 ).count(),
             }
-
+        
         context = {
             'templates_count': templates_count,
             'statuses_count': statuses_count,
@@ -729,9 +973,9 @@ def simple_workflow_dashboard(request):
             'recent_assignments': recent_assignments,
             'entity_stats': entity_stats,
         }
-
+        
         return render(request, 'core/workflow/simple_dashboard.html', context)
-
+        
     except Exception as e:
         logger.error(f"خطا در بارگذاری داشبورد: {e}")
         messages.error(request, f'خطا در بارگذاری داشبورد: {str(e)}')
@@ -760,22 +1004,22 @@ def workflow_dashboard(request):
         statuses_count = Status.objects.filter(is_active=True).count()
         actions_count = Action.objects.filter(is_active=True).count()
         transitions_count = Transition.objects.filter(is_active=True).count()
-
+        
         # تمپلیت‌های اخیر
         # recent_templates = WorkflowRuleTemplate.objects.filter(is_active=True).order_by('-created_at')[:6]
         recent_templates = []
-
+        
         # وضعیت‌ها
         statuses = Status.objects.filter(is_active=True).order_by('name')
-
+        
         # اقدامات
         actions = Action.objects.filter(is_active=True).order_by('name')
-
+        
         # انتقال‌ها
         transitions = Transition.objects.filter(is_active=True).select_related(
             'from_status', 'to_status', 'action', 'organization', 'entity_type'
         ).order_by('from_status__name')
-
+        
         context = {
             'templates': recent_templates,
             'templates_count': templates_count,
@@ -786,9 +1030,9 @@ def workflow_dashboard(request):
             'transitions': transitions,
             'transitions_count': transitions_count,
         }
-
+        
         return render(request, 'core/workflow/workflow_dashboard.html', context)
-
+        
     except Exception as e:
         logger.error(f"خطا در داشبورد گردش کار: {e}")
         messages.error(request, f"خطا در بارگذاری داشبورد: {str(e)}")
@@ -812,7 +1056,7 @@ def api_statuses(request):
     if request.method == 'GET':
         statuses = Status.objects.filter(is_active=True).values('id', 'name', 'code', 'description', 'is_initial', 'is_final_approve', 'is_final_reject')
         return JsonResponse({'statuses': list(statuses)})
-
+    
     elif request.method == 'POST':
         try:
             name = request.POST.get('name')
@@ -821,7 +1065,7 @@ def api_statuses(request):
             is_initial = request.POST.get('is_initial') == 'on'
             is_final_approve = request.POST.get('is_final_approve') == 'on'
             is_final_reject = request.POST.get('is_final_reject') == 'on'
-
+            
             status = Status.objects.create(
                 name=name,
                 code=code,
@@ -831,19 +1075,19 @@ def api_statuses(request):
                 is_final_reject=is_final_reject,
                 created_by=request.user
             )
-
+            
             return JsonResponse({
                 'success': True,
                 'message': f'وضعیت "{status.name}" با موفقیت ایجاد شد.',
                 'status_id': status.id
             })
-
+            
         except Exception as e:
             return JsonResponse({
                 'success': False,
                 'message': f'خطا در ایجاد وضعیت: {str(e)}'
             })
-
+    
     return JsonResponse({'success': False, 'message': 'متد غیرمجاز'})
 
 
@@ -855,7 +1099,7 @@ def api_organizations(request):
     if request.method == 'GET':
         organizations = Organization.objects.filter(is_active=True).values('id', 'name', 'code')
         return JsonResponse({'organizations': list(organizations)})
-
+    
     return JsonResponse({'success': False, 'message': 'متد غیرمجاز'})
 
 
@@ -867,32 +1111,32 @@ def api_actions(request):
     if request.method == 'GET':
         actions = Action.objects.filter(is_active=True).values('id', 'name', 'code', 'description')
         return JsonResponse({'actions': list(actions)})
-
+    
     elif request.method == 'POST':
         try:
             name = request.POST.get('name')
             code = request.POST.get('code')
             description = request.POST.get('description', '')
-
+            
             action = Action.objects.create(
                 name=name,
                 code=code,
                 description=description,
                 created_by=request.user
             )
-
+            
             return JsonResponse({
                 'success': True,
                 'message': f'اقدام "{action.name}" با موفقیت ایجاد شد.',
                 'action_id': action.id
             })
-
+            
         except Exception as e:
             return JsonResponse({
                 'success': False,
                 'message': f'خطا در ایجاد اقدام: {str(e)}'
             })
-
+    
     return JsonResponse({'success': False, 'message': 'متد غیرمجاز'})
 
 
@@ -903,13 +1147,13 @@ def workflow_validation(request, organization_id, entity_type):
     """
     try:
         organization = get_object_or_404(Organization, id=organization_id)
-
+        
         validation_result = WorkflowRuleManager.validate_workflow_consistency(
             organization, entity_type
         )
-
+        
         return JsonResponse(validation_result)
-
+        
     except Exception as e:
         logger.error(f"خطا در اعتبارسنجی: {str(e)}")
         return JsonResponse({
@@ -926,16 +1170,16 @@ def workflow_summary(request, organization_id, entity_type):
     """
     try:
         organization = get_object_or_404(Organization, id=organization_id)
-
+        
         summary = WorkflowRuleManager.get_workflow_summary(organization, entity_type)
-
+        
         if summary:
             return JsonResponse(summary)
         else:
             return JsonResponse({
                 'error': 'خطا در دریافت خلاصه قوانین'
             })
-
+        
     except Exception as e:
         logger.error(f"خطا در دریافت خلاصه: {str(e)}")
         return JsonResponse({
@@ -951,11 +1195,11 @@ def export_workflow_rules(request, organization_id, entity_type):
     try:
         organization = get_object_or_404(Organization, id=organization_id)
         format_type = request.GET.get('format', 'json')
-
+        
         rules_data = WorkflowRuleManager.export_workflow_rules(
             organization, entity_type
         )
-
+        
         if format_type == 'json':
             response = HttpResponse(
                 json.dumps(rules_data, ensure_ascii=False, indent=2),
@@ -963,7 +1207,7 @@ def export_workflow_rules(request, organization_id, entity_type):
             )
             response['Content-Disposition'] = f'attachment; filename="workflow_rules_{entity_type}_{organization.code}.json"'
             return response
-
+        
         elif format_type == 'yaml':
             import yaml
             response = HttpResponse(
@@ -972,12 +1216,12 @@ def export_workflow_rules(request, organization_id, entity_type):
             )
             response['Content-Disposition'] = f'attachment; filename="workflow_rules_{entity_type}_{organization.code}.yaml"'
             return response
-
+        
         else:
             return JsonResponse({
                 'error': 'فرمت پشتیبانی نشده'
             })
-
+        
     except Exception as e:
         logger.error(f"خطا در صادرات: {str(e)}")
         return JsonResponse({
@@ -994,18 +1238,18 @@ class PostRuleAssignmentListView(LoginRequiredMixin, PermissionRequiredMixin, Li
     context_object_name = 'assignments'
     paginate_by = 20
     permission_required = 'core.PostRuleAssignment_view'
-
+    
     def get_queryset(self):
         queryset = PostRuleAssignment.objects.filter(is_active=True)
-
+        
         # فیلتر بر اساس پست
         if 'post_id' in self.request.GET:
             queryset = queryset.filter(post_id=self.request.GET['post_id'])
-
+        
         # فیلتر بر اساس نوع موجودیت
         if 'entity_type' in self.request.GET:
             queryset = queryset.filter(entity_type=self.request.GET['entity_type'])
-
+        
         # فیلتر بر اساس سازمان
         org_id = self.request.GET.get('organization_id')
         if org_id and org_id not in ('None', ''):
@@ -1023,7 +1267,7 @@ class PostRuleAssignmentListView(LoginRequiredMixin, PermissionRequiredMixin, Li
                 queryset = queryset.none()
 
         return queryset.select_related('post', 'action', 'organization').order_by('-created_at')
-
+    
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['posts'] = Post.objects.filter(is_active=True)
@@ -1049,30 +1293,30 @@ def assign_rule_to_post(request):
         # templates = WorkflowRuleTemplate.objects.filter(is_active=True)
         templates = []
         organizations = Organization.objects.filter(is_active=True)
-
+        
         context = {
             'posts': posts,
             'templates': templates,
             'organizations': organizations,
         }
         return render(request, 'core/workflow/assign_rule_form.html', context)
-
+    
     elif request.method == 'POST':
         try:
             post_id = request.POST.get('post_id')
             action_id = request.POST.get('action_id')
             organization_id = request.POST.get('organization_id')
-
+            
             if not all([post_id, action_id, organization_id]):
                 return JsonResponse({
                     'success': False,
                     'message': 'تمام فیلدهای اجباری باید پر شوند.'
                 })
-
+            
             post = get_object_or_404(Post, id=post_id)
             action = get_object_or_404(Action, id=action_id)
             organization = get_object_or_404(Organization, id=organization_id)
-
+            
             entity_type = request.POST.get('entity_type', 'TANKHAH')
             assignment, created = PostRuleAssignment.objects.get_or_create(
                 post=post,
@@ -1085,20 +1329,20 @@ def assign_rule_to_post(request):
                     'created_by': request.user
                 }
             )
-
+            
             if created:
                 message = f'قانون با موفقیت به پست {post.name} تخصیص داده شد.'
             else:
                 assignment.is_active = True
                 assignment.save()
                 message = f'تنظیمات قانون برای پست {post.name} به‌روزرسانی شد.'
-
+            
             return JsonResponse({
                 'success': True,
                 'message': message,
                 'assignment_id': assignment.id
             })
-
+            
         except Exception as e:
             logger.error(f"خطا در تخصیص قانون به پست: {e}")
             return JsonResponse({
@@ -1113,13 +1357,13 @@ def edit_rule_assignment(request, assignment_id):
     ویرایش تخصیص قانون به پست
     """
     assignment = get_object_or_404(PostRuleAssignment, id=assignment_id)
-
+    
     if request.method == 'GET':
         # نمایش فرم ویرایش
         posts = Post.objects.filter(is_active=True)
         actions = Action.objects.filter(is_active=True)
         organizations = Organization.objects.filter(is_active=True)
-
+        
         context = {
             'assignment': assignment,
             'posts': posts,
@@ -1132,7 +1376,7 @@ def edit_rule_assignment(request, assignment_id):
             ]
         }
         return render(request, 'core/workflow/edit_rule_assignment.html', context)
-
+    
     elif request.method == 'POST':
         try:
             post_id = request.POST.get('post_id')
@@ -1140,30 +1384,30 @@ def edit_rule_assignment(request, assignment_id):
             organization_id = request.POST.get('organization_id')
             entity_type = request.POST.get('entity_type')
             is_active = request.POST.get('is_active') == 'on'
-
+            
             if not all([post_id, action_id, organization_id, entity_type]):
                 return JsonResponse({
                     'success': False,
                     'message': 'تمام فیلدهای اجباری باید پر شوند.'
                 })
-
+            
             post = get_object_or_404(Post, id=post_id)
             action = get_object_or_404(Action, id=action_id)
             organization = get_object_or_404(Organization, id=organization_id)
-
+            
             assignment.post = post
             assignment.action = action
             assignment.organization = organization
             assignment.entity_type = entity_type
             assignment.is_active = is_active
             assignment.save()
-
+            
             return JsonResponse({
                 'success': True,
                 'message': f'تخصیص قانون با موفقیت به‌روزرسانی شد.',
                 'assignment_id': assignment.id
             })
-
+            
         except Exception as e:
             logger.error(f"خطا در ویرایش تخصیص قانون: {e}")
             return JsonResponse({
@@ -1182,19 +1426,19 @@ def delete_rule_assignment(request, assignment_id):
             assignment = get_object_or_404(PostRuleAssignment, id=assignment_id)
             assignment.is_active = False
             assignment.save()
-
+            
             return JsonResponse({
                 'success': True,
                 'message': f'تخصیص قانون با موفقیت حذف شد.'
             })
-
+            
         except Exception as e:
             logger.error(f"خطا در حذف تخصیص قانون: {e}")
             return JsonResponse({
                 'success': False,
                 'message': f'خطا در حذف تخصیص: {str(e)}'
             })
-
+    
     return JsonResponse({
         'success': False,
         'message': 'متد غیرمجاز'
@@ -1211,12 +1455,12 @@ def get_post_effective_rules(request, assignment_id):
         # Get effective rules - this method needs to be implemented in the model
         # For now, we'll return empty rules
         effective_rules = {}
-
+        
         return JsonResponse({
             'success': True,
             'rules': effective_rules
         })
-
+        
     except Exception as e:
         logger.error(f"خطا در دریافت قوانین مؤثر: {str(e)}")
         return JsonResponse({
@@ -1246,7 +1490,7 @@ def workflow_dashboard(request):
         'total_templates': 0,
         'total_assignments': PostRuleAssignment.objects.filter(is_active=True).count(),
     }
-
+    
     return render(request, 'core/workflow/dashboard.html', context)
 
 
@@ -1261,29 +1505,29 @@ class StageApproverListView(LoginRequiredMixin, PermissionRequiredMixin, ListVie
     context_object_name = 'stage_approvers'
     paginate_by = 20
     permission_required = 'tankhah.stageapprover__view'
-
+    
     def get_queryset(self):
         queryset = StageApprover.objects.filter(is_active=True)
-
+        
         # فیلتر بر اساس مرحله
         if 'stage_id' in self.request.GET:
             queryset = queryset.filter(stage_id=self.request.GET['stage_id'])
-
+        
         # فیلتر بر اساس پست
         if 'post_id' in self.request.GET:
             queryset = queryset.filter(post_id=self.request.GET['post_id'])
-
+        
         # فیلتر بر اساس نوع موجودیت
         if 'entity_type' in self.request.GET:
             queryset = queryset.filter(entity_type=self.request.GET['entity_type'])
-
+        
         # فیلتر بر اساس سازمان
         if 'organization_id' in self.request.GET:
             queryset = queryset.filter(post__organization_id=self.request.GET['organization_id'])
-
+        
         # پس از فیلتر: ابتدا بر اساس نام پست، سپس نام مرحله
         return queryset.select_related('stage', 'post', 'post__organization').order_by('post__name', 'stage__name')
-
+    
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         organizations = Organization.objects.filter(is_active=True)
@@ -1337,7 +1581,7 @@ class StageApproverCreateView(LoginRequiredMixin, PermissionRequiredMixin, Creat
     fields = ['stage', 'post', 'entity_type', 'action', 'is_active']
     permission_required = 'tankhah.stageapprover__add'
     success_url = reverse_lazy('workflow_management:stage_approver_list')
-
+    
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['title'] = _('ایجاد تأییدکننده مرحله جدید')
@@ -1379,7 +1623,7 @@ class StageApproverCreateView(LoginRequiredMixin, PermissionRequiredMixin, Creat
             ('PARTIAL', _('نیمه‌تأیید')),
         ]
         return context
-
+    
     def form_valid(self, form):
         try:
             response = super().form_valid(form)
@@ -1399,7 +1643,7 @@ class StageApproverUpdateView(LoginRequiredMixin, PermissionRequiredMixin, Updat
     fields = ['stage', 'post', 'entity_type', 'action', 'is_active']
     permission_required = 'tankhah.stageapprover__Update'
     success_url = reverse_lazy('workflow_management:stage_approver_list')
-
+    
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['title'] = _('ویرایش تأییدکننده مرحله')
@@ -1442,7 +1686,7 @@ class StageApproverUpdateView(LoginRequiredMixin, PermissionRequiredMixin, Updat
             ('PARTIAL', _('نیمه‌تأیید')),
         ]
         return context
-
+    
     def form_valid(self, form):
         try:
             response = super().form_valid(form)
@@ -1461,7 +1705,7 @@ class StageApproverDeleteView(LoginRequiredMixin, PermissionRequiredMixin, Delet
     template_name = 'core/workflow/stage_approver_confirm_delete.html'
     permission_required = 'tankhah.stageapprover__delete'
     success_url = reverse_lazy('workflow_management:stage_approver_list')
-
+    
     def delete(self, request, *args, **kwargs):
         self.object = self.get_object()
         self.object.is_active = False
@@ -1482,20 +1726,20 @@ def bulk_create_stage_approvers(request):
         post_ids = data.get('post_ids', [])
         entity_type = data.get('entity_type', 'FACTOR')
         action = data.get('action', 'APPROVE')
-
+        
         if not stage_id or not post_ids:
             return JsonResponse({
                 'success': False,
                 'message': 'مرحله و پست‌ها باید انتخاب شوند.'
             })
-
+        
         stage = get_object_or_404(Status, id=stage_id)
         created_count = 0
-
+        
         with transaction.atomic():
             for post_id in post_ids:
                 post = get_object_or_404(Post, id=post_id)
-
+                
                 stage_approver, created = StageApprover.objects.get_or_create(
                     stage=stage,
                     post=post,
@@ -1505,16 +1749,16 @@ def bulk_create_stage_approvers(request):
                         'is_active': True
                     }
                 )
-
+                
                 if created:
                     created_count += 1
-
+        
         return JsonResponse({
             'success': True,
             'message': f'{created_count} تأییدکننده مرحله ایجاد شد.',
             'created_count': created_count
         })
-
+        
     except Exception as e:
         logger.error(f"خطا در ایجاد دسته‌ای StageApprover: {str(e)}")
         return JsonResponse({
@@ -1531,12 +1775,12 @@ def get_posts_by_organization(request, organization_id):
     try:
         organization = get_object_or_404(Organization, id=organization_id)
         posts = Post.objects.filter(organization=organization, is_active=True).values('id', 'name', 'level')
-
+        
         return JsonResponse({
             'success': True,
             'posts': list(posts)
         })
-
+        
     except Exception as e:
         logger.error(f"خطا در دریافت پست‌ها: {str(e)}")
         return JsonResponse({
@@ -1586,13 +1830,13 @@ class UnifiedWorkflowManagementView(LoginRequiredMixin, PermissionRequiredMixin,
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
+        
         # آمار کلی
         context['post_rules_count'] = PostRuleAssignment.objects.filter(is_active=True).count()
         context['stage_approvers_count'] = StageApprover.objects.filter(is_active=True).count()
         context['organizations_count'] = Organization.objects.filter(is_active=True).count()
         context['stages_count'] = Status.objects.filter(is_active=True).count()
-
+        
         return context
 
 
@@ -1608,7 +1852,7 @@ def api_overview_stats(request):
             'organizations_count': Organization.objects.filter(is_active=True).count(),
             'stages_count': Status.objects.filter(is_active=True).count(),
         }
-
+        
         return JsonResponse({
             'success': True,
             **stats
@@ -1628,13 +1872,13 @@ def api_post_rules(request):
     """
     try:
         queryset = PostRuleAssignment.objects.filter(is_active=True)
-
+        
         # فیلترها
         if 'post_id' in request.GET:
             queryset = queryset.filter(post_id=request.GET['post_id'])
         if 'entity_type' in request.GET:
             queryset = queryset.filter(entity_type=request.GET['entity_type'])
-
+        
         post_rules = []
         for rule in queryset.select_related('post', 'action', 'organization')[:20]:
             post_rules.append({
@@ -1645,7 +1889,7 @@ def api_post_rules(request):
                 'entity_type_display': rule.get_entity_type_display(),
                 'is_active': rule.is_active,
             })
-
+        
         # آخرین قوانین
         recent_rules = []
         for rule in PostRuleAssignment.objects.filter(is_active=True).select_related('post', 'action', 'organization').order_by('-created_at')[:5]:
@@ -1656,7 +1900,7 @@ def api_post_rules(request):
                 'organization_name': rule.organization.name,
                 'entity_type_display': rule.get_entity_type_display(),
             })
-
+        
         return JsonResponse({
             'success': True,
             'post_rules': post_rules,
@@ -1677,7 +1921,7 @@ def api_stage_approvers(request):
     """
     try:
         queryset = StageApprover.objects.filter(is_active=True)
-
+        
         # فیلترها
         if 'stage_id' in request.GET:
             queryset = queryset.filter(stage_id=request.GET['stage_id'])
@@ -1685,7 +1929,7 @@ def api_stage_approvers(request):
             queryset = queryset.filter(post_id=request.GET['post_id'])
         if 'entity_type' in request.GET:
             queryset = queryset.filter(entity_type=request.GET['entity_type'])
-
+        
         stage_approvers = []
         for approver in queryset.select_related('stage', 'post', 'post__organization')[:20]:
             stage_approvers.append({
@@ -1696,7 +1940,7 @@ def api_stage_approvers(request):
                 'action_display': approver.get_action_display() if approver.action else None,
                 'is_active': approver.is_active,
             })
-
+        
         # آخرین تأییدکنندگان
         recent_approvers = []
         for approver in StageApprover.objects.filter(is_active=True).select_related('stage', 'post')[:5]:
@@ -1706,7 +1950,7 @@ def api_stage_approvers(request):
                 'post_name': approver.post.name,
                 'entity_type_display': approver.get_entity_type_display(),
             })
-
+        
         return JsonResponse({
             'success': True,
             'stage_approvers': stage_approvers,
@@ -1728,7 +1972,7 @@ def api_filter_options(request):
     try:
         posts = list(Post.objects.filter(is_active=True).values('id', 'name'))
         stages = list(Status.objects.filter(is_active=True).values('id', 'name'))
-
+        
         return JsonResponse({
             'success': True,
             'posts': posts,
@@ -1755,7 +1999,7 @@ def api_check_duplicates(request):
         ).annotate(
             count=Count('id')
         ).filter(count__gt=1)
-
+        
         duplicate_post_rules = []
         for duplicate in post_rule_duplicates:
             rules = PostRuleAssignment.objects.filter(
@@ -1765,7 +2009,7 @@ def api_check_duplicates(request):
                 entity_type=duplicate['entity_type'],
                 is_active=True
             ).select_related('post', 'action', 'organization')
-
+            
             duplicate_post_rules.append({
                 'post_name': rules[0].post.name,
                 'action_name': rules[0].action.name,
@@ -1774,14 +2018,14 @@ def api_check_duplicates(request):
                 'count': len(rules),
                 'rule_ids': [rule.id for rule in rules]
             })
-
+        
         # بررسی تأییدکنندگان تکراری StageApprover
         stage_approver_duplicates = StageApprover.objects.filter(is_active=True).values(
             'stage', 'post', 'entity_type'
         ).annotate(
             count=Count('id')
         ).filter(count__gt=1)
-
+        
         duplicate_stage_approvers = []
         for duplicate in stage_approver_duplicates:
             approvers = StageApprover.objects.filter(
@@ -1790,7 +2034,7 @@ def api_check_duplicates(request):
                 entity_type=duplicate['entity_type'],
                 is_active=True
             ).select_related('stage', 'post')
-
+            
             duplicate_stage_approvers.append({
                 'stage_name': approvers[0].stage.name,
                 'post_name': approvers[0].post.name,
@@ -1798,7 +2042,7 @@ def api_check_duplicates(request):
                 'count': len(approvers),
                 'approver_ids': [approver.id for approver in approvers]
             })
-
+        
         return JsonResponse({
             'success': True,
             'duplicate_post_rules': duplicate_post_rules,
@@ -1806,7 +2050,7 @@ def api_check_duplicates(request):
             'total_duplicate_post_rules': len(duplicate_post_rules),
             'total_duplicate_stage_approvers': len(duplicate_stage_approvers)
         })
-
+        
     except Exception as e:
         logger.error(f"خطا در بررسی قوانین تکراری: {str(e)}")
         return JsonResponse({

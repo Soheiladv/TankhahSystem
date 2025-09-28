@@ -24,9 +24,9 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-default-key-for-dev-only')
 # DEBUG = True # os.getenv('DEBUG', 'False') == 'True'  # تبدیل به bool
 DEBUG = os.getenv("DEBUG", "False") == "True"
 # دامنه‌های مجاز برای Django
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,testserver' ).split(',')  # تبدیل به لیست
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,testserver,*.trycloudflare.com,*.cfargotunnel.com' ).split(',')  # تبدیل به لیست
 # دامنه‌های معتبر برای CSRF (POST requests)
-CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in os.getenv("CSRF_TRUSTED_ORIGINS", "http://localhost:8000,http://127.0.0.1:8000").split(',') if origin.strip()]
+CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in os.getenv("CSRF_TRUSTED_ORIGINS", "http://localhost:8000,http://127.0.0.1:8000,https://*.trycloudflare.com,https://*.cfargotunnel.com").split(',') if origin.strip()]
 
 # تنظیمات دیتابیس از .env
 DB_NAME = os.getenv('DB_NAME', 'tankhasystem')
@@ -50,6 +50,11 @@ REDIS_URL = os.getenv('REDIS_URL', 'redis://127.0.0.1:6379/0')
 SECURE_SSL_REDIRECT = os.getenv('SECURE_SSL_REDIRECT', 'False') == 'True'
 SECURE_BROWSER_XSS_FILTER = os.getenv('SECURE_BROWSER_XSS_FILTER', 'True') == 'True'
 SECURE_CONTENT_TYPE_NOSNIFF = os.getenv('SECURE_CONTENT_TYPE_NOSNIFF', 'True') == 'True'
+
+# تنظیمات اضافی برای Cloudflare tunnel
+USE_X_FORWARDED_HOST = True
+USE_X_FORWARDED_PORT = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # تنظیمات USB Dongle Validation
 USB_DONGLE_VALIDATION_ENABLED = os.getenv('USB_DONGLE_VALIDATION_ENABLED', 'False') == 'True'
@@ -243,10 +248,12 @@ LOGOUT_REDIRECT_URL = '/accounts/login/'
 SESSION_COOKIE_AGE = 1500
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 SESSION_SAVE_EVERY_REQUEST = True
-SESSION_COOKIE_SECURE = False
-CSRF_COOKIE_SECURE = False
+SESSION_COOKIE_SECURE = os.getenv('SESSION_COOKIE_SECURE', 'False') == 'True'  # برای HTTPS در production
+CSRF_COOKIE_SECURE = os.getenv('CSRF_COOKIE_SECURE', 'False') == 'True'  # برای HTTPS در production
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_SAMESITE = 'Lax'
+CSRF_USE_SESSIONS = True
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 
 MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'

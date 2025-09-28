@@ -1,8 +1,75 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-<body>
+{% load i18n jformat rcms_custom_filters %}
 
-</body>
-</html>
+<div class="budget-items-section">
+    <h6 class="text-primary mb-3">
+        <i class="fas fa-list-alt me-2"></i>
+        {% translate "سرفصل‌های بودجه" %}
+    </h6>
+    
+    {% if budget_allocations %}
+        <div class="table-responsive">
+            <table class="table table-sm table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th width="5%">#</th>
+                        <th width="25%">{% translate "نام سرفصل" %}</th>
+                        <th width="15%" class="text-end">{% translate "تخصیص" %}</th>
+                        <th width="15%" class="text-end">{% translate "مصرف" %}</th>
+                        <th width="15%" class="text-end">{% translate "برگشت" %}</th>
+                        <th width="15%" class="text-end">{% translate "مانده" %}</th>
+                        <th width="10%" class="text-center">{% translate "درصد" %}</th>
+                        <th width="10%" class="text-center">{% translate "عملیات" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for alloc in budget_allocations %}
+                        <tr>
+                            <td class="text-center">{{ forloop.counter|to_persian_number }}</td>
+                            <td>
+                                <i class="fas fa-folder me-2 text-muted"></i>
+                                {{ alloc.budget_item_name|default:"نامشخص" }}
+                            </td>
+                            <td class="text-end">{{ alloc.allocated_amount_formatted|to_persian_number }}</td>
+                            <td class="text-end">{{ alloc.consumed_formatted|to_persian_number }}</td>
+                            <td class="text-end">{{ alloc.returned_formatted|to_persian_number }}</td>
+                            <td class="text-end">{{ alloc.remaining_formatted|to_persian_number }}</td>
+                            <td class="text-center">
+                                <span class="badge rounded-pill bg-{% if alloc.utilization_percentage > 90 %}danger{% elif alloc.utilization_percentage > 70 %}warning{% else %}success{% endif %}">
+                                    {{ alloc.utilization_percentage|floatformat:0 }}%
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                <button class="btn btn-sm btn-outline-info btn-load-tankhahs"
+                                        data-url="{{ alloc.tankhahs_ajax_url }}"
+                                        data-target="#tankhahsContainer-{{ alloc.id }}"
+                                        data-alloc-id="{{ alloc.id }}">
+                                    <i class="fas fa-wallet me-1"></i>
+                                    {% translate "تنخواهها" %}
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="8" class="p-0 border-0">
+                                <div class="collapse" id="tankhahsContainer-{{ alloc.id }}">
+                                    <div class="card card-body border-0 rounded-0 bg-light p-3">
+                                        <div id="tankhahsContainer-{{ alloc.id }}" class="tankhahs-container">
+                                            <div class="text-center py-3 text-muted">
+                                                <i class="fas fa-circle-notch fa-spin me-2"></i>
+                                                {% translate "در حال بارگذاری تنخواهها..." %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="alert alert-info text-center">
+            <i class="fas fa-info-circle me-2"></i>
+            {% translate "هیچ سرفصل بودجه‌ای برای این سازمان یافت نشد." %}
+        </div>
+    {% endif %}
+</div>

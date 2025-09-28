@@ -1,569 +1,72 @@
-{##}
-{##}
-{##}
-{#{% load i18n static humanize rcms_custom_filters %}#}
-{##}
-{#<style>#}
-{#    /* استایل‌های سفارشی */#}
-{#    .tankhah-item {#}
-{#        border-radius: 0.75rem;#}
-{#        border: 1px solid #e0e0e0;#}
-{#        transition: all 0.3s ease;#}
-{#        overflow: hidden;#}
-{#    }#}
-{##}
-{#    .tankhah-item:hover {#}
-{#        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);#}
-{#        transform: translateY(-2px);#}
-{#        border-color: #b7d4ff;#}
-{#    }#}
-{##}
-{#    .card-header.bg-gradient-light {#}
-{#        background: linear-gradient(to right, #f8f9fa, #ffffff);#}
-{#    }#}
-{##}
-{#    .border-dashed {#}
-{#        border: 2px dashed #dee2e6;#}
-{#        border-radius: 0.75rem;#}
-{#    }#}
-{##}
-{#    .loading-placeholder {#}
-{#        color: #6c757d;#}
-{#        font-size: 0.9rem;#}
-{#    }#}
-{##}
-{#    .badge {#}
-{#        font-weight: 500;#}
-{#        letter-spacing: 0.5px;#}
-{#    }#}
-{##}
-{#    .factors-section {#}
-{#        transition: all 0.3s ease;#}
-{#    }#}
-{##}
-{#    .factor-item {#}
-{#        border-left: 3px solid #4e73df;#}
-{#        transition: all 0.2s ease;#}
-{#    }#}
-{##}
-{#    .factor-item:hover {#}
-{#        background-color: #f8f9fa;#}
-{#    }#}
-{#</style>#}
-{##}
-{#<div class="tankhahs-list">#}
-{#    {% for tankhah in tankhahs %}#}
-{#    <div class="tankhah-item card mb-4 shadow-sm" id="tankhah-{{ tankhah.id }}">#}
-{#        <div class="card-header bg-gradient-light d-flex justify-content-between align-items-center py-3">#}
-{#            <div class="d-flex align-items-center">#}
-{#                <i class="fas fa-wallet fa-lg text-primary me-3"></i>#}
-{#                <div>#}
-{#                    <h5 class="mb-0 fw-bold">تنخواه #{{ tankhah.number|to_persian_number }}</h5>#}
-{#                    <small class="text-muted">#}
-{#                        <i class="far fa-calendar-alt me-1"></i>#}
-{#                        {{ tankhah.date_jalali }}#}
-{#                    </small>#}
-{#                </div>#}
-{#            </div>#}
-{#            <div>#}
-{#                <span class="badge rounded-pill bg-{% if tankhah.status == 'تایید شده' %}success{% elif tankhah.status == 'رد شده' %}danger{% else %}warning{% endif %} py-2 px-3">#}
-{#                    <i class="fas fa-{% if tankhah.status == 'تایید شده' %}check-circle{% elif tankhah.status == 'رد شده' %}times-circle{% else %}clock{% endif %} me-1"></i>#}
-{#                    {{ tankhah.status_display }}#}
-{#                </span>#}
-{#            </div>#}
-{#        </div>#}
-{##}
-{#        <div class="card-body">#}
-{#            <div class="d-flex justify-content-between align-items-center mb-3">#}
-{#                <div class="fs-4 fw-bold text-primary">#}
-{#                    {{ tankhah.amount_formatted|to_persian_number }} #}
-{#                    <small class="fs-6 text-muted">ریال</small>#}
-{#                </div>#}
-{##}
-{#                <div>#}
-{#                    <a href="{{ tankhah.detail_url }}" class="btn btn-primary btn-sm rounded-pill px-3">#}
-{#                        <i class="fas fa-eye me-1"></i> جزئیات کامل#}
-{#                    </a>#}
-{#                </div>#}
-{#            </div>#}
-{##}
-{#            {% if tankhah.factors_count > 0 %}#}
-{#            <div class="factors-section mt-3 border-top pt-3">#}
-{#                <button class="btn btn-outline-primary btn-sm rounded-pill px-3 toggle-factors"#}
-{#                        data-tankhah-id="{{ tankhah.id }}"#}
-{#                        data-ajax-url="{{ tankhah.factors_ajax_url }}"#}
-{#                        data-target="#factors-{{ tankhah.id }}">#}
-{#                    <i class="fas fa-file-invoice-dollar me-1"></i>#}
-{#                    نمایش فاکتورها ({{ tankhah.factors_count|to_persian_number }})#}
-{#                </button>#}
-{##}
-{#                <div id="factors-{{ tankhah.id }}" class="collapse mt-3">#}
-{#                    <div class="loading-placeholder text-center py-3">#}
-{#                        <div class="spinner-border text-primary spinner-border-sm" role="status">#}
-{#                            <span class="visually-hidden">در حال بارگذاری...</span>#}
-{#                        </div>#}
-{#                        <span class="text-muted me-2">در حال بارگذاری فاکتورها</span>#}
-{#                    </div>#}
-{#                </div>#}
-{#            </div>#}
-{#            {% endif %}#}
-{#        </div>#}
-{#    </div>#}
-{#    {% empty %}#}
-{#    <div class="alert alert-light text-center py-4 border-dashed">#}
-{#        <i class="fas fa-wallet fa-2x text-muted mb-3"></i>#}
-{#        <h5 class="text-muted">هیچ تنخواهی ثبت نشده است</h5>#}
-{#        <p class="text-muted small mt-2">برای ایجاد تنخواه جدید از منوی سیستم اقدام کنید</p>#}
-{#    </div>#}
-{#    {% endfor %}#}
-{#</div>#}
-{##}
-{#<script>#}
-{#document.addEventListener('DOMContentLoaded', function() {#}
-{#    // مدیریت نمایش/پنهان کردن فاکتورها#}
-{#    document.querySelectorAll('.toggle-factors').forEach(button => {#}
-{#        button.addEventListener('click', function(e) {#}
-{#            e.preventDefault();#}
-{#            const targetId = this.dataset.target;#}
-{#            const target = document.querySelector(targetId);#}
-{#            const tankhahId = this.dataset.tankhahId;#}
-{#            const ajaxUrl = this.dataset.ajaxUrl;#}
-{##}
-{#            // اگر محتوا قبلاً بارگذاری نشده، بارگذاری کن#}
-{#            if (!target.dataset.loaded) {#}
-{#                loadFactors(ajaxUrl, target, this);#}
-{#            }#}
-{##}
-{#            // نمایش یا مخفی کردن بخش فاکتورها#}
-{#            const bsCollapse = new bootstrap.Collapse(target, {#}
-{#                toggle: true#}
-{#            });#}
-{#        });#}
-{#    });#}
-{##}
-{#    // تابع بارگذاری فاکتورها#}
-{#    function loadFactors(url, targetElement, button) {#}
-{#        // نمایش حالت بارگذاری#}
-{#        targetElement.innerHTML = `#}
-{#            <div class="text-center py-3">#}
-{#                <div class="spinner-border text-primary spinner-border-sm" role="status">#}
-{#                    <span class="visually-hidden">در حال بارگذاری...</span>#}
-{#                </div>#}
-{#                <span class="text-muted me-2">در حال بارگذاری فاکتورها</span>#}
-{#            </div>#}
-{#        `;#}
-{##}
-{#        // غیرفعال کردن دکمه در حین بارگذاری#}
-{#        if (button) {#}
-{#            button.disabled = true;#}
-{#            button.innerHTML = `#}
-{#                <i class="fas fa-spinner fa-spin me-1"></i>#}
-{#                در حال بارگذاری...#}
-{#            `;#}
-{#        }#}
-{##}
-{#        // ارسال درخواست AJAX#}
-{#        fetch(url, {#}
-{#            method: 'GET',#}
-{#            headers: {#}
-{#                'X-Requested-With': 'XMLHttpRequest',#}
-{#                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value#}
-{#            }#}
-{#        })#}
-{#        .then(response => {#}
-{#            if (!response.ok) throw new Error('خطا در پاسخ سرور');#}
-{#            return response.json();#}
-{#        })#}
-{#        .then(data => {#}
-{#            if (data.html_content) {#}
-{#                targetElement.innerHTML = data.html_content;#}
-{#                targetElement.dataset.loaded = true;#}
-{##}
-{#                if (button) {#}
-{#                    button.innerHTML = `#}
-{#                        <i class="fas fa-file-invoice-dollar me-1"></i>#}
-{#                        نمایش فاکتورها (${button.textContent.match(/\((\d+)\)/)[1]})#}
-{#                    `;#}
-{#                }#}
-{#            } else {#}
-{#                targetElement.innerHTML = `#}
-{#                    <div class="alert alert-warning text-center py-2">#}
-{#                        <i class="fas fa-exclamation-triangle me-2"></i>#}
-{#                        فاکتوری برای نمایش وجود ندارد#}
-{#                    </div>#}
-{#                `;#}
-{#            }#}
-{#        })#}
-{#        .catch(error => {#}
-{#            console.error('Error:', error);#}
-{#            targetElement.innerHTML = `#}
-{#                <div class="alert alert-danger text-center py-2">#}
-{#                    <i class="fas fa-times-circle me-2"></i>#}
-{#                    خطا در بارگذاری فاکتورها#}
-{#                </div>#}
-{#            `;#}
-{#        })#}
-{#        .finally(() => {#}
-{#            if (button) {#}
-{#                button.disabled = false;#}
-{#            }#}
-{#        });#}
-{#    }#}
-{# </script>#}
+{% load i18n jformat rcms_custom_filters %}
 
-
-
-{% load i18n static humanize rcms_custom_filters %}
- <style>
-    /* استایل‌های سفارشی پیشرفته */
-    .tankhah-container {
-        border-radius: 0.85rem;
-        box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.05);
-        transition: all 0.3s ease;
-        overflow: hidden;
-        border: 1px solid #e0e0e0;
-    }
-
-    .tankhah-container:hover {
-        box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.1);
-        transform: translateY(-3px);
-        border-color: #a0c4ff;
-    }
-
-    .tankhah-header {
-        background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
-        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-    }
-
-    .tankhah-status-badge {
-        font-size: 0.85rem;
-        padding: 0.35rem 0.85rem;
-        letter-spacing: 0.5px;
-    }
-
-    .tankhah-detail-row {
-        border-bottom: 1px dashed #eee;
-        padding: 0.75rem 0;
-    }
-
-    .tankhah-detail-row:last-child {
-        border-bottom: none;
-    }
-
-    .factor-item {
-        border-left: 3px solid #4e73df;
-        transition: all 0.2s ease;
-        margin-bottom: 0.5rem;
-        border-radius: 0.25rem;
-    }
-
-    .factor-item:hover {
-        background-color: #f8fbff;
-        transform: translateX(3px);
-    }
-
-    .factor-badge {
-        font-size: 0.75rem;
-        padding: 0.25rem 0.5rem;
-    }
-
-    .loading-animation {
-        animation: pulse 1.5s infinite;
-    }
-
-    @keyframes pulse {
-        0% {
-            opacity: 0.6;
-        }
-        50% {
-            opacity: 1;
-        }
-        100% {
-            opacity: 0.6;
-        }
-    }
-</style>
-
-
-<div class="tankhahs-list">
-    {% for tankhah in tankhahs %}
-        <div class="tankhah-container card mb-4" id="tankhah-{{ tankhah.id }}">
-            <!-- هدر تنخواه -->
-            <div class="tankhah-header card-header d-flex justify-content-between align-items-center py-3">
-                <div class="d-flex align-items-center">
-                    <div class="bg-primary bg-opacity-10 p-2 rounded me-3">
-                        <i class="fas fa-wallet fa-lg text-primary"></i>
-                    </div>
-                    <div>
-                        <h5 class="mb-1 fw-bold">
-                            تنخواه #{{ tankhah.number|to_persian_number }}
-                            <small class="text-muted fs-6 ms-2">{{ tankhah.get_type_display }}</small>
-                        </h5>
-                        <div class="d-flex flex-wrap">
-                            <small class="text-muted me-3">
-                                <i class="far fa-calendar-alt me-1"></i>
-                                {{ tankhah.date_jalali|to_persian_number }}
-                            </small>
-                            <small class="text-muted">
-                                <i class="far fa-clock me-1"></i>
-                                {{ tankhah.created_time|time:"H:i"|to_persian_number }}
-                            </small>
-                        </div>
-                    </div>
-                </div>
-                <div>
-                <span class="tankhah-status-badge badge rounded-pill bg-{% if tankhah.status == 'approved' %}success{% elif tankhah.status == 'rejected' %}danger{% else %}warning{% endif %}">
-                    <i class="fas fa-{% if tankhah.status == 'approved' %}check-circle{% elif tankhah.status == 'rejected' %}times-circle{% else %}hourglass-half{% endif %} me-1"></i>
-                    {{ tankhah.get_status_display }}
-                </span>
-                </div>
-            </div>
-
-            <!-- بدنه اصلی تنخواه -->
-            <div class="card-body">
-                <!-- ردیف‌های اطلاعاتی -->
-                <div class="tankhah-details">
-                    <div class="tankhah-detail-row d-flex justify-content-between">
-                        <div>
-                            <i class="fas fa-money-bill-wave text-success me-2"></i>
-                            <strong>مبلغ تنخواه:</strong>
-                        </div>
-                        <div class="fw-bold text-primary">
-                            {{ tankhah.amount|intcomma|to_persian_number }} ریال
-                        </div>
-                    </div>
-
-                    <div class="tankhah-detail-row d-flex justify-content-between">
-                        <div>
-                            <i class="fas fa-user-tie text-info me-2"></i>
-                            <strong>درخواست کننده:</strong>
-                        </div>
-                        <div>
-                            {{ tankhah.requester.get_full_name }}
-                        </div>
-                    </div>
-
-                    <div class="tankhah-detail-row d-flex justify-content-between">
-                        <div>
-                            <i class="fas fa-building text-secondary me-2"></i>
-                            <strong>واحد سازمانی:</strong>
-                        </div>
-                        <div>
-                            {{ tankhah.department.name|default:"-" }}
-                        </div>
-                    </div>
-
-                    <div class="tankhah-detail-row d-flex justify-content-between">
-                        <div>
-                            <i class="fas fa-file-alt text-warning me-2"></i>
-                            <strong>شرح درخواست:</strong>
-                        </div>
-                        <div class="text-end">
-                            {{ tankhah.description|default:"-"|linebreaksbr }}
-                        </div>
-                    </div>
-
-                    {% if tankhah.approver %}
-                        <div class="tankhah-detail-row d-flex justify-content-between">
+<div class="tankhahs-section">
+    <h6 class="text-primary mb-3">
+        <i class="fas fa-wallet me-2"></i>
+        {% translate "تنخواهها" %}
+    </h6>
+    
+    {% if tankhahs %}
+        <div class="row">
+            {% for tankhah in tankhahs %}
+                <div class="col-md-6 mb-3">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-light d-flex justify-content-between align-items-center">
                             <div>
-                                <i class="fas fa-user-check text-success me-2"></i>
-                                <strong>تایید کننده:</strong>
+                                <h6 class="mb-0 fw-bold">
+                                    <i class="fas fa-wallet me-2 text-primary"></i>
+                                    تنخواه #{{ tankhah.number|to_persian_number }}
+                                </h6>
+                                <small class="text-muted">
+                                    <i class="far fa-calendar-alt me-1"></i>
+                                    {{ tankhah.date_jalali|to_persian_number }}
+                                </small>
                             </div>
-                            <div>
-                                {{ tankhah.approver.get_full_name }}
-                                {% if tankhah.approved_date %}
-                                    <small class="text-muted me-2">({{ tankhah.approved_date_jalali|to_persian_number }})</small>
+                            <span class="badge rounded-pill bg-{% if tankhah.status_display == 'تایید شده' %}success{% elif tankhah.status_display == 'رد شده' %}danger{% else %}warning{% endif %}">
+                                {{ tankhah.status_display }}
+                            </span>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="text-muted">مبلغ:</span>
+                                <span class="fw-bold text-primary">{{ tankhah.amount_formatted|to_persian_number }} ریال</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <span class="text-muted">فاکتورها:</span>
+                                <span class="badge bg-info">{{ tankhah.factors_count|to_persian_number }}</span>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <a href="{{ tankhah.detail_url }}" class="btn btn-sm btn-outline-primary flex-fill">
+                                    <i class="fas fa-eye me-1"></i>
+                                    {% translate "جزئیات" %}
+                                </a>
+                                {% if tankhah.factors_count > 0 %}
+                                    <button class="btn btn-sm btn-outline-info btn-load-factors"
+                                            data-url="{{ tankhah.factors_ajax_url }}"
+                                            data-target="#factorsContainer-{{ tankhah.id }}"
+                                            data-tankhah-id="{{ tankhah.id }}">
+                                        <i class="fas fa-file-invoice-dollar me-1"></i>
+                                        {% translate "فاکتورها" %}
+                                    </button>
                                 {% endif %}
                             </div>
-                        </div>
-                    {% endif %}
-
-                    {% if tankhah.payment_date %}
-                        <div class="tankhah-detail-row d-flex justify-content-between">
-                            <div>
-                                <i class="fas fa-calendar-check text-primary me-2"></i>
-                                <strong>تاریخ پرداخت:</strong>
-                            </div>
-                            <div>
-                                {{ tankhah.payment_date_jalali|to_persian_number|default:"-" }}
-                            </div>
-                        </div>
-                    {% endif %}
-                </div>
-
-                <!-- بخش فاکتورها -->
-                <div class="factors-section mt-4 pt-3 border-top">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h6 class="mb-0 fw-bold">
-                            <i class="fas fa-file-invoice-dollar text-primary me-2"></i>
-                            فاکتورهای مرتبط
-                        </h6>
-                        <div>
-                        <span class="badge bg-primary bg-opacity-10 text-primary factor-badge rounded-pill">
-                            {{ tankhah.factors_count|to_persian_number }} فاکتور
-                        </span>
-                        </div>
-                    </div>
-
-                    {% if tankhah.factors_count > 0 %}
-                        <div id="factors-{{ tankhah.id }}" class="factors-list">
-                            <button class="btn btn-outline-primary btn-sm rounded-pill px-3 w-100 toggle-factors"
-                                    data-tankhah-id="{{ tankhah.id }}"
-                                    data-ajax-url="{{ tankhah.get_factors_ajax_url }}">
-                                <i class="fas fa-eye me-2"></i>
-                                نمایش فاکتورها
-                            </button>
-
-                            <div class="factors-container collapse mt-3" id="factorsContainer-{{ tankhah.id }}">
-                                <div class="text-center py-3 loading-animation">
-                                    <div class="spinner-border spinner-border-sm text-primary" role="status">
-                                        <span class="visually-hidden">در حال بارگذاری...</span>
-                                    </div>
-                                    <span class="text-muted me-2">در حال بارگذاری فاکتورها</span>
+                            
+                            <!-- Container for factors -->
+                            <div id="factorsContainer-{{ tankhah.id }}" class="mt-3" style="display: none;">
+                                <div class="text-center py-2 text-muted">
+                                    <i class="fas fa-circle-notch fa-spin me-2"></i>
+                                    {% translate "در حال بارگذاری فاکتورها..." %}
                                 </div>
                             </div>
                         </div>
-                    {% else %}
-                        <div class="alert alert-light text-center py-2">
-                            <i class="fas fa-info-circle me-2"></i>
-                            فاکتوری برای این تنخواه ثبت نشده است
-                        </div>
-                    {% endif %}
-                </div>
-
-                <!-- دکمه‌های اقدام -->
-                <div class="actions-section mt-4 pt-3 border-top">
-                    <div class="d-flex justify-content-end">
-                        <a href="{{ tankhah.detail_url }}" class="btn btn-primary btn-sm rounded-pill px-3">
-
-                            <i class="fas fa-info-circle me-1"></i> جزئیات کامل
-                        </a>
-                        {% if tankhah.can_edit %}
-                            <a href="{{ tankhah.get_edit_url }}" class="btn btn-warning btn-sm me-2">
-                                <i class="fas fa-edit me-1"></i> ویرایش
-                            </a>
-                        {% endif %}
-                        {% if tankhah.can_delete %}
-                            <button class="btn btn-danger btn-sm"
-                                    onclick="confirmDelete('{{ tankhah.get_delete_url }}')">
-                                <i class="fas fa-trash-alt me-1"></i> حذف
-                            </button>
-                        {% endif %}
                     </div>
                 </div>
-            </div>
+            {% endfor %}
         </div>
-    {% empty %}
-        <div class="alert alert-light text-center py-5">
-            <div class="bg-light rounded-circle p-4 mb-3 d-inline-block">
-                <i class="fas fa-wallet fa-3x text-muted"></i>
-            </div>
-            <h5 class="text-muted">هیچ تنخواهی یافت نشد</h5>
-            <p class="text-muted small mt-2">می‌توانید از طریق دکمه زیر یک تنخواه جدید ثبت کنید</p>
-            <a href="{% url 'tankhah_create' %}" class="btn btn-primary mt-2">
-                <i class="fas fa-plus me-2"></i> ایجاد تنخواه جدید
-            </a>
+    {% else %}
+        <div class="alert alert-info text-center">
+            <i class="fas fa-info-circle me-2"></i>
+            {% translate "هیچ تنخواهی برای این سرفصل یافت نشد." %}
         </div>
-    {% endfor %}
+    {% endif %}
 </div>
-
-
-<div class="tankhahs-list">
-    {% for tankhah in tankhahs %}
-        <div class="tankhah-item card mb-4 shadow-sm" id="tankhah-{{ tankhah.id }}">
-            <div class="card-header bg-gradient-light d-flex justify-content-between align-items-center py-3">
-                <div class="d-flex align-items-center">
-                    <i class="fas fa-wallet fa-lg text-primary me-3"></i>
-                    <div>
-                        <h5 class="mb-0 fw-bold">تنخواه #{{ tankhah.number|to_persian_number }}</h5>
-                        <small class="text-muted">
-                            <i class="far fa-calendar-alt me-1"></i>
-                            {{ tankhah.date_jalali |to_persian_number }}
-                        </small>
-                    </div>
-                </div>
-                <div>
-                <span class="badge rounded-pill bg-{% if tankhah.status == 'تایید شده' %}success{% elif tankhah.status == 'رد شده' %}danger{% else %}warning{% endif %} py-2 px-3">
-                    <i class="fas fa-{% if tankhah.status == 'تایید شده' %}check-circle{% elif tankhah.status == 'رد شده' %}times-circle{% else %}clock{% endif %} me-1"></i>
-                    {{ tankhah.status_display }}
-                </span>
-                </div>
-            </div>
-
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <div class="fs-4 fw-bold text-primary">
-                        {{ tankhah.amount_formatted|to_persian_number }}
-                        <small class="fs-6 text-muted">ریال</small>
-                    </div>
-
-                    <div>
-                        <a href="{{ tankhah.detail_url }}" class="btn btn-primary btn-sm rounded-pill px-3">
-                            <i class="fas fa-eye me-1"></i> جزئیات کامل
-                        </a>
-                    </div>
-                </div>
-
-                {% if tankhah.factors_count > 0 %}
-                    <div class="factors-section mt-3 border-top pt-3">
-                        <button class="btn btn-outline-primary btn-sm rounded-pill px-3 toggle-factors"
-                                data-tankhah-id="{{ tankhah.id }}"
-                                data-ajax-url="{{ tankhah.factors_ajax_url }}"
-                                data-target="#factors-{{ tankhah.id }}">
-                            <i class="fas fa-file-invoice-dollar me-1"></i>
-                            نمایش فاکتورها ({{ tankhah.factors_count|to_persian_number }})
-                        </button>
-
-                        <div id="factors-{{ tankhah.id }}" class="collapse mt-3">
-                            <div class="loading-placeholder text-center py-3">
-                                <div class="spinner-border text-primary spinner-border-sm" role="status">
-                                    <span class="visually-hidden">در حال بارگذاری...</span>
-                                </div>
-                                <span class="text-muted me-2">در حال بارگذاری فاکتورها</span>
-                            </div>
-                        </div>
-                    </div>
-                {% endif %}
-            </div>
-        </div>
-    {% empty %}
-        <div class="alert alert-light text-center py-4 border-dashed">
-            <i class="fas fa-wallet fa-2x text-muted mb-3"></i>
-            <h5 class="text-muted">هیچ تنخواهی ثبت نشده است</h5>
-            <p class="text-muted small mt-2">برای ایجاد تنخواه جدید از منوی سیستم اقدام کنید</p>
-        </div>
-    {% endfor %}
-</div>
-
-<script>
-function loadBudgetItems(url, button, targetId) {
-    console.log(`Sending AJAX request to: ${url}`);
-    const target = document.querySelector(targetId);
-    if (target && !target.dataset.loaded && !target.dataset.loading) {
-        target.dataset.loading = 'true';
-        fetch(url, {
-            method: 'GET',
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRFToken': document.querySelector('input[name="csrfmiddlewaretoken"]').value
-            }
-        })
-        .then(response => {
-            console.log(`Received response with status: ${response.status}`);
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
-            return response.json();
-        })
-        .then(data => {
-            console.log('Response data:', data);
-            target.innerHTML = data.html_content || '<div class="alert alert-danger text-center">خطا در بارگذاری داده‌ها.</div>';
-            target.dataset.loaded = 'true';
-            delete target.dataset.loading;
-        })
-        .catch(error => {
-            console.error('Error loading budget items:', error);
-            target.innerHTML = '<div class="alert alert-danger text-center">خطا در ارتباط با سرور.</div>';
-            delete target.dataset.loading;
-        });
-    }
-}
-</script>

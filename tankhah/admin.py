@@ -202,10 +202,28 @@ from tankhah.models import StageApprover
 
 @admin.register(StageApprover)
 class StageApproverAdmin(admin.ModelAdmin):
-    list_display = ('stage', 'post', 'entity_type', 'action', 'is_active')
-    list_filter = ('stage', 'entity_type', 'is_active')
-    search_fields = ('post__name', 'stage__name')
+    list_display = ('post', 'stage', 'entity_type', 'action', 'organization', 'is_active', 'updated_at')
+    list_filter = ('organization', 'entity_type', 'is_active', 'stage', 'action')
+    search_fields = ('post__name', 'stage__name', 'entity_type', 'action', 'organization__name')
+    autocomplete_fields = ('post', 'stage', 'organization')
+    ordering = ('organization', 'entity_type', 'post__name')
+    
+    fieldsets = (
+        (_('اطلاعات اصلی'), {
+            'fields': ('post', 'stage', 'entity_type', 'action', 'organization', 'is_active')
+        }),
+        (_('تاریخ‌ها'), {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    readonly_fields = ('created_at', 'updated_at')
+    
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related(
+            'post', 'stage', 'organization'
+        ).order_by('organization', 'entity_type', 'post__name')
 
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
-        # AccessRule حذف شده است - از Transition استفاده می‌شود

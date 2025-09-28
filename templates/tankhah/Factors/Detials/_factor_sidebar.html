@@ -22,10 +22,60 @@
                 {% endfor %}
             </div>
         {% else %}
-             <div class="alert alert-light text-center small p-2 mb-0">{% trans "در وضعیت فعلی، اقدامی برای شما مجاز نیست." %}</div>
+            <div class="alert alert-info text-center p-3 mb-0">
+                <i class="fas fa-info-circle me-2"></i>
+                <strong>{% trans "در وضعیت فعلی، اقدامی برای شما مجاز نیست." %}</strong>
+                <br>
+                <small class="text-muted mt-2 d-block">
+                    {% if factor.status.is_final_approve %}
+                        {% trans "این فاکتور تأیید شده است و دستور پرداخت برای آن ایجاد شده است." %}
+                    {% elif factor.status.is_rejected %}
+                        {% trans "این فاکتور رد شده است." %}
+                    {% elif factor.status.is_paid %}
+                        {% trans "این فاکتور پرداخت شده است." %}
+                    {% else %}
+                        {% trans "لطفاً با مدیر سیستم تماس بگیرید." %}
+                    {% endif %}
+                </small>
+            </div>
         {% endif %}
     </div>
 </div>
+
+{% if factor.status.is_final_approve and factor.payment_orders.exists %}
+<div class="card mb-4">
+    <div class="card-header fw-bold d-flex justify-content-between align-items-center">
+        <div><i class="fas fa-file-invoice-dollar me-2"></i>{% trans "دستور پرداخت" %}</div>
+        <span class="badge bg-success">{% trans "ایجاد شده" %}</span>
+    </div>
+    <div class="card-body">
+        {% for payment_order in factor.payment_orders.all %}
+            <div class="payment-order-item mb-3 p-3 border rounded">
+                <div class="row g-2">
+                    <div class="col-6"><strong>{% trans "شماره دستور:" %}</strong></div>
+                    <div class="col-6">{{ payment_order.order_number }}</div>
+                    <div class="col-6"><strong>{% trans "مبلغ:" %}</strong></div>
+                    <div class="col-6">{{ payment_order.amount|to_persian_number }} {% trans "ریال" %}</div>
+                    <div class="col-6"><strong>{% trans "وضعیت:" %}</strong></div>
+                    <div class="col-6">
+                        <span class="badge bg-{{ payment_order.status.code|default:'secondary' }}">
+                            {{ payment_order.status.name|default:'نامشخص' }}
+                        </span>
+                    </div>
+                    <div class="col-6"><strong>{% trans "تاریخ ایجاد:" %}</strong></div>
+                    <div class="col-6">{{ payment_order.created_at|jformat:"%Y/%m/%d"|to_persian_number }}</div>
+                </div>
+                {% if payment_order.description %}
+                    <div class="mt-2">
+                        <strong>{% trans "توضیحات:" %}</strong>
+                        <p class="mb-0 small text-muted">{{ payment_order.description }}</p>
+                    </div>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
 
 <div class="card mb-4">
     <div class="card-header fw-bold"><i class="fas fa-circle-info me-2"></i>{% trans "اطلاعات پروژه / بودجه" %}</div>
@@ -35,10 +85,10 @@
         {% endif %}
         {% if tankhah_budget_summary %}
             <div class="row g-2">
-                <div class="col-6"><span class="text-muted">{% trans "بودجه اولیه" %}:</span> <strong>{{ tankhah_budget_summary.initial|to_persian_number }}</strong></div>
-                <div class="col-6"><span class="text-muted">{% trans "پرداخت شده" %}:</span> <strong>{{ tankhah_budget_summary.paid|to_persian_number }}</strong></div>
-                <div class="col-6"><span class="text-muted">{% trans "تعهد شده" %}:</span> <strong>{{ tankhah_budget_summary.committed|to_persian_number }}</strong></div>
-                <div class="col-6"><span class="text-muted">{% trans "موجودی" %}:</span> <strong>{{ tankhah_budget_summary.available|to_persian_number }}</strong></div>
+                <div class="col-6"><span class="text-muted">{% trans "بودجه اولیه" %}:</span> <strong style="color:darkgreen">{{ tankhah_budget_summary.initial|format_negative}}</strong></div>
+                <div class="col-6"><span class="text-muted">{% trans "پرداخت شده" %}:</span> <strong style="color:darkgreen">{{ tankhah_budget_summary.paid|format_negative }}</strong></div>
+                <div class="col-6"><span class="text-muted">{% trans "تعهد شده" %}:</span> <strong style="color:darkgreen">{{ tankhah_budget_summary.committed|format_negative }}</strong></div>
+                <div class="col-6"><span class="text-muted">{% trans "موجودی" %}:</span> <strong style="color:darkgreen">{{ tankhah_budget_summary.available|format_negative }}</strong></div>
             </div>
         {% else %}
             <div class="text-muted">{% trans "اطلاعات بودجه در دسترس نیست." %}</div>
@@ -375,13 +425,13 @@
     <div class="card-header"><i class="fas fa-wallet me-2"></i>{% trans "خلاصه بودجه پروژه و تنخواه" %}</div>
     <div class="card-body">
         <ul class="list-unstyled">
-            <li>{% trans "بودجه اولیه:" %} {{ budget_summary.initial|to_persian_number }}</li>
-            <li>{% trans "مبلغ پرداخت شده:" %} {{ budget_summary.paid|to_persian_number }}</li>
-            <li>{% trans "تعهد شده:" %} {{ budget_summary.committed|to_persian_number }}</li>
-            <li>{% trans "موجودی:" %} {{ budget_summary.available|to_persian_number }}</li>
-            <li>{% trans "مانده:" %} {{ budget_summary.balance|to_persian_number }}</li>
-            <li>{% trans "درصد پرداخت شده:" %} {{ budget_summary.paid_percentage|floatformat:1 }}%</li>
-            <li>{% trans "درصد تعهد شده:" %} {{ budget_summary.committed_percentage|floatformat:1 }}%</li>
+            <li>{% trans "بودجه اولیه:" %} <strong style="color:red"> {{ budget_summary.initial|format_negative }}</strong></li>
+            <li>{% trans "مبلغ پرداخت شده:" %} <strong style="color:red"> {{ budget_summary.paid|format_negative }}</strong></li>
+            <li>{% trans "تعهد شده:" %} <strong style="color:red"> {{ budget_summary.committed|format_negative }}</strong></li>
+            <li>{% trans "موجودی:" %} <strong style="color:red"> {{ budget_summary.available|format_negative }}</strong></li>
+            <li>{% trans "مانده:" %} <strong style="color:red"> {{ budget_summary.balance|format_negative }}</strong></li>
+            <li>{% trans "درصد پرداخت شده:" %} <strong style="color:red"> {{ budget_summary.paid_percentage|floatformat:1 |to_persian_number}}%</strong></li>
+            <li>{% trans "درصد تعهد شده:" %} <strong style="color:red"> {{ budget_summary.committed_percentage|floatformat:1 |to_persian_number}}%</strong></li>
         </ul>
     </div>
 </div>

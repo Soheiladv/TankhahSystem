@@ -525,6 +525,11 @@ class Status(models.Model):
     is_initial = models.BooleanField(default=False, verbose_name=_("آیا این وضعیت اولیه (شروع) است؟"))
     is_final_approve = models.BooleanField(default=False, verbose_name=_("وضعیت تأیید نهایی؟"))
     is_final_reject = models.BooleanField(default=False, verbose_name=_("وضعیت رد نهایی؟"))
+    is_pending = models.BooleanField(default=False, verbose_name=_("وضعیت در انتظار؟"))
+    is_paid = models.BooleanField(default=False, verbose_name=_("وضعیت پرداخت شده؟"))
+    is_rejected = models.BooleanField(default=False, verbose_name=_("وضعیت رد شده؟"))
+    entity_type = models.CharField(max_length=50, blank=True, verbose_name=_("نوع موجودیت"), 
+                                  help_text=_("نوع موجودیت که این وضعیت برای آن استفاده می‌شود، مانند FACTOR, PAYMENTORDER"))
     is_active = models.BooleanField(default=True, db_index=True, verbose_name=_("فعال"))
 
     # فیلدهای مشترک به صورت مستقیم اضافه شده‌اند
@@ -553,6 +558,16 @@ class Action(models.Model):
     name = models.CharField(max_length=100, verbose_name=_("نام اقدام"))
     code = models.CharField(max_length=50, unique=True, help_text=_("کد منحصر به فرد انگلیسی، مانند SUBMIT"))
     description = models.TextField(blank=True, verbose_name=_("توضیحات"))
+    
+    # فیلدهای UI
+    display_name = models.CharField(max_length=100, blank=True, verbose_name=_("نام نمایشی"), 
+                                   help_text=_("نامی که در UI نمایش داده می‌شود"))
+    button_style = models.CharField(max_length=50, blank=True, verbose_name=_("استایل دکمه"),
+                                   help_text=_("primary, success, danger, warning, info, secondary"))
+    icon = models.CharField(max_length=50, blank=True, verbose_name=_("آیکون"),
+                           help_text=_("نام آیکون FontAwesome بدون fa-"))
+    confirmation_message = models.CharField(max_length=255, blank=True, verbose_name=_("پیام تأیید"),
+                                           help_text=_("پیام تأیید قبل از اجرای اقدام"))
 
     created_by = models.ForeignKey('accounts.CustomUser', on_delete=models.PROTECT, verbose_name=_("ایجادکننده"))
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("تاریخ ایجاد"))
@@ -598,7 +613,7 @@ class Transition(models.Model):
     class Meta:
         verbose_name = _("گذار گردش کار")
         verbose_name_plural = _("۳. گذارهای گردش کار")
-        unique_together = ('organization', 'entity_type', 'from_status', 'action')
+        # unique_together = ('organization', 'entity_type', 'from_status', 'action', 'to_status')
         default_permissions = ()
         permissions = [
             ('Transition_add','افزودن گذار گردش کار '),
@@ -645,6 +660,36 @@ class PostRuleAssignment(models.Model):
 
     def __str__(self):
         return f"{self.post.name} - {self.action.name} ({self.organization.name})"
+
+class TransitionTemplate(models.Model):
+    """
+    تمپلیت Transition برای entity_type های مختلف
+    """
+    entity_type_code = models.CharField(max_length=50, verbose_name=_("کد نوع موجودیت"))
+    action_code = models.CharField(max_length=50, verbose_name=_("کد اقدام"))
+    from_status_code = models.CharField(max_length=50, verbose_name=_("کد وضعیت مبدا"))
+    to_status_code = models.CharField(max_length=50, verbose_name=_("کد وضعیت مقصد"))
+    name_template = models.CharField(max_length=255, verbose_name=_("تمپلیت نام"), 
+                                   help_text=_("از {organization_name} برای نام سازمان استفاده کنید"))
+    is_active = models.BooleanField(default=True, verbose_name=_("فعال"))
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("تاریخ ایجاد"))
+    created_by = models.ForeignKey('accounts.CustomUser', on_delete=models.PROTECT, verbose_name=_("ایجادکننده"))
+
+    class Meta:
+        verbose_name = _("تمپلیت گذار")
+        verbose_name_plural = _("تمپلیت‌های گذار")
+        unique_together = ('entity_type_code', 'action_code')
+        default_permissions = ()
+        permissions = [
+            ('TransitionTemplate_add', 'افزودن تمپلیت گذار'),
+            ('TransitionTemplate_view', 'نمایش تمپلیت گذار'),
+            ('TransitionTemplate_update', 'ویرایش تمپلیت گذار'),
+            ('TransitionTemplate_delete', 'حذف تمپلیت گذار'),
+        ]
+
+    def __str__(self):
+        return f"{self.entity_type_code} - {self.action_code}: {self.from_status_code} → {self.to_status_code}"
+
 class UserRuleOverride(models.Model):
     """
     فعال/غیرفعال کردن قانون برای کاربر مشخص
@@ -913,5 +958,51 @@ class OrganizationChartView(models.Model):
 #         except Exception as e:
 #             logger.error(f"خطا در اعمال تمپلیت: {e}")
 #             return False
+
+
+class DynamicConfiguration(models.Model):
+    """
+    پیکربندی پویای سیستم - برای حذف کامل هاردکدها
+    """
+    key = models.CharField(max_length=100, unique=True, verbose_name=_("کلید"))
+    value = models.TextField(verbose_name=_("مقدار"))
+    description = models.TextField(blank=True, verbose_name=_("توضیحات"))
+    category = models.CharField(max_length=50, verbose_name=_("دسته‌بندی"))
+    is_active = models.BooleanField(default=True, verbose_name=_("فعال"))
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("تاریخ ایجاد"))
+    updated_at = models.DateTimeField(auto_now=True, verbose_name=_("تاریخ به‌روزرسانی"))
+
+    class Meta:
+        verbose_name = _("پیکربندی پویا")
+        verbose_name_plural = _("پیکربندی‌های پویا")
+        ordering = ['category', 'key']
+
+    def __str__(self):
+        return f"{self.category} - {self.key}"
+
+    @classmethod
+    def get_value(cls, key, default=None):
+        """دریافت مقدار بر اساس کلید"""
+        try:
+            config = cls.objects.get(key=key, is_active=True)
+            return config.value
+        except cls.DoesNotExist:
+            return default
+
+    @classmethod
+    def set_value(cls, key, value, category="general", description=""):
+        """تنظیم مقدار بر اساس کلید"""
+        config, created = cls.objects.get_or_create(
+            key=key,
+            defaults={
+                'value': value,
+                'category': category,
+                'description': description
+            }
+        )
+        if not created:
+            config.value = value
+            config.save()
+        return config
 
 

@@ -2,8 +2,221 @@
 {% load i18n  jformat rcms_custom_filters %}
 {% load static %}
 
-{% block title %}{% trans "لیست تخصیص قوانین به پست‌ها" %}{% endblock %}
+{% block title %}{% trans "لیست تخصیص قوانین" %}{% endblock %}
 
+{% block extra_css %}
+<style>
+/* استایل‌های سفارشی برای نمایش قوانین */
+.table tbody tr {
+    transition: all 0.3s ease;
+}
+
+.table tbody tr:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* رنگ‌بندی ردیف‌ها بر اساس نوع اقدام */
+.table-primary {
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    border-left: 4px solid #2196f3;
+}
+
+.table-success {
+    background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%);
+    border-left: 4px solid #4caf50;
+}
+
+.table-danger {
+    background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+    border-left: 4px solid #f44336;
+}
+
+.table-warning {
+    background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%);
+    border-left: 4px solid #ff9800;
+}
+
+.table-secondary {
+    background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%);
+    border-left: 4px solid #9e9e9e;
+}
+
+.table-light {
+    background: linear-gradient(135deg, #fafafa 0%, #f0f0f0 100%);
+    border-left: 4px solid #bdbdbd;
+}
+
+/* استایل برای badge های نوع موجودیت */
+.badge {
+    font-size: 0.75rem;
+    padding: 0.4rem 0.6rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* انیمیشن برای آیکون‌ها */
+.fas {
+    transition: all 0.3s ease;
+}
+
+.table tbody tr:hover .fas {
+    transform: scale(1.1);
+}
+
+/* استایل برای دکمه‌های عملیات */
+.btn-group .btn {
+    transition: all 0.3s ease;
+}
+
+.btn-group .btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* استایل برای کارت اصلی */
+.assignment-card {
+    border: none;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 1rem;
+    overflow: hidden;
+}
+
+.assignment-card .card-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 1.5rem;
+}
+
+.assignment-card .card-header h3 {
+    margin: 0;
+    font-weight: 600;
+}
+
+/* استایل برای راهنمای قدم به قدم */
+.guide-step {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 1rem;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    border: 1px solid #dee2e6;
+}
+
+.step-number {
+    width: 3rem;
+    height: 3rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 1.2rem;
+    margin: 0 auto 1rem;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* استایل برای فیلترها */
+.form-select {
+    border-radius: 0.5rem;
+    border: 2px solid #e9ecef;
+    transition: all 0.3s ease;
+}
+
+.form-select:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+/* استایل برای جدول */
+.table {
+    border-radius: 0.5rem;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.table thead th {
+    background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+    color: white;
+    border: none;
+    font-weight: 600;
+    text-align: center;
+    padding: 1rem;
+}
+
+.table tbody td {
+    vertical-align: middle;
+    padding: 1rem;
+    border-bottom: 1px solid #f8f9fa;
+}
+
+/* انیمیشن برای بارگذاری */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.table tbody tr {
+    animation: fadeInUp 0.5s ease forwards;
+}
+
+.table tbody tr:nth-child(1) { animation-delay: 0.1s; }
+.table tbody tr:nth-child(2) { animation-delay: 0.2s; }
+.table tbody tr:nth-child(3) { animation-delay: 0.3s; }
+.table tbody tr:nth-child(4) { animation-delay: 0.4s; }
+.table tbody tr:nth-child(5) { animation-delay: 0.5s; }
+
+    /* استایل برای راهنمای رنگ‌بندی */
+    .color-indicator {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        border: 2px solid #fff;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        display: inline-block;
+    }
+
+    .color-indicator.table-primary {
+        background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    }
+
+    .color-indicator.table-success {
+        background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%);
+    }
+
+    .color-indicator.table-danger {
+        background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+    }
+
+    .color-indicator.table-warning {
+        background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%);
+    }
+
+    .color-indicator.table-secondary {
+        background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%);
+    }
+
+    .color-indicator.table-light {
+        background: linear-gradient(135deg, #fafafa 0%, #f0f0f0 100%);
+    }
+
+    .color-indicator.table-info {
+        background: linear-gradient(135deg, #e1f5fe 0%, #b3e5fc 100%);
+    }
+
+    .color-indicator.table-dark {
+        background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%);
+    }
+</style>
+{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
@@ -13,7 +226,7 @@
             <div class="guide-step">
                 <h4 class="mb-3">
                     <i class="fas fa-graduation-cap me-2"></i>
-                    راهنمای قدم به قدم تخصیص قوانین به پست‌ها
+                    راهنمای قدم به قدم
                 </h4>
                 <div class="row">
                     <div class="col-md-3">
@@ -47,12 +260,12 @@
                 <div class="card-header">
                     <h3 class="card-title">
                         <i class="fas fa-users me-2"></i>
-                        {% trans "تخصیص قوانین به پست‌ها" %}
+                        {% trans "تخصیص قوانین" %}
                     </h3>
                     <div class="card-tools">
                         <a href="{% url 'workflow_management:assign_rule_to_post' %}" class="btn btn-primary">
                             <i class="fas fa-plus me-2"></i>
-                            {% trans "تخصیص قانون جدید" %}
+                            {% trans "قانون جدید" %}
                         </a>
         <a href="{% url 'workflow_management:unified_workflow_management' %}" class="btn btn-warning">
             <i class="fas fa-cogs me-2"></i>
@@ -60,11 +273,11 @@
         </a>
         <a href="{% url 'workflow_management:stage_approver_list' %}" class="btn btn-info">
             <i class="fas fa-users-cog me-2"></i>
-            {% trans "تأییدکنندگان مراحل" %}
+            {% trans "تأییدکنندگان" %}
         </a>
                         <a href="{% url 'workflow_management:simple_dashboard' %}" class="btn btn-info">
                             <i class="fas fa-arrow-left me-2"></i>
-                            {% trans "بازگشت به داشبورد" %}
+                            {% trans "بازگشت" %}
                         </a>
                     </div>
                 </div>
@@ -83,7 +296,7 @@
                             <select class="form-select" id="postFilter">
                                 <option value="">{% trans "همه پست‌ها" %}</option>
                                 {% for post in posts %}
-                                    <option value="{{ post.id }}">{{ post.name }}</option>
+                                <option value="{{ post.id }}">{{ post.name }}</option>
                                 {% endfor %}
                             </select>
                             <small class="form-text text-muted">{% trans "ابتدا سازمان را انتخاب کنید تا پست‌های آن نمایش داده شود" %}</small>
@@ -111,10 +324,37 @@
                             <i class="fas fa-info-circle me-2"></i>
                             {% trans "تعداد نتایج فیلتر شده:" %} <strong>{{ assignments|length }}</strong>
                         </div>
+                        
+                        <!-- تب‌های اطلاعات -->
+                        <ul class="nav nav-tabs mb-3" id="workflowTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="assignments-tab" data-bs-toggle="tab" data-bs-target="#assignments" type="button" role="tab">
+                                    <i class="fas fa-list me-1"></i>
+                                    {% trans "لیست قوانین" %}
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="guide-tab" data-bs-toggle="tab" data-bs-target="#guide" type="button" role="tab">
+                                    <i class="fas fa-palette me-1"></i>
+                                    {% trans "راهنمای رنگ‌بندی" %}
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="rules-tab" data-bs-toggle="tab" data-bs-target="#rules" type="button" role="tab">
+                                    <i class="fas fa-cogs me-1"></i>
+                                    {% trans "قوانین جدید" %}
+                                </button>
+                            </li>
+                        </ul>
+
+                        <div class="tab-content" id="workflowTabsContent">
+                            <!-- تب لیست قوانین -->
+                            <div class="tab-pane fade show active" id="assignments" role="tabpanel">
                         <div class="table-responsive">
                             <table class="table table-striped table-hover">
                                 <thead class="table-dark">
                                     <tr>
+                                        <th>{% trans "ردیف" %}</th>
                                         <th>{% trans "پست" %}</th>
                                         <th>{% trans "اقدام" %}</th>
                                         <th>{% trans "سازمان" %}</th>
@@ -125,25 +365,72 @@
                                 </thead>
                                 <tbody>
                                     {% for assignment in assignments %}
-                                        <tr>
+                                        <tr class="workflow-row" data-action-code="{{ assignment.action.code }}" data-entity-type="{{ assignment.entity_type }}">
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <i class="fas fa-play me-2 action-color"></i>
+                                                    <span class="badge entity-badge me-2">
+                                                        <i class="entity-icon me-1"></i>
+                                                        <span class="entity-type">{{ assignment.entity_type|default:"عمومی" }}</span>
+                                                    </span>
+                                                    {{ forloop.counter |format_negative }}
+                                                </div>
+                                            </td>
+
                                             <td>
                                                 <div class="d-flex align-items-center">
                                                     <i class="fas fa-user-tie me-2 text-primary"></i>
-                                                    <strong>{{ assignment.post.name }}</strong>
+                                                    <div>
+                                                        <strong>{{ assignment.post.name }}</strong>
+                                                        <br>
+                                                        <small class="text-muted">{{ assignment.post.organization.name }}</small>
+                                                    </div>
                                                 </div>
                                             </td>
+
                                             <td>
                                                 <div class="d-flex align-items-center">
-                                                    <i class="fas fa-play me-2 text-success"></i>
-                                                    {{ assignment.action.name }}
+                                                    <i class="
+                                                        {% if assignment.action.code == 'SUBMIT' %}fas fa-paper-plane{% endif %}
+                                                        {% if assignment.action.code == 'APPROVE' %}fas fa-check-circle{% endif %}
+                                                        {% if assignment.action.code == 'REJECT' %}fas fa-times-circle{% endif %}
+                                                        {% if assignment.action.code == 'PAY' %}fas fa-money-bill-wave{% endif %}
+                                                        {% if assignment.action.code == 'CANCEL' %}fas fa-ban{% endif %}
+                                                        {% if assignment.action.code != 'SUBMIT' and assignment.action.code != 'APPROVE' and assignment.action.code != 'REJECT' and assignment.action.code != 'PAY' and assignment.action.code != 'CANCEL' %}fas fa-cog{% endif %}
+                                                    me-2 
+                                                        {% if assignment.action.code == 'SUBMIT' %}text-primary{% endif %}
+                                                        {% if assignment.action.code == 'APPROVE' %}text-success{% endif %}
+                                                        {% if assignment.action.code == 'REJECT' %}text-danger{% endif %}
+                                                        {% if assignment.action.code == 'PAY' %}text-warning{% endif %}
+                                                        {% if assignment.action.code == 'CANCEL' %}text-secondary{% endif %}
+                                                        {% if assignment.action.code != 'SUBMIT' and assignment.action.code != 'APPROVE' and assignment.action.code != 'REJECT' and assignment.action.code != 'PAY' and assignment.action.code != 'CANCEL' %}text-muted{% endif %}
+                                                    "></i>
+                                                    <div>
+                                                        <strong class="
+                                                            {% if assignment.action.code == 'SUBMIT' %}text-primary{% endif %}
+                                                            {% if assignment.action.code == 'APPROVE' %}text-success{% endif %}
+                                                            {% if assignment.action.code == 'REJECT' %}text-danger{% endif %}
+                                                            {% if assignment.action.code == 'PAY' %}text-warning{% endif %}
+                                                            {% if assignment.action.code == 'CANCEL' %}text-secondary{% endif %}
+                                                            {% if assignment.action.code != 'SUBMIT' and assignment.action.code != 'APPROVE' and assignment.action.code != 'REJECT' and assignment.action.code != 'PAY' and assignment.action.code != 'CANCEL' %}text-muted{% endif %}
+                                                        ">{{ assignment.action.name }}</strong>
+                                                        <br>
+                                                        <!-- کد اقدام حذف شد -->
+                                                    </div>
                                                 </div>
                                             </td>
+                                            
                                             <td>
                                                 <div class="d-flex align-items-center">
                                                     <i class="fas fa-building me-2 text-info"></i>
-                                                    {{ assignment.organization.name }}
+                                                    <div>
+                                                        <strong>{{ assignment.organization.name }}</strong>
+                                                        <br>
+                                                        <!-- ID سازمان حذف شد -->
+                                                    </div>
                                                 </div>
                                             </td>
+                                            
                                             <td>
                                                 {% if assignment.is_active %}
                                                     <span class="badge bg-success">
@@ -155,13 +442,16 @@
                                                     </span>
                                                 {% endif %}
                                             </td>
+                                            
                                             <td>
                                                 <small class="text-muted">
                                                     <i class="fas fa-calendar me-1"></i>
                                                     🗓️{{ assignment.created_at|jformat:"%Y/%m/%d" |to_persian_number}}
+                                                    <br>
                                                     ⌚{{ assignment.created_at|date:"H:i" |to_persian_number}}
                                                 </small>
                                             </td>
+                                            
                                             <td>
                                                 <div class="btn-group" role="group">
                                                     <a href="{% url 'workflow_management:get_effective_rules' assignment.pk %}" 
@@ -217,13 +507,207 @@
                             </ul>
                         </nav>
                         {% endif %}
+                            </div>
+
+                            <!-- تب راهنمای رنگ‌بندی -->
+                            <div class="tab-pane fade" id="guide" role="tabpanel">
+                                <div class="card border-0 bg-light">
+                                    <div class="card-body py-4">
+                                        <h6 class="mb-4">
+                                            <i class="fas fa-palette me-2"></i>
+                                            {% trans "راهنمای رنگ‌بندی" %}
+                                        </h6>
+                                        <div class="row" id="colorGuide">
+                                            <!-- راهنمای رنگ‌بندی به صورت پویا تولید می‌شود -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- تب قوانین جدید -->
+                            <div class="tab-pane fade" id="rules" role="tabpanel">
+                                <div class="card border-0">
+                                    <div class="card-header bg-gradient-primary text-white">
+                                        <h5 class="mb-0">
+                                            <i class="fas fa-cogs me-2"></i>
+                                            {% trans "قوانین جدید گردش کار" %}
+                                        </h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <!-- راهنمای قدم به قدم -->
+                                        <div class="row mb-4">
+                                            <div class="col-12">
+                                                <div class="guide-step">
+                                                    <h4 class="mb-3">
+                                                        <i class="fas fa-graduation-cap me-2"></i>
+                                                        راهنمای قدم به قدم
+                                                    </h4>
+                                                    <div class="row">
+                                                        <div class="col-md-3">
+                                                            <div class="step-number">1</div>
+                                                            <h6>تعریف وضعیت‌ها</h6>
+                                                            <p class="small">ابتدا وضعیت‌های مورد نیاز را در تب "وضعیت‌ها" تعریف کنید</p>
+                                                        </div>
+                                                        <div class="col-md-3">
+                                                            <div class="step-number">2</div>
+                                                            <h6>تعریف اقدامات</h6>
+                                                            <p class="small">اقدامات مورد نیاز را در تب "اقدامات" ایجاد کنید</p>
+                                                        </div>
+                                                        <div class="col-md-3">
+                                                            <div class="step-number">3</div>
+                                                            <h6>ایجاد تمپلیت</h6>
+                                                            <p class="small">تمپلیت گردش کار را با وضعیت‌ها و اقدامات ایجاد کنید</p>
+                                                        </div>
+                                                        <div class="col-md-3">
+                                                            <div class="step-number">4</div>
+                                                            <h6>تخصیص به پست‌ها</h6>
+                                                            <p class="small">قوانین را به پست‌های سازمانی تخصیص دهید</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- دکمه‌های عملیات -->
+                                        <div class="row mb-4">
+                                            <div class="col-12">
+                                                <div class="d-flex gap-2 flex-wrap">
+                                                    <a href="{% url 'workflow_management:assign_rule_to_post' %}" class="btn btn-primary">
+                                                        <i class="fas fa-plus me-2"></i>
+                                                        {% trans "قانون جدید" %}
+                                                    </a>
+                                                    <a href="{% url 'workflow_management:unified_workflow_management' %}" class="btn btn-warning">
+                                                        <i class="fas fa-cogs me-2"></i>
+                                                        {% trans "مدیریت ترکیبی" %}
+                                                    </a>
+                                                    <a href="{% url 'workflow_management:stage_approver_list' %}" class="btn btn-info">
+                                                        <i class="fas fa-users-cog me-2"></i>
+                                                        {% trans "تأییدکنندگان" %}
+                                                    </a>
+                                                    <a href="{% url 'workflow_management:unified_workflow_management' %}" class="btn btn-success">
+                                                        <i class="fas fa-magic me-2"></i>
+                                                        {% trans "ایجاد خودکار قوانین" %}
+                                                    </a>
+                                                    <a href="{% url 'workflow_management:stage_approver_list' %}" class="btn btn-info">
+                                                        <i class="fas fa-users-cog me-2"></i>
+                                                        {% trans "الگوی تخصیص کاربران" %}
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- الگوی تخصیص کاربران -->
+                                        <div class="row mb-4">
+                                            <div class="col-12">
+                                                <div class="card border-primary">
+                                                    <div class="card-header bg-primary text-white">
+                                                        <h6 class="mb-0">
+                                                            <i class="fas fa-users-cog me-2"></i>
+                                                            {% trans "الگوی تخصیص کاربران" %}
+                                                        </h6>
+                                                    </div>
+                                                    <div class="card-body">
+                                                        <!-- راهنمای قدم به قدم تخصیص -->
+                                                        <div class="row">
+                                                            <div class="col-md-3 mb-3">
+                                                                <div class="text-center">
+                                                                    <div class="step-number bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 3rem; height: 3rem; font-size: 1.2rem; font-weight: bold;">1</div>
+                                                                    <h6 class="mt-2">{% trans "تعریف سازمان‌ها" %}</h6>
+                                                                    <p class="small text-muted">{% trans "سازمان‌های مورد نیاز را تعریف کنید" %}</p>
+                                                                    <a href="/admin/core/organization/" class="btn btn-sm btn-outline-primary">
+                                                                        <i class="fas fa-building me-1"></i>{% trans "مدیریت" %}
+                                                                    </a>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-3 mb-3">
+                                                                <div class="text-center">
+                                                                    <div class="step-number bg-success text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 3rem; height: 3rem; font-size: 1.2rem; font-weight: bold;">2</div>
+                                                                    <h6 class="mt-2">{% trans "تعریف پست‌ها" %}</h6>
+                                                                    <p class="small text-muted">{% trans "پست‌های سازمانی را ایجاد کنید" %}</p>
+                                                                    <a href="/admin/core/post/" class="btn btn-sm btn-outline-success">
+                                                                        <i class="fas fa-user-tie me-1"></i>{% trans "مدیریت" %}
+                                                                    </a>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-3 mb-3">
+                                                                <div class="text-center">
+                                                                    <div class="step-number bg-info text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 3rem; height: 3rem; font-size: 1.2rem; font-weight: bold;">3</div>
+                                                                    <h6 class="mt-2">{% trans "تعریف کاربران" %}</h6>
+                                                                    <p class="small text-muted">{% trans "کاربران سیستم را تعریف کنید" %}</p>
+                                                                    <a href="/admin/auth/user/" class="btn btn-sm btn-outline-info">
+                                                                        <i class="fas fa-users me-1"></i>{% trans "مدیریت" %}
+                                                                    </a>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-3 mb-3">
+                                                                <div class="text-center">
+                                                                    <div class="step-number bg-warning text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 3rem; height: 3rem; font-size: 1.2rem; font-weight: bold;">4</div>
+                                                                    <h6 class="mt-2">{% trans "تخصیص کاربران" %}</h6>
+                                                                    <p class="small text-muted">{% trans "کاربران را به پست‌ها تخصیص دهید" %}</p>
+                                                                    <a href="{% url 'workflow_management:stage_approver_list' %}" class="btn btn-sm btn-outline-warning">
+                                                                        <i class="fas fa-link me-1"></i>{% trans "مدیریت" %}
+                                                                    </a>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- اطلاعات قوانین موجود -->
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="card border-info">
+                                                    <div class="card-header bg-info text-white">
+                                                        <h6 class="mb-0">
+                                                            <i class="fas fa-info-circle me-2"></i>
+                                                            {% trans "آمار قوانین" %}
+                                                        </h6>
+                                                    </div>
+                                                    <div class="card-body">
+                                                        <div class="row text-center">
+                                                            <div class="col-6">
+                                                                <h4 class="text-primary">{{ assignments|length|default:0 }}</h4>
+                                                                <small>{% trans "قوانین فعال" %}</small>
+                                                            </div>
+                                                            <div class="col-6">
+                                                                <h4 class="text-success">{{ posts|length|default:0 }}</h4>
+                                                                <small>{% trans "پست‌های سازمانی" %}</small>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="card border-warning">
+                                                    <div class="card-header bg-warning text-dark">
+                                                        <h6 class="mb-0">
+                                                            <i class="fas fa-exclamation-triangle me-2"></i>
+                                                            {% trans "نکات مهم" %}
+                                                        </h6>
+                                                    </div>
+                                                    <div class="card-body">
+                                                        <ul class="list-unstyled mb-0">
+                                                            <li><i class="fas fa-check text-success me-2"></i>{% trans "قوانین باید برای هر سازمان جداگانه تعریف شوند" %}</li>
+                                                            <li><i class="fas fa-check text-success me-2"></i>{% trans "هر پست می‌تواند چندین قانون داشته باشد" %}</li>
+                                                            <li><i class="fas fa-check text-success me-2"></i>{% trans "قوانین را می‌توان فعال/غیرفعال کرد" %}</li>
+                                                        </ul>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     {% else %}
                         <div class="text-center py-5">
                             <i class="fas fa-users fa-3x text-muted mb-3"></i>
                             <h5>{% trans "هیچ تخصیصی یافت نشد" %}</h5>
-                            <p class="text-muted">{% trans "برای شروع، یک تخصیص قانون جدید ایجاد کنید" %}</p>
+                            <p class="text-muted">{% trans "برای شروع، یک قانون جدید ایجاد کنید" %}</p>
                             <a href="{% url 'workflow_management:assign_rule_to_post' %}" class="btn btn-primary">
-                                <i class="fas fa-plus me-2"></i>{% trans "تخصیص قانون جدید" %}
+                                <i class="fas fa-plus me-2"></i>{% trans "قانون جدید" %}
                             </a>
                         </div>
                     {% endif %}
@@ -235,9 +719,28 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="{% static 'js/workflow-dynamic.js' %}"></script>
+<script src="{% static 'js/entity-translator.js' %}"></script>
 <script>
+// فعال‌سازی تب‌ها
+function initializeTabs() {
+    const triggerTabList = [].slice.call(document.querySelectorAll('#workflowTabs button'));
+    triggerTabList.forEach(function (triggerEl) {
+        const tabTrigger = new bootstrap.Tab(triggerEl);
+        
+        triggerEl.addEventListener('click', function (event) {
+            event.preventDefault();
+            tabTrigger.show();
+        });
+    });
+}
+
+// توابع اضافی حذف شدند
+
 // فیلترها
 document.addEventListener('DOMContentLoaded', function() {
+    // فعال‌سازی تب‌ها
+    initializeTabs();
     const postFilter = document.getElementById('postFilter');
     const organizationFilter = document.getElementById('organizationFilter');
     const actionFilter = document.getElementById('actionFilter');

@@ -1,0 +1,350 @@
+{% load i18n %}
+<div class="org-node" data-org-id="{{ node.org.id }}">
+    <div class="org-header" data-bs-toggle="collapse" data-bs-target="#org-{{ node.org.id }}" aria-expanded="false">
+        <div class="d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center">
+                <div class="org-icon">
+                    <i class="fas fa-building"></i>
+                </div>
+                <h5 class="org-name mb-0">{{ node.org.name }}</h5>
+            </div>
+            <i class="fas fa-chevron-down transition-transform"></i>
+        </div>
+    </div>
+    
+    <div class="collapse" id="org-{{ node.org.id }}">
+        <div class="posts-container">
+            {% if node.posts %}
+                <div class="posts-grid">
+                    {% for post in node.posts %}
+                        <div class="post-card" data-post-id="{{ post.id }}">
+                            <div class="post-header">
+                                <div class="post-icon">
+                                    <i class="fas fa-user-tie"></i>
+                                </div>
+                                <h6 class="post-name mb-0">{{ post.name }}</h6>
+                            </div>
+                            
+                            <div class="actions-container">
+                                {% for entity_type in entity_types %}
+                                    <div class="action-group entity-section" data-entity="{{ entity_type }}">
+                                        <div class="action-group-header">
+                                            <div class="action-group-icon">
+                                                <i class="fas
+                                                    {% if entity_type == 'BUDGET' %}fa-chart-pie
+                                                    {% elif entity_type == 'FACTOR' %}fa-file-invoice
+                                                    {% else %}fa-money-check{% endif %}">
+                                                </i>
+                                            </div>
+                                            <span class="action-group-title">
+                                                {% if entity_type == 'BUDGET' %}{% trans "بودجه" %}
+                                                {% elif entity_type == 'FACTOR' %}{% trans "فاکتور" %}
+                                                {% else %}{% trans "دستور پرداخت" %}{% endif %}
+                                            </span>
+                                        </div>
+                                        
+                                        <div class="action-buttons">
+                                            {% for action_code in action_codes %}
+                                                <div class="action-item">
+                                                    <input type="checkbox" 
+                                                           class="form-check-input action-checkbox" 
+                                                           data-post-id="{{ post.id }}"
+                                                           data-entity-type="{{ entity_type }}"
+                                                           data-action-code="{{ action_code }}"
+                                                           id="post-{{ post.id }}-{{ entity_type }}-{{ action_code }}">
+                                                    <label class="action-label" for="post-{{ post.id }}-{{ entity_type }}-{{ action_code }}">
+                                                        <div class="action-icon {{ action_code|lower }}">
+                                                            <i class="fas
+                                                                {% if action_code == 'SUBMIT' %}fa-paper-plane
+                                                                {% elif action_code == 'APPROVE' %}fa-check-circle
+                                                                {% else %}fa-times-circle{% endif %}">
+                                                            </i>
+                                                        </div>
+                                                        <span class="action-text">
+                                                            {% if action_code == 'SUBMIT' %}{% trans "ثبت" %}
+                                                            {% elif action_code == 'APPROVE' %}{% trans "تأیید" %}
+                                                            {% else %}{% trans "رد" %}{% endif %}
+                                                        </span>
+                                                    </label>
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            
+            {% if node.children %}
+                <div class="mt-4">
+                    {% for child in node.children %}
+                        {% include 'core/workflow/partials/_org_access_node_modern.html' with node=child %}
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.transition-transform {
+    transition: transform 0.3s ease;
+}
+
+.org-header[aria-expanded="true"] .transition-transform {
+    transform: rotate(180deg);
+}
+
+/* Posts Grid Layout */
+.posts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 1.5rem;
+    padding: 1rem 0;
+}
+
+.post-card {
+    background: white;
+    border: 1px solid #e9ecef;
+    border-radius: 15px;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.post-card:hover {
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.post-card.modified {
+    background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+    border-color: #ffc107;
+    box-shadow: 0 4px 16px rgba(255, 193, 7, 0.2);
+}
+
+.post-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border-radius: 15px 15px 0 0;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.post-card:hover::before {
+    opacity: 1;
+}
+
+.post-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #f1f3f4;
+}
+
+.post-icon {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #28a745, #20c997);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+
+.post-name {
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 1.1rem;
+}
+
+.actions-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.action-group {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 1rem;
+    border: 1px solid #e9ecef;
+    transition: all 0.3s ease;
+}
+
+.action-group:hover {
+    background: #f1f3f4;
+    border-color: #dee2e6;
+}
+
+.action-group-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.action-group-icon {
+    width: 32px;
+    height: 32px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+}
+
+.action-group-title {
+    font-weight: 600;
+    color: #495057;
+    font-size: 0.95rem;
+}
+
+.action-buttons {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+}
+
+.action-item {
+    position: relative;
+}
+
+.action-checkbox {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+}
+
+.action-label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 0.5rem;
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    background: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+    min-height: 80px;
+    justify-content: center;
+}
+
+.action-label:hover {
+    border-color: #667eea;
+    background: rgba(102, 126, 234, 0.05);
+    transform: translateY(-1px);
+}
+
+.action-checkbox:checked + .action-label {
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+    border-color: #667eea;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+    transform: translateY(-2px);
+}
+
+.action-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    color: white;
+    flex-shrink: 0;
+}
+
+.action-icon.submit { 
+    background: linear-gradient(135deg, #17a2b8, #138496); 
+}
+
+.action-icon.approve { 
+    background: linear-gradient(135deg, #28a745, #20c997); 
+}
+
+.action-icon.reject { 
+    background: linear-gradient(135deg, #dc3545, #c82333); 
+}
+
+.action-text {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #495057;
+    line-height: 1.2;
+}
+
+.entity-section {
+    transition: all 0.3s ease;
+}
+
+.entity-section[style*="display: none"] {
+    opacity: 0;
+    transform: scale(0.95);
+    pointer-events: none;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .posts-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .action-buttons {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+    }
+    
+    .action-label {
+        flex-direction: row;
+        min-height: 50px;
+        padding: 0.75rem;
+    }
+    
+    .action-text {
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .post-card {
+        padding: 1rem;
+    }
+    
+    .post-header {
+        margin-bottom: 1rem;
+        padding-bottom: 0.75rem;
+    }
+    
+    .actions-container {
+        gap: 1rem;
+    }
+    
+    .action-group {
+        padding: 0.75rem;
+    }
+}
+</style>

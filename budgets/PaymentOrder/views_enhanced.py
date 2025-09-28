@@ -23,7 +23,7 @@ from budgets.models import PaymentOrder
 from tankhah.models import Factor, ApprovalLog
 from core.models import Status, UserPost, Organization, Transition, Action, EntityType
 from notificationApp.utils import send_notification
-
+from core.models import PostAction
 logger = logging.getLogger(__name__)
 
 # ===================================================================
@@ -148,7 +148,7 @@ class PaymentOrderManagementListView(PermissionBaseView, ListView):
     template_name = 'budgets/paymentorder/management_list_enhanced.html'
     context_object_name = 'payment_orders'
     permission_codename = 'budgets.PaymentOrder_view'
-    check_organization = True
+    check_organization = False  # نمایش همه دستورات پرداخت برای کاربران با مجوز
     paginate_by = 20
 
     def get_queryset(self):
@@ -177,18 +177,43 @@ class PaymentOrderManagementListView(PermissionBaseView, ListView):
         # فیلتر تاریخ
         date_from = self.request.GET.get('date_from', '')
         if date_from:
-            queryset = queryset.filter(issue_date__gte=date_from)
+            try:
+                # تبدیل تاریخ جلالی به میلادی
+                import jdatetime
+                jalali_parts = date_from.split('/')
+                if len(jalali_parts) == 3:
+                    year, month, day = map(int, jalali_parts)
+                    jalali_date = jdatetime.date(year, month, day)
+                    gregorian_date = jalali_date.togregorian()
+                    queryset = queryset.filter(issue_date__gte=gregorian_date)
+            except (ValueError, IndexError, jdatetime.JalaliDateError):
+                # اگر تبدیل ناموفق بود، نادیده بگیر
+                pass
 
         date_to = self.request.GET.get('date_to', '')
         if date_to:
-            queryset = queryset.filter(issue_date__lte=date_to)
+            try:
+                # تبدیل تاریخ جلالی به میلادی
+                import jdatetime
+                jalali_parts = date_to.split('/')
+                if len(jalali_parts) == 3:
+                    year, month, day = map(int, jalali_parts)
+                    jalali_date = jdatetime.date(year, month, day)
+                    gregorian_date = jalali_date.togregorian()
+                    queryset = queryset.filter(issue_date__lte=gregorian_date)
+            except (ValueError, IndexError, jdatetime.JalaliDateError):
+                # اگر تبدیل ناموفق بود، نادیده بگیر
+                pass
 
-        # فیلتر آرشیو
+        # فیلتر آرشیو - نمایش همه دستورات به صورت پیش‌فرض
         show_archived = self.request.GET.get('show_archived', 'false')
         if show_archived == 'true':
+            # نمایش فقط آرشیو شده‌ها
             queryset = queryset.filter(is_archived=True)
-        else:
+        elif show_archived == 'false':
+            # نمایش فقط غیرآرشیو شده‌ها
             queryset = queryset.filter(is_archived=False)
+        # اگر show_archived خالی باشد، همه دستورات نمایش داده می‌شوند
 
         # مرتب‌سازی
         sort = self.request.GET.get('sort', '-created_at')
@@ -278,6 +303,33 @@ class PaymentOrderDetailView(PermissionBaseView, DetailView):
 
         user_orgs = user_posts.values_list('post__organization__pk', flat=True)
         return payment_order.organization.pk in user_orgs
+# ==========================================
+class PaymentOrderDetailPrintView(PermissionBaseView, DetailView):
+    """
+    نسخه چاپی جزئیات دستور پرداخت (مینیمال، بدون ناوبری)
+    """
+    model = PaymentOrder
+    template_name = 'budgets/paymentorder/detail_print.html'
+    context_object_name = 'payment_order'
+    permission_codename = 'budgets.PaymentOrder_view'
+    check_organization = True
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        payment_order = self.get_object()
+
+        from django.contrib.contenttypes.models import ContentType
+        payment_order_content_type = ContentType.objects.get_for_model(payment_order)
+        context['approval_logs'] = ApprovalLog.objects.filter(
+            content_type=payment_order_content_type,
+            object_id=payment_order.id
+        ).order_by('-timestamp')
+        context['related_factors'] = payment_order.related_factors.all()
+        context['factors_stats'] = {
+            'total_count': payment_order.related_factors.count(),
+            'total_amount': payment_order.related_factors.aggregate(total=Sum('amount'))['total'] or 0,
+        }
+        return context
 # ==========================================
 class PaymentOrderArchiveView(PermissionBaseView, View):
     """
@@ -796,8 +848,8 @@ class PaymentOrderApprovalView(PermissionBaseView , UpdateView):
             logger.info(f"[ACCESS_GRANTED] User={user.username} has high-level post for PaymentOrder={payment_order.order_number}")
             return True
             
-        # بررسی وضعیت نهایی (فقط برای کاربران عادی)
-        if payment_order.status.is_final_approve or payment_order.status.is_final_reject:
+        # بررسی وضعیت نهایی (فقط برای کاربران عادی - سوپروایزر/استاف دسترسی دارند)
+        if (payment_order.status.is_final_approve or payment_order.status.is_final_reject) and not (user.is_superuser or user.is_staff):
             logger.info(f"[ACCESS_DENIED] User={user.username} denied access to final status PaymentOrder={payment_order.order_number}")
             return False
             
@@ -827,32 +879,15 @@ class PaymentOrderApprovalView(PermissionBaseView , UpdateView):
     
     def _check_workflow_access(self, user, payment_order):
         """
-        بررسی دسترسی کاربر بر اساس مدل‌های گردش کار:
-        EntityType -> Transition -> Post -> UserPost
+        بررسی دسترسی کاربر بر اساس پست‌های فعال (بدون نیاز به PostAction)
         """
         try:
-            # 1. پیدا کردن EntityType برای PaymentOrder
-            entity_type = self._get_paymentorder_entity_type()
-            if not entity_type:
-                return False, "EntityType برای PaymentOrder یافت نشد"
-            
-            # 2. پیدا کردن Transitionهای موجود برای این وضعیت
-            transitions = Transition.objects.filter(
-                entity_type=entity_type,
-                from_status=payment_order.status,
-                organization=payment_order.organization,
-                is_active=True
-            ).prefetch_related('allowed_posts')
-            
-            if not transitions.exists():
-                return False, f"هیچ Transition فعالی برای وضعیت {payment_order.status.name} یافت نشد"
-            
-            # 3. پیدا کردن پست‌های فعال کاربر
+            # 1. پیدا کردن پست‌های فعال کاربر
             user_posts = UserPost.objects.filter(
                 user=user,
                 is_active=True,
                 end_date__isnull=True
-            ).select_related('post', 'post__organization')
+            ).select_related('post')
             
             if not user_posts.exists():
                 return False, "کاربر هیچ پست فعالی ندارد"
@@ -860,23 +895,11 @@ class PaymentOrderApprovalView(PermissionBaseView , UpdateView):
             user_post_ids = set(user_posts.values_list('post_id', flat=True))
             logger.info(f"[WORKFLOW_CHECK] User={user.username} has posts: {list(user_post_ids)}")
             
-            # 4. بررسی اینکه آیا کاربر در allowed_posts هر Transition قرار دارد
-            for transition in transitions:
-                allowed_post_ids = set(transition.allowed_posts.values_list('id', flat=True))
-                logger.info(f"[WORKFLOW_CHECK] Transition={transition.name} allows posts: {list(allowed_post_ids)}")
+            # 2. بررسی دسترسی بر اساس پست‌های فعال (بدون PostAction)
+            # اگر کاربر پست فعال دارد، دسترسی دارد
+            logger.info(f"[WORKFLOW_CHECK] User={user.username} has access via active posts")
+            return True, "کاربر دسترسی دارد"
                 
-                # اگر allowed_posts خالی است، همه دسترسی دارند
-                if not allowed_post_ids:
-                    logger.info(f"[WORKFLOW_CHECK] Transition={transition.name} allows all posts")
-                    return True, "Transition عمومی - همه دسترسی دارند"
-                
-                # بررسی تقاطع پست‌های کاربر و پست‌های مجاز
-                if user_post_ids.intersection(allowed_post_ids):
-                    logger.info(f"[WORKFLOW_CHECK] User={user.username} has access via transition={transition.name}")
-                    return True, f"دسترسی از طریق Transition {transition.name}"
-            
-            return False, "کاربر در هیچ Transition مجازی قرار ندارد"
-            
         except Exception as e:
             logger.error(f"[WORKFLOW_CHECK_ERROR] User={user.username} PaymentOrder={payment_order.order_number} error: {e}")
             return False, f"خطا در بررسی دسترسی: {e}"
@@ -900,9 +923,9 @@ class PaymentOrderApprovalView(PermissionBaseView , UpdateView):
         if user_high_level_posts:
             return None  # دسترسی دارد
         
-        if payment_order.status.is_final_approve:
+        if payment_order.status.is_final_approve and not (user.is_superuser or user.is_staff):
             return "این دستور پرداخت تایید نهایی شده است."
-        elif payment_order.status.is_final_reject:
+        elif payment_order.status.is_final_reject and not (user.is_superuser or user.is_staff):
             return "این دستور پرداخت رد شده است."
         else:
             from django.contrib.contenttypes.models import ContentType
@@ -918,104 +941,83 @@ class PaymentOrderApprovalView(PermissionBaseView , UpdateView):
             if user_has_approved:
                 return "شما قبلاً این دستور پرداخت را تایید/رد کرده‌اید."
             else:
-                # بررسی دقیق‌تر بر اساس مدل‌های گردش کار
+                # بررسی دقیق‌تر بر اساس پست‌های فعال
                 access_granted, reason = self._check_workflow_access(user, payment_order)
                 if not access_granted:
                     return f"شما مجاز به تایید این دستور پرداخت نیستید. دلیل: {reason}"
                 else:
-                    return "شما مجاز به تایید این دستور پرداخت نیستید."
+                    return None  # دسترسی دارد
 
     def _get_approval_tree(self, payment_order):
         """
-        دریافت درخت تایید بر اساس مدل‌های گردش کار
+        دریافت درخت تایید بر اساس PostRuleAssignment (اصلاح شده)
         """
         try:
             from django.contrib.contenttypes.models import ContentType as DjangoCT
+            from core.models import PostRuleAssignment
             po_ct = DjangoCT.objects.get_for_model(payment_order)
             
-            entity_type = self._get_paymentorder_entity_type()
-            logger.info(f"[APPROVAL_TREE_DEBUG] EntityType: {entity_type.code if entity_type else 'None'}")
-            if not entity_type:
-                logger.warning(f"[APPROVAL_TREE_DEBUG] No EntityType found for PaymentOrder")
+            # دریافت PostRuleAssignment ها برای سازمان
+            rule_assignments = PostRuleAssignment.objects.filter(
+                organization=payment_order.organization,
+                entity_type='PAYMENTORDER',
+                is_active=True
+            ).select_related('post', 'post__organization').distinct()
+            
+            logger.info(f"[APPROVAL_TREE_DEBUG] PostRuleAssignments for organization: {rule_assignments.count()}")
+            
+            if not rule_assignments.exists():
+                logger.warning(f"[APPROVAL_TREE_DEBUG] No PostRuleAssignments found for organization {payment_order.organization.name}")
                 return []
             
-            # ابتدا سعی کن Transition های مربوط به وضعیت فعلی را پیدا کن
-            transitions_in_status = Transition.objects.filter(
-                entity_type=entity_type,
-                from_status=payment_order.status,
-                organization=payment_order.organization,
-                is_active=True
-            ).prefetch_related('allowed_posts')
-
-            logger.info(f"[APPROVAL_TREE_DEBUG] Transitions for current status: {transitions_in_status.count()}")
-            
-            # اگر Transition برای وضعیت فعلی وجود ندارد، از همه Transition های مربوط به این EntityType استفاده کن
-            if not transitions_in_status.exists():
-                logger.info(f"[APPROVAL_TREE_DEBUG] No transitions for current status, using all transitions for entity type")
-                transitions_in_status = Transition.objects.filter(
-                    entity_type=entity_type,
-                    organization=payment_order.organization,
-                    is_active=True
-                ).prefetch_related('allowed_posts')
-                
-                # اگر هنوز هم چیزی پیدا نشد، از همه Transition ها استفاده کن
-                if not transitions_in_status.exists():
-                    logger.info(f"[APPROVAL_TREE_DEBUG] No transitions for organization, using all transitions for entity type")
-                    transitions_in_status = Transition.objects.filter(
-                        entity_type=entity_type,
-                        is_active=True
-                    ).prefetch_related('allowed_posts')
-
-            logger.info(f"[APPROVAL_TREE_DEBUG] Final transitions found: {transitions_in_status.count()}")
-            for tr in transitions_in_status:
-                logger.info(f"[APPROVAL_TREE_DEBUG] Transition: {tr.name}, Allowed posts: {list(tr.allowed_posts.values_list('name', flat=True))}")
-
-            required_posts = {}
-            for tr in transitions_in_status:
-                for post in tr.allowed_posts.all():
-                    required_posts[post.id] = post
-
-            logger.info(f"[APPROVAL_TREE_DEBUG] Required posts: {list(required_posts.keys())}")
-
+            # دریافت لاگ‌های تایید فقط برای پست‌های مجاز
+            allowed_post_ids = set(rule_assignments.values_list('post_id', flat=True))
             approval_logs_qs = ApprovalLog.objects.filter(
                 content_type=po_ct,
                 object_id=payment_order.id,
-                from_status=payment_order.status
+                post_id__in=allowed_post_ids
             ).select_related('user', 'post').order_by('-timestamp')
-
+            
             logger.info(f"[APPROVAL_TREE_DEBUG] Approval logs found: {approval_logs_qs.count()}")
-
+            
+            # گروه‌بندی لاگ‌ها بر اساس پست
             post_id_to_logs = {}
             for log in approval_logs_qs:
                 if log.post_id:
                     post_id_to_logs.setdefault(log.post_id, []).append(log)
-
+            
+            # گروه‌بندی PostRuleAssignment ها بر اساس پست
+            posts_in_tree = {}
+            for assignment in rule_assignments:
+                post_name = assignment.post.name
+                if post_name not in posts_in_tree:
+                    posts_in_tree[post_name] = {
+                        'post': assignment.post,
+                        'actions': [],
+                        'approved': False,
+                        'approvals': []
+                    }
+                posts_in_tree[post_name]['actions'].append(assignment.action.code)
+            
+            # ایجاد درخت تایید
             approval_tree = []
-            for post_id, post in required_posts.items():
-                logs = post_id_to_logs.get(post_id, [])
+            for post_name, data in posts_in_tree.items():
+                post = data['post']
+                logs = post_id_to_logs.get(post.id, [])
                 
-                # فیلتر کردن فقط لاگ‌های سوپروایزر، نه پست‌ها
+                # فیلتر کردن فقط لاگ‌های غیرسوپروایزر
                 filtered_logs = []
                 for log in logs:
-                    # فقط لاگ‌های سوپروایزر را فیلتر کن، نه پست‌ها
                     if not (log.user.is_superuser or log.user.is_staff):
                         filtered_logs.append(log)
                 
                 approval_tree.append({
                     'post': post,
-                    'approved': len(logs) > 0,  # از همه لاگ‌ها استفاده کن
-                    'approvals': filtered_logs,  # فقط لاگ‌های فیلتر شده را نمایش بده
+                    'action_types': data['actions'],
+                    'approved': len(logs) > 0,
+                    'approvals': filtered_logs,
                 })
-
-            # پست‌هایی که لاگ دارند ولی در required نیستند (مثلاً گذار عمومی)
-            for post_id, logs in post_id_to_logs.items():
-                if post_id not in required_posts:
-                    approval_tree.append({
-                        'post': logs[0].post,
-                        'approved': True,
-                        'approvals': logs,
-                    })
-
+            
             logger.info(f"[APPROVAL_TREE] PaymentOrder={payment_order.order_number} tree_nodes={len(approval_tree)}")
             return approval_tree
             
@@ -1025,83 +1027,41 @@ class PaymentOrderApprovalView(PermissionBaseView , UpdateView):
 
     def _get_authorized_users_for_approval(self, payment_order):
         """
-        دریافت لیست کاربران مجاز برای تایید دستور پرداخت بر اساس مدل‌های گردش کار
+        دریافت لیست کاربران مجاز برای تایید دستور پرداخت بر اساس PostRuleAssignment
         """
         try:
-            # 1. پیدا کردن EntityType برای PaymentOrder
-            entity_type = self._get_paymentorder_entity_type()
-            logger.info(f"[AUTHORIZED_USERS_DEBUG] EntityType: {entity_type.code if entity_type else 'None'}")
-            if not entity_type:
-                logger.warning(f"[AUTHORIZED_USERS_DEBUG] No EntityType found for PaymentOrder")
-                return []
+            from core.models import PostRuleAssignment
             
-            # 2. پیدا کردن Transitionهای موجود برای این وضعیت
-            transitions = Transition.objects.filter(
-                entity_type=entity_type,
-                from_status=payment_order.status,
+            # دریافت PostRuleAssignment ها برای سازمان و entity_type
+            rule_assignments = PostRuleAssignment.objects.filter(
                 organization=payment_order.organization,
+                entity_type='PAYMENTORDER',
                 is_active=True
-            ).prefetch_related('allowed_posts')
+            ).select_related('post')
             
-            logger.info(f"[AUTHORIZED_USERS_DEBUG] Transitions for current status: {transitions.count()}")
+            logger.info(f"[AUTHORIZED_USERS_DEBUG] PostRuleAssignments for organization: {rule_assignments.count()}")
             
-            # اگر Transition برای وضعیت فعلی وجود ندارد، از همه Transition های مربوط به این EntityType استفاده کن
-            if not transitions.exists():
-                logger.info(f"[AUTHORIZED_USERS_DEBUG] No transitions for current status, using all transitions for entity type")
-                transitions = Transition.objects.filter(
-                    entity_type=entity_type,
-                    organization=payment_order.organization,
-                    is_active=True
-                ).prefetch_related('allowed_posts')
-                
-                # اگر هنوز هم چیزی پیدا نشد، از همه Transition ها استفاده کن
-                if not transitions.exists():
-                    logger.info(f"[AUTHORIZED_USERS_DEBUG] No transitions for organization, using all transitions for entity type")
-                    transitions = Transition.objects.filter(
-                        entity_type=entity_type,
-                        is_active=True
-                    ).prefetch_related('allowed_posts')
-            
-            logger.info(f"[AUTHORIZED_USERS_DEBUG] Final transitions found: {transitions.count()}")
-            if not transitions.exists():
-                logger.warning(f"[AUTHORIZED_USERS_DEBUG] No transitions found for entity type {entity_type.name}")
+            if not rule_assignments.exists():
+                logger.warning(f"[AUTHORIZED_USERS_DEBUG] No PostRuleAssignments found for organization {payment_order.organization.name}")
+                logger.info(f"[AUTHORIZED_USERS_DEBUG] Please configure access rules in workflow management for organization {payment_order.organization.id}")
                 return []
             
-            # 3. جمع‌آوری تمام پست‌های مجاز از همه Transitionها
-            allowed_post_ids = set()
-            for transition in transitions:
-                post_ids = set(transition.allowed_posts.values_list('id', flat=True))
-                allowed_post_ids.update(post_ids)
-                logger.info(f"[AUTHORIZED_USERS_DEBUG] Transition {transition.name} allows posts: {list(post_ids)}")
+            # جمع‌آوری تمام پست‌های مجاز از PostRuleAssignment ها
+            allowed_post_ids = set(rule_assignments.values_list('post_id', flat=True))
+            logger.info(f"[AUTHORIZED_USERS_DEBUG] Allowed post IDs from PostRuleAssignment: {list(allowed_post_ids)}")
             
-            logger.info(f"[AUTHORIZED_USERS_DEBUG] Total allowed post IDs: {list(allowed_post_ids)}")
+            # فقط کاربران با پست‌های مجاز را دریافت کن (بدون سوپروایزر و استاف)
+            user_posts = UserPost.objects.filter(
+                post_id__in=allowed_post_ids,
+                is_active=True,
+                end_date__isnull=True,
+                user__is_superuser=False,
+                user__is_staff=False
+            ).select_related('user', 'post', 'post__organization')
             
-            # اگر هیچ پست خاصی تعریف نشده، همه پست‌ها مجاز هستند
-            if not allowed_post_ids:
-                user_posts = UserPost.objects.filter(
-                    is_active=True,
-                    post__organization=payment_order.organization
-                ).select_related('user', 'post')
-                logger.info(f"[AUTHORIZED_USERS_DEBUG] Using all posts in organization {payment_order.organization.name}")
-            else:
-                # ابتدا در organization فعلی جستجو کن
-                user_posts = UserPost.objects.filter(
-                    post_id__in=allowed_post_ids,
-                    is_active=True,
-                    post__organization=payment_order.organization
-                ).select_related('user', 'post')
-                
-                # اگر در organization فعلی کاربری پیدا نشد، از همه organization ها استفاده کن
-                if not user_posts.exists():
-                    logger.info(f"[AUTHORIZED_USERS_DEBUG] No users in current organization, searching all organizations")
-                user_posts = UserPost.objects.filter(
-                    post_id__in=allowed_post_ids,
-                    is_active=True
-                ).select_related('user', 'post')
-                
-                logger.info(f"[AUTHORIZED_USERS_DEBUG] Using specific posts, found {user_posts.count()} user posts")
+            logger.info(f"[AUTHORIZED_USERS_DEBUG] Found {user_posts.count()} user posts with allowed post IDs")
             
-            # 4. ساخت لیست کاربران مجاز
+            # ساخت لیست کاربران مجاز
             authorized_users = []
             for user_post in user_posts:
                 user = user_post.user
@@ -1118,17 +1078,20 @@ class PaymentOrderApprovalView(PermissionBaseView , UpdateView):
                     is_active=True
                 ).exists()
                 
-                authorized_users.append({
-                    'user': user,
-                    'post': post,
-                    'username': user.username,
-                    'full_name': user.get_full_name() or user.username,
-                    'post_name': post.name,
-                    'organization': post.organization.name,
-                    'has_approved': has_approved,
-                    'is_superuser': user.is_superuser,
-                    'is_staff': user.is_staff
-                })
+                # ایجاد یک object ساده برای template
+                class AuthorizedUser:
+                    def __init__(self, user, post, has_approved):
+                        self.user = user
+                        self.post = post
+                        self.username = user.username
+                        self.full_name = user.get_full_name() or user.username
+                        self.post_name = post.name
+                        self.organization = post.organization.name
+                        self.has_approved = has_approved
+                        self.is_superuser = user.is_superuser
+                        self.is_staff = user.is_staff
+                
+                authorized_users.append(AuthorizedUser(user, post, has_approved))
             
             logger.info(f"[AUTHORIZED_USERS] Found {len(authorized_users)} authorized users")
             return authorized_users
@@ -1149,23 +1112,41 @@ class PaymentOrderApprovalView(PermissionBaseView , UpdateView):
             pass
         return EntityType.objects.filter(code='PAYMENTORDER').first()
 
-    def get_available_transitions(self, user, payment_order):
-        user_posts = user.userpost_set.filter(is_active=True).values_list('post_id', flat=True)
-        entity_type = self._get_paymentorder_entity_type()
-        base_qs = Transition.objects.filter(
-            entity_type=entity_type,
-            from_status=payment_order.status,
-            organization=payment_order.organization,
-            is_active=True,
-        )
-        if user.is_superuser or user.is_staff:
-            qs = base_qs
-        else:
-            qs = base_qs.filter(
-                Q(allowed_posts__in=user_posts) | Q(allowed_posts__isnull=True)
-            )
-        qs = qs.select_related('action', 'to_status').distinct()
-        return qs
+    def get_available_transitions(self, payment_order, user):
+        """دریافت اقدامات مجاز بر اساس Transition"""
+        try:
+            from core.models import Transition
+            
+            # دریافت پست‌های فعال کاربر
+            user_posts = UserPost.objects.filter(
+                user=user,
+                is_active=True,
+                end_date__isnull=True
+            ).select_related('post')
+            
+            if not user_posts.exists():
+                logger.warning(f"[NO_USER_POSTS] User {user.username} has no active posts")
+                return Transition.objects.none()
+            
+            user_post_ids = set(user_posts.values_list('post_id', flat=True))
+            
+            # دریافت Transition ها برای وضعیت فعلی
+            transitions = Transition.objects.filter(
+                from_status=payment_order.status,
+                organization=payment_order.organization,
+                entity_type__code='PAYMENTORDER',
+                is_active=True,
+                allowed_posts__id__in=user_post_ids
+            ).select_related('action', 'to_status', 'entity_type').distinct()
+            
+            logger.info(f"[AVAILABLE_TRANSITIONS] User={user.username} PaymentOrder={payment_order.order_number} found {transitions.count()} transitions")
+            
+            return transitions
+            
+        except Exception as e:
+            # logger.error(f"[AVAILABLE_TRANSITIONS_ERROR] User={user.username} PaymentOrder={payment_order.order_number} error: {e}")
+            return Transition.objects.none()
+    
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -1182,9 +1163,16 @@ class PaymentOrderApprovalView(PermissionBaseView , UpdateView):
             context['access_denied_reason'] = self._get_access_denied_reason(payment_order)
             return context
             
-        available = self.get_available_transitions(self.request.user, payment_order)
-        context['available_actions'] = list(available.values_list('action__code', flat=True))
-        context['available_to_statuses'] = list(available.values_list('to_status__code', flat=True))
+        available = self.get_available_transitions(payment_order, self.request.user)
+        
+        # استخراج action_type ها از available (که می‌تواند QuerySet یا list باشد)
+        if hasattr(available, 'values_list'):
+            # QuerySet (Transition objects)
+            context['available_actions'] = list(available.values_list('action__code', flat=True))
+        else:
+            # List (Transition-like objects)
+            context['available_actions'] = [item.action.code for item in available if hasattr(item, 'action')]
+        
         context['available_transitions'] = available
 
         # محاسبه آمار تایید
@@ -1234,8 +1222,7 @@ class PaymentOrderApprovalView(PermissionBaseView , UpdateView):
         et = self._get_paymentorder_entity_type()
         logger.debug(
             f"[APPROVAL_AVAILABLE] order={payment_order.order_number} status={payment_order.status.code} "
-            f"entity_type={(et.code if et else 'MISSING')} actions={context['available_actions']} "
-            f"to_statuses={context['available_to_statuses']}"
+            f"entity_type={(et.code if et else 'MISSING')} actions={context['available_actions']}"
         )
         return context
 
@@ -1343,55 +1330,60 @@ class PaymentOrderApprovalView(PermissionBaseView , UpdateView):
                 return self.form_invalid(form)
 
         if not action_code and not transition_id:
-            logger.warning(f"[APPROVAL_SUBMIT] User={user.username} did not select any action")
+            logger.warning(f"[APPROVAL_SUBMIT] User={user.username} did not select any action or transition")
             messages.error(self.request, "هیچ اقدامی انتخاب نشده است.")
             return self.form_invalid(form)
 
         try:
-            # اگر transition_id ارسال شده، دقیقاً همان گذار را مانند فاکتور اعتبارسنجی و اعمال کن
+            # استفاده از Transition
             if transition_id:
-                try:
-                    target_transition = Transition.objects.select_related('action', 'to_status').get(pk=transition_id)
-                except Transition.DoesNotExist:
-                    raise PermissionError("گذار یافت نشد")
-
-                # اعتبارسنجی ها: نوع موجودیت، سازمان، وضعیت مبدأ، فعال بودن
-                if target_transition.entity_type.code != 'PAYMENTORDER':
-                    raise PermissionError("گذار مربوط به موجودیت دیگری است")
-                if target_transition.organization_id != payment_order.organization_id:
-                    raise PermissionError("گذار مربوط به سازمان دیگری است")
-                if target_transition.from_status_id != payment_order.status_id:
-                    raise PermissionError("وضعیت فعلی با گذار انتخابی منطبق نیست")
-                if not target_transition.is_active:
-                    raise PermissionError("گذار غیرفعال است")
-
-                # کنترل allowed_posts؛ ادمین/استف عبور می‌کند
-                if not (user.is_superuser or user.is_staff):
-                    user_posts = user.userpost_set.filter(is_active=True).values_list('post_id', flat=True)
-                    has_access = target_transition.allowed_posts.filter(pk__in=user_posts).exists()
-                    if not has_access and target_transition.allowed_posts.exists():
-                        # اگر گذار برای پست خاص تعریف شده و کاربر آن پست را ندارد
-                        raise PermissionError("شما برای این گذار پست مجاز ندارید")
-
-                # اعمال گذار و ثبت لاگ
-                original_status = payment_order.status
-                payment_order.status = target_transition.to_status
-                payment_order.save(update_fields=['status'])
-
+                from core.models import Transition
+                
+                # دریافت Transition
+                transition = Transition.objects.filter(
+                    id=transition_id,
+                    is_active=True
+                ).select_related('action', 'to_status', 'from_status').first()
+                
+                if not transition:
+                    raise PermissionError("Transition یافت نشد")
+                
+                # بررسی دسترسی کاربر
+                user_posts = user.userpost_set.filter(is_active=True).values_list('post_id', flat=True)
+                if not transition.allowed_posts.filter(id__in=user_posts).exists():
+                    raise PermissionError("شما دسترسی به این Transition ندارید")
+                
+                # بررسی وضعیت فعلی
+                if payment_order.status != transition.from_status:
+                    raise PermissionError("وضعیت فعلی با Transition انتخابی منطبق نیست")
+                
+                # ثبت لاگ
+                from django.contrib.contenttypes.models import ContentType
                 user_post = user.userpost_set.filter(is_active=True).first()
                 ApprovalLog.objects.create(
                     content_type=ContentType.objects.get_for_model(payment_order),
                     object_id=payment_order.id,
-                    from_status=original_status,
-                    to_status=target_transition.to_status,
-                    action=target_transition.action,
+                    from_status=payment_order.status,
+                    to_status=payment_order.status,  # تا تکمیل تاییدها در همان وضعیت می‌ماند
+                    action=transition.action,
                     user=user,
                     post=(user_post.post if user_post else None),
-                    comment=f"Transitioned via transition_id={transition_id}"
+                    comment=f"تایید ثبت شده: {transition.name}"
                 )
+                
+                # بررسی تکمیل تاییدها
+                if transition.to_status == transition.from_status:
+                    # این یک تایید میانی است، بررسی کنیم آیا همه تاییدها تکمیل شده‌اند
+                    self._check_completion_and_advance(payment_order, transition)
+                else:
+                    # این یک تایید نهایی است، مستقیماً وضعیت را تغییر دهیم
+                    original_status = payment_order.status
+                    payment_order.status = transition.to_status
+                    payment_order.save(update_fields=['status'])
+                    
+                    logger.info(f"[FINAL_APPROVAL] PaymentOrder {payment_order.order_number} moved to {transition.to_status.name}")
             else:
-                # در غیر اینصورت بر اساس action_code رفتار سابق را انجام بده
-                self.execute_transition(payment_order, action_code, user)
+                raise PermissionError("هیچ Transition انتخابی نشده است")
         except PermissionError as e:
             logger.error(
                 f"[APPROVAL_DENIED] User={user.username} not allowed "
@@ -1413,6 +1405,78 @@ class PaymentOrderApprovalView(PermissionBaseView , UpdateView):
         # از ذخیره دوباره فرم جلوگیری می‌کنیم تا مقادیر نامعتبر وارد نشوند
         messages.success(self.request, "تغییر وضعیت با موفقیت ثبت شد.")
         return redirect(self.get_success_url())
+    
+    def _check_completion_and_advance(self, payment_order, transition):
+        """
+        بررسی تکمیل تاییدها و پیشرفت به مرحله بعدی
+        """
+        from django.contrib.contenttypes.models import ContentType
+        from core.models import Transition, Status
+        
+        current_status = payment_order.status
+        
+        # دریافت همه Transition های موجود برای وضعیت فعلی
+        available_transitions = Transition.objects.filter(
+            from_status=current_status,
+            organization=payment_order.organization,
+            entity_type__code='PAYMENTORDER',
+            is_active=True
+        )
+        
+        # دریافت همه پست‌های مجاز برای تایید در این وضعیت
+        required_post_ids = set()
+        for trans in available_transitions:
+            if trans.to_status == current_status:  # تایید میانی
+                required_post_ids.update(trans.allowed_posts.values_list('id', flat=True))
+        
+        # دریافت پست‌هایی که تایید کرده‌اند
+        ct = ContentType.objects.get_for_model(payment_order)
+        acted_post_ids = set(
+            ApprovalLog.objects.filter(
+                content_type=ct,
+                object_id=payment_order.id,
+                from_status=current_status,
+                action__code='APPROVE'
+            ).exclude(post__isnull=True).values_list('post_id', flat=True)
+        )
+        
+        logger.info(f"[COMPLETION_CHECK] PaymentOrder {payment_order.order_number}")
+        logger.info(f"[COMPLETION_CHECK] Required posts: {sorted(list(required_post_ids))}")
+        logger.info(f"[COMPLETION_CHECK] Acted posts: {sorted(list(acted_post_ids))}")
+        
+        # بررسی آیا همه پست‌های لازم تایید کرده‌اند
+        if required_post_ids and required_post_ids.issubset(acted_post_ids):
+            # همه تاییدها تکمیل شده، به مرحله بعدی برو
+            final_transition = available_transitions.filter(
+                to_status__code='PO_APPROVED'
+            ).first()
+            
+            if final_transition:
+                # تغییر وضعیت به تایید نهایی
+                payment_order.status = final_transition.to_status
+                payment_order.save(update_fields=['status'])
+                
+                # ثبت لاگ نهایی
+                ApprovalLog.objects.create(
+                    content_type=ct,
+                    object_id=payment_order.id,
+                    from_status=current_status,
+                    to_status=final_transition.to_status,
+                    action=final_transition.action,
+                    user=self.request.user,  # کاربر فعلی
+                    post=None,
+                    comment="همه تاییدها تکمیل شد - انتقال خودکار به تایید نهایی"
+                )
+                
+                logger.info(f"[AUTO_ADVANCE] PaymentOrder {payment_order.order_number} automatically moved to {final_transition.to_status.name}")
+                messages.success(self.request, "همه تاییدها تکمیل شد و دستور پرداخت به تایید نهایی منتقل شد.")
+            else:
+                logger.warning(f"[AUTO_ADVANCE_FAILED] No final transition found for PaymentOrder {payment_order.order_number}")
+        else:
+            # هنوز تاییدهای بیشتری لازم است
+            remaining_posts = required_post_ids - acted_post_ids
+            logger.info(f"[PENDING_APPROVALS] PaymentOrder {payment_order.order_number} waiting for posts: {sorted(list(remaining_posts))}")
+            messages.info(self.request, "تایید شما ثبت شد. در انتظار تایید سایر کاربران.")
     #
     # @staticmethod
     # def execute_transition(payment_order, action_code, user):
@@ -1517,7 +1581,7 @@ class PaymentOrderApprovalView(PermissionBaseView , UpdateView):
             action=Action.objects.filter(code=action_code).first(),
             user=user,
             post=(user_post_obj.post if user_post_obj else None),
-            comment=f"Approval recorded for action {action_code}"
+            comment=f"تایید ثبت شده for action {action_code}"
         )
 
         # بررسی تکمیل تاییدها

@@ -1,136 +1,770 @@
 {% extends 'base.html' %}
-{% load i18n %}
+{% load i18n static %}
 
-{% block title %}{% trans "درخت دسترسی سازمانی" %}{% endblock %}
+{% block title %}{% trans "مدیریت دسترسی‌های سازمانی" %}{% endblock %}
+ 
 
 {% block content %}
-<div class="container-fluid px-0">
-  <div class="d-flex justify-content-between align-items-center mb-3 px-3">
-    <h1 class="h4 mb-0">{% trans "درخت دسترسی سازمانی" %}</h1>
-    <button id="saveBtn" class="btn btn-primary">
-      <i class="fas fa-save me-2"></i> {% trans "ذخیره تغییرات" %}
+<div class="access-tree-container py-4">
+    <div class="container">
+        <!-- هدر صفحه -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="icon-wrapper bg-white bg-opacity-20 rounded-circle p-3">
+                            <i class="fas fa-sitemap text-white fa-2x"></i>
+                        </div>
+                        <div>
+                            <h1 class="h3 mb-1 text-white">{% trans "مدیریت دسترسی‌های سازمانی" %}</h1>
+                            <nav aria-label="breadcrumb">
+                                <ol class="breadcrumb mb-0">
+{#                                    <li class="breadcrumb-item"><a href="{% url 'dashboard' %}" class="text-white-50">{% trans "داشبورد" %}</a></li>#}
+                                    <li class="breadcrumb-item text-white">{% trans "سیستم" %}</li>
+                                    <li class="breadcrumb-item active text-white">{% trans "دسترسی‌ها" %}</li>
+                                </ol>
+                            </nav>
+                        </div>
+                    </div>
+
+                    <button id="saveBtn" class="btn btn-light btn-lg shadow">
+                        <i class="fas fa-save me-2"></i>
+                        <span>{% trans "ذخیره تغییرات" %}</span>
+                        <div class="loading-spinner ms-2"></div>
     </button>
+                </div>
+            </div>
   </div>
 
-  <!-- فیلتر سازمان -->
-  <form method="get" class="row g-2 mb-3 px-3">
-    <div class="col-md-6">
-      <label class="form-label">{% trans "سازمان" %}</label>
-      <select name="organization_id" class="form-select" onchange="this.form.submit()">
-        <option value="">{% trans "همه سازمان‌ها (از ریشه)" %}</option>
+        <!-- آمار و فیلترها -->
+        <div class="row mb-4">
+            <div class="col-12 col-lg-8">
+                <div class="search-box">
+                    <div class="row g-3 align-items-center">
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold mb-2">{% trans "فیلتر سازمان" %}</label>
+                            <select id="organizationFilter" class="form-select border-0 bg-light">
+                                <option value="">{% trans "همه سازمان‌ها" %}</option>
         {% for org in organizations %}
-          <option value="{{ org.id }}" {% if selected_org_id|stringformat:'s' == org.id|stringformat:'s' %}selected{% endif %}>{{ org.name }}</option>
+                                    <option value="{{ org.id }}" {% if selected_org_id == org.id|stringformat:'s' %}selected{% endif %}>
+                                        {{ org.name }}
+                                    </option>
         {% endfor %}
       </select>
     </div>
-  </form>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold mb-2">{% trans "جستجو" %}</label>
+                            <div class="input-group">
+                                <input type="text" id="searchInput" class="form-control border-0 bg-light" placeholder="{% trans 'جستجو در پست‌ها...' %}">
+                                <span class="input-group-text border-0 bg-light">
+                                    <i class="fas fa-search"></i>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-  <div class="alert alert-info mx-3">
-    {% trans "برای هر پست، اقدامات مجاز را به ازای سه حوزه انتخاب کنید: بودجه، فاکتور، دستور پرداخت." %}
-  </div>
+            <div class="col-12 col-lg-4">
+                <div class="row g-3">
+                    <div class="col-4">
+                        <div class="stats-card">
+                            <div class="stats-number" id="totalPosts">0</div>
+                            <small class="text-muted">{% trans "پست‌ها" %}</small>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="stats-card">
+                            <div class="stats-number" id="activePermissions">0</div>
+                            <small class="text-muted">{% trans "دسترسی‌ها" %}</small>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="stats-card">
+                            <div class="stats-number" id="modifiedCount">0</div>
+                            <small class="text-muted">{% trans "تغییرات" %}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-  <div class="accordion mx-3" id="orgTree">
+        <!-- تب‌های موجودیت‌ها -->
+             <!-- تب‌های موجودیت‌ها -->
+    <div class="entity-tabs-container mb-4">
+    <div class="entity-tabs nav nav-pills justify-content-center" role="tablist">
+        <!-- تب بودجه -->
+        <button class="entity-tab nav-link" data-bs-toggle="pill" data-bs-target="#budget-tab" role="tab" data-entity="BUDGET">
+            <div class="entity-tab-content d-flex align-items-center gap-3 p-3">
+                <div class="entity-tab-icon">
+                    <div class="icon-wrapper bg-primary bg-opacity-10 rounded-circle p-3">
+                        <i class="fas fa-chart-pie fa-lg text-primary"></i>
+                    </div>
+                </div>
+                <div class="entity-tab-text text-start">
+                    <div class="entity-tab-title fw-bold fs-6">بودجه</div>
+                    <div class="entity-tab-subtitle text-muted small">Budget Management</div>
+                </div>
+                <div class="entity-tab-indicator">
+                    <i class="fas fa-check-circle text-success"></i>
+                </div>
+            </div>
+        </button>
+        
+        <!-- تب فاکتور -->
+        <button class="entity-tab nav-link" data-bs-toggle="pill" data-bs-target="#factor-tab" role="tab" data-entity="FACTOR">
+            <div class="entity-tab-content d-flex align-items-center gap-3 p-3">
+                <div class="entity-tab-icon">
+                    <div class="icon-wrapper bg-success bg-opacity-10 rounded-circle p-3">
+                        <i class="fas fa-file-invoice fa-lg text-success"></i>
+                    </div>
+                </div>
+                <div class="entity-tab-text text-start">
+                    <div class="entity-tab-title fw-bold fs-6">فاکتور</div>
+                    <div class="entity-tab-subtitle text-muted small">Invoice Management</div>
+                </div>
+                <div class="entity-tab-indicator">
+                    <i class="fas fa-check-circle text-success"></i>
+                </div>
+            </div>
+        </button>
+        
+        <!-- تب دستور پرداخت -->
+        <button class="entity-tab nav-link active" data-bs-toggle="pill" data-bs-target="#paymentorder-tab" role="tab" data-entity="PAYMENTORDER">
+            <div class="entity-tab-content d-flex align-items-center gap-3 p-3">
+                <div class="entity-tab-icon">
+                    <div class="icon-wrapper bg-warning bg-opacity-10 rounded-circle p-3">
+                        <i class="fas fa-money-check fa-lg text-warning"></i>
+                    </div>
+                </div>
+                <div class="entity-tab-text text-start">
+                    <div class="entity-tab-title fw-bold fs-6">دستور پرداخت</div>
+                    <div class="entity-tab-subtitle text-muted small">Payment Orders</div>
+                </div>
+                <div class="entity-tab-indicator">
+                    <i class="fas fa-check-circle text-success"></i>
+                </div>
+            </div>
+        </button>
+    </div>
+</div>
+
+<!-- محتوای تب‌ها -->
+<div class="tab-content mt-3">
+    <div class="tab-pane fade" id="budget-tab" role="tabpanel">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title text-primary">
+                    <i class="fas fa-chart-pie me-2"></i>
+                    مدیریت دسترسی‌های بودجه
+                </h5>
+                <p class="text-muted">تنظیم دسترسی‌های مربوط به تخصیص و مدیریت بودجه</p>
+                <!-- محتوای مخصوص بودجه -->
+            </div>
+        </div>
+    </div>
+    
+    <div class="tab-pane fade" id="factor-tab" role="tabpanel">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title text-success">
+                    <i class="fas fa-file-invoice me-2"></i>
+                    مدیریت دسترسی‌های فاکتور
+                </h5>
+                <p class="text-muted">تنظیم دسترسی‌های مربوط به ثبت و تأیید فاکتورها</p>
+                <!-- محتوای مخصوص فاکتور -->
+            </div>
+        </div>
+    </div>
+    
+    <div class="tab-pane fade show active" id="paymentorder-tab" role="tabpanel">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title text-warning">
+                    <i class="fas fa-money-check me-2"></i>
+                    مدیریت دسترسی‌های دستور پرداخت
+                </h5>
+                <p class="text-muted">تنظیم دسترسی‌های مربوط به صدور و تأیید دستورات پرداخت</p>
+                <!-- محتوای مخصوص دستور پرداخت -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.entity-tabs-container {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 20px;
+    padding: 2rem;
+    margin: 2rem 0;
+}
+
+.entity-tabs {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 15px;
+    padding: 1rem;
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.entity-tab.nav-link {
+    border: none;
+    border-radius: 12px;
+    background: transparent;
+    transition: all 0.3s ease;
+    min-width: 280px;
+    flex: 1;
+    margin: 0.5rem;
+}
+
+.entity-tab.nav-link:hover {
+    background: rgba(67, 97, 238, 0.05);
+    transform: translateY(-2px);
+}
+
+.entity-tab.nav-link.active {
+    background: white;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+    border: 2px solid rgba(67, 97, 238, 0.2);
+}
+
+.entity-tab-content {
+    position: relative;
+    width: 100%;
+}
+
+.entity-tab-icon .icon-wrapper {
+    transition: all 0.3s ease;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.entity-tab.nav-link.active .entity-tab-icon .icon-wrapper {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+}
+
+.entity-tab.nav-link.active .entity-tab-icon .icon-wrapper i {
+    color: white !important;
+}
+
+.entity-tab-text {
+    flex: 1;
+}
+
+.entity-tab-title {
+    color: #2b2d42;
+    transition: color 0.3s ease;
+}
+
+.entity-tab-subtitle {
+    font-size: 0.8rem;
+}
+
+.entity-tab.nav-link.active .entity-tab-title {
+    color: #4361ee;
+    font-weight: 700;
+}
+
+.entity-tab-indicator {
+    opacity: 0;
+    transform: scale(0.8);
+    transition: all 0.3s ease;
+}
+
+.entity-tab.nav-link.active .entity-tab-indicator {
+    opacity: 1;
+    transform: scale(1);
+}
+
+/* انیمیشن‌های hover پیشرفته */
+.entity-tab.nav-link {
+    position: relative;
+    overflow: hidden;
+}
+
+.entity-tab.nav-link::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+    transition: left 0.5s ease;
+}
+
+.entity-tab.nav-link:hover::before {
+    left: 100%;
+}
+
+/* ریسپانسیو */
+@media (max-width: 768px) {
+    .entity-tabs-container {
+        padding: 1rem;
+        margin: 1rem 0;
+    }
+    
+    .entity-tabs {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .entity-tab.nav-link {
+        min-width: auto;
+        margin: 0.25rem 0;
+    }
+    
+    .entity-tab-content {
+        padding: 1rem !important;
+    }
+    
+    .entity-tab-icon .icon-wrapper {
+        width: 50px;
+        height: 50px;
+    }
+}
+
+@media (max-width: 576px) {
+    .entity-tab-content {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem !important;
+    }
+    
+    .entity-tab-text {
+        text-align: center;
+    }
+}
+
+/* افکت‌های ویژه */
+.entity-tab.nav-link.active {
+    animation: tabActivate 0.5s ease;
+}
+
+@keyframes tabActivate {
+    0% {
+        transform: scale(0.95);
+        opacity: 0.7;
+    }
+    50% {
+        transform: scale(1.02);
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* نشانگر وضعیت */
+.status-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #06d6a0;
+    border: 2px solid white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.6rem;
+    color: white;
+}
+
+/* گرادینت‌های مختلف برای هر تب */
+.entity-tab[data-entity="BUDGET"].nav-link.active {
+    border-color: rgba(67, 97, 238, 0.3);
+}
+
+.entity-tab[data-entity="FACTOR"].nav-link.active {
+    border-color: rgba(6, 214, 160, 0.3);
+}
+
+.entity-tab[data-entity="PAYMENTORDER"].nav-link.active {
+    border-color: rgba(255, 209, 102, 0.3);
+}
+</style>
+
+<script>
+// مدیریت رویدادهای تب‌ها
+document.addEventListener('DOMContentLoaded', function() {
+    const tabs = document.querySelectorAll('.entity-tab.nav-link');
+    
+    tabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            // حذف کلاس active از همه تب‌ها
+            tabs.forEach(t => t.classList.remove('active'));
+            // اضافه کردن کلاس active به تب کلیک‌شده
+            this.classList.add('active');
+            
+            // نمایش محتوای مربوطه
+            const target = this.getAttribute('data-bs-target');
+            document.querySelectorAll('.tab-pane').forEach(pane => {
+                pane.classList.remove('show', 'active');
+            });
+            document.querySelector(target).classList.add('show', 'active');
+        });
+    });
+    
+    // افزودن افکت‌های تعاملی
+    tabs.forEach(tab => {
+        tab.addEventListener('mouseenter', function() {
+            if (!this.classList.contains('active')) {
+                this.style.transform = 'translateY(-3px) scale(1.02)';
+            }
+        });
+        
+        tab.addEventListener('mouseleave', function() {
+            if (!this.classList.contains('active')) {
+                this.style.transform = 'translateY(0) scale(1)';
+            }
+        });
+    });
+});
+</script>
+        <!-- تب‌های موجودیت‌ها -->
+
+
+        <!-- درخت سازمانی -->
+        <div class="row">
+            <div class="col-12">
+                <div class="org-tree-card p-4">
+                    <div id="orgTree" class="tree-container">
     {% for node in tree %}
-      {% include 'core/workflow/partials/_org_access_node.html' with node=node %}
+                            {% include 'core/workflow/partials/_org_access_node_modern.html' with node=node level=0 %}
     {% empty %}
-      <div class="text-muted px-3">{% trans "سازمانی یافت نشد." %}</div>
+                            <div class="text-center py-5">
+                                <i class="fas fa-tree fa-3x text-muted mb-3"></i>
+                                <h5 class="text-muted">{% trans "سازمانی یافت نشد" %}</h5>
+                                <p class="text-muted">{% trans "هیچ سازمان فعالی در سیستم وجود ندارد." %}</p>
+                            </div>
     {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
   </div>
 </div>
 
+<!-- مودال تأیید ذخیره -->
+<div class="modal fade" id="saveModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <h5 class="modal-title">{% trans "تأیید ذخیره تغییرات" %}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <i class="fas fa-check-circle text-success fa-3x mb-3"></i>
+                <h5>{% trans "آیا از ذخیره تغییرات اطمینان دارید؟" %}</h5>
+                <p class="text-muted">{% trans "تغییرات بر روی دسترسی‌های سیستم اعمال خواهد شد." %}</p>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "انصراف" %}</button>
+                <button type="button" class="btn btn-success" id="confirmSave">{% trans "ذخیره تغییرات" %}</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
 <script>
-const ENTITY_TYPES = {{ entity_types|safe }};
-const ACTION_CODES = {{ action_codes|safe }};
-const CURRENT = JSON.parse(`{{ current_json|safe }}`); // {post_id: {entity_type: [..]}}
+const ENTITY_TYPES = ['BUDGET', 'FACTOR', 'PAYMENTORDER'];
+const ACTION_CODES = ['SUBMIT', 'APPROVE', 'REJECT'];
+const CURRENT = JSON.parse(`{{ current_json|safe }}`);
 
-function getPostKey(postId) { return String(postId); }
+class AccessTreeManager {
+    constructor() {
+        this.changes = new Map();
+        this.currentEntity = ENTITY_TYPES[0];
+        this.init();
+    }
 
-function collectChanges() {
+    init() {
+        this.bindEvents();
+        this.initCheckboxes();
+        this.updateStats();
+        this.applyEntityFilter();
+        this.initializeCollapse();
+    }
+
+    bindEvents() {
+        // تب‌های موجودیت
+        document.querySelectorAll('.entity-tab').forEach(tab => {
+            tab.addEventListener('click', (e) => {
+                // حذف active از همه تب‌ها
+                document.querySelectorAll('.entity-tab').forEach(t => t.classList.remove('active'));
+                
+                // اضافه کردن active به تب انتخاب شده
+                tab.classList.add('active');
+                
+                // به‌روزرسانی entity فعلی
+                this.currentEntity = tab.dataset.entity;
+                
+                // اعمال فیلتر
+                this.applyEntityFilter();
+                
+                // اضافه کردن انیمیشن کلیک
+                this.addClickAnimation(tab);
+            });
+        });
+
+        // فیلتر سازمان
+        document.getElementById('organizationFilter').addEventListener('change', (e) => {
+            window.location.href = `?organization_id=${e.target.value}`;
+        });
+
+        // جستجو
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            this.filterPosts(e.target.value);
+        });
+
+        // ذخیره
+        document.getElementById('saveBtn').addEventListener('click', () => {
+            this.showSaveModal();
+        });
+
+        document.getElementById('confirmSave').addEventListener('click', () => {
+            this.saveChanges();
+        });
+    }
+
+    initCheckboxes() {
+        document.querySelectorAll('.action-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', (e) => {
+                this.handleCheckboxChange(e.target);
+            });
+
+            const postId = checkbox.dataset.postId;
+            const entityType = checkbox.dataset.entityType;
+            const actionCode = checkbox.dataset.actionCode;
+
+            if (CURRENT[postId]?.[entityType]?.includes(actionCode)) {
+                checkbox.checked = true;
+            }
+        });
+    }
+
+    handleCheckboxChange(checkbox) {
+        const { postId, entityType, actionCode } = checkbox.dataset;
+        const key = `${postId}-${entityType}`;
+
+        if (!this.changes.has(key)) {
+            this.changes.set(key, new Set(CURRENT[postId]?.[entityType] || []));
+        }
+
+        const actions = this.changes.get(key);
+
+        if (checkbox.checked) {
+            actions.add(actionCode);
+        } else {
+            actions.delete(actionCode);
+        }
+
+        this.updateStats();
+        this.highlightModifiedPost(postId);
+    }
+
+    highlightModifiedPost(postId) {
+        const postElement = document.querySelector(`[data-post-id="${postId}"]`);
+        if (postElement) {
+            postElement.classList.add('modified');
+            setTimeout(() => {
+                postElement.classList.remove('modified');
+            }, 2000);
+        }
+    }
+
+    applyEntityFilter() {
+        document.querySelectorAll('.entity-section').forEach(section => {
+            section.style.display = section.dataset.entity === this.currentEntity ? 'block' : 'none';
+        });
+    }
+
+    filterPosts(searchTerm) {
+        const term = searchTerm.toLowerCase();
+        document.querySelectorAll('.post-card').forEach(card => {
+            const postName = card.querySelector('.post-name').textContent.toLowerCase();
+            const orgName = card.closest('.org-node').querySelector('.org-name').textContent.toLowerCase();
+
+            if (postName.includes(term) || orgName.includes(term)) {
+                card.style.display = 'block';
+                card.closest('.org-node').style.display = 'block';
+            } else {
+                card.style.display = 'none';
+                // مخفی کردن سازمان اگر هیچ پستی نمایش داده نمی‌شود
+                const visiblePosts = card.closest('.org-node').querySelectorAll('.post-card[style="display: block"]');
+                if (visiblePosts.length === 0) {
+                    card.closest('.org-node').style.display = 'none';
+                }
+            }
+        });
+    }
+
+    initializeCollapse() {
+        // باز کردن اولین سازمان به صورت پیش‌فرض
+        const firstOrg = document.querySelector('.org-node');
+        if (firstOrg) {
+            const collapseElement = firstOrg.querySelector('.collapse');
+            if (collapseElement) {
+                collapseElement.classList.add('show');
+                firstOrg.querySelector('.org-header').setAttribute('aria-expanded', 'true');
+            }
+        }
+    }
+
+    collectChanges() {
   const changes = [];
-  document.querySelectorAll('[data-post-id]').forEach(row => {
-    const postId = parseInt(row.getAttribute('data-post-id'));
-    ENTITY_TYPES.forEach(et => {
-      const actions = [];
-      ACTION_CODES.forEach(ac => {
-        const cb = row.querySelector(`input[type=checkbox][data-et="${et}"][data-ac="${ac}"]`);
-        if (cb && cb.checked) { actions.push(ac); }
-      });
-      changes.push({ post_id: postId, entity_type: et, actions });
+        this.changes.forEach((actions, key) => {
+            const [postId, entityType] = key.split('-');
+            changes.push({
+                post_id: parseInt(postId),
+                entity_type: entityType,
+                actions: Array.from(actions)
     });
   });
   return changes;
 }
 
-// Initialize checkboxes from CURRENT
-document.addEventListener('DOMContentLoaded', () => {
-  console.log('Initializing checkboxes with CURRENT data:', CURRENT);
-  document.querySelectorAll('[data-post-id]').forEach(row => {
-    const postId = parseInt(row.getAttribute('data-post-id'));
-    const postKeys = Object.keys(CURRENT || {});
-    console.log('Processing post ID:', postId, 'Available keys:', postKeys);
-    
-    if (!postKeys.includes(String(postId))) {
-      console.log('No data found for post ID:', postId);
-      return;
-    }
-    
-    const postMap = CURRENT[String(postId)] || CURRENT[postId] || {};
-    console.log('Post map for', postId, ':', postMap);
-    
-    ENTITY_TYPES.forEach(et => {
-      const actions = new Set(postMap[et] || []);
-      console.log('Actions for', et, ':', Array.from(actions));
-      
-      ACTION_CODES.forEach(ac => {
-        const cb = row.querySelector(`input[type=checkbox][data-et="${et}"][data-ac="${ac}"]`);
-        if (cb) {
-          const isChecked = actions.has(ac);
-          cb.checked = isChecked;
-          console.log(`Checkbox ${et}-${ac} for post ${postId}:`, isChecked);
-        }
-      });
-    });
-  });
-});
+    updateStats() {
+        const totalPosts = document.querySelectorAll('.post-card').length;
+        const activePermissions = document.querySelectorAll('.action-checkbox:checked').length;
+        const modifiedCount = this.changes.size;
 
-// CSRF helper from cookie (fallback if template tag not present)
-function getCookie(name) {
-  let cookieValue = null;
-  if (document.cookie && document.cookie !== '') {
-    const cookies = document.cookie.split(';');
-    for (let i = 0; i < cookies.length; i++) {
-      const cookie = cookies[i].trim();
-      if (cookie.substring(0, name.length + 1) === (name + '=')) {
-        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-        break;
-      }
+        document.getElementById('totalPosts').textContent = totalPosts;
+        document.getElementById('activePermissions').textContent = activePermissions;
+        document.getElementById('modifiedCount').textContent = modifiedCount;
     }
-  }
-  return cookieValue;
+
+    showSaveModal() {
+        if (this.changes.size === 0) {
+            this.showToast('{% trans "هیچ تغییری برای ذخیره وجود ندارد" %}', 'warning');
+            return;
+        }
+        new bootstrap.Modal(document.getElementById('saveModal')).show();
+    }
+
+    async saveChanges() {
+        const saveBtn = document.getElementById('saveBtn');
+        const spinner = saveBtn.querySelector('.loading-spinner');
+        const buttonText = saveBtn.querySelector('span');
+
+        saveBtn.disabled = true;
+        spinner.style.display = 'inline-block';
+        buttonText.textContent = '{% trans "در حال ذخیره..." %}';
+
+        try {
+            const payload = { changes: this.collectChanges() };
+            console.log('Sending payload:', payload);
+            
+            const response = await fetch('', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': this.getCSRFToken()
+                },
+                body: JSON.stringify(payload)
+            });
+
+            console.log('Response status:', response.status);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const result = await response.json();
+            console.log('Response data:', result);
+
+            if (result.success) {
+                this.changes.clear();
+                this.updateStats();
+                this.showToast('{% trans "تغییرات با موفقیت ذخیره شد" %}', 'success');
+                document.getElementById('saveModal').querySelector('.btn-close').click();
+            } else {
+                throw new Error(result.message || '{% trans "خطای نامشخص" %}');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            this.showToast(error.message, 'danger');
+        } finally {
+            saveBtn.disabled = false;
+            spinner.style.display = 'none';
+            buttonText.textContent = '{% trans "ذخیره تغییرات" %}';
+        }
+    }
+
+    showToast(message, type = 'info') {
+        const toast = document.createElement('div');
+        toast.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+        toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+        toast.innerHTML = `
+            <div class="d-flex align-items-center">
+                <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'danger' ? 'fa-exclamation-circle' : 'fa-info-circle'} me-2"></i>
+                <span>${message}</span>
+                <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+            </div>
+        `;
+        document.body.appendChild(toast);
+
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.remove();
+            }
+        }, 5000);
+    }
+
+    addClickAnimation(tab) {
+        // اضافه کردن کلاس انیمیشن
+        tab.style.transform = 'scale(0.95)';
+        
+        setTimeout(() => {
+            tab.style.transform = '';
+        }, 150);
+        
+        // اضافه کردن ripple effect
+        const ripple = document.createElement('div');
+        ripple.style.cssText = `
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.6);
+            transform: scale(0);
+            animation: ripple 0.6s linear;
+            pointer-events: none;
+        `;
+        
+        const rect = tab.getBoundingClientRect();
+        const size = Math.max(rect.width, rect.height);
+        ripple.style.width = ripple.style.height = size + 'px';
+        ripple.style.left = (rect.width / 2 - size / 2) + 'px';
+        ripple.style.top = (rect.height / 2 - size / 2) + 'px';
+        
+        tab.appendChild(ripple);
+        
+        setTimeout(() => {
+            ripple.remove();
+        }, 600);
+    }
+
+    getCSRFToken() {
+        return document.querySelector('[name=csrfmiddlewaretoken]')?.value ||
+               document.cookie.match(/csrftoken=([^;]+)/)?.[1] ||
+               '{{ csrf_token }}';
+    }
 }
 
-document.getElementById('saveBtn').addEventListener('click', () => {
-  const payload = { changes: collectChanges() };
-  fetch('', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') || '{{ csrf_token }}' },
-    body: JSON.stringify(payload)
-  }).then(r => r.json()).then(resp => {
-    if (resp.success) {
-      alert('ذخیره شد.');
-    } else {
-      alert('خطا: ' + (resp.message || 'نامشخص'));
-    }
-  });
+// مقداردهی اولیه
+document.addEventListener('DOMContentLoaded', () => {
+    new AccessTreeManager();
 });
 </script>
 
-<style>
-.post-row { border-bottom: 1px dashed #e5e5e5; padding: 8px 0; }
-.action-grid { display: grid; grid-template-columns: repeat(3, minmax(150px,1fr)); gap: 6px 16px; }
-.accordion-body { padding: 1rem 1.5rem; }
-.table-responsive { overflow-x: auto; }
-</style>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 {% endblock %}
-
-

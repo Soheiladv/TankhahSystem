@@ -239,7 +239,7 @@
             <p>{% trans "باقی‌مانده" %}</p>
         </div>
         <div class="stat-card">
-            <h4>{{ path_stats.completion_percentage|floatformat:1 }}%</h4>
+            <h4>{{ path_stats.completion_percentage|format_negative }}%</h4>
             <p>{% trans "درصد پیشرفت" %}</p>
         </div>
     </div>

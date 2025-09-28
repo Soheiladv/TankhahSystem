@@ -128,6 +128,7 @@ urlpatterns += [
     path('payment-orders/management/', PaymentOrderManagementListView.as_view(), name='paymentorder_management_list'),
     path('payment-orders/<int:pk>/approval/', PaymentOrderApprovalView.as_view(), name='paymentorder_approval'),
     path('payment-orders/<int:pk>/detail/', PaymentOrderDetailView.as_view(), name='paymentorder_detail_enhanced'),
+    path('payment-orders/<int:pk>/print/', PaymentOrderDetailPrintView.as_view(), name='paymentorder_detail_print'),
     path('create-payment-orders-from-factors/', create_payment_orders_from_factors, name='create_payment_orders_from_factors'),
     
     # عملیات آرشیو

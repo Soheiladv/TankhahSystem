@@ -268,5 +268,6 @@ urlpatterns += [
             path('financial-performance-report/', FinancialPerformanceReportView.as_view(), name='financial_performance_report'),
             path('analytical-reports/', AnalyticalReportsView.as_view(), name='analytical_reports'),
             
+            # الگوی تخصیص کاربران - حذف شده به دلیل خطای import
 
  ]
