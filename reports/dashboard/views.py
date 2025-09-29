@@ -41,7 +41,7 @@ class DashboardMainView(TemplateView):
         end_date = self._parse_jalali_date(self.request.GET.get('end_date'))
         organization_id = self.request.GET.get('organization')
         project_id = self.request.GET.get('project')
-
+        
         # آمار کلی بودجه (با فیلترها)
         budget_stats = self.get_budget_statistics(start_date, end_date, organization_id, project_id)
         context['budget_stats'] = budget_stats
@@ -73,6 +73,22 @@ class DashboardMainView(TemplateView):
         # متریک‌های پیشرفته بودجه (نرخ جذب، برنامه/واقعی، پیش‌بینی، تمرکز، ایجینگ)
         advanced_budget = self.get_advanced_budget_metrics(start_date, end_date, organization_id, project_id)
         context['advanced_budget'] = json.dumps(advanced_budget, ensure_ascii=False, default=str)
+
+        # متریک‌های پیشرفته تنخواه (تسویه، معوق، سقف، وضعیت، ایجینگ تسویه)
+        advanced_tankhah = self.get_advanced_tankhah_metrics(start_date, end_date, organization_id, project_id)
+        context['advanced_tankhah'] = json.dumps(advanced_tankhah, ensure_ascii=False, default=str)
+
+        # متریک‌های پیشرفته فاکتور
+        advanced_factor = self.get_advanced_factor_metrics(start_date, end_date, organization_id, project_id)
+        context['advanced_factor'] = json.dumps(advanced_factor, ensure_ascii=False, default=str)
+
+        # مقایسه‌ها (YoY/MoM و رتبه‌بندی‌ها)
+        advanced_comparatives = self.get_advanced_comparatives(start_date, end_date, organization_id, project_id)
+        context['advanced_comparatives'] = json.dumps(advanced_comparatives, ensure_ascii=False, default=str)
+
+        # ریسک‌ها
+        advanced_risk = self.get_advanced_risk_metrics(start_date, end_date, organization_id, project_id)
+        context['advanced_risk'] = json.dumps(advanced_risk, ensure_ascii=False, default=str)
 
         # فیلترهای مقایسه‌ای (اختیاری: در صورت ارسال)
         compare_start = self._parse_jalali_date(self.request.GET.get('compare_start_date'))
@@ -146,7 +162,7 @@ class DashboardMainView(TemplateView):
         context['can_view_risk'] = True
         
         return context
-
+    
     def _parse_jalali_date(self, value):
         """If input is like 1404/07/01 convert to Gregorian date; else pass through.
         Returns a datetime.date or the original value if not parseable.
@@ -210,7 +226,7 @@ class DashboardMainView(TemplateView):
         # جلوگیری از تقسیم بر صفر و تبدیل به درصد درست
         consumption_percentage = (float(total_consumed) / float(total_allocated) * 100.0) if total_allocated and float(total_allocated) > 0 else 0.0
         return_percentage = (float(total_returned) / float(total_allocated) * 100.0) if total_allocated and float(total_allocated) > 0 else 0.0
-
+        
         return {
             'total_budget': total_budget,
             'total_allocated': total_allocated,
@@ -338,7 +354,7 @@ class DashboardMainView(TemplateView):
             projects_qs = projects_qs.filter(allocations__organization_id=organization_id)
 
         total_projects = projects_qs.count()
-
+        
         # آمار بودجه پروژه‌ها
         project_stats = projects_qs.annotate(
             total_budget=Sum('allocations__allocated_amount'),
@@ -351,6 +367,449 @@ class DashboardMainView(TemplateView):
         return {
             'total_count': total_projects,
             'project_stats': list(project_stats),
+        }
+    
+    def get_advanced_tankhah_metrics(self, start_date=None, end_date=None, organization_id=None, project_id=None, overdue_days: int = 30):
+        """محاسبه متریک‌های پیشرفته برای تنخواه.
+        - avg_settlement_days: متوسط فاصله ایجاد تا پرداخت (با PaymentOrder.payment_date)
+        - overdue_rate: درصد درخواست‌های باز با عمر > N روز
+        - ceiling_usage: نسبت مبلغ به سقف، میانگین و Top 5
+        - status distributions by org/project
+        - settlement aging buckets (0-30/31-60/61-90/90+)
+        """
+        tankhah_qs = Tankhah.objects.all().select_related('organization', 'project', 'status')
+        if start_date:
+            tankhah_qs = tankhah_qs.filter(date__date__gte=start_date)
+        if end_date:
+            tankhah_qs = tankhah_qs.filter(date__date__lte=end_date)
+        if organization_id:
+            tankhah_qs = tankhah_qs.filter(organization_id=organization_id)
+        if project_id:
+            tankhah_qs = tankhah_qs.filter(project_id=project_id)
+
+        # Average settlement time using PaymentOrder.payment_date
+        po_qs = PaymentOrder.objects.filter(
+            Q(tankhah__in=tankhah_qs) | Q(related_tankhah__in=tankhah_qs),
+            payment_date__isnull=False
+        ).select_related('tankhah', 'related_tankhah')
+
+        settlement_days = []
+        for po in po_qs:
+            t = po.tankhah or po.related_tankhah
+            try:
+                start_dt = t.date.date() if hasattr(t.date, 'date') else t.date
+                days = (po.payment_date - start_dt).days
+                if days >= 0:
+                    settlement_days.append(days)
+            except Exception:
+                continue
+        avg_settlement_days = (sum(settlement_days) / len(settlement_days)) if settlement_days else 0.0
+
+        # Overdue rate among open tankhahs
+        open_qs = tankhah_qs.filter(
+            Q(status__is_final_approve=False) & Q(status__is_final_reject=False)
+        )
+        today = timezone.now().date()
+        overdue_count = 0
+        for t in open_qs.values('date'):
+            try:
+                start_dt = t['date']
+                if hasattr(start_dt, 'date'):
+                    start_dt = start_dt.date()
+                if (today - start_dt).days > overdue_days:
+                    overdue_count += 1
+            except Exception:
+                continue
+        open_total = open_qs.count() or 0
+        overdue_rate = (overdue_count / open_total * 100.0) if open_total > 0 else 0.0
+
+        # Ceiling usage
+        ceiling_qs = tankhah_qs.filter(is_payment_ceiling_enabled=True, payment_ceiling__isnull=False).exclude(payment_ceiling=0)
+        usage_list = []
+        for rec in ceiling_qs.values('amount', 'payment_ceiling', 'number'):
+            try:
+                amt = float(rec['amount'] or 0)
+                ceil = float(rec['payment_ceiling'] or 0)
+                ratio = (amt / ceil * 100.0) if ceil > 0 else 0.0
+                usage_list.append({'number': rec['number'], 'usage_pct': ratio})
+            except Exception:
+                continue
+        avg_ceiling_usage = (sum(x['usage_pct'] for x in usage_list) / len(usage_list)) if usage_list else 0.0
+        top_ceiling_usage = sorted(usage_list, key=lambda x: x['usage_pct'], reverse=True)[:5]
+
+        # Status distributions by org/project with counts and amounts
+        status_by_org = list(
+            tankhah_qs.values('organization__name', 'status__name').annotate(
+                count=Count('id'), total_amount=Sum('amount')
+            ).order_by('organization__name', 'status__name')
+        )
+        status_by_project = list(
+            tankhah_qs.values('project__name', 'status__name').annotate(
+                count=Count('id'), total_amount=Sum('amount')
+            ).order_by('project__name', 'status__name')
+        )
+
+        # Settlement aging from payment_date - created date
+        d_0_30 = d_31_60 = d_61_90 = d_90_plus = 0
+        for po in po_qs.values('payment_date', 'tankhah__date', 'related_tankhah__date'):
+            try:
+                tdate = po.get('tankhah__date') or po.get('related_tankhah__date')
+                if hasattr(tdate, 'date'):
+                    tdate = tdate.date()
+                days = (po['payment_date'] - tdate).days
+                if days <= 30:
+                    d_0_30 += 1
+                elif days <= 60:
+                    d_31_60 += 1
+                elif days <= 90:
+                    d_61_90 += 1
+                else:
+                    d_90_plus += 1
+            except Exception:
+                continue
+
+        return {
+            'avg_settlement_days': avg_settlement_days,
+            'overdue_rate_pct': overdue_rate,
+            'overdue_days_threshold': overdue_days,
+            'avg_ceiling_usage_pct': avg_ceiling_usage,
+            'top_ceiling_usage': top_ceiling_usage,
+            'status_by_org': status_by_org,
+            'status_by_project': status_by_project,
+            'settlement_aging': {
+                'd_0_30': d_0_30,
+                'd_31_60': d_31_60,
+                'd_61_90': d_61_90,
+                'd_90_plus': d_90_plus,
+            }
+        }
+
+    def get_advanced_factor_metrics(self, start_date=None, end_date=None, organization_id=None, project_id=None):
+        """محاسبه متریک‌های پیشرفته برای فاکتورها.
+        - avg_cycle_days: از ایجاد تا پرداخت (در صورت وجود PaymentOrder.payment_date)
+        - rejection_rate و دلایل پرتکرار (rejected_reason)
+        - category_analysis: تعداد و مبلغ به ازای دسته‌بندی
+        - high_risk: فاکتورهای پرریسک (Top by amount، تکرار فروشنده، خارج از بودجه)
+        """
+        factor_qs = Factor.objects.all().select_related('tankhah', 'tankhah__organization', 'tankhah__project', 'status', 'category', 'payee')
+        if start_date:
+            factor_qs = factor_qs.filter(date__gte=start_date)
+        if end_date:
+            factor_qs = factor_qs.filter(date__lte=end_date)
+        if organization_id:
+            factor_qs = factor_qs.filter(tankhah__organization_id=organization_id)
+        if project_id:
+            factor_qs = factor_qs.filter(tankhah__project_id=project_id)
+
+        total_factors = factor_qs.count() or 0
+
+        # Avg cycle time: use related PaymentOrder payment_date if any
+        po_qs = PaymentOrder.objects.filter(related_factors__in=factor_qs, payment_date__isnull=False).values('payment_date', 'related_factors__id', 'related_factors__created_at')
+        cycle_days = []
+        for po in po_qs:
+            try:
+                created = po['related_factors__created_at']
+                if hasattr(created, 'date'):
+                    created = created.date()
+                days = (po['payment_date'] - created).days
+                if days >= 0:
+                    cycle_days.append(days)
+            except Exception:
+                continue
+        avg_cycle_days = (sum(cycle_days) / len(cycle_days)) if cycle_days else 0.0
+
+        # Rejection rate and reasons
+        rejected_qs = factor_qs.filter(Q(status__is_final_reject=True) | Q(status__code__icontains='REJECT'))
+        rejected_count = rejected_qs.count() or 0
+        rejection_rate = (rejected_count / total_factors * 100.0) if total_factors > 0 else 0.0
+        top_reject_reasons = list(
+            rejected_qs.values('rejected_reason').annotate(count=Count('id')).order_by('-count')[:10]
+        )
+
+        # Category analysis
+        category_stats = list(
+            factor_qs.values('category__name').annotate(count=Count('id'), total_amount=Sum('amount')).order_by('-total_amount')
+        )
+
+        # High risk: top by amount
+        top_amount = list(factor_qs.order_by('-amount').values('id', 'number', 'amount', 'payee__legal_name', 'payee__name')[:10])
+
+        # High risk: repeated vendor
+        repeated_vendors = list(
+            factor_qs.values('payee__id', 'payee__legal_name', 'payee__name').annotate(count=Count('id')).filter(count__gt=3).order_by('-count')[:10]
+        )
+
+        # High risk: outside budget (amount > budget or negative remaining)
+        outside_budget = []
+        for f in factor_qs.values('id', 'number', 'amount', 'budget', 'remaining_budget'):
+            try:
+                amt = float(f['amount'] or 0)
+                budget = float(f['budget'] or 0)
+                remaining = float(f['remaining_budget'] or 0)
+                if (budget and amt > budget) or remaining < 0:
+                    outside_budget.append({'id': f['id'], 'number': f['number'], 'amount': amt, 'budget': budget, 'remaining': remaining})
+            except Exception:
+                continue
+
+        return {
+            'totals': {
+                'count': total_factors,
+                'avg_cycle_days': avg_cycle_days,
+                'rejection_rate_pct': rejection_rate,
+            },
+            'top_reject_reasons': top_reject_reasons,
+            'category_stats': category_stats,
+            'high_risk': {
+                'top_amount': top_amount,
+                'repeated_vendors': repeated_vendors,
+                'outside_budget': outside_budget[:10],
+            }
+        }
+
+    def get_advanced_comparatives(self, start_date=None, end_date=None, organization_id=None, project_id=None):
+        """مقایسه‌های سال‌به‌سال/ماه‌به‌ماه و رتبه‌بندی سازمان/پروژه."""
+        # Base filters
+        alloc_qs = BudgetAllocation.objects.all()
+        if start_date:
+            alloc_qs = alloc_qs.filter(allocation_date__gte=start_date)
+        if end_date:
+            alloc_qs = alloc_qs.filter(allocation_date__lte=end_date)
+        if organization_id:
+            alloc_qs = alloc_qs.filter(organization_id=organization_id)
+        if project_id:
+            alloc_qs = alloc_qs.filter(project_id=project_id)
+
+        cons_qs = BudgetTransaction.objects.filter(transaction_type='CONSUMPTION')
+        ret_qs = BudgetTransaction.objects.filter(transaction_type='RETURN')
+        if start_date:
+            cons_qs = cons_qs.filter(timestamp__date__gte=start_date)
+            ret_qs = ret_qs.filter(timestamp__date__gte=start_date)
+        if end_date:
+            cons_qs = cons_qs.filter(timestamp__date__lte=end_date)
+            ret_qs = ret_qs.filter(timestamp__date__lte=end_date)
+        if organization_id:
+            cons_qs = cons_qs.filter(allocation__organization_id=organization_id)
+            ret_qs = ret_qs.filter(allocation__organization_id=organization_id)
+        if project_id:
+            cons_qs = cons_qs.filter(allocation__project_id=project_id)
+            ret_qs = ret_qs.filter(allocation__project_id=project_id)
+
+        # Monthly series for last periods
+        monthly_cons = list(cons_qs.extra(select={'month': "DATE_FORMAT(timestamp, '%%Y-%%m-01')"}).values('month').annotate(total=Sum('amount'), count=Count('id')).order_by('month'))
+        monthly_ret  = list(ret_qs.extra(select={'month': "DATE_FORMAT(timestamp, '%%Y-%%m-01')"}).values('month').annotate(total=Sum('amount'), count=Count('id')).order_by('month'))
+
+        def calc_change(series):
+            # series: [{'month': 'YYYY-MM-01', 'total': X}]
+            if not series:
+                return {'mom_pct': 0.0, 'yoy_pct': 0.0}
+            try:
+                last = series[-1]
+                # find previous month
+                from datetime import datetime
+                cur = datetime.strptime(last['month'], '%Y-%m-%d')
+                pm_y = cur.year if cur.month > 1 else cur.year - 1
+                pm_m = cur.month - 1 if cur.month > 1 else 12
+                prev_month_key = f"{pm_y:04d}-{pm_m:02d}-01"
+                prev_month = next((x for x in series if x['month'] == prev_month_key), None)
+                mom = ((float(last.get('total') or 0) - float(prev_month.get('total') or 0)) / float(prev_month.get('total') or 1) * 100.0) if prev_month else 0.0
+                # year over year
+                yoy_key = f"{cur.year-1:04d}-{cur.month:02d}-01"
+                prev_year = next((x for x in series if x['month'] == yoy_key), None)
+                yoy = ((float(last.get('total') or 0) - float(prev_year.get('total') or 0)) / float(prev_year.get('total') or 1) * 100.0) if prev_year else 0.0
+                return {'mom_pct': mom, 'yoy_pct': yoy}
+            except Exception:
+                return {'mom_pct': 0.0, 'yoy_pct': 0.0}
+
+        changes = {
+            'consumption': calc_change(monthly_cons),
+            'returns': calc_change(monthly_ret),
+        }
+
+        # Rankings by organization
+        org_alloc = alloc_qs.values('organization__name').annotate(allocated=Sum('allocated_amount'))
+        org_alloc_map = {x['organization__name']: float(x['allocated'] or 0) for x in org_alloc}
+        org_cons = cons_qs.values('allocation__organization__name').annotate(total=Sum('amount')).order_by('-total')
+        org_ret  = ret_qs.values('allocation__organization__name').annotate(total=Sum('amount')).order_by('-total')
+        org_map_con = {x['allocation__organization__name']: float(x['total'] or 0) for x in org_cons}
+        org_map_ret = {x['allocation__organization__name']: float(x['total'] or 0) for x in org_ret}
+        org_names = list(set(list(org_alloc_map.keys()) + list(org_map_con.keys()) + list(org_map_ret.keys())))
+        org_rank = []
+        for n in org_names:
+            alloc = org_alloc_map.get(n, 0.0)
+            cons = org_map_con.get(n, 0.0)
+            retn = org_map_ret.get(n, 0.0)
+            eff = (cons / alloc * 100.0) if alloc > 0 else 0.0
+            org_rank.append({'name': n or 'نامشخص', 'allocated': alloc, 'consumption': cons, 'returns': retn, 'efficiency_pct': eff})
+        org_rank = sorted(org_rank, key=lambda x: x['consumption'], reverse=True)[:10]
+
+        # Rankings by project
+        proj_alloc = alloc_qs.values('project__name').annotate(allocated=Sum('allocated_amount'))
+        proj_alloc_map = {x['project__name']: float(x['allocated'] or 0) for x in proj_alloc}
+        proj_cons = cons_qs.values('allocation__project__name').annotate(total=Sum('amount')).order_by('-total')
+        proj_ret  = ret_qs.values('allocation__project__name').annotate(total=Sum('amount')).order_by('-total')
+        proj_map_con = {x['allocation__project__name']: float(x['total'] or 0) for x in proj_cons}
+        proj_map_ret = {x['allocation__project__name']: float(x['total'] or 0) for x in proj_ret}
+        proj_names = list(set(list(proj_alloc_map.keys()) + list(proj_map_con.keys()) + list(proj_map_ret.keys())))
+        proj_rank = []
+        for n in proj_names:
+            alloc = proj_alloc_map.get(n, 0.0)
+            cons = proj_map_con.get(n, 0.0)
+            retn = proj_map_ret.get(n, 0.0)
+            eff = (cons / alloc * 100.0) if alloc > 0 else 0.0
+            proj_rank.append({'name': n or 'نامشخص', 'allocated': alloc, 'consumption': cons, 'returns': retn, 'efficiency_pct': eff})
+        proj_rank = sorted(proj_rank, key=lambda x: x['consumption'], reverse=True)[:10]
+
+        return {
+            'monthly': {
+                'consumption': monthly_cons,
+                'returns': monthly_ret,
+            },
+            'changes': changes,
+            'rankings': {
+                'organizations': org_rank,
+                'projects': proj_rank,
+            }
+        }
+
+    def get_advanced_risk_metrics(self, start_date=None, end_date=None, organization_id=None, project_id=None,
+                                   overconsumption_threshold_pct: float = 90.0,
+                                   long_cycle_days: int = 30,
+                                   spike_threshold_pct: float = 100.0):
+        """محاسبه ریسک‌ها: اضافه‌مصرف، برگشت بالا، تأخیر، تمرکز، الگوهای غیرعادی."""
+        # Filters
+        alloc_qs = BudgetAllocation.objects.all()
+        if start_date:
+            alloc_qs = alloc_qs.filter(allocation_date__gte=start_date)
+        if end_date:
+            alloc_qs = alloc_qs.filter(allocation_date__lte=end_date)
+        if organization_id:
+            alloc_qs = alloc_qs.filter(organization_id=organization_id)
+        if project_id:
+            alloc_qs = alloc_qs.filter(project_id=project_id)
+
+        cons_qs = BudgetTransaction.objects.filter(transaction_type='CONSUMPTION')
+        ret_qs = BudgetTransaction.objects.filter(transaction_type='RETURN')
+        if start_date:
+            cons_qs = cons_qs.filter(timestamp__date__gte=start_date)
+            ret_qs = ret_qs.filter(timestamp__date__gte=start_date)
+        if end_date:
+            cons_qs = cons_qs.filter(timestamp__date__lte=end_date)
+            ret_qs = ret_qs.filter(timestamp__date__lte=end_date)
+        if organization_id:
+            cons_qs = cons_qs.filter(allocation__organization_id=organization_id)
+            ret_qs = ret_qs.filter(allocation__organization_id=organization_id)
+        if project_id:
+            cons_qs = cons_qs.filter(allocation__project_id=project_id)
+            ret_qs = ret_qs.filter(allocation__project_id=project_id)
+
+        # Overconsumption risk per allocation
+        cons_by_alloc = cons_qs.values('allocation_id').annotate(total=Sum('amount'))
+        alloc_map = {a.id: float(a.allocated_amount) for a in alloc_qs.only('id', 'allocated_amount')}
+        overconsumption = []
+        for row in cons_by_alloc:
+            alloc_id = row['allocation_id']
+            allocated = alloc_map.get(alloc_id, 0.0)
+            consumed = float(row['total'] or 0)
+            pct = (consumed / allocated * 100.0) if allocated > 0 else 0.0
+            if pct >= overconsumption_threshold_pct or consumed > allocated:
+                overconsumption.append({'allocation_id': alloc_id, 'consumed': consumed, 'allocated': allocated, 'pct': pct})
+        overconsumption = sorted(overconsumption, key=lambda x: x['pct'], reverse=True)[:10]
+
+        # High return ratio by org/project
+        org_alloc = alloc_qs.values('organization__name').annotate(allocated=Sum('allocated_amount'))
+        org_alloc_map = {x['organization__name'] or 'نامشخص': float(x['allocated'] or 0) for x in org_alloc}
+        org_ret = ret_qs.values('allocation__organization__name').annotate(total=Sum('amount'))
+        high_return_org = []
+        for x in org_ret:
+            name = x['allocation__organization__name'] or 'نامشخص'
+            alloc = org_alloc_map.get(name, 0.0)
+            total = float(x['total'] or 0)
+            ratio = (total / alloc * 100.0) if alloc > 0 else 0.0
+            high_return_org.append({'organization': name, 'return_amount': total, 'allocated': alloc, 'ratio_pct': ratio})
+        high_return_org = sorted(high_return_org, key=lambda x: x['ratio_pct'], reverse=True)[:10]
+
+        proj_alloc = alloc_qs.values('project__name').annotate(allocated=Sum('allocated_amount'))
+        proj_alloc_map = {x['project__name'] or 'نامشخص': float(x['allocated'] or 0) for x in proj_alloc}
+        proj_ret = ret_qs.values('allocation__project__name').annotate(total=Sum('amount'))
+        high_return_project = []
+        for x in proj_ret:
+            name = x['allocation__project__name'] or 'نامشخص'
+            alloc = proj_alloc_map.get(name, 0.0)
+            total = float(x['total'] or 0)
+            ratio = (total / alloc * 100.0) if alloc > 0 else 0.0
+            high_return_project.append({'project': name, 'return_amount': total, 'allocated': alloc, 'ratio_pct': ratio})
+        high_return_project = sorted(high_return_project, key=lambda x: x['ratio_pct'], reverse=True)[:10]
+
+        # Delay risk: long factor cycles and tankhah settlements
+        po_factors = PaymentOrder.objects.filter(payment_date__isnull=False)
+        if organization_id:
+            po_factors = po_factors.filter(organization_id=organization_id)
+        if project_id:
+            po_factors = po_factors.filter(project_id=project_id)
+        long_cycles = []
+        for po in po_factors.values('payment_date', 'related_factors__id', 'related_factors__created_at', 'related_factors__number'):
+            try:
+                created = po['related_factors__created_at']
+                if hasattr(created, 'date'):
+                    created = created.date()
+                days = (po['payment_date'] - created).days
+                if days >= long_cycle_days:
+                    long_cycles.append({'factor_id': po['related_factors__id'], 'number': po['related_factors__number'], 'cycle_days': days})
+            except Exception:
+                continue
+        long_cycles = sorted(long_cycles, key=lambda x: x['cycle_days'], reverse=True)[:10]
+
+        # Concentration risk: payees concentration
+        payee_conc = PaymentOrder.objects.all()
+        if start_date:
+            payee_conc = payee_conc.filter(issue_date__gte=start_date)
+        if end_date:
+            payee_conc = payee_conc.filter(issue_date__lte=end_date)
+        if organization_id:
+            payee_conc = payee_conc.filter(organization_id=organization_id)
+        if project_id:
+            payee_conc = payee_conc.filter(project_id=project_id)
+        payee_totals = list(payee_conc.values('payee__id', 'payee__legal_name', 'payee__name').annotate(total=Sum('amount')).order_by('-total')[:10])
+
+        # Anomalies: spikes in consumption series
+        cons_series = list(cons_qs.extra(select={'month': "DATE_FORMAT(timestamp, '%%Y-%%m-01')"}).values('month').annotate(total=Sum('amount')).order_by('month'))
+        spikes = []
+        try:
+            last_val = None
+            last_month = None
+            for row in cons_series:
+                val = float(row['total'] or 0)
+                if last_val is not None and last_val > 0:
+                    pct = (val - last_val) / last_val * 100.0
+                    if pct >= spike_threshold_pct:
+                        spikes.append({'month': row['month'], 'increase_pct': pct})
+                last_val = val
+                last_month = row['month']
+        except Exception:
+            spikes = []
+
+        summary = {
+            'overconsumption_count': len(overconsumption),
+            'high_return_org_count': len(high_return_org),
+            'high_return_project_count': len(high_return_project),
+            'long_cycles_count': len(long_cycles),
+            'payee_concentration_count': len(payee_totals),
+            'spike_count': len(spikes),
+        }
+
+        return {
+            'summary': summary,
+            'overconsumption': overconsumption,
+            'high_return_org': high_return_org,
+            'high_return_project': high_return_project,
+            'long_cycles': long_cycles,
+            'payee_concentration': payee_totals,
+            'spikes': spikes,
+            'params': {
+                'overconsumption_threshold_pct': overconsumption_threshold_pct,
+                'long_cycle_days': long_cycle_days,
+                'spike_threshold_pct': spike_threshold_pct,
+            }
         }
 
     def get_advanced_budget_metrics(self, start_date=None, end_date=None, organization_id=None, project_id=None):

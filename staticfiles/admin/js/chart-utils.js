@@ -11,7 +11,7 @@ const CHART_DEFAULTS = {
         legend: {
             labels: {
                 font: {
-                    family: 'Vazirmatn, sans-serif'
+                    family: 'Parastoo, sans-serif'
                 },
                 padding: 20,
                 usePointStyle: true
@@ -26,7 +26,7 @@ const CHART_DEFAULTS = {
             cornerRadius: 6,
             displayColors: true,
             font: {
-                family: 'Vazirmatn, sans-serif'
+                family: 'Parastoo, sans-serif'
             }
         }
     },
@@ -316,6 +316,7 @@ window.ChartUtils = {
     createLineChart,
     createBarChart,
     createPieChart,
+    // removed adaptive chart and 3d controls
     formatNumber,
     formatCurrency,
     getColorFromPalette,
@@ -325,3 +326,8 @@ window.ChartUtils = {
     CHART_DEFAULTS,
     COLOR_PALETTES
 };
+
+/**
+ * Determine current chart mode from global selector
+ */
+// removed adaptive chart implementation
