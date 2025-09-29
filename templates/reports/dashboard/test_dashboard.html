@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تست داشبورد</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1>تست داشبورد</h1>
+        
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>اطلاعات Debug</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="debug-info">
+                            <p>در حال بارگذاری...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>نمودار تست</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="testChart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.min.js"></script>
+    <script>
+        // تست بارگذاری Chart.js
+        console.log('Chart.js loaded:', typeof Chart !== 'undefined');
+        
+        // دریافت داده‌های debug
+        fetch('/reports/dashboard/debug-data/')
+            .then(response => response.json())
+            .then(data => {
+                console.log('Debug data received:', data);
+                
+                // نمایش اطلاعات debug
+                const debugInfo = document.getElementById('debug-info');
+                debugInfo.innerHTML = `
+                    <p><strong>کل بودجه:</strong> ${data.total_budget || 0}</p>
+                    <p><strong>کل تخصیص:</strong> ${data.total_allocated || 0}</p>
+                    <p><strong>تعداد سازمان‌ها:</strong> ${data.org_budget_count || 0}</p>
+                    <p><strong>تعداد ماه‌های مصرف:</strong> ${data.monthly_consumption_count || 0}</p>
+                    <p><strong>تعداد وضعیت‌های تنخواه:</strong> ${data.tankhah_status_count || 0}</p>
+                    <p><strong>تعداد دسته‌بندی‌های فاکتور:</strong> ${data.factor_category_count || 0}</p>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+                
+                // ایجاد نمودار تست
+                if (data.chart_data && data.chart_data.org_budget && data.chart_data.org_budget.length > 0) {
+                    const ctx = document.getElementById('testChart').getContext('2d');
+                    new Chart(ctx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: data.chart_data.org_budget.map(item => item.organization__name || 'نامشخص'),
+                            datasets: [{
+                                data: data.chart_data.org_budget.map(item => item.total || 0),
+                                backgroundColor: [
+                                    '#FF6384',
+                                    '#36A2EB',
+                                    '#FFCE56',
+                                    '#4BC0C0',
+                                    '#9966FF'
+                                ]
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: {
+                                    position: 'bottom'
+                                }
+                            }
+                        }
+                    });
+                } else {
+                    document.getElementById('testChart').parentElement.innerHTML = '<p class="text-muted">داده‌ای برای نمایش وجود ندارد</p>';
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching debug data:', error);
+                document.getElementById('debug-info').innerHTML = `<p class="text-danger">خطا: ${error.message}</p>`;
+            });
+    </script>
+</body>
+</html>

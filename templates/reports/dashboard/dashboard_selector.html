@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>انتخاب داشبورد - سیستم بودجه</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Vazirmatn', sans-serif;
+        }
+        
+        .selector-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            margin: 50px auto;
+            padding: 50px;
+            max-width: 800px;
+        }
+        
+        .dashboard-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+        
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+            border-color: #667eea;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+        
+        .dashboard-card .icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            color: white;
+            margin: 0 auto 20px;
+        }
+        
+        .dashboard-card.original .icon { background: linear-gradient(45deg, #667eea, #764ba2); }
+        .dashboard-card.simple .icon { background: linear-gradient(45deg, #f093fb, #f5576c); }
+        .dashboard-card.analytics .icon { background: linear-gradient(45deg, #4facfe, #00f2fe); }
+        .dashboard-card.test .icon { background: linear-gradient(45deg, #43e97b, #38f9d7); }
+        
+        .dashboard-card h3 {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #2d3748;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .dashboard-card p {
+            color: #718096;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+        
+        .status-working { background: #d4edda; color: #155724; }
+        .status-testing { background: #fff3cd; color: #856404; }
+        .status-new { background: #cce5ff; color: #004085; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="selector-container">
+            <div class="text-center mb-5">
+                <h1 class="display-4 fw-bold text-primary">انتخاب داشبورد</h1>
+                <p class="lead text-muted">یکی از داشبوردهای زیر را انتخاب کنید</p>
+            </div>
+            
+            <div class="row">
+                <!-- داشبورد اصلی -->
+                <div class="col-lg-6 mb-4">
+                    <div class="dashboard-card original" onclick="goToDashboard('main')">
+                        <div class="icon">
+                            <i class="fas fa-tachometer-alt"></i>
+                        </div>
+                        <h3>داشبورد اصلی</h3>
+                        <p>داشبورد کامل با تمام ویژگی‌ها و نمودارهای پیشرفته</p>
+                        <div class="text-center">
+                            <span class="status-badge status-testing">در حال تست</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- داشبورد ساده -->
+                <div class="col-lg-6 mb-4">
+                    <div class="dashboard-card simple" onclick="goToDashboard('simple')">
+                        <div class="icon">
+                            <i class="fas fa-chart-pie"></i>
+                        </div>
+                        <h3>داشبورد ساده</h3>
+                        <p>داشبورد بهینه‌شده با طراحی مدرن و عملکرد بهتر</p>
+                        <div class="text-center">
+                            <span class="status-badge status-new">جدید</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- تحلیل‌های اصلی -->
+                <div class="col-lg-6 mb-4">
+                    <div class="dashboard-card analytics" onclick="goToDashboard('analytics')">
+                        <div class="icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <h3>تحلیل‌های پیشرفته</h3>
+                        <p>صفحه تحلیل‌های کامل با جداول و نمودارهای تفصیلی</p>
+                        <div class="text-center">
+                            <span class="status-badge status-testing">در حال تست</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- تحلیل‌های ساده -->
+                <div class="col-lg-6 mb-4">
+                    <div class="dashboard-card analytics" onclick="goToDashboard('simple-analytics')">
+                        <div class="icon">
+                            <i class="fas fa-analytics"></i>
+                        </div>
+                        <h3>تحلیل‌های ساده</h3>
+                        <p>صفحه تحلیل‌های بهینه‌شده با طراحی مدرن</p>
+                        <div class="text-center">
+                            <span class="status-badge status-new">جدید</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- تست -->
+                <div class="col-lg-6 mb-4">
+                    <div class="dashboard-card test" onclick="goToDashboard('test')">
+                        <div class="icon">
+                            <i class="fas fa-flask"></i>
+                        </div>
+                        <h3>صفحه تست</h3>
+                        <p>صفحه تست برای بررسی داده‌ها و عملکرد سیستم</p>
+                        <div class="text-center">
+                            <span class="status-badge status-working">کار می‌کند</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Debug Data -->
+                <div class="col-lg-6 mb-4">
+                    <div class="dashboard-card test" onclick="goToDashboard('debug')">
+                        <div class="icon">
+                            <i class="fas fa-bug"></i>
+                        </div>
+                        <h3>داده‌های Debug</h3>
+                        <p>نمایش داده‌های خام برای بررسی و عیب‌یابی</p>
+                        <div class="text-center">
+                            <span class="status-badge status-working">کار می‌کند</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Chart Test -->
+                <div class="col-lg-6 mb-4">
+                    <div class="dashboard-card test" onclick="goToDashboard('chart-test')">
+                        <div class="icon">
+                            <i class="fas fa-chart-bar"></i>
+                        </div>
+                        <h3>تست چارت کامل</h3>
+                        <p>تست کامل چارت‌ها با دکمه‌های تعاملی</p>
+                        <div class="text-center">
+                            <span class="status-badge status-new">جدید</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Simple Chart Test -->
+                <div class="col-lg-6 mb-4">
+                    <div class="dashboard-card test" onclick="goToDashboard('simple-chart-test')">
+                        <div class="icon">
+                            <i class="fas fa-chart-pie"></i>
+                        </div>
+                        <h3>تست چارت ساده</h3>
+                        <p>تست ساده چارت مثل URL یاد شده</p>
+                        <div class="text-center">
+                            <span class="status-badge status-new">جدید</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Minimal Chart Test -->
+                <div class="col-lg-6 mb-4">
+                    <div class="dashboard-card test" onclick="goToDashboard('minimal-chart-test')">
+                        <div class="icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <h3>تست حداقلی چارت</h3>
+                        <p>تست بسیار ساده برای بررسی Chart.js</p>
+                        <div class="text-center">
+                            <span class="status-badge status-new">جدید</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="text-center mt-5">
+                <p class="text-muted">
+                    <i class="fas fa-info-circle me-2"></i>
+                    برای بهترین تجربه، از داشبوردهای "ساده" استفاده کنید
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function goToDashboard(type) {
+            const urls = {
+                'main': '/reports/dashboard/',
+                'simple': '/reports/dashboard/simple/',
+                'analytics': '/reports/dashboard/analytics/',
+                'simple-analytics': '/reports/dashboard/simple-analytics/',
+                'test': '/reports/dashboard/test/',
+                'debug': '/reports/dashboard/debug-data/',
+                'chart-test': '/reports/dashboard/chart-test/',
+                'simple-chart-test': '/reports/dashboard/simple-chart-test/',
+                'minimal-chart-test': '/reports/dashboard/minimal-chart-test/'
+            };
+            
+            if (urls[type]) {
+                window.location.href = urls[type];
+            } else {
+                console.error('Unknown dashboard type:', type);
+            }
+        }
+        
+        // اضافه کردن انیمیشن hover
+        document.addEventListener('DOMContentLoaded', function() {
+            const cards = document.querySelectorAll('.dashboard-card');
+            cards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-5px) scale(1.02)';
+                });
+                
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0) scale(1)';
+                });
+            });
+        });
+    </script>
+</body>
+</html>

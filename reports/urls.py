@@ -58,12 +58,16 @@ from reports.TransitionAccess.export_views import (
 from reports.views_staff_api_docs import StaffAPIDocumentationView
 from reports.dashboard.urls import urlpatterns as dashboard_urls
 from reports.api.urls import urlpatterns as api_urls
+from reports.api import simple_views
 
 urlpatterns += [
     # Dashboard Reports
     path('dashboard/', include('reports.dashboard.urls')),
     # API endpoints
     path('api/', include('reports.api.urls')),
+    # Simple API endpoints for testing
+    path('test-api/organizations/', simple_views.simple_organizations_api, name='test_organizations'),
+    path('test-api/projects/', simple_views.simple_projects_api, name='test_projects'),
     # گزارش دسترسی‌های کاربر
     path(
         'user-permissions/',

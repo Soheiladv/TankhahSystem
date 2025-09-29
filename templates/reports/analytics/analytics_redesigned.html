@@ -1,0 +1,432 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}تحلیل‌های پیشرفته بودجه - نسخه بازطراحی{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'admin/css/chart-fixes.css' %}" rel="stylesheet">
+<style>
+        body { background: #f8fafc; font-family: Vazirmatn, Arial, sans-serif; }
+        .page-header { padding: 24px 0; }
+        .metric-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px; height: 100%; }
+        .metric-label { color: #64748b; font-size: 0.95rem; }
+        .metric-value { font-size: 1.8rem; font-weight: 800; color: #0f172a; }
+        .muted { color: #94a3b8; }
+        .chart-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; height: 100%; }
+        .chart-title { font-weight: 700; color: #0f172a; margin-bottom: 8px; }
+        .chart-subtitle { color: #64748b; font-size: 0.9rem; margin-bottom: 8px; }
+        .empty-state { text-align: center; color: #94a3b8; padding: 40px 0; }
+        .table-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; }
+        .badge-soft { background: #eef2ff; color: #4338ca; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="page-header d-flex align-items-center justify-content-between">
+        <div>
+            <h2 class="fw-bold mb-1">تحلیل‌های پیشرفته بودجه</h2>
+            <div class="muted">نسخه بازطراحی شده با تمرکز بر پایداری و سادگی</div>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'reports_dashboard:main_dashboard' %}" class="btn btn-outline-secondary"><i class="fa fa-arrow-right ms-1"></i>داشبورد</a>
+        </div>
+    </div>
+
+    <form method="get" class="mb-3">
+        <div class="row g-2 align-items-end">
+            <div class="col-6 col-md-3">
+                <label class="form-label">تاریخ شروع</label>
+                <input type="text" class="form-control" data-jdp name="start_date" value="{{ request.GET.start_date }}" placeholder="YYYY/MM/DD">
+            </div>
+            <div class="col-6 col-md-3">
+                <label class="form-label">تاریخ پایان</label>
+                <input type="text" class="form-control" data-jdp name="end_date" value="{{ request.GET.end_date }}" placeholder="YYYY/MM/DD">
+            </div>
+            <div class="col-6 col-md-3">
+                <label class="form-label">سازمان</label>
+                <select class="form-select" name="organization" id="filterOrganization">
+                    <option value="">همه</option>
+                    {% for org in organizations %}
+                    <option value="{{ org.id }}" {% if request.GET.organization == org.id|stringformat:'s' %}selected{% endif %}>{{ org.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-6 col-md-3">
+                <label class="form-label">پروژه</label>
+                <select class="form-select" name="project" id="filterProject">
+                    <option value="">همه</option>
+                    {% for p in projects %}
+                    <option value="{{ p.id }}" {% if request.GET.project == p.id|stringformat:'s' %}selected{% endif %}>{{ p.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="row g-2 align-items-end mt-2">
+            <div class="col-12 col-md-3">
+                <label class="form-label">مقایسه - تاریخ شروع</label>
+                <input type="text" class="form-control" data-jdp name="compare_start_date" value="{{ request.GET.compare_start_date }}" placeholder="YYYY/MM/DD">
+            </div>
+            <div class="col-12 col-md-3">
+                <label class="form-label">مقایسه - تاریخ پایان</label>
+                <input type="text" class="form-control" data-jdp name="compare_end_date" value="{{ request.GET.compare_end_date }}" placeholder="YYYY/MM/DD">
+            </div>
+            <div class="col-12 col-md-3">
+                <label class="form-label">مقایسه - سازمان</label>
+                <select class="form-select" name="compare_organization" id="compareOrganization">
+                    <option value="">همه</option>
+                    {% for org in organizations %}
+                    <option value="{{ org.id }}" {% if request.GET.compare_organization == org.id|stringformat:'s' %}selected{% endif %}>{{ org.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-12 col-md-3">
+                <label class="form-label">مقایسه - پروژه</label>
+                <select class="form-select" name="compare_project" id="compareProject">
+                    <option value="">همه</option>
+                    {% for p in projects %}
+                    <option value="{{ p.id }}" {% if request.GET.compare_project == p.id|stringformat:'s' %}selected{% endif %}>{{ p.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="row mt-3 align-items-end">
+            <div class="col-12 col-md-4">
+                <label class="form-label">نمودار مقایسه</label>
+                <select class="form-select" id="compareChartType">
+                    <option value="none">بدون مقایسه</option>
+                    <option value="distribution">توزیع (نمایش اختلاف درصد)</option>
+                    <option value="consumption">روند مصرف (افزودن سری مقایسه)</option>
+                    <option value="return">روند برگشت (افزودن سری مقایسه)</option>
+                </select>
+            </div>
+            <div class="col-12 col-md-8 text-center">
+                <button class="btn btn-primary me-2" type="submit"><i class="fa fa-search ms-1"></i>اعمال فیلتر</button>
+                <a href="{{ request.path }}" class="btn btn-secondary"><i class="fa fa-undo ms-1"></i>پاک کردن</a>
+            </div>
+        </div>
+    </form>
+
+    <div class="row g-3 mb-3">
+        <div class="col-12 col-sm-6 col-lg-3">
+            <div class="metric-card">
+                <div class="metric-label mb-1"><i class="fa fa-layer-group ms-1"></i>کل تخصیص</div>
+                <div class="metric-value" id="mTotalAllocated">0</div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-lg-3">
+            <div class="metric-card">
+                <div class="metric-label mb-1"><i class="fa fa-receipt ms-1"></i>کل مصرف</div>
+                <div class="metric-value" id="mTotalConsumed">0</div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-lg-3">
+            <div class="metric-card">
+                <div class="metric-label mb-1"><i class="fa fa-rotate-left ms-1"></i>کل برگشت</div>
+                <div class="metric-value" id="mTotalReturned">0</div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-lg-3">
+            <div class="metric-card">
+                <div class="metric-label mb-1"><i class="fa fa-vault ms-1"></i>باقی‌مانده</div>
+                <div class="metric-value" id="mRemaining">0</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-3">
+        <div class="col-12 col-xl-4">
+            <div class="chart-card">
+                <div class="chart-title">توزیع بودجه (تخصیص/مصرف/برگشت)</div>
+                <div class="chart-subtitle" id="distributionSubtitle">نمای کلی سه وضعیت اصلی</div>
+                <div id="emptyBudgetDist" class="empty-state d-none">داده‌ای برای نمایش وجود ندارد</div>
+                <canvas id="budgetDistributionChart" height="260"></canvas>
+            </div>
+        </div>
+        <div class="col-12 col-xl-4">
+            <div class="chart-card">
+                <div class="chart-title">روند مصرف بودجه</div>
+                <div class="chart-subtitle">تجمع ماهانه</div>
+                <div id="emptyConsumption" class="empty-state d-none">داده‌ای برای نمایش وجود ندارد</div>
+                <canvas id="consumptionTrendChart" height="260"></canvas>
+            </div>
+        </div>
+        <div class="col-12 col-xl-4">
+            <div class="chart-card">
+                <div class="chart-title">روند برگشت بودجه</div>
+                <div class="chart-subtitle">تجمع ماهانه</div>
+                <div id="emptyReturn" class="empty-state d-none">داده‌ای برای نمایش وجود ندارد</div>
+                <canvas id="returnTrendChart" height="260"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-lg-6">
+            <div class="table-card">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <div class="chart-title m-0">دلایل برگشت</div>
+                    <span class="badge badge-soft" id="reasonsTotal">0</span>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-striped align-middle">
+                        <thead>
+                            <tr>
+                                <th>دلیل</th>
+                                <th class="text-center">تعداد</th>
+                                <th class="text-end">مبلغ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="reasonsBody">
+                            <tr><td colspan="3" class="text-center muted">داده‌ای برای نمایش وجود ندارد</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-lg-6">
+            <div class="table-card">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <div class="chart-title m-0">برگشت بر اساس سازمان</div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-striped align-middle">
+                        <thead>
+                            <tr>
+                                <th>سازمان</th>
+                                <th class="text-center">تعداد</th>
+                                <th class="text-end">مبلغ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="orgBody">
+                            <tr><td colspan="3" class="text-center muted">داده‌ای برای نمایش وجود ندارد</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'admin/js/chart.umd.min.js' %}"></script>
+<script src="{% static 'admin/js/chart-utils.js' %}"></script>
+<script>
+    var budgetAnalysis = {{ budget_analysis|default:"{}"|safe }};
+    var returnAnalysis = {{ return_analysis|default:"{}"|safe }};
+    var trendAnalysis  = {{ trend_analysis|default:"{}"|safe }};
+    var budgetAnalysisCompare = {{ budget_analysis_compare|default:"{}"|safe }};
+    var returnAnalysisCompare = {{ return_analysis_compare|default:"{}"|safe }};
+    var trendAnalysisCompare  = {{ trend_analysis_compare|default:"{}"|safe }};
+
+    function fmt(num){ try { return new Intl.NumberFormat('fa-IR').format(Number(num||0)); } catch(e){ return num||0; } }
+    function safeArr(a){ return Array.isArray(a) ? a : []; }
+    function byId(id){ return document.getElementById(id); }
+    function showEmpty(id, show){ const el = byId(id); if (!el) return; el.classList.toggle('d-none', !show); }
+
+    let consumptionChartInstance = null;
+    let returnChartInstance = null;
+
+    async function loadProjectsForOrg(orgSelectId, projectSelectId) {
+        try {
+            const orgId = document.getElementById(orgSelectId).value;
+            const projectSelect = document.getElementById(projectSelectId);
+            if (!projectSelect) return;
+            projectSelect.innerHTML = '<option value="">همه</option>';
+            if (!orgId) return;
+            const resp = await fetch('{% url "reports_dashboard:api_projects_by_org" %}?organization=' + encodeURIComponent(orgId));
+            const data = await resp.json();
+            (data.results || []).forEach(function(p){
+                const opt = document.createElement('option');
+                opt.value = p.id; opt.textContent = p.name;
+                projectSelect.appendChild(opt);
+            });
+        } catch(e) { console.warn('loadProjectsForOrg error', e); }
+    }
+
+    document.addEventListener('DOMContentLoaded', function(){
+        // Dependent projects
+        const orgSel = document.getElementById('filterOrganization');
+        const cmpOrgSel = document.getElementById('compareOrganization');
+        if (orgSel) orgSel.addEventListener('change', function(){ loadProjectsForOrg('filterOrganization','filterProject'); });
+        if (cmpOrgSel) cmpOrgSel.addEventListener('change', function(){ loadProjectsForOrg('compareOrganization','compareProject'); });
+
+        const alloc = Number(budgetAnalysis.total_allocated||0);
+        const cons  = Number(budgetAnalysis.total_consumed||0);
+        const ret   = Number(budgetAnalysis.total_returned||0);
+        const rem   = (alloc - cons + ret);
+        byId('mTotalAllocated').textContent = fmt(alloc);
+        byId('mTotalConsumed').textContent = fmt(cons);
+        byId('mTotalReturned').textContent = fmt(ret);
+        byId('mRemaining').textContent = fmt(rem);
+
+        if (typeof Chart === 'undefined') {
+            console.error('Chart is not loaded');
+            showEmpty('emptyBudgetDist', true);
+            showEmpty('emptyConsumption', true);
+            showEmpty('emptyReturn', true);
+            return;
+        }
+
+        // Distribution
+        (function(){
+            const hasAny = (alloc+cons+ret) > 0;
+            showEmpty('emptyBudgetDist', !hasAny);
+            const ctx = document.getElementById('budgetDistributionChart');
+            if (!ctx || !hasAny) return;
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['تخصیص','مصرف','برگشت'],
+                    datasets: [{
+                        data: [alloc, cons, ret],
+                        backgroundColor: ['#3b82f6','#ef4444','#22c55e'],
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: { responsive: true, plugins:{ legend:{ position:'bottom' } } }
+            });
+
+            // Write compare percentages if available
+            try {
+                const allocC = Number((budgetAnalysisCompare && budgetAnalysisCompare.total_allocated) || 0);
+                const consC  = Number((budgetAnalysisCompare && budgetAnalysisCompare.total_consumed) || 0);
+                if (allocC + consC > 0) {
+                    const basePct = alloc > 0 ? (cons/alloc*100) : 0;
+                    const cmpPct  = allocC > 0 ? (consC/allocC*100) : 0;
+                    const diff = (cmpPct - basePct).toFixed(1);
+                    const sub = byId('distributionSubtitle');
+                    if (sub) sub.textContent = 'نرخ مصرف: ' + basePct.toFixed(1) + '% | مقایسه: ' + cmpPct.toFixed(1) + '% (' + (diff>=0?'+':'') + diff + '%)';
+                }
+            } catch(e){}
+        })();
+
+        // Consumption trend
+        (function(){
+            const data = safeArr(trendAnalysis.consumption_trend);
+            const hasAny = data.length > 0;
+            showEmpty('emptyConsumption', !hasAny);
+            const ctx = document.getElementById('consumptionTrendChart');
+            if (!ctx || !hasAny) return;
+            consumptionChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.map(x=> new Date(x.month).toLocaleDateString('fa-IR')),
+                    datasets: [{
+                        label: 'مصرف',
+                        data: data.map(x=> Number(x.total||0)),
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59,130,246,0.12)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.35
+                    }]
+                },
+                options: { responsive: true, plugins:{ legend:{ display:true } }, scales:{ y:{ beginAtZero:true } } }
+            });
+        })();
+
+        // Return trend
+        (function(){
+            const data = safeArr(trendAnalysis.return_trend);
+            const hasAny = data.length > 0;
+            showEmpty('emptyReturn', !hasAny);
+            const ctx = document.getElementById('returnTrendChart');
+            if (!ctx || !hasAny) return;
+            returnChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.map(x=> new Date(x.month).toLocaleDateString('fa-IR')),
+                    datasets: [{
+                        label: 'برگشت',
+                        data: data.map(x=> Number(x.total||0)),
+                        borderColor: '#22c55e',
+                        backgroundColor: 'rgba(34,197,94,0.12)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.35
+                    }]
+                },
+                options: { responsive: true, plugins:{ legend:{ display:true } }, scales:{ y:{ beginAtZero:true } } }
+            });
+        })();
+
+        // Tables
+        (function(){
+            const reasons = safeArr(returnAnalysis.reason_stats);
+            const reasonsBody = byId('reasonsBody');
+            const totalAmt = Number((returnAnalysis.stats && returnAnalysis.stats.total_amount) || 0);
+            byId('reasonsTotal').textContent = fmt(totalAmt);
+            if (reasons.length === 0) return;
+            reasonsBody.innerHTML = reasons.map(r => `
+                <tr>
+                    <td>${r.description || 'نامشخص'}</td>
+                    <td class="text-center"><span class="badge bg-primary">${Number(r.count||0)}</span></td>
+                    <td class="text-end">${fmt(r.total||0)}</td>
+                </tr>
+            `).join('');
+        })();
+
+        (function(){
+            const orgs = safeArr(returnAnalysis.org_returns);
+            const orgBody = byId('orgBody');
+            if (orgs.length === 0) return;
+            orgBody.innerHTML = orgs.map(o => `
+                <tr>
+                    <td>${o.allocation__organization__name || 'نامشخص'}</td>
+                    <td class="text-center"><span class="badge bg-secondary">${Number(o.count||0)}</span></td>
+                    <td class="text-end">${fmt(o.total_amount||0)}</td>
+                </tr>
+            `).join('');
+        })();
+
+        // Compare chart selector logic (overlay compare series on trends)
+        const selector = document.getElementById('compareChartType');
+        if (selector) {
+            selector.addEventListener('change', function(){
+                const val = this.value;
+                // Clear compare datasets first
+                try {
+                    if (consumptionChartInstance) {
+                        consumptionChartInstance.data.datasets = consumptionChartInstance.data.datasets.slice(0,1);
+                        if (val === 'consumption' && Array.isArray(trendAnalysisCompare?.consumption_trend)) {
+                            consumptionChartInstance.data.datasets.push({
+                                label: 'مصرف (مقایسه)',
+                                data: trendAnalysisCompare.consumption_trend.map(x=> Number(x.total||0)),
+                                borderColor: '#ef4444',
+                                backgroundColor: 'rgba(239,68,68,0.12)',
+                                borderWidth: 2,
+                                fill: false,
+                                tension: 0.35
+                            });
+                        }
+                        consumptionChartInstance.update();
+                    }
+                    if (returnChartInstance) {
+                        returnChartInstance.data.datasets = returnChartInstance.data.datasets.slice(0,1);
+                        if (val === 'return' && Array.isArray(trendAnalysisCompare?.return_trend)) {
+                            returnChartInstance.data.datasets.push({
+                                label: 'برگشت (مقایسه)',
+                                data: trendAnalysisCompare.return_trend.map(x=> Number(x.total||0)),
+                                borderColor: '#8b5cf6',
+                                backgroundColor: 'rgba(139,92,246,0.12)',
+                                borderWidth: 2,
+                                fill: false,
+                                tension: 0.35
+                            });
+                        }
+                        returnChartInstance.update();
+                    }
+
+                    // Distribution subtitle already shows diff; no overlaying chart for doughnut
+                } catch(e) { console.warn('compare overlay error', e); }
+            });
+        }
+    });
+</script>
+{% endblock %}
+
+
+

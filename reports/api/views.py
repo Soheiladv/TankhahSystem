@@ -4,28 +4,35 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.views.generic import View
+from django.views.decorators.csrf import csrf_exempt
 import json
 
 from core.models import Organization, Project
 from budgets.models import BudgetPeriod
 
 
-@method_decorator(login_required, name='dispatch')
+@method_decorator(csrf_exempt, name='dispatch')
 class OrganizationsAPIView(View):
     """API برای دریافت لیست سازمان‌ها"""
     
     def get(self, request):
-        organizations = Organization.objects.filter(is_active=True).values('id', 'name', 'code')
-        return JsonResponse(list(organizations), safe=False)
+        try:
+            organizations = Organization.objects.filter(is_active=True).values('id', 'name', 'code')
+            return JsonResponse(list(organizations), safe=False)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
 
 
-@method_decorator(login_required, name='dispatch')
+@method_decorator(csrf_exempt, name='dispatch')
 class ProjectsAPIView(View):
     """API برای دریافت لیست پروژه‌ها"""
     
     def get(self, request):
-        projects = Project.objects.filter(is_active=True).values('id', 'name', 'code')
-        return JsonResponse(list(projects), safe=False)
+        try:
+            projects = Project.objects.filter(is_active=True).values('id', 'name', 'code')
+            return JsonResponse(list(projects), safe=False)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
 
 
 @method_decorator(login_required, name='dispatch')

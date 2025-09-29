@@ -1981,3 +1981,560 @@ Traceback (most recent call last):
   File "D:\Python312\Lib\site-packages\django\http\request.py", line 151, in get_host
     raise DisallowedHost(msg)
 django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: 'testserver'. You may need to add 'testserver' to ALLOWED_HOSTS.
+ERROR 2025-09-29 07:18:51 log log_response Internal Server Error: /reports/dashboard/analytics/
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\core\handlers\base.py", line 220, in _get_response
+    response = response.render()
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\response.py", line 114, in render
+    self.content = self.rendered_content
+                   ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\response.py", line 92, in rendered_content
+    return template.render(context, self._request)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\backends\django.py", line 107, in render
+    return self.template.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 171, in render
+    return self._render(context)
+           ~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\loader_tags.py", line 159, in render
+    return compiled_parent._render(context)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\loader_tags.py", line 65, in render
+    result = block.nodelist.render(context)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\defaulttags.py", line 480, in render
+    url = reverse(view_name, args=args, kwargs=kwargs, current_app=current_app)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\base.py", line 88, in reverse
+    return resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\resolvers.py", line 831, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'api_organizations' not found. 'api_organizations' is not a valid view function or pattern name.
+ERROR 2025-09-29 07:18:51 basehttp log_message "GET /reports/dashboard/analytics/ HTTP/1.1" 500 218636
+ERROR 2025-09-29 08:59:20 log log_response Internal Server Error: /all_links/
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\core\handlers\base.py", line 220, in _get_response
+    response = response.render()
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\response.py", line 114, in render
+    self.content = self.rendered_content
+                   ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\response.py", line 92, in rendered_content
+    return template.render(context, self._request)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\backends\django.py", line 107, in render
+    return self.template.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 171, in render
+    return self._render(context)
+           ~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\loader_tags.py", line 159, in render
+    return compiled_parent._render(context)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\loader_tags.py", line 65, in render
+    result = block.nodelist.render(context)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\defaulttags.py", line 243, in render
+    nodelist.append(node.render_annotated(context))
+                    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\defaulttags.py", line 480, in render
+    url = reverse(view_name, args=args, kwargs=kwargs, current_app=current_app)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\base.py", line 88, in reverse
+    return resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\resolvers.py", line 831, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'dashboard' not found. 'dashboard' is not a valid view function or pattern name.
+ERROR 2025-09-29 08:59:20 basehttp log_message "GET /all_links/ HTTP/1.1" 500 213749
+ERROR 2025-09-29 09:33:55 log log_response Internal Server Error: /tankhah/factors/AdvanceFactorStatusReview/
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\__init__.py", line 2123, in get_prep_value
+    return int(value)
+ValueError: invalid literal for int() with base 10: 'APPROVED'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\core\PermissionBase.py", line 274, in dispatch
+    return super().dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\views\generic\base.py", line 143, in dispatch
+    return handler(request, *args, **kwargs)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\views\generic\list.py", line 154, in get
+    self.object_list = self.get_queryset()
+                       ~~~~~~~~~~~~~~~~~^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\FactorStatusReviewView.py", line 821, in get_queryset
+    ).annotate(
+      ~~~~~~~~^
+        total_items=Count('items'),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        pending_items_count=Count('items', filter=Q(items__status='PENDING')),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1630, in annotate
+    return self._annotate(args, kwargs, select=True)
+           ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1680, in _annotate
+    clone.query.add_annotation(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        annotation,
+        ^^^^^^^^^^^
+        alias,
+        ^^^^^^
+        select=select,
+        ^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1194, in add_annotation
+    annotation = annotation.resolve_expression(self, allow_joins=True, reuse=None)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\aggregates.py", line 65, in resolve_expression
+    c.filter.resolve_expression(query, allow_joins, reuse, summarize)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query_utils.py", line 90, in resolve_expression
+    clause, joins = query._add_q(
+                    ~~~~~~~~~~~~^
+        self,
+        ^^^^^
+    ...<4 lines>...
+        summarize=summarize,
+        ^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1641, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1555, in build_filter
+    condition = self.build_lookup(lookups, col, value)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1385, in build_lookup
+    lookup = lookup_class(lhs, rhs)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\lookups.py", line 30, in __init__
+    self.rhs = self.get_prep_lookup()
+               ~~~~~~~~~~~~~~~~~~~~^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_lookups.py", line 156, in get_prep_lookup
+    self.rhs = target_field.get_prep_value(self.rhs)
+               ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\__init__.py", line 2125, in get_prep_value
+    raise e.__class__(
+        "Field '%s' expected a number but got %r." % (self.name, value),
+    ) from e
+ValueError: Field 'id' expected a number but got 'APPROVED'.
+ERROR 2025-09-29 09:33:55 basehttp log_message "GET /tankhah/factors/AdvanceFactorStatusReview/ HTTP/1.1" 500 178307
+ERROR 2025-09-29 09:36:51 log log_response Internal Server Error: /
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\contrib\auth\mixins.py", line 73, in dispatch
+    return super().dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\views\generic\base.py", line 143, in dispatch
+    return handler(request, *args, **kwargs)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\BudgetsSystem\view\view_Dashboard.py", line 1242, in get
+    return render(request, self.template_name, context)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\loader.py", line 62, in render_to_string
+    return template.render(context, request)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\backends\django.py", line 107, in render
+    return self.template.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 171, in render
+    return self._render(context)
+           ~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\loader_tags.py", line 159, in render
+    return compiled_parent._render(context)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\loader_tags.py", line 65, in render
+    result = block.nodelist.render(context)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\defaulttags.py", line 243, in render
+    nodelist.append(node.render_annotated(context))
+                    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\defaulttags.py", line 243, in render
+    nodelist.append(node.render_annotated(context))
+                    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\defaulttags.py", line 327, in render
+    return nodelist.render(context)
+           ~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\defaulttags.py", line 480, in render
+    url = reverse(view_name, args=args, kwargs=kwargs, current_app=current_app)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\base.py", line 88, in reverse
+    return resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\resolvers.py", line 831, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'analytics_redesigned' not found. 'analytics_redesigned' is not a valid view function or pattern name.
+ERROR 2025-09-29 09:36:51 basehttp log_message "GET / HTTP/1.1" 500 270189
+ERROR 2025-09-29 10:26:24 log log_response Internal Server Error: /reports/dashboard/analytics-redesigned/
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\core\handlers\base.py", line 220, in _get_response
+    response = response.render()
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\response.py", line 114, in render
+    self.content = self.rendered_content
+                   ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\response.py", line 92, in rendered_content
+    return template.render(context, self._request)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\backends\django.py", line 107, in render
+    return self.template.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 171, in render
+    return self._render(context)
+           ~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\defaulttags.py", line 480, in render
+    url = reverse(view_name, args=args, kwargs=kwargs, current_app=current_app)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\base.py", line 88, in reverse
+    return resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\resolvers.py", line 831, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'main_dashboard' not found. 'main_dashboard' is not a valid view function or pattern name.
+ERROR 2025-09-29 10:26:24 basehttp log_message "GET /reports/dashboard/analytics-redesigned/ HTTP/1.1" 500 169322
+ERROR 2025-09-29 10:28:46 log log_response Internal Server Error: /reports/dashboard/analytics-redesigned/
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 510, in parse
+    compile_func = self.tags[command]
+                   ~~~~~~~~~^^^^^^^^^
+KeyError: 'static'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\core\handlers\base.py", line 220, in _get_response
+    response = response.render()
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\response.py", line 114, in render
+    self.content = self.rendered_content
+                   ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\response.py", line 90, in rendered_content
+    template = self.resolve_template(self.template_name)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\response.py", line 72, in resolve_template
+    return select_template(template, using=self.using)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\loader.py", line 42, in select_template
+    return engine.get_template(template_name)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\backends\django.py", line 79, in get_template
+    return Template(self.engine.get_template(template_name), self)
+                    ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\engine.py", line 177, in get_template
+    template, origin = self.find_template(template_name)
+                       ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\engine.py", line 159, in find_template
+    template = loader.get_template(name, skip=skip)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\loaders\cached.py", line 57, in get_template
+    template = super().get_template(template_name, skip)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\loaders\base.py", line 28, in get_template
+    return Template(
+        contents,
+    ...<2 lines>...
+        self.engine,
+    )
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 154, in __init__
+    self.nodelist = self.compile_nodelist()
+                    ~~~~~~~~~~~~~~~~~~~~~^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 196, in compile_nodelist
+    nodelist = parser.parse()
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 512, in parse
+    self.invalid_block_tag(token, command, parse_until)
+    ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\template\base.py", line 573, in invalid_block_tag
+    raise self.error(
+    ...<3 lines>...
+    )
+django.template.exceptions.TemplateSyntaxError: Invalid block tag on line 8: 'static'. Did you forget to register or load this tag?
+ERROR 2025-09-29 10:28:46 basehttp log_message "GET /reports/dashboard/analytics-redesigned/ HTTP/1.1" 500 181585
+ERROR 2025-09-29 10:45:21 log log_response Internal Server Error: /reports/dashboard/analytics-redesigned/
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\views\generic\base.py", line 143, in dispatch
+    return handler(request, *args, **kwargs)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\views\generic\base.py", line 226, in get
+    context = self.get_context_data(**kwargs)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 831, in get_context_data
+    budget_analysis = helper.get_budget_analysis(start_date, end_date, organization_id, project_id)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 434, in get_budget_analysis
+    queryset = queryset.filter(allocation_date__gte=start_date)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1476, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1494, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1501, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1609, in add_q
+    clause, _ = self._add_q(q_object, self.used_aliases)
+                ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1641, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1555, in build_filter
+    condition = self.build_lookup(lookups, col, value)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1385, in build_lookup
+    lookup = lookup_class(lhs, rhs)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\lookups.py", line 30, in __init__
+    self.rhs = self.get_prep_lookup()
+               ~~~~~~~~~~~~~~~~~~~~^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\lookups.py", line 88, in get_prep_lookup
+    return self.lhs.output_field.get_prep_value(self.rhs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\__init__.py", line 1531, in get_prep_value
+    return self.to_python(value)
+           ~~~~~~~~~~~~~~^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\__init__.py", line 1497, in to_python
+    raise exceptions.ValidationError(
+    ...<3 lines>...
+    )
+django.core.exceptions.ValidationError: ['“1404/07/01” value has an invalid date format. It must be in YYYY-MM-DD format.']
+ERROR 2025-09-29 10:45:21 basehttp log_message "GET /reports/dashboard/analytics-redesigned/?start_date=1404%2F07%2F01&end_date=1404%2F07%2F07&organization=&project=&compare_start_date=&compare_end_date=&compare_organization=&compare_project= HTTP/1.1" 500 174665
+ERROR 2025-09-29 10:53:23 log log_response Internal Server Error: /reports/dashboard/analytics-redesigned/
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\views\generic\base.py", line 143, in dispatch
+    return handler(request, *args, **kwargs)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\views\generic\base.py", line 226, in get
+    context = self.get_context_data(**kwargs)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 861, in get_context_data
+    budget_analysis = helper.get_budget_analysis(start_date, end_date, organization_id, project_id)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 458, in get_budget_analysis
+    queryset = queryset.filter(allocation_date__gte=start_date)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1476, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1494, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1501, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1609, in add_q
+    clause, _ = self._add_q(q_object, self.used_aliases)
+                ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1641, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1555, in build_filter
+    condition = self.build_lookup(lookups, col, value)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1385, in build_lookup
+    lookup = lookup_class(lhs, rhs)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\lookups.py", line 30, in __init__
+    self.rhs = self.get_prep_lookup()
+               ~~~~~~~~~~~~~~~~~~~~^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\lookups.py", line 88, in get_prep_lookup
+    return self.lhs.output_field.get_prep_value(self.rhs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\__init__.py", line 1531, in get_prep_value
+    return self.to_python(value)
+           ~~~~~~~~~~~~~~^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\__init__.py", line 1497, in to_python
+    raise exceptions.ValidationError(
+    ...<3 lines>...
+    )
+django.core.exceptions.ValidationError: ['“1404/07/01” value has an invalid date format. It must be in YYYY-MM-DD format.']
+ERROR 2025-09-29 10:53:23 basehttp log_message "GET /reports/dashboard/analytics-redesigned/?start_date=1404%2F07%2F01&end_date=1404%2F07%2F07&organization=&project=&compare_start_date=&compare_end_date=&compare_organization=&compare_project= HTTP/1.1" 500 174802
+ERROR 2025-09-29 10:53:26 log log_response Internal Server Error: /reports/dashboard/analytics-redesigned/
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\views\generic\base.py", line 143, in dispatch
+    return handler(request, *args, **kwargs)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\views\generic\base.py", line 226, in get
+    context = self.get_context_data(**kwargs)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 861, in get_context_data
+    budget_analysis = helper.get_budget_analysis(start_date, end_date, organization_id, project_id)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 458, in get_budget_analysis
+    queryset = queryset.filter(allocation_date__gte=start_date)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1476, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1494, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1501, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1609, in add_q
+    clause, _ = self._add_q(q_object, self.used_aliases)
+                ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1641, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1555, in build_filter
+    condition = self.build_lookup(lookups, col, value)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1385, in build_lookup
+    lookup = lookup_class(lhs, rhs)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\lookups.py", line 30, in __init__
+    self.rhs = self.get_prep_lookup()
+               ~~~~~~~~~~~~~~~~~~~~^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\lookups.py", line 88, in get_prep_lookup
+    return self.lhs.output_field.get_prep_value(self.rhs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\__init__.py", line 1531, in get_prep_value
+    return self.to_python(value)
+           ~~~~~~~~~~~~~~^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\__init__.py", line 1497, in to_python
+    raise exceptions.ValidationError(
+    ...<3 lines>...
+    )
+django.core.exceptions.ValidationError: ['“1404/07/01” value has an invalid date format. It must be in YYYY-MM-DD format.']
+ERROR 2025-09-29 10:53:26 basehttp log_message "GET /reports/dashboard/analytics-redesigned/?start_date=1404%2F07%2F01&end_date=1404%2F07%2F07&organization=&project=&compare_start_date=&compare_end_date=&compare_organization=&compare_project= HTTP/1.1" 500 174802

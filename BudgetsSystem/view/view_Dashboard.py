@@ -76,21 +76,22 @@ dashboard_links = {
         {'name': _('درخت سیستم'), 'url': 'comprehensive_budget_report', 'icon': 'fas fa-chart-line'},
         # نمودار خطی برای روند
         # {'name': _('روند تنخواه'), 'url': 'dashboard_flows', 'icon': 'fas fa-chart-line'},  # نمودار خطی برای روند
-       {'name': _('BI گزارشات'), 'url': 'financialDashboardView', 'icon': 'fas fa-chart-pie'},
-        # نمودار دایره‌ای برای گزارشات BI
-        # {'name': _('گزارش جزئیات تنخواه'), 'url': 'tankhah_detail', 'icon': 'fas fa-file-alt'}, # فایل متنی برای جزئیات
-       {'name': _('گزارش لحظه‌ای از بودجه‌بندی'), 'url': 'budgetrealtimeReportView', 'icon': 'fas fa-tachometer-alt'},
+       {'name': _('دوم گزارشات'), 'url': 'financialDashboardView', 'icon': 'fas fa-chart-pie'},
+
+           {'name': _('گزارش لحظه‌ای از بودجه‌بندی'), 'url': 'budgetrealtimeReportView', 'icon': 'fas fa-tachometer-alt'},
         # سرعت‌سنج برای لحظه‌ای
        {'name': _('گزارشات دستور پرداخت'), 'url': 'payment_order_report', 'icon': 'fas fa-tachometer-alt'},
         # سرعت‌سنج برای لحظه‌ای
-       {'name': _('گزارش رد/تایید فاکتور'), 'url': 'advance_factor_status_review',
-         'permission': 'tankhah.factor_view', 'icon': 'fas fa-file-invoice'},  # فاکتور خالی
+
+
        {'name': _(' گزارش وضعیت فاکتورها '), 'url': 'factor_status_dashboard', 'permission': 'tankhah.factor_view',
          'icon': 'fas fa-file-invoice'},  # فاکتور خالی
        {'name': _('گزارش تخصیص بودجه'), 'url': 'budgetallocation_list', 'permission': 'budgets.view_budgetallocation',
          'icon': 'fas fa-file-invoice-dollar'},  # گزارش تخصیص بودجه
-       {'name': _('گزارش پیشرفته (مثال)'), 'url': 'budget_allocation_report_enhanced', 'url_kwargs': {'pk': 84}, 'permission': 'budgets.view_budgetallocation',
-         'icon': 'fas fa-chart-line', 'note': 'گزارش پیشرفته برای تخصیص بودجه شماره 84'},  # گزارش پیشرفته
+       {'name': _('گزارش پیشرفته (مثال)'), 'url': 'reports_dashboard:analytics_redesigned',
+         'icon': 'fas fa-chart-line', 'note': 'گزارش پیشرفته برای تخصیص بودجه '},  # گزارش پیشرفته
+
+
        {'name': _('هشدارهای بودجه'), 'url': 'budget_warning_report', 'permission': 'budgets.view_budgetallocation',
          'icon': 'fas fa-exclamation-triangle'},  # هشدارهای بودجه
     ],
@@ -128,12 +129,7 @@ dashboard_links = {
         {'name': _('ایجاد زیر مرکز هزینه (پروژه)'), 'url': 'subproject_create', 'permission': 'core.add_subproject',
          'icon': 'fas fa-sitemap'},  # چارت سازمانی برای زیرپروژه
     ],
-    # 'گردش کار': [
-    #     {'name': _('فهرست گردش کار'), 'url': 'workflow_stage_list', 'permission': 'core.view_workflowstage',
-    #      'icon': 'fas fa-project-diagram'},  # نمودار پروژه برای گردش کار
-    #     {'name': _('ثبت گردش کار'), 'url': 'workflow_stage_create', 'permission': 'core.add_workflowstage',
-    #      'icon': 'fas fa-plus-circle'},  # دایره به اضافه
-    # ],
+
     'پست و سلسله مراتب': [
         {'name': _('فهرست پست‌ها'), 'url': 'post_list', 'permission': 'core.view_post', 'icon': 'fas fa-id-badge'},
         # کارت شناسایی برای پست

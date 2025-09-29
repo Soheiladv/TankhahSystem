@@ -747,12 +747,16 @@
         jalaliDatepicker.startWatch();
 
         // تنظیم دیتاپیکر جلالی
-        $('[data-jdp]').pDatepicker({
+        if (typeof $.fn.pDatepicker !== 'undefined') {
+            $('[data-jdp]').pDatepicker({
             format: 'YYYY/MM/DD',
             autoClose: true,
             initialValue: false,
             persianDigit: true
-        });
+            });
+        } else {
+            console.log('Persian datepicker not available');
+        }
 
         // فقط برای کاربران احراز هویت‌شده اعلان‌ها را بررسی کن
         {% if user.is_authenticated %}
@@ -866,12 +870,16 @@
 </script>
 <script>
     $(document).ready(function () {
-        $('[data-jdp]').pDatepicker({
+        if (typeof $.fn.pDatepicker !== 'undefined') {
+            $('[data-jdp]').pDatepicker({
             format: 'YYYY/MM/DD',
             autoClose: true,
             initialValue: false,
             persianDigit: true
-        });
+            });
+        } else {
+            console.log('Persian datepicker not available');
+        }
     });
 </script>
 <script>
@@ -903,12 +911,16 @@
         jalaliDatepicker.startWatch();
 
         // تنظیم دیتاپیکر جلالی
-        $('[data-jdp]').pDatepicker({
+        if (typeof $.fn.pDatepicker !== 'undefined') {
+            $('[data-jdp]').pDatepicker({
             format: 'YYYY/MM/DD',
             autoClose: true,
             initialValue: false,
             persianDigit: true
-        });
+            });
+        } else {
+            console.log('Persian datepicker not available');
+        }
 
         // فقط برای کاربران احراز هویت‌شده اعلان‌ها را بررسی کن
         {% if user.is_authenticated %}
@@ -1070,12 +1082,16 @@
 </script>
 <script>
     $(document).ready(function () {
-        $('[data-jdp]').pDatepicker({
+        if (typeof $.fn.pDatepicker !== 'undefined') {
+            $('[data-jdp]').pDatepicker({
             format: 'YYYY/MM/DD',
             autoClose: true,
             initialValue: false,
             persianDigit: true
-        });
+            });
+        } else {
+            console.log('Persian datepicker not available');
+        }
     });
 </script>
 {% block extra_js %}{% endblock %}

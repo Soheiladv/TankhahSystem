@@ -90,7 +90,7 @@ urlpatterns = [
             path('dashboard/flows-1/', DashboardView_flows_1.as_view(), name='dashboard_flows_1'),
             path('dashboard/flows/', DashboardView_flows.as_view(), name='dashboard_flows'),
             path('dashboard/financial/', FinancialDashboardView.as_view(), name='financial_dashboard'),
-            path('all_links/', AllLinksView.as_view(), name='all_links'),  # صفحه اصلی
+            # path('all_links/', AllLinksView.as_view(), name='all_links'),  # صفحه اصلی
             # path('all-links/',  AllLinksView.as_view(), name='all_links'),
 
             # سازمان‌ها

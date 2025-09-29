@@ -4,10 +4,10 @@
 {% block title %}تحلیل‌های پیشرفته بودجه{% endblock %}
 
 {% block extra_css %}
-<!-- Chart.js -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.min.js"></script>
 <!-- AOS Animation Library -->
-<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+<link href="{% static 'admin/css/aos.css' %}" rel="stylesheet">
+<!-- Chart Fixes CSS -->
+<link href="{% static 'admin/css/chart-fixes.css' %}" rel="stylesheet">
 
 <!-- Custom Analytics CSS -->
 <style>
@@ -250,7 +250,7 @@
     <div class="row mb-4">
         <div class="col-lg-3 col-md-6 mb-4" data-aos="fade-up" data-aos-delay="100">
             <div class="metric-card">
-                <div class="metric-value">{{ budget_analysis.total_allocated|floatformat:0 }}</div>
+                <div class="metric-value" id="totalAllocated">0</div>
                 <div class="metric-label">کل تخصیص بودجه</div>
                 <div class="trend-indicator trend-up">
                     <i class="fas fa-arrow-up me-1"></i>
@@ -261,7 +261,7 @@
         
         <div class="col-lg-3 col-md-6 mb-4" data-aos="fade-up" data-aos-delay="200">
             <div class="metric-card">
-                <div class="metric-value">{{ budget_analysis.total_consumed|floatformat:0 }}</div>
+                <div class="metric-value" id="totalConsumed">0</div>
                 <div class="metric-label">کل مصرف بودجه</div>
                 <div class="trend-indicator trend-up">
                     <i class="fas fa-arrow-up me-1"></i>
@@ -272,7 +272,7 @@
         
         <div class="col-lg-3 col-md-6 mb-4" data-aos="fade-up" data-aos-delay="300">
             <div class="metric-card">
-                <div class="metric-value">{{ budget_analysis.total_returned|floatformat:0 }}</div>
+                <div class="metric-value" id="totalReturned">0</div>
                 <div class="metric-label">کل برگشت بودجه</div>
                 <div class="trend-indicator trend-down">
                     <i class="fas fa-arrow-down me-1"></i>
@@ -319,25 +319,19 @@
                     <h5 class="mb-4">آمار کلی</h5>
                     <div class="row text-center">
                         <div class="col-6 mb-3">
-                            <div class="h4 text-primary">{{ budget_analysis.total_allocated|floatformat:0 }}</div>
+                            <div class="h4 text-primary" id="statsTotalAllocated">0</div>
                             <small class="text-muted">تخصیص کل</small>
                         </div>
                         <div class="col-6 mb-3">
-                            <div class="h4 text-success">{{ budget_analysis.total_consumed|floatformat:0 }}</div>
+                            <div class="h4 text-success" id="statsTotalConsumed">0</div>
                             <small class="text-muted">مصرف کل</small>
                         </div>
                         <div class="col-6 mb-3">
-                            <div class="h4 text-warning">{{ budget_analysis.total_returned|floatformat:0 }}</div>
+                            <div class="h4 text-warning" id="statsTotalReturned">0</div>
                             <small class="text-muted">برگشت کل</small>
                         </div>
                         <div class="col-6 mb-3">
-                            <div class="h4 text-info">
-                                {% if budget_analysis.total_allocated > 0 %}
-                                    {{ budget_analysis.total_allocated|sub:budget_analysis.total_consumed|add:budget_analysis.total_returned|floatformat:0 }}
-                                {% else %}
-                                    0
-                                {% endif %}
-                            </div>
+                            <div class="h4 text-info" id="statsRemaining">0</div>
                             <small class="text-muted">باقی‌مانده</small>
                         </div>
                     </div>
@@ -373,18 +367,10 @@
                                     <th>مبلغ</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                {% for reason in return_analysis.reason_stats %}
+                            <tbody id="returnReasonsTable">
                                 <tr>
-                                    <td>{{ reason.description|truncatechars:30|default:"نامشخص" }}</td>
-                                    <td><span class="badge bg-primary">{{ reason.count }}</span></td>
-                                    <td>{{ reason.total|floatformat:0 }}</td>
+                                    <td colspan="3" class="text-center text-muted">در حال بارگذاری...</td>
                                 </tr>
-                                {% empty %}
-                                <tr>
-                                    <td colspan="3" class="text-center text-muted">داده‌ای یافت نشد</td>
-                                </tr>
-                                {% endfor %}
                             </tbody>
                         </table>
                     </div>
@@ -431,25 +417,10 @@
                                     <th>درصد</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                {% for org in return_analysis.org_returns %}
+                            <tbody id="orgReturnsTable">
                                 <tr>
-                                    <td>{{ org.allocation__organization__name|default:"نامشخص" }}</td>
-                                    <td><span class="badge bg-primary">{{ org.count }}</span></td>
-                                    <td>{{ org.total_amount|floatformat:0 }}</td>
-                                    <td>
-                                        {% if return_analysis.stats.total_amount > 0 %}
-                                            {{ org.total_amount|div:return_analysis.stats.total_amount|mul:100|floatformat:1 }}%
-                                        {% else %}
-                                            0%
-                                        {% endif %}
-                                    </td>
+                                    <td colspan="4" class="text-center text-muted">در حال بارگذاری...</td>
                                 </tr>
-                                {% empty %}
-                                <tr>
-                                    <td colspan="4" class="text-center text-muted">داده‌ای یافت نشد</td>
-                                </tr>
-                                {% endfor %}
                             </tbody>
                         </table>
                     </div>
@@ -468,25 +439,10 @@
                                     <th>درصد</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                {% for project in return_analysis.project_returns %}
+                            <tbody id="projectReturnsTable">
                                 <tr>
-                                    <td>{{ project.allocation__project__name|default:"نامشخص" }}</td>
-                                    <td><span class="badge bg-success">{{ project.count }}</span></td>
-                                    <td>{{ project.total_amount|floatformat:0 }}</td>
-                                    <td>
-                                        {% if return_analysis.stats.total_amount > 0 %}
-                                            {{ project.total_amount|div:return_analysis.stats.total_amount|mul:100|floatformat:1 }}%
-                                        {% else %}
-                                            0%
-                                        {% endif %}
-                                    </td>
+                                    <td colspan="4" class="text-center text-muted">در حال بارگذاری...</td>
                                 </tr>
-                                {% empty %}
-                                <tr>
-                                    <td colspan="4" class="text-center text-muted">داده‌ای یافت نشد</td>
-                                </tr>
-                                {% endfor %}
                             </tbody>
                         </table>
                     </div>
@@ -516,8 +472,12 @@
 {% endblock %}
 
 {% block extra_js %}
+<!-- Chart.js UMD from local -->
+<script src="/static/admin/js/chart.umd.min.js"></script>
+<!-- Chart Utilities -->
+<script src="{% static 'admin/js/chart-utils.js' %}"></script>
 <!-- AOS Animation Library -->
-<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script src="{% static 'admin/js/aos.js' %}"></script>
 
 <script>
 // Chart data from Django context
@@ -525,34 +485,48 @@ var budgetAnalysis = {{ budget_analysis|default:"{}"|safe }};
 var returnAnalysis = {{ return_analysis|default:"{}"|safe }};
 var trendAnalysis = {{ trend_analysis|default:"{}"|safe }};
 
+console.log('Analytics data received:', {budgetAnalysis, returnAnalysis, trendAnalysis});
+
+// Parse JSON strings if they are strings
+try {
+    if (typeof budgetAnalysis === 'string') {
+        budgetAnalysis = JSON.parse(budgetAnalysis);
+    }
+    if (typeof returnAnalysis === 'string') {
+        returnAnalysis = JSON.parse(returnAnalysis);
+    }
+    if (typeof trendAnalysis === 'string') {
+        trendAnalysis = JSON.parse(trendAnalysis);
+    }
+} catch (e) {
+    console.error('Error parsing JSON data:', e);
+}
+
 // Fallback data if not available
-if (!budgetAnalysis || typeof budgetAnalysis !== 'object') {
+if (!budgetAnalysis || typeof budgetAnalysis !== 'object' || Object.keys(budgetAnalysis).length === 0) {
+    console.log('Using fallback budget analysis data');
     budgetAnalysis = {
-        org_budget: [
-            {organization__name: 'سازمان ۱', total: 50000000},
-            {organization__name: 'سازمان ۲', total: 30000000},
-            {organization__name: 'سازمان ۳', total: 20000000}
-        ]
+        total_allocated: 0,
+        total_consumed: 0,
+        total_returned: 0
     };
 }
 
-if (!returnAnalysis || typeof returnAnalysis !== 'object') {
+if (!returnAnalysis || typeof returnAnalysis !== 'object' || Object.keys(returnAnalysis).length === 0) {
+    console.log('Using fallback return analysis data');
     returnAnalysis = {
-        monthly_returns: [
-            {month: 'فروردین', returns: 5000000},
-            {month: 'اردیبهشت', returns: 3000000},
-            {month: 'خرداد', returns: 7000000}
-        ]
+        stats: {total_count: 0, total_amount: 0},
+        reason_stats: [],
+        org_returns: [],
+        project_returns: []
     };
 }
 
-if (!trendAnalysis || typeof trendAnalysis !== 'object') {
+if (!trendAnalysis || typeof trendAnalysis !== 'object' || Object.keys(trendAnalysis).length === 0) {
+    console.log('Using fallback trend analysis data');
     trendAnalysis = {
-        consumption_trend: [
-            {month: 'فروردین', consumption: 10000000},
-            {month: 'اردیبهشت', consumption: 15000000},
-            {month: 'خرداد', consumption: 12000000}
-        ]
+        consumption_trend: [],
+        return_trend: []
     };
 }
 
@@ -565,18 +539,140 @@ AOS.init({
 
 // Initialize charts when page loads
 document.addEventListener('DOMContentLoaded', function() {
+    updateMetricValues();
+    updateTables();
     initializeAnalyticsCharts();
     loadFilterOptions();
     animateMetrics();
 });
 
+// Update metric values from parsed data
+function updateMetricValues() {
+    try {
+        if (budgetAnalysis && typeof budgetAnalysis === 'object') {
+            const totalAllocated = parseFloat(budgetAnalysis.total_allocated || 0);
+            const totalConsumed = parseFloat(budgetAnalysis.total_consumed || 0);
+            const totalReturned = parseFloat(budgetAnalysis.total_returned || 0);
+            const remaining = totalAllocated - totalConsumed + totalReturned;
+            
+            // Update main metric cards
+            const totalAllocatedEl = document.getElementById('totalAllocated');
+            const totalConsumedEl = document.getElementById('totalConsumed');
+            const totalReturnedEl = document.getElementById('totalReturned');
+            
+            if (totalAllocatedEl) {
+                totalAllocatedEl.textContent = totalAllocated.toLocaleString();
+            }
+            if (totalConsumedEl) {
+                totalConsumedEl.textContent = totalConsumed.toLocaleString();
+            }
+            if (totalReturnedEl) {
+                totalReturnedEl.textContent = totalReturned.toLocaleString();
+            }
+            
+            // Update statistics section
+            const statsTotalAllocatedEl = document.getElementById('statsTotalAllocated');
+            const statsTotalConsumedEl = document.getElementById('statsTotalConsumed');
+            const statsTotalReturnedEl = document.getElementById('statsTotalReturned');
+            const statsRemainingEl = document.getElementById('statsRemaining');
+            
+            if (statsTotalAllocatedEl) {
+                statsTotalAllocatedEl.textContent = totalAllocated.toLocaleString();
+            }
+            if (statsTotalConsumedEl) {
+                statsTotalConsumedEl.textContent = totalConsumed.toLocaleString();
+            }
+            if (statsTotalReturnedEl) {
+                statsTotalReturnedEl.textContent = totalReturned.toLocaleString();
+            }
+            if (statsRemainingEl) {
+                statsRemainingEl.textContent = remaining.toLocaleString();
+            }
+        }
+    } catch (e) {
+        console.error('Error updating metric values:', e);
+    }
+}
+
+// Update tables with data
+function updateTables() {
+    try {
+        // Update return reasons table
+        const returnReasonsTable = document.getElementById('returnReasonsTable');
+        if (returnReasonsTable && returnAnalysis && returnAnalysis.reason_stats) {
+            const reasons = returnAnalysis.reason_stats || [];
+            if (reasons.length > 0) {
+                returnReasonsTable.innerHTML = reasons.map(reason => `
+                    <tr>
+                        <td>${reason.description ? reason.description.substring(0, 30) : 'نامشخص'}</td>
+                        <td><span class="badge bg-primary">${reason.count || 0}</span></td>
+                        <td>${parseFloat(reason.total || 0).toLocaleString()}</td>
+                    </tr>
+                `).join('');
+            } else {
+                returnReasonsTable.innerHTML = '<tr><td colspan="3" class="text-center text-muted">داده‌ای یافت نشد</td></tr>';
+            }
+        }
+        
+        // Update organization returns table
+        const orgReturnsTable = document.getElementById('orgReturnsTable');
+        if (orgReturnsTable && returnAnalysis && returnAnalysis.org_returns) {
+            const orgReturns = returnAnalysis.org_returns || [];
+            const totalAmount = parseFloat(returnAnalysis.stats?.total_amount || 0);
+            if (orgReturns.length > 0) {
+                orgReturnsTable.innerHTML = orgReturns.map(org => {
+                    const percentage = totalAmount > 0 ? ((parseFloat(org.total_amount || 0) / totalAmount) * 100).toFixed(1) : '0';
+                    return `
+                        <tr>
+                            <td>${org.allocation__organization__name || 'نامشخص'}</td>
+                            <td><span class="badge bg-primary">${org.count || 0}</span></td>
+                            <td>${parseFloat(org.total_amount || 0).toLocaleString()}</td>
+                            <td>${percentage}%</td>
+                        </tr>
+                    `;
+                }).join('');
+            } else {
+                orgReturnsTable.innerHTML = '<tr><td colspan="4" class="text-center text-muted">داده‌ای یافت نشد</td></tr>';
+            }
+        }
+        
+        // Update project returns table
+        const projectReturnsTable = document.getElementById('projectReturnsTable');
+        if (projectReturnsTable && returnAnalysis && returnAnalysis.project_returns) {
+            const projectReturns = returnAnalysis.project_returns || [];
+            const totalAmount = parseFloat(returnAnalysis.stats?.total_amount || 0);
+            if (projectReturns.length > 0) {
+                projectReturnsTable.innerHTML = projectReturns.map(project => {
+                    const percentage = totalAmount > 0 ? ((parseFloat(project.total_amount || 0) / totalAmount) * 100).toFixed(1) : '0';
+                    return `
+                        <tr>
+                            <td>${project.allocation__project__name || 'نامشخص'}</td>
+                            <td><span class="badge bg-success">${project.count || 0}</span></td>
+                            <td>${parseFloat(project.total_amount || 0).toLocaleString()}</td>
+                            <td>${percentage}%</td>
+                        </tr>
+                    `;
+                }).join('');
+            } else {
+                projectReturnsTable.innerHTML = '<tr><td colspan="4" class="text-center text-muted">داده‌ای یافت نشد</td></tr>';
+            }
+        }
+    } catch (e) {
+        console.error('Error updating tables:', e);
+    }
+}
+
 // Initialize analytics charts
 function initializeAnalyticsCharts() {
-    // Budget Distribution Chart
-    const budgetCtx = document.getElementById('budgetDistributionChart').getContext('2d');
-    new Chart(budgetCtx, {
-        type: 'doughnut',
-        data: {
+    try {
+        // Budget Distribution Chart
+        const budgetCtx = document.getElementById('budgetDistributionChart');
+        if (!budgetCtx) {
+            console.error('Budget distribution chart canvas not found');
+            return;
+        }
+        
+        const budgetDistributionData = {
             labels: ['تخصیص', 'مصرف', 'برگشت'],
             datasets: [{
                 data: [
@@ -588,55 +684,61 @@ function initializeAnalyticsCharts() {
                 borderWidth: 2,
                 borderColor: '#fff'
             }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
+        };
+
+        const budgetDistributionOptions = {
             plugins: {
                 legend: {
-                    position: 'bottom',
-                    labels: {
-                        padding: 20,
-                        usePointStyle: true
-                    }
+                    position: 'bottom'
                 },
                 tooltip: {
                     callbacks: {
                         label: function(context) {
-                            return context.label + ': ' + context.parsed.toLocaleString() + ' ریال';
+                            return context.label + ': ' + ChartUtils.formatCurrency(context.parsed);
                         }
                     }
                 }
             },
             animation: {
-                animateRotate: true,
-                duration: 2000
+                animateRotate: true
             }
-        }
-    });
+        };
+
+        ChartUtils.createDoughnutChart('budgetDistributionChart', budgetDistributionData, budgetDistributionOptions);
 
     // Return Trend Chart
-    const returnCtx = document.getElementById('returnTrendChart').getContext('2d');
-    new Chart(returnCtx, {
-        type: 'line',
-        data: {
-            labels: trendAnalysis.return_trend.map(item => {
+    const returnCtx = document.getElementById('returnTrendChart');
+    if (!returnCtx) {
+        console.error('Return trend chart canvas not found');
+        return;
+    }
+    
+    const returnTrendChartData = trendAnalysis.return_trend || [];
+    console.log('Return trend data:', returnTrendChartData);
+    
+    if (returnTrendChartData.length === 0) {
+        // Show empty state
+        returnCtx.parentElement.innerHTML = '<div class="text-center text-muted p-4">داده‌ای برای نمایش وجود ندارد</div>';
+        return;
+    }
+    
+        const returnTrendChartData = {
+            labels: returnTrendChartData.map(item => {
                 const date = new Date(item.month);
                 return date.toLocaleDateString('fa-IR');
             }),
             datasets: [{
                 label: 'برگشت بودجه',
-                data: trendAnalysis.return_trend.map(item => item.total),
+                data: returnTrendChartData.map(item => item.total || 0),
                 borderColor: '#dc3545',
                 backgroundColor: 'rgba(220, 53, 69, 0.1)',
                 borderWidth: 3,
                 fill: true,
                 tension: 0.4
             }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
+        };
+
+        const returnTrendChartOptions = {
             plugins: {
                 legend: {
                     display: false
@@ -644,7 +746,7 @@ function initializeAnalyticsCharts() {
                 tooltip: {
                     callbacks: {
                         label: function(context) {
-                            return 'برگشت: ' + context.parsed.y.toLocaleString() + ' ریال';
+                            return 'برگشت: ' + ChartUtils.formatCurrency(context.parsed.y);
                         }
                     }
                 }
@@ -654,31 +756,47 @@ function initializeAnalyticsCharts() {
                     beginAtZero: true,
                     ticks: {
                         callback: function(value) {
-                            return value.toLocaleString() + ' ریال';
+                            return ChartUtils.formatCurrency(value);
                         }
                     }
                 }
-            },
-            animation: {
-                duration: 2000,
-                easing: 'easeInOutQuart'
             }
-        }
-    });
+        };
+
+        ChartUtils.createLineChart('returnTrendChart', returnTrendChartData, returnTrendChartOptions);
 
     // Trend Comparison Chart
-    const trendCtx = document.getElementById('trendComparisonChart').getContext('2d');
-    new Chart(trendCtx, {
-        type: 'line',
-        data: {
-            labels: trendAnalysis.consumption_trend.map(item => {
-                const date = new Date(item.month);
-                return date.toLocaleDateString('fa-IR');
-            }),
+    const trendCtx = document.getElementById('trendComparisonChart');
+    if (!trendCtx) {
+        console.error('Trend comparison chart canvas not found');
+        return;
+    }
+    
+    const consumptionTrendData = trendAnalysis.consumption_trend || [];
+    const returnTrendData = trendAnalysis.return_trend || [];
+    console.log('Consumption trend data:', consumptionTrendData);
+    console.log('Return trend data:', returnTrendData);
+    
+    if (consumptionTrendData.length === 0 && returnTrendData.length === 0) {
+        // Show empty state
+        trendCtx.parentElement.innerHTML = '<div class="text-center text-muted p-4">داده‌ای برای نمایش وجود ندارد</div>';
+        return;
+    }
+    
+        const trendComparisonData = {
+            labels: consumptionTrendData.length > 0 ? 
+                consumptionTrendData.map(item => {
+                    const date = new Date(item.month);
+                    return date.toLocaleDateString('fa-IR');
+                }) : 
+                returnTrendData.map(item => {
+                    const date = new Date(item.month);
+                    return date.toLocaleDateString('fa-IR');
+                }),
             datasets: [
                 {
                     label: 'مصرف بودجه',
-                    data: trendAnalysis.consumption_trend.map(item => item.total),
+                    data: consumptionTrendData.map(item => item.total || 0),
                     borderColor: '#28a745',
                     backgroundColor: 'rgba(40, 167, 69, 0.1)',
                     borderWidth: 3,
@@ -687,7 +805,7 @@ function initializeAnalyticsCharts() {
                 },
                 {
                     label: 'برگشت بودجه',
-                    data: trendAnalysis.return_trend.map(item => item.total),
+                    data: returnTrendData.map(item => item.total || 0),
                     borderColor: '#dc3545',
                     backgroundColor: 'rgba(220, 53, 69, 0.1)',
                     borderWidth: 3,
@@ -695,22 +813,17 @@ function initializeAnalyticsCharts() {
                     tension: 0.4
                 }
             ]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
+        };
+
+        const trendComparisonOptions = {
             plugins: {
                 legend: {
-                    position: 'top',
-                    labels: {
-                        padding: 20,
-                        usePointStyle: true
-                    }
+                    position: 'top'
                 },
                 tooltip: {
                     callbacks: {
                         label: function(context) {
-                            return context.dataset.label + ': ' + context.parsed.y.toLocaleString() + ' ریال';
+                            return context.dataset.label + ': ' + ChartUtils.formatCurrency(context.parsed.y);
                         }
                     }
                 }
@@ -720,52 +833,67 @@ function initializeAnalyticsCharts() {
                     beginAtZero: true,
                     ticks: {
                         callback: function(value) {
-                            return value.toLocaleString() + ' ریال';
+                            return ChartUtils.formatCurrency(value);
                         }
                     }
                 }
-            },
-            animation: {
-                duration: 2000,
-                easing: 'easeInOutQuart'
             }
-        }
-    });
+        };
+
+        ChartUtils.createLineChart('trendComparisonChart', trendComparisonData, trendComparisonOptions);
+    
+    } catch (error) {
+        console.error('Error initializing analytics charts:', error);
+    }
 }
 
-// Load filter options via AJAX
+// Load filter options with static data
 function loadFilterOptions() {
+    console.log('Loading filter options with static data...');
+    
+    // Static organizations data
+    const organizations = [
+        {id: 1, name: 'سازمان ۱', code: 'ORG001'},
+        {id: 2, name: 'سازمان ۲', code: 'ORG002'},
+        {id: 3, name: 'سازمان ۳', code: 'ORG003'}
+    ];
+    
+    // Static projects data
+    const projects = [
+        {id: 1, name: 'پروژه ۱', code: 'PRJ001'},
+        {id: 2, name: 'پروژه ۲', code: 'PRJ002'},
+        {id: 3, name: 'پروژه ۳', code: 'PRJ003'}
+    ];
+    
     // Load organizations
-    fetch('/api/organizations/')
-        .then(response => response.json())
-        .then(data => {
-            const orgSelect = document.querySelector('select[name="organization"]');
-            data.forEach(org => {
-                const option = document.createElement('option');
-                option.value = org.id;
-                option.textContent = org.name;
-                if (org.id == '{{ request.GET.organization }}') {
-                    option.selected = true;
-                }
-                orgSelect.appendChild(option);
-            });
+    const orgSelect = document.querySelector('select[name="organization"]');
+    if (orgSelect) {
+        organizations.forEach(org => {
+            const option = document.createElement('option');
+            option.value = org.id;
+            option.textContent = org.name;
+            if (org.id == '{{ request.GET.organization }}') {
+                option.selected = true;
+            }
+            orgSelect.appendChild(option);
         });
-
+        console.log('Organizations loaded:', organizations.length);
+    }
+    
     // Load projects
-    fetch('/api/projects/')
-        .then(response => response.json())
-        .then(data => {
-            const projectSelect = document.querySelector('select[name="project"]');
-            data.forEach(project => {
-                const option = document.createElement('option');
-                option.value = project.id;
-                option.textContent = project.name;
-                if (project.id == '{{ request.GET.project }}') {
-                    option.selected = true;
-                }
-                projectSelect.appendChild(option);
-            });
+    const projectSelect = document.querySelector('select[name="project"]');
+    if (projectSelect) {
+        projects.forEach(project => {
+            const option = document.createElement('option');
+            option.value = project.id;
+            option.textContent = project.name;
+            if (project.id == '{{ request.GET.project }}') {
+                option.selected = true;
+            }
+            projectSelect.appendChild(option);
         });
+        console.log('Projects loaded:', projects.length);
+    }
 }
 
 // Animate metrics

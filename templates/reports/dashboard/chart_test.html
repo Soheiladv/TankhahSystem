@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تست چارت - سیستم بودجه</title>
+    
+    <!-- Chart.js UMD from local -->
+    <script src="/static/admin/js/chart.umd.min.js"></script>
+    
+    <style>
+        body {
+            font-family: 'Vazirmatn', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #2d3748;
+            margin-bottom: 30px;
+        }
+        
+        .chart-section {
+            margin-bottom: 40px;
+            padding: 20px;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            background: #f8fafc;
+        }
+        
+        .chart-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #2d3748;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 400px;
+            width: 100%;
+        }
+        
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        .test-buttons {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .test-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        .test-btn:hover {
+            background: #5a67d8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 تست چارت‌ها - سیستم بودجه</h1>
+        
+        <div id="statusContainer">
+            <div class="status info">در حال بارگذاری...</div>
+        </div>
+        
+        <div class="test-buttons">
+            <button class="test-btn" onclick="testChart1()">تست چارت 1 - Doughnut</button>
+            <button class="test-btn" onclick="testChart2()">تست چارت 2 - Line</button>
+            <button class="test-btn" onclick="testChart3()">تست چارت 3 - Bar</button>
+            <button class="test-btn" onclick="clearCharts()">پاک کردن همه چارت‌ها</button>
+        </div>
+        
+        <!-- چارت 1 -->
+        <div class="chart-section">
+            <div class="chart-title">چارت 1: توزیع بودجه (Doughnut)</div>
+            <div class="chart-container">
+                <canvas id="chart1"></canvas>
+            </div>
+        </div>
+        
+        <!-- چارت 2 -->
+        <div class="chart-section">
+            <div class="chart-title">چارت 2: روند مصرف (Line)</div>
+            <div class="chart-container">
+                <canvas id="chart2"></canvas>
+            </div>
+        </div>
+        
+        <!-- چارت 3 -->
+        <div class="chart-section">
+            <div class="chart-title">چارت 3: مقایسه سازمان‌ها (Bar)</div>
+            <div class="chart-container">
+                <canvas id="chart3"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let charts = {};
+        
+        // بررسی بارگذاری Chart.js
+        function checkChartJS() {
+            const statusContainer = document.getElementById('statusContainer');
+            
+            if (typeof Chart === 'undefined') {
+                statusContainer.innerHTML = '<div class="status error">❌ Chart.js بارگذاری نشده است!</div>';
+                return false;
+            } else {
+                statusContainer.innerHTML = '<div class="status success">✅ Chart.js با موفقیت بارگذاری شد!</div>';
+                return true;
+            }
+        }
+        
+        // تست چارت 1 - Doughnut
+        function testChart1() {
+            if (!checkChartJS()) return;
+            
+            const ctx = document.getElementById('chart1');
+            if (!ctx) {
+                console.error('Canvas chart1 not found');
+                return;
+            }
+            
+            // پاک کردن چارت قبلی
+            if (charts.chart1) {
+                charts.chart1.destroy();
+            }
+            
+            charts.chart1 = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['مصرف شده', 'مانده', 'برگشت شده'],
+                    datasets: [{
+                        data: [60, 30, 10],
+                        backgroundColor: [
+                            '#dc3545',
+                            '#28a745',
+                            '#ffc107'
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                usePointStyle: true
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.label + ': ' + context.parsed + '%';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            
+            console.log('Chart 1 created successfully');
+        }
+        
+        // تست چارت 2 - Line
+        function testChart2() {
+            if (!checkChartJS()) return;
+            
+            const ctx = document.getElementById('chart2');
+            if (!ctx) {
+                console.error('Canvas chart2 not found');
+                return;
+            }
+            
+            // پاک کردن چارت قبلی
+            if (charts.chart2) {
+                charts.chart2.destroy();
+            }
+            
+            charts.chart2 = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور'],
+                    datasets: [{
+                        label: 'مصرف بودجه',
+                        data: [1200000, 1500000, 1800000, 2000000, 1700000, 1900000],
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4
+                    }, {
+                        label: 'تخصیص بودجه',
+                        data: [2000000, 2000000, 2000000, 2000000, 2000000, 2000000],
+                        borderColor: '#f093fb',
+                        backgroundColor: 'rgba(240, 147, 251, 0.1)',
+                        borderWidth: 3,
+                        fill: false,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                padding: 20,
+                                usePointStyle: true
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + formatNumber(context.parsed.y) + ' ریال';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return formatNumber(value);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            
+            console.log('Chart 2 created successfully');
+        }
+        
+        // تست چارت 3 - Bar
+        function testChart3() {
+            if (!checkChartJS()) return;
+            
+            const ctx = document.getElementById('chart3');
+            if (!ctx) {
+                console.error('Canvas chart3 not found');
+                return;
+            }
+            
+            // پاک کردن چارت قبلی
+            if (charts.chart3) {
+                charts.chart3.destroy();
+            }
+            
+            charts.chart3 = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['سازمان ۱', 'سازمان ۲', 'سازمان ۳', 'سازمان ۴', 'سازمان ۵'],
+                    datasets: [{
+                        label: 'بودجه تخصیصی',
+                        data: [5000000, 3000000, 4000000, 2500000, 3500000],
+                        backgroundColor: '#4facfe',
+                        borderColor: '#00f2fe',
+                        borderWidth: 1
+                    }, {
+                        label: 'بودجه مصرفی',
+                        data: [3000000, 2000000, 2500000, 1500000, 2200000],
+                        backgroundColor: '#f093fb',
+                        borderColor: '#f5576c',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                padding: 20,
+                                usePointStyle: true
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + formatNumber(context.parsed.y) + ' ریال';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return formatNumber(value);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            
+            console.log('Chart 3 created successfully');
+        }
+        
+        // پاک کردن همه چارت‌ها
+        function clearCharts() {
+            Object.keys(charts).forEach(key => {
+                if (charts[key]) {
+                    charts[key].destroy();
+                    delete charts[key];
+                }
+            });
+            
+            // پاک کردن canvas ها
+            ['chart1', 'chart2', 'chart3'].forEach(id => {
+                const canvas = document.getElementById(id);
+                if (canvas) {
+                    const ctx = canvas.getContext('2d');
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                }
+            });
+            
+            console.log('All charts cleared');
+        }
+        
+        // فرمت کردن اعداد
+        function formatNumber(num) {
+            return new Intl.NumberFormat('fa-IR').format(num);
+        }
+        
+        // بارگذاری اولیه
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Chart test page loaded');
+            checkChartJS();
+            
+            // تست خودکار چارت 1
+            setTimeout(() => {
+                testChart1();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
