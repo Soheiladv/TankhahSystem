@@ -25,6 +25,14 @@ from core.models import Organization, Project, Status
 class DashboardMainView(TemplateView):
     """داشبورد اصلی گزارشات با آمار کلی"""
     template_name = 'reports/dashboard/main_dashboard.html'
+    # کدهای دسترسی تب‌ها (قابل تغییر در آینده)
+    TAB_PERMISSION_CODES = {
+        'overview': 'reports.Dashboard_view',
+        'budget': 'reports.Dashboard_budget',
+        'tankhah': 'reports.Dashboard_tankhah',
+        'factors': 'reports.Dashboard_factors',
+        'risk': 'reports.Dashboard_risk',
+    }
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -62,6 +70,10 @@ class DashboardMainView(TemplateView):
         chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id)
         context['chart_data'] = json.dumps(chart_data, ensure_ascii=False)
 
+        # متریک‌های پیشرفته بودجه (نرخ جذب، برنامه/واقعی، پیش‌بینی، تمرکز، ایجینگ)
+        advanced_budget = self.get_advanced_budget_metrics(start_date, end_date, organization_id, project_id)
+        context['advanced_budget'] = json.dumps(advanced_budget, ensure_ascii=False, default=str)
+
         # فیلترهای مقایسه‌ای (اختیاری: در صورت ارسال)
         compare_start = self._parse_jalali_date(self.request.GET.get('compare_start_date'))
         compare_end = self._parse_jalali_date(self.request.GET.get('compare_end_date'))
@@ -79,6 +91,59 @@ class DashboardMainView(TemplateView):
         # گزینه‌های واقعی سازمان و پروژه برای فیلترها
         context['organizations'] = list(Organization.objects.values('id', 'name').order_by('name'))
         context['projects'] = list(Project.objects.values('id', 'name').order_by('name'))
+
+        # جدول دسته‌بندی فاکتورها (Top 10)
+        context['factor_category_table'] = factor_stats.get('category_stats', [])[:10]
+
+        # مقایسه سازمان/پروژه بر اساس مجموع تخصیص (Top 10)
+        alloc_qs = BudgetAllocation.objects.all()
+        if start_date:
+            alloc_qs = alloc_qs.filter(allocation_date__gte=start_date)
+        if end_date:
+            alloc_qs = alloc_qs.filter(allocation_date__lte=end_date)
+        if organization_id:
+            alloc_qs = alloc_qs.filter(organization_id=organization_id)
+        if project_id:
+            alloc_qs = alloc_qs.filter(project_id=project_id)
+        org_compare = alloc_qs.values('organization__name').annotate(total=Sum('allocated_amount')).order_by('-total')[:10]
+        project_compare = alloc_qs.values('project__name').annotate(total=Sum('allocated_amount')).order_by('-total')[:10]
+        context['org_compare'] = list(org_compare)
+        context['project_compare'] = list(project_compare)
+
+        # نشانگرهای ریسک ساده: نسبت برگشت به تخصیص برای سازمان‌ها + Aging تنخواه‌ها
+        org_alloc_map = {o['organization__name']: o['total'] for o in org_compare}
+        risk_rows = []
+        for o in return_stats.get('org_returns', []):
+            name = o.get('allocation__organization__name')
+            ret_total = o.get('total_amount') or Decimal('0')
+            alloc_total = org_alloc_map.get(name) or Decimal('0')
+            ratio = float(ret_total) / float(alloc_total) * 100.0 if alloc_total and float(alloc_total) > 0 else 0.0
+            risk_rows.append({
+                'organization': name or 'نامشخص',
+                'return_amount': ret_total,
+                'allocated_amount': alloc_total,
+                'return_ratio': ratio,
+            })
+        context['risk_table'] = sorted(risk_rows, key=lambda x: x['return_ratio'], reverse=True)[:10]
+
+        # Aging تنخواه‌ها (ساده)
+        today = timezone.now().date()
+        def days_ago(n):
+            return today - timedelta(days=n)
+        aging_counts = Tankhah.objects.aggregate(
+            d_0_30=Count('id', filter=Q(date__date__gt=days_ago(30))),
+            d_31_60=Count('id', filter=Q(date__date__lte=days_ago(30)) & Q(date__date__gt=days_ago(60))),
+            d_61_90=Count('id', filter=Q(date__date__lte=days_ago(60)) & Q(date__date__gt=days_ago(90))),
+            d_90_plus=Count('id', filter=Q(date__date__lte=days_ago(90)))
+        )
+        context['tankhah_aging'] = aging_counts
+
+        # مجوزها فعلاً غیرفعال (نمایش همه)
+        context['can_view_overview'] = True
+        context['can_view_budget'] = True
+        context['can_view_tankhah'] = True
+        context['can_view_factors'] = True
+        context['can_view_risk'] = True
         
         return context
 
@@ -287,6 +352,163 @@ class DashboardMainView(TemplateView):
             'total_count': total_projects,
             'project_stats': list(project_stats),
         }
+
+    def get_advanced_budget_metrics(self, start_date=None, end_date=None, organization_id=None, project_id=None):
+        """محاسبه متریک‌های پیشرفته بودجه مورد نیاز برای تب بودجه.
+        - absorption_rate: consumed/allocated
+        - planned_vs_actual: سری ماهانه برنامه‌ریزی‌شده (خطی ساده) در مقابل مصرف واقعی
+        - forecast_remaining: پیش‌بینی باقی‌مانده با فرض میانگین مصرف اخیر
+        - concentration: سهم Top N سازمان/پروژه از تخصیص
+        - aging: گروه‌بندی تخصیص‌ها بر اساس سن از تاریخ تخصیص
+        """
+        allocations = BudgetAllocation.objects.all()
+        if start_date:
+            allocations = allocations.filter(allocation_date__gte=start_date)
+        if end_date:
+            allocations = allocations.filter(allocation_date__lte=end_date)
+        if organization_id:
+            allocations = allocations.filter(organization_id=organization_id)
+        if project_id:
+            allocations = allocations.filter(project_id=project_id)
+
+        transactions = BudgetTransaction.objects.filter(transaction_type='CONSUMPTION')
+        if start_date:
+            transactions = transactions.filter(timestamp__date__gte=start_date)
+        if end_date:
+            transactions = transactions.filter(timestamp__date__lte=end_date)
+        if organization_id:
+            transactions = transactions.filter(allocation__organization_id=organization_id)
+        if project_id:
+            transactions = transactions.filter(allocation__project_id=project_id)
+
+        total_allocated = allocations.aggregate(total=Sum('allocated_amount'))['total'] or Decimal('0')
+        total_consumed = transactions.aggregate(total=Sum('amount'))['total'] or Decimal('0')
+        total_returned = BudgetTransaction.objects.filter(transaction_type='RETURN', allocation__in=allocations).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+        remaining = total_allocated - total_consumed + total_returned
+
+        absorption_rate = float(total_consumed) / float(total_allocated) * 100.0 if total_allocated and float(total_allocated) > 0 else 0.0
+
+        # سری ماهانه مصرف واقعی
+        actual_monthly = transactions.extra(
+            select={'month': "DATE_FORMAT(timestamp, '%%Y-%%m-01')"}
+        ).values('month').annotate(total=Sum('amount')).order_by('month')
+
+        # برنامه‌ریزی‌شده خطی: مبلغ تخصیص کل به‌صورت یکنواخت در بازه تقسیم می‌شود
+        # اگر بازه مشخص نیست، از ماه‌های موجود در مصرف استفاده می‌کنیم
+        from datetime import date
+        def to_date(val):
+            if isinstance(val, (datetime,)):
+                return val.date()
+            return val
+
+        period_start = to_date(start_date) or (allocations.order_by('allocation_date').values_list('allocation_date', flat=True).first() or (actual_monthly[0]['month'] if actual_monthly else None))
+        period_end = to_date(end_date) or (allocations.order_by('-allocation_date').values_list('allocation_date', flat=True).first() or (actual_monthly[-1]['month'] if actual_monthly else None))
+
+        planned_monthly = []
+        try:
+            # بساز تقویم ماهانه ساده بین period_start و period_end
+            if period_start and period_end:
+                if isinstance(period_start, str):
+                    period_start = datetime.strptime(period_start, '%Y-%m-01').date()
+                if isinstance(period_end, str):
+                    period_end = datetime.strptime(period_end, '%Y-%m-01').date()
+                cur = date(period_start.year, period_start.month, 1)
+                last = date(period_end.year, period_end.month, 1)
+                months = []
+                while cur <= last:
+                    months.append(cur.strftime('%Y-%m-01'))
+                    # move to next month
+                    if cur.month == 12:
+                        cur = date(cur.year + 1, 1, 1)
+                    else:
+                        cur = date(cur.year, cur.month + 1, 1)
+                per_month = (float(total_allocated) / len(months)) if months else 0.0
+                planned_monthly = [{'month': m, 'total': per_month} for m in months]
+        except Exception:
+            planned_monthly = []
+
+        # Forecast: با میانگین 3 ماه اخیر مصرف، برای 3 ماه آینده باقی‌مانده را کاهش می‌دهیم
+        forecast = []
+        try:
+            recent = list(actual_monthly)[-3:]
+            avg_cons = sum(float(x['total'] or 0) for x in recent) / (len(recent) or 1)
+            future_remaining = float(remaining)
+            # شروع از ماه بعد آخرین ماه واقعی
+            if actual_monthly:
+                base = actual_monthly[-1]['month']
+                base_dt = datetime.strptime(base, '%Y-%m-01').date()
+            else:
+                base_dt = timezone.now().date().replace(day=1)
+            for i in range(1, 4):
+                # next month
+                y = base_dt.year + ((base_dt.month - 1 + i) // 12)
+                m = ((base_dt.month - 1 + i) % 12) + 1
+                month_str = f"{y:04d}-{m:02d}-01"
+                future_remaining = max(future_remaining - avg_cons, 0.0)
+                forecast.append({'month': month_str, 'remaining': future_remaining})
+        except Exception:
+            forecast = []
+
+        # Concentration: Top 5 orgs/projects از نظر تخصیص
+        org_conc = allocations.values('organization__name').annotate(total=Sum('allocated_amount')).order_by('-total')
+        proj_conc = allocations.values('project__name').annotate(total=Sum('allocated_amount')).order_by('-total')
+        org_concentration = list(org_conc[:5])
+        project_concentration = list(proj_conc[:5])
+
+        # Aging: بر اساس سن تخصیص از allocation_date
+        today = timezone.now().date()
+        aging_qs = allocations.values('id', 'allocation_date', 'allocated_amount')
+        d_0_30 = d_31_60 = d_61_90 = d_90_plus = 0
+        for a in aging_qs:
+            try:
+                alloc_date = a['allocation_date']
+                if hasattr(alloc_date, 'date'):
+                    alloc_date = alloc_date.date()
+                days = (today - alloc_date).days if alloc_date else 0
+                if days <= 30:
+                    d_0_30 += 1
+                elif days <= 60:
+                    d_31_60 += 1
+                elif days <= 90:
+                    d_61_90 += 1
+                else:
+                    d_90_plus += 1
+            except Exception:
+                continue
+
+        return {
+            'absorption_rate': absorption_rate,
+            'totals': {
+                'allocated': float(total_allocated or 0),
+                'consumed': float(total_consumed or 0),
+                'returned': float(total_returned or 0),
+                'remaining': float(remaining or 0),
+            },
+            'planned_vs_actual': {
+                'planned': list(planned_monthly),
+                'actual': list(actual_monthly),
+            },
+            'forecast_remaining': list(forecast),
+            'concentration': {
+                'organizations': [{'name': x.get('organization__name') or 'نامشخص', 'total': float(x.get('total') or 0)} for x in org_concentration],
+                'projects': [{'name': x.get('project__name') or 'نامشخص', 'total': float(x.get('total') or 0)} for x in project_concentration],
+            },
+            'aging': {
+                'd_0_30': d_0_30,
+                'd_31_60': d_31_60,
+                'd_61_90': d_61_90,
+                'd_90_plus': d_90_plus,
+            }
+        }
+
+    def _has_perm(self, code: str) -> bool:
+        """بررسی ساده مجوز با کد پرمیشن. با PermissionBaseView سازگار است."""
+        try:
+            user = self.request.user
+            # از has_perm استاندارد جنگو استفاده می‌کنیم
+            return bool(user and user.is_authenticated and user.has_perm(code))
+        except Exception:
+            return False
     
     def get_budget_return_statistics(self, start_date=None, end_date=None, organization_id=None, project_id=None):
         """آمار برگشت‌های بودجه"""

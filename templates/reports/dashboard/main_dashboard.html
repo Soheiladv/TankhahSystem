@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static rcms_custom_filters jformat %}
 
 {% block title %}داشبورد گزارشات - آمار بودجه{% endblock %}
 
@@ -225,6 +225,22 @@
         70% { transform: scale(0.9); }
         100% { opacity: 1; transform: scale(1); }
     }
+
+    /* Tabs */
+    .dash-tabs { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+    .dash-tab { border: 1px solid #e2e8f0; background: #fff; padding: 8px 14px; border-radius: 10px; cursor: pointer; }
+    .dash-tab.active { background: #3b82f6; color: #fff; border-color: #3b82f6; }
+    .dash-pane { display: none; }
+    .dash-pane.active { display: block; }
+    .stats-card { background: white; border-radius: 15px; padding: 25px; margin-bottom: 20px; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08); border: 1px solid #e2e8f0; }
+    .stats-card .card-title { color: #64748b; font-size: 0.9rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
+    .stats-card .card-value { color: #1e293b; font-size: 2rem; font-weight: 700; margin: 0; }
+    /* Revert to pre-tabs look: hide tabs, show content panes as normal blocks */
+    #dashTabs { display: none !important; }
+    .dash-pane { display: block !important; margin-bottom: 1.25rem; }
+    .dash-tab { display: none !important; }
+    .chart-container { background: white; border-radius: 15px; padding: 25px; margin-bottom: 20px; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08); border: 1px solid #e2e8f0; }
+    .chart-wrapper { position: relative; height: 380px; }
 </style>
 {% endblock %}
 
@@ -245,6 +261,15 @@
                 <i class="fas fa-chart-pie fa-5x" style="opacity: 0.2;"></i>
             </div>
         </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="dash-tabs" id="dashTabs">
+        {% if can_view_overview %}<div class="dash-tab" data-tab="overview">نمای کلی</div>{% endif %}
+        {% if can_view_budget %}<div class="dash-tab" data-tab="budget">بودجه</div>{% endif %}
+        {% if can_view_tankhah %}<div class="dash-tab" data-tab="tankhah">تنخواه</div>{% endif %}
+        {% if can_view_factors %}<div class="dash-tab" data-tab="factors">فاکتورها</div>{% endif %}
+        {% if can_view_risk %}<div class="dash-tab" data-tab="risk">ریسک و مقایسه</div>{% endif %}
     </div>
 
     <!-- Filters Section -->
@@ -304,275 +329,325 @@
         </div>
     </div>
 
-    <!-- Statistics Cards -->
-    <div class="row mb-4">
-        <!-- Budget Statistics -->
-        <div class="col-lg-3 col-md-6 mb-4" data-aos="fade-up" data-aos-delay="100">
-            <div class="stats-card budget animate-slide-up">
-                <div class="card-icon">
-                    <i class="fas fa-wallet"></i>
+    <!-- Overview Pane: keep existing overview cards/charts here -->
+    <div class="dash-pane" id="pane-overview">
+        <div class="row mb-3">
+            <div class="col-lg-3 col-md-6">
+                <div class="stats-card">
+                    <div class="card-title">کل بودجه</div>
+                    <div class="card-value">{{ budget_stats.total_budget|format_negative }}</div>
                 </div>
-                <div class="card-title">کل بودجه</div>
-                <div class="card-value" id="totalBudget">{{ budget_stats.total_budget|floatformat:0|default:"0" }}</div>
-                <div class="mt-3">
-                    <small style="color: #64748b;">
-                        <i class="fas fa-chart-line me-1"></i>
-                        تخصیص: {{ budget_stats.total_allocated|floatformat:0|default:"0" }}
-                    </small>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="stats-card">
+                    <div class="card-title">کل تخصیص</div>
+                    <div class="card-value">{{ budget_stats.total_allocated|format_negative }}</div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="stats-card">
+                    <div class="card-title">کل مصرف</div>
+                    <div class="card-value">{{ budget_stats.total_consumed|format_negative }}</div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="stats-card">
+                    <div class="card-title">کل برگشت</div>
+                    <div class="card-value">{{ budget_stats.total_returned|format_negative }}</div>
                 </div>
             </div>
         </div>
-
-        <!-- Tankhah Statistics -->
-        <div class="col-lg-3 col-md-6 mb-4" data-aos="fade-up" data-aos-delay="200">
-            <div class="stats-card tankhah animate-slide-up">
-                <div class="card-icon">
-                    <i class="fas fa-file-invoice"></i>
-                </div>
-                <div class="card-title">تعداد تنخواه‌ها</div>
-                <div class="card-value" id="totalTankhah">{{ tankhah_stats.total_count|default:"0" }}</div>
-                <div class="mt-3">
-                    <small style="color: #64748b;">
-                        <i class="fas fa-money-bill-wave me-1"></i>
-                        مبلغ: {{ tankhah_stats.total_amount|floatformat:0|default:"0" }}
-                    </small>
+        <div class="row mb-3">
+            <div class="col-lg-3 col-md-6">
+                <div class="stats-card">
+                    <div class="card-title">تعداد تنخواه</div>
+                    <div class="card-value">{{ tankhah_stats.total_count|default:"0" }}</div>
                 </div>
             </div>
-        </div>
-
-        <!-- Factor Statistics -->
-        <div class="col-lg-3 col-md-6 mb-4" data-aos="fade-up" data-aos-delay="300">
-            <div class="stats-card factor animate-slide-up">
-                <div class="card-icon">
-                    <i class="fas fa-receipt"></i>
-                </div>
-                <div class="card-title">تعداد فاکتورها</div>
-                <div class="card-value" id="totalFactors">{{ factor_stats.total_count|default:"0" }}</div>
-                <div class="mt-3">
-                    <small style="color: #64748b;">
-                        <i class="fas fa-calculator me-1"></i>
-                        مبلغ: {{ factor_stats.total_amount|floatformat:0|default:"0" }}
-                    </small>
+            <div class="col-lg-3 col-md-6">
+                <div class="stats-card">
+                    <div class="card-title">مبلغ تنخواه</div>
+                    <div class="card-value">{{ tankhah_stats.total_amount|format_negative }}</div>
                 </div>
             </div>
-        </div>
-
-        <!-- Payment Statistics -->
-        <div class="col-lg-3 col-md-6 mb-4" data-aos="fade-up" data-aos-delay="400">
-            <div class="stats-card payment animate-slide-up">
-                <div class="card-icon">
-                    <i class="fas fa-credit-card"></i>
+            <div class="col-lg-3 col-md-6">
+                <div class="stats-card">
+                    <div class="card-title">تعداد فاکتور</div>
+                    <div class="card-value">{{ factor_stats.total_count|default:"0" }}</div>
                 </div>
-                <div class="card-title">دستورات پرداخت</div>
-                <div class="card-value" id="totalPayments">{{ payment_stats.total_count|default:"0" }}</div>
-                <div class="mt-3">
-                    <small style="color: #64748b;">
-                        <i class="fas fa-dollar-sign me-1"></i>
-                        مبلغ: {{ payment_stats.total_amount|floatformat:0|default:"0" }}
-                    </small>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="stats-card">
+                    <div class="card-title">مبلغ فاکتورها</div>
+                    <div class="card-value">{{ factor_stats.total_amount|format_negative }}</div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Budget Return Statistics -->
-    <div class="row mb-4" data-aos="fade-up" data-aos-delay="500">
-        <div class="col-12">
-            <div class="stat-card return position-relative">
-                <i class="fas fa-undo stat-icon"></i>
-                <div class="row align-items-center">
-                    <div class="col-md-8">
-                        <h4 class="mb-3">
-                            <i class="fas fa-chart-pie me-2"></i>
-                            آمار برگشت‌های بودجه
-                        </h4>
-                        <div class="row">
-                            <div class="col-md-4">
-                                <div class="text-center">
-                                    <div class="h2 text-primary">{{ return_stats.total_count|default:"0" }}</div>
-                                    <small class="text-muted">تعداد برگشت‌ها</small>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="text-center">
-                                    <div class="h2 text-success">{{ return_stats.total_amount|floatformat:0|default:"0" }}</div>
-                                    <small class="text-muted">مبلغ کل برگشتی (ریال)</small>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="text-center">
-                                    <div class="h2 text-warning">{{ budget_stats.return_percentage|floatformat:1|default:"0" }}%</div>
-                                    <small class="text-muted">درصد برگشت از کل بودجه</small>
-                                </div>
-                            </div>
-                        </div>
+    <!-- Budget Pane -->
+    <div class="dash-pane" id="pane-budget">
+        <!-- Advanced Budget KPIs -->
+        <div class="row mb-3">
+            <div class="col-lg-3 col-md-6">
+                <div class="stats-card">
+                    <div class="card-title">نرخ جذب بودجه</div>
+                    <div class="card-value" id="kpiAbsorption">0%</div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="stats-card">
+                    <div class="card-title">تخصیص</div>
+                    <div class="card-value" id="kpiAllocated">0</div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="stats-card">
+                    <div class="card-title">مصرف</div>
+                    <div class="card-value" id="kpiConsumed">0</div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="stats-card">
+                    <div class="card-title">باقی‌مانده</div>
+                    <div class="card-value" id="kpiRemaining">0</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Advanced Budget Charts -->
+        <div class="row mb-4">
+            <div class="col-lg-6 mb-4" data-aos="fade-right">
+                <div class="chart-container">
+                    <h5>
+                        <i class="fas fa-sliders-h me-2" style="color:#0ea5e9;"></i>
+                        برنامه‌ریزی‌شده در برابر واقعی (ماهانه)
+                    </h5>
+                    <div class="chart-wrapper">
+                        <canvas id="plannedActualChart"></canvas>
                     </div>
-                    <div class="col-md-4">
-                        <div class="text-center">
-                            <svg class="progress-ring" width="120" height="120">
-                                <circle class="progress-ring-circle" 
-                                        stroke="#6f42c1" 
-                                        stroke-width="8" 
-                                        fill="transparent" 
-                                        r="40" 
-                                        cx="60" 
-                                        cy="60"
-                                        style="stroke-dashoffset: {{ budget_stats.return_percentage|floatformat:0 }};">
-                                </circle>
-                            </svg>
-                            <div class="position-absolute" style="top: 50%; left: 50%; transform: translate(-50%, -50%);">
-                                <div class="h4 mb-0">{{ budget_stats.return_percentage|floatformat:1 }}%</div>
-                            </div>
-                        </div>
+                </div>
+            </div>
+            <div class="col-lg-6 mb-4" data-aos="fade-left">
+                <div class="chart-container">
+                    <h5>
+                        <i class="fas fa-chart-area me-2" style="color:#22c55e;"></i>
+                        پیش‌بینی مانده (۳ ماه آینده)
+                    </h5>
+                    <div class="chart-wrapper">
+                        <canvas id="forecastRemainingChart"></canvas>
                     </div>
                 </div>
             </div>
         </div>
+
+        <div class="row mb-4">
+            <div class="col-lg-6 mb-4" data-aos="fade-up">
+                <div class="chart-container">
+                    <h5>
+                        <i class="fas fa-bullseye me-2" style="color:#f59e0b;"></i>
+                        تمرکز بودجه (Top 5)
+                    </h5>
+                    <div class="chart-wrapper">
+                        <canvas id="concentrationChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 mb-4" data-aos="fade-up">
+                <div class="chart-container">
+                    <h5>
+                        <i class="fas fa-hourglass-half me-2" style="color:#8b5cf6;"></i>
+                        سن تخصیص‌ها (Aging)
+                    </h5>
+                    <div class="chart-wrapper">
+                        <canvas id="agingChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Charts Section -->
+        <div class="row mb-4">
+            <!-- Budget Distribution Chart -->
+            <div class="col-lg-6 mb-4" data-aos="fade-right">
+                <div class="chart-container">
+                    <h5>
+                        <i class="fas fa-chart-pie me-2" style="color: #3b82f6;"></i>
+                        توزیع بودجه بر اساس سازمان
+                    </h5>
+                    <div class="chart-wrapper">
+                        <canvas id="budgetDistributionChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Monthly Consumption Chart -->
+            <div class="col-lg-6 mb-4" data-aos="fade-left">
+                <div class="chart-container">
+                    <h5>
+                        <i class="fas fa-chart-line me-2" style="color: #10b981;"></i>
+                        روند مصرف بودجه (ماهانه)
+                    </h5>
+                    <div class="chart-wrapper">
+                        <canvas id="monthlyConsumptionChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        
+
+        <!-- Detailed Statistics Tables -->
+        <div class="row mb-4">
+            <!-- Budget Returns by Organization -->
+            <div class="col-lg-6 mb-4" data-aos="fade-up">
+                <div class="chart-container">
+                    <h5 class="mb-4">
+                        <i class="fas fa-building me-2" style="color: #ef4444;"></i>
+                        برگشت بودجه بر اساس سازمان
+                    </h5>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>سازمان</th>
+                                    <th>تعداد</th>
+                                    <th>مبلغ (ریال)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for org in return_stats.org_returns %}
+                                <tr>
+                                    <td>{{ org.allocation__organization__name|default:"نامشخص" }}</td>
+                                    <td><span class="badge bg-primary">{{ org.count }}</span></td>
+                                    <td>{{ org.total_amount|floatformat:0 }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="3" class="text-center text-muted">داده‌ای یافت نشد</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Budget Returns by Project -->
+            <div class="col-lg-6 mb-4" data-aos="fade-up">
+                <div class="chart-container">
+                    <h5 class="mb-4">
+                        <i class="fas fa-project-diagram me-2 text-success"></i>
+                        برگشت بودجه بر اساس پروژه
+                    </h5>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>پروژه</th>
+                                    <th>تعداد</th>
+                                    <th>مبلغ (ریال)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for project in return_stats.project_returns %}
+                                <tr>
+                                    <td>{{ project.allocation__project__name|default:"نامشخص" }}</td>
+                                    <td><span class="badge bg-success">{{ project.count }}</span></td>
+                                    <td>{{ project.total_amount|floatformat:0 }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="3" class="text-center text-muted">داده‌ای یافت نشد</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+    <!-- Tankhah Pane -->
+    <div class="dash-pane" id="pane-tankhah">
+        <!-- Charts Section -->
+        <div class="row mb-4">
+            <!-- Tankhah Status Chart -->
+            <div class="col-lg-6 mb-4" data-aos="fade-right">
+                <div class="chart-container">
+                    <h5>
+                        <i class="fas fa-chart-bar me-2" style="color: #f59e0b;"></i>
+                        وضعیت تنخواه‌ها
+                    </h5>
+                    <div class="chart-wrapper">
+                        <canvas id="tankhahStatusChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Factor Category Chart -->
+            <div class="col-lg-6 mb-4" data-aos="fade-left">
+                <div class="chart-container">
+                    <h5>
+                        <i class="fas fa-chart-doughnut me-2" style="color: #8b5cf6;"></i>
+                        دسته‌بندی فاکتورها
+                    </h5>
+                    <div class="chart-wrapper">
+                        <canvas id="factorCategoryChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+      
+
+
+    <!-- Factors Pane -->
+    <div class="dash-pane" id="pane-factors">
+        <div class="chart-container">
+            <h5><i class="fas fa-list me-2"></i>پراکندگی دسته‌بندی فاکتورها</h5>
+            <div class="chart-wrapper"><canvas id="factorCategoryChart"></canvas></div>
+        </div>
     </div>
 
-    <!-- Charts Section -->
-    <div class="row mb-4">
-        <!-- Budget Distribution Chart -->
-        <div class="col-lg-6 mb-4" data-aos="fade-right">
-            <div class="chart-container">
-                <h5>
-                    <i class="fas fa-chart-pie me-2" style="color: #3b82f6;"></i>
-                    توزیع بودجه بر اساس سازمان
-                </h5>
-                <div class="chart-wrapper">
-                    <canvas id="budgetDistributionChart"></canvas>
+    <!-- Risk & Comparatives Pane -->
+    <div class="dash-pane" id="pane-risk">
+        <div class="row">
+            <div class="col-lg-6 mb-4">
+                <div class="chart-container">
+                    <h5><i class="fas fa-exclamation-triangle me-2"></i>نشانگرهای ریسک</h5>
+                    <ul class="mb-0">
+                        <li>درصد برگشت به کل تخصیص (سازمان/پروژه‌های با ریسک بالا)</li>
+                        <li>Aging تسویه تنخواه (۳۰/۶۰/۹۰+ روز)</li>
+                        <li>مصرف نزدیک سقف تخصیص</li>
+                    </ul>
                 </div>
             </div>
-        </div>
-
-        <!-- Monthly Consumption Chart -->
-        <div class="col-lg-6 mb-4" data-aos="fade-left">
-            <div class="chart-container">
-                <h5>
-                    <i class="fas fa-chart-line me-2" style="color: #10b981;"></i>
-                    روند مصرف بودجه (ماهانه)
-                </h5>
-                <div class="chart-wrapper">
-                    <canvas id="monthlyConsumptionChart"></canvas>
+            <div class="col-lg-6 mb-4">
+                <div class="chart-container">
+                    <h5><i class="fas fa-balance-scale me-2"></i>مقایسه سازمان/پروژه</h5>
+                    <div class="chart-wrapper"><canvas id="orgProjectCompareChart"></canvas></div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="row mb-4">
-        <!-- Tankhah Status Chart -->
-        <div class="col-lg-6 mb-4" data-aos="fade-right">
-            <div class="chart-container">
-                <h5>
-                    <i class="fas fa-chart-bar me-2" style="color: #f59e0b;"></i>
-                    وضعیت تنخواه‌ها
-                </h5>
-                <div class="chart-wrapper">
-                    <canvas id="tankhahStatusChart"></canvas>
-                </div>
+        <!-- Action Buttons -->
+        <div class="row mb-4" data-aos="fade-up">
+            <div class="col-12 text-center">
+                <a href="{% url 'reports_dashboard:analytics_redesigned' %}" class="btn btn-primary btn-lg me-3">
+                    <i class="fas fa-chart-line me-2"></i>
+                    تحلیل‌های پیشرفته
+                </a>
+                <a href="{% url 'reports_dashboard:export_reports' %}" class="btn btn-success btn-lg me-3">
+                    <i class="fas fa-download me-2"></i>
+                    صادرات گزارشات
+                </a>
+                <button class="btn btn-info btn-lg" onclick="refreshDashboard()">
+                    <i class="fas fa-sync-alt me-2"></i>
+                    به‌روزرسانی
+                </button>
             </div>
-        </div>
-
-        <!-- Factor Category Chart -->
-        <div class="col-lg-6 mb-4" data-aos="fade-left">
-            <div class="chart-container">
-                <h5>
-                    <i class="fas fa-chart-doughnut me-2" style="color: #8b5cf6;"></i>
-                    دسته‌بندی فاکتورها
-                </h5>
-                <div class="chart-wrapper">
-                    <canvas id="factorCategoryChart"></canvas>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Detailed Statistics Tables -->
-    <div class="row mb-4">
-        <!-- Budget Returns by Organization -->
-        <div class="col-lg-6 mb-4" data-aos="fade-up">
-            <div class="chart-container">
-                <h5 class="mb-4">
-                    <i class="fas fa-building me-2" style="color: #ef4444;"></i>
-                    برگشت بودجه بر اساس سازمان
-                </h5>
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead class="table-light">
-                            <tr>
-                                <th>سازمان</th>
-                                <th>تعداد</th>
-                                <th>مبلغ (ریال)</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for org in return_stats.org_returns %}
-                            <tr>
-                                <td>{{ org.allocation__organization__name|default:"نامشخص" }}</td>
-                                <td><span class="badge bg-primary">{{ org.count }}</span></td>
-                                <td>{{ org.total_amount|floatformat:0 }}</td>
-                            </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan="3" class="text-center text-muted">داده‌ای یافت نشد</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- Budget Returns by Project -->
-        <div class="col-lg-6 mb-4" data-aos="fade-up">
-            <div class="chart-container">
-                <h5 class="mb-4">
-                    <i class="fas fa-project-diagram me-2 text-success"></i>
-                    برگشت بودجه بر اساس پروژه
-                </h5>
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead class="table-light">
-                            <tr>
-                                <th>پروژه</th>
-                                <th>تعداد</th>
-                                <th>مبلغ (ریال)</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for project in return_stats.project_returns %}
-                            <tr>
-                                <td>{{ project.allocation__project__name|default:"نامشخص" }}</td>
-                                <td><span class="badge bg-success">{{ project.count }}</span></td>
-                                <td>{{ project.total_amount|floatformat:0 }}</td>
-                            </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan="3" class="text-center text-muted">داده‌ای یافت نشد</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Action Buttons -->
-    <div class="row mb-4" data-aos="fade-up">
-        <div class="col-12 text-center">
-            <a href="{% url 'reports_dashboard:analytics_redesigned' %}" class="btn btn-primary btn-lg me-3">
-                <i class="fas fa-chart-line me-2"></i>
-                تحلیل‌های پیشرفته
-            </a>
-            <a href="{% url 'reports_dashboard:export_reports' %}" class="btn btn-success btn-lg me-3">
-                <i class="fas fa-download me-2"></i>
-                صادرات گزارشات
-            </a>
-            <button class="btn btn-info btn-lg" onclick="refreshDashboard()">
-                <i class="fas fa-sync-alt me-2"></i>
-                به‌روزرسانی
-            </button>
         </div>
     </div>
 </div>
@@ -594,6 +669,7 @@
 <script>
 // Chart data from Django context
 var chartData = {{ chart_data|default:"{}"|safe }};
+var advancedBudget = {{ advanced_budget|default:"{}"|safe }};
 
 console.log('Chart data received:', chartData);
 
@@ -610,28 +686,13 @@ try {
 if (!chartData || typeof chartData !== 'object' || Object.keys(chartData).length === 0) {
     console.log('Using fallback chart data');
     chartData = {
-        org_budget: [
-            {organization__name: 'سازمان ۱', total: 50000000},
-            {organization__name: 'سازمان ۲', total: 30000000},
-            {organization__name: 'سازمان ۳', total: 20000000}
+        org_budget: [ 
         ],
-        monthly_consumption: [
-            {month: '2024-01-01', total: 10000000},
-            {month: '2024-02-01', total: 15000000},
-            {month: '2024-03-01', total: 12000000},
-            {month: '2024-04-01', total: 18000000},
-            {month: '2024-05-01', total: 20000000},
-            {month: '2024-06-01', total: 16000000}
+        monthly_consumption: [ 
         ],
-        tankhah_status: [
-            {status__name: 'تایید شده', count: 25},
-            {status__name: 'در انتظار', count: 15},
-            {status__name: 'رد شده', count: 5}
+        tankhah_status: [ 
         ],
-        factor_category: [
-            {category__name: 'اداری', total: 30000000},
-            {category__name: 'عملیاتی', total: 20000000},
-            {category__name: 'پشتیبانی', total: 10000000}
+        factor_category: [ 
         ]
     };
 }
@@ -671,6 +732,18 @@ document.addEventListener('DOMContentLoaded', function() {
     // Load filter options
     loadFilterOptions();
     
+    // Write advanced KPIs
+    try {
+        if (typeof advancedBudget === 'string') { advancedBudget = JSON.parse(advancedBudget); }
+        var ab = advancedBudget || {};
+        var fmt = function(n){ try { return Number(n||0).toLocaleString('fa-IR'); } catch(e){ return n||0; } };
+        var byId = function(id){ return document.getElementById(id); };
+        if (byId('kpiAbsorption')) byId('kpiAbsorption').textContent = ((ab.absorption_rate||0).toFixed ? ab.absorption_rate.toFixed(1) : Number(ab.absorption_rate||0).toFixed(1)) + '%';
+        if (byId('kpiAllocated')) byId('kpiAllocated').textContent = fmt((ab.totals||{}).allocated);
+        if (byId('kpiConsumed')) byId('kpiConsumed').textContent = fmt((ab.totals||{}).consumed);
+        if (byId('kpiRemaining')) byId('kpiRemaining').textContent = fmt((ab.totals||{}).remaining);
+    } catch(e) { console.warn('advanced KPIs error', e); }
+
     // Initialize charts with delay to ensure DOM is ready
     setTimeout(function() {
         console.log('Initializing charts...');
@@ -902,6 +975,89 @@ function initializeCharts() {
         console.error('Error details:', error.message, error.stack);
     }
 }
+
+// Advanced charts drawing (planned vs actual, forecast, concentration, aging)
+(function(){
+    document.addEventListener('DOMContentLoaded', function(){
+        try {
+            if (typeof advancedBudget === 'string') { advancedBudget = JSON.parse(advancedBudget); }
+            if (typeof Chart === 'undefined') return;
+            var ab = advancedBudget || {};
+
+            // Planned vs Actual
+            var p = (ab.planned_vs_actual||{}).planned || [];
+            var a = (ab.planned_vs_actual||{}).actual || [];
+            var labels = (p.length ? p : a).map(function(x){ return new Date(x.month).toLocaleDateString('fa-IR'); });
+            var plannedDataMap = {}; p.forEach(function(x){ plannedDataMap[x.month] = x.total||0; });
+            var actualDataMap = {}; a.forEach(function(x){ actualDataMap[x.month] = x.total||0; });
+            var plannedSeries = labels.map(function(lbl){
+                // reconstruct month key from label not reliable; use original arrays if lengths match
+                return p.length ? (p[labels.indexOf(lbl)]?.total||0) : 0;
+            });
+            var actualSeries = labels.map(function(lbl){
+                return a.length ? (a[labels.indexOf(lbl)]?.total||0) : 0;
+            });
+            var ctxPA = document.getElementById('plannedActualChart');
+            if (ctxPA && (p.length || a.length)) {
+                new Chart(ctxPA, {
+                    type: 'line',
+                    data: { labels: labels, datasets: [
+                        { label: 'برنامه', data: plannedSeries, borderColor:'#0ea5e9', backgroundColor:'rgba(14,165,233,0.12)', fill:true, tension:0.35 },
+                        { label: 'واقعی', data: actualSeries, borderColor:'#ef4444', backgroundColor:'rgba(239,68,68,0.12)', fill:true, tension:0.35 }
+                    ]},
+                    options:{ responsive:true, plugins:{legend:{position:'bottom'}}, scales:{ y:{ beginAtZero:true } } }
+                });
+            }
+
+            // Forecast remaining
+            var f = ab.forecast_remaining || [];
+            var ctxF = document.getElementById('forecastRemainingChart');
+            if (ctxF && f.length) {
+                new Chart(ctxF, {
+                    type: 'line',
+                    data: {
+                        labels: f.map(function(x){ return new Date(x.month).toLocaleDateString('fa-IR'); }),
+                        datasets: [{ label:'باقی‌مانده پیش‌بینی‌شده', data: f.map(function(x){ return x.remaining||0; }), borderColor:'#22c55e', backgroundColor:'rgba(34,197,94,0.12)', fill:true, tension:0.35 }]
+                    },
+                    options:{ responsive:true, plugins:{legend:{display:true}}, scales:{ y:{ beginAtZero:true } } }
+                });
+            }
+
+            // Concentration (stack org + project side-by-side as grouped bar)
+            var orgs = ((ab.concentration||{}).organizations)||[];
+            var projs = ((ab.concentration||{}).projects)||[];
+            var labelsC = (orgs.map(function(x){return x.name;}).concat(projs.map(function(x){return x.name;}))).slice(0,5);
+            var ctxC = document.getElementById('concentrationChart');
+            if (ctxC && (orgs.length || projs.length)) {
+                new Chart(ctxC, {
+                    type: 'bar',
+                    data: {
+                        labels: labelsC,
+                        datasets: [
+                            { label:'سازمان', data: orgs.map(function(x){return x.total||0;}), backgroundColor:'#3b82f6' },
+                            { label:'پروژه', data: projs.map(function(x){return x.total||0;}), backgroundColor:'#8b5cf6' }
+                        ]
+                    },
+                    options:{ responsive:true, plugins:{legend:{position:'bottom'}}, scales:{ y:{ beginAtZero:true } } }
+                });
+            }
+
+            // Aging
+            var ag = ab.aging || {};
+            var ctxAg = document.getElementById('agingChart');
+            if (ctxAg) {
+                new Chart(ctxAg, {
+                    type: 'bar',
+                    data: {
+                        labels: ['0-30','31-60','61-90','90+'],
+                        datasets: [{ label:'تعداد', data: [ag.d_0_30||0, ag.d_31_60||0, ag.d_61_90||0, ag.d_90_plus||0], backgroundColor:'#f59e0b' }]
+                    },
+                    options:{ responsive:true, plugins:{legend:{display:false}}, scales:{ y:{ beginAtZero:true, precision:0 } } }
+                });
+            }
+        } catch(e){ console.warn('advanced budget charts error', e); }
+    });
+})();
 
 // Load filter options with static data
 function loadFilterOptions() {
