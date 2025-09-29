@@ -331,3 +331,59 @@ window.ChartUtils = {
  * Determine current chart mode from global selector
  */
 // removed adaptive chart implementation
+
+/**
+ * Lightweight 3D-like shadow effect for Chart.js datasets
+ * Usage: pass enable3D=true to options.plugins.fake3d.enable
+ */
+function apply3DEffect(chart, intensity = 6, alpha = 0.12) {
+    if (!chart || !chart.ctx) return;
+    const ctx = chart.ctx;
+    const originalStroke = ctx.stroke;
+    const originalFill = ctx.fill;
+    ctx.stroke = function() {
+        ctx.save();
+        ctx.shadowColor = 'rgba(0,0,0,' + alpha + ')';
+        ctx.shadowBlur = intensity;
+        ctx.shadowOffsetX = Math.max(1, Math.floor(intensity/2));
+        ctx.shadowOffsetY = Math.max(2, Math.floor(intensity/1.5));
+        originalStroke.apply(this, arguments);
+        ctx.restore();
+    };
+    ctx.fill = function() {
+        ctx.save();
+        ctx.shadowColor = 'rgba(0,0,0,' + alpha + ')';
+        ctx.shadowBlur = intensity;
+        ctx.shadowOffsetX = Math.max(1, Math.floor(intensity/2));
+        ctx.shadowOffsetY = Math.max(2, Math.floor(intensity/1.5));
+        originalFill.apply(this, arguments);
+        ctx.restore();
+    };
+}
+
+/**
+ * Create adaptive chart by type string with optional 3D-like effect
+ */
+function createAdaptiveChart(canvasId, type, data, options = {}, enable3D = false) {
+    if (!isChartJsLoaded()) { showChartError(canvasId, 'Chart.js بارگذاری نشده'); return null; }
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) { console.error('Canvas not found', canvasId); return null; }
+    if (!data || !data.labels || !data.datasets) { showChartEmpty(canvasId); return null; }
+    const config = { type, data, options: { ...CHART_DEFAULTS, ...options, plugins: { ...CHART_DEFAULTS.plugins, ...(options.plugins||{}) } } };
+    try {
+        const chart = new Chart(canvas, config);
+        if (enable3D) {
+            apply3DEffect(chart);
+            chart.update();
+        }
+        return chart;
+    } catch (e) {
+        console.error('Adaptive chart error', e);
+        showChartError(canvasId, 'خطا در ساخت نمودار');
+        return null;
+    }
+}
+
+// expose helpers
+window.ChartUtils.createAdaptiveChart = createAdaptiveChart;
+window.ChartUtils.apply3DEffect = apply3DEffect;
