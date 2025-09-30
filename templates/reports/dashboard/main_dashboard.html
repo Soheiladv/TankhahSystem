@@ -622,7 +622,8 @@
         </div>
 
     <div class="row mb-4">
-        {% if advanced_budget and advanced_budget.concentration and (advanced_budget.concentration.organizations|length or advanced_budget.concentration.projects|length) %}
+        {% if advanced_budget and advanced_budget.concentration %}
+        {% if advanced_budget.concentration.organizations|length or advanced_budget.concentration.projects|length %}
         <div class="col-lg-6 mb-4" data-aos="fade-up">
             <div class="chart-container">
                 <h5>
@@ -635,7 +636,9 @@
             </div>
         </div>
         {% endif %}
-        {% if advanced_budget and advanced_budget.aging and (advanced_budget.aging.d_0_30 or advanced_budget.aging.d_31_60 or advanced_budget.aging.d_61_90 or advanced_budget.aging.d_90_plus) %}
+        {% endif %}
+        {% if advanced_budget and advanced_budget.aging %}
+        {% if advanced_budget.aging.d_0_30 or advanced_budget.aging.d_31_60 or advanced_budget.aging.d_61_90 or advanced_budget.aging.d_90_plus %}
         <div class="col-lg-6 mb-4" data-aos="fade-up">
             <div class="chart-container">
                 <h5>
@@ -648,11 +651,13 @@
             </div>
         </div>
         {% endif %}
+        {% endif %}
     </div>
 
     <!-- Aging Heatmap (Matrix) -->
     <div class="row mb-4">
-        {% if advanced_budget and advanced_budget.aging and (advanced_budget.aging.d_0_30 or advanced_budget.aging.d_31_60 or advanced_budget.aging.d_61_90 or advanced_budget.aging.d_90_plus) %}
+        {% if advanced_budget and advanced_budget.aging %}
+        {% if advanced_budget.aging.d_0_30 or advanced_budget.aging.d_31_60 or advanced_budget.aging.d_61_90 or advanced_budget.aging.d_90_plus %}
         <div class="col-lg-12 mb-4" data-aos="fade-up">
             <div class="chart-container">
                 <h5><i class="fas fa-fire me-2"></i>Heatmap سن تخصیص/تسویه</h5>
@@ -670,6 +675,7 @@
                 </div>
             </div>
         </div>
+        {% endif %}
         {% endif %}
     </div>
 
@@ -694,7 +700,8 @@
             </div>
         </div>
         {% endif %}
-        {% if advanced_comparatives and advanced_comparatives.rankings and (advanced_comparatives.rankings.organizations|length or advanced_comparatives.rankings.projects|length) %}
+        {% if advanced_comparatives and advanced_comparatives.rankings %}
+        {% if advanced_comparatives.rankings.organizations|length or advanced_comparatives.rankings.projects|length %}
         <div class="col-lg-6 mb-4" data-aos="fade-left">
             <div class="chart-container">
                 <h5><i class="fas fa-radar me-2"></i>رادار KPI سازمان/پروژه</h5>
@@ -711,6 +718,7 @@
                 </div>
             </div>
         </div>
+        {% endif %}
         {% endif %}
     </div>
 
@@ -1112,7 +1120,8 @@
 
         <!-- Funnel/Sankey (optional) for مسیر تخصیص→پروژه→مصرف -->
         <div class="row mb-4">
-            {% if advanced_comparatives and advanced_comparatives.rankings and (advanced_comparatives.rankings.organizations|length or advanced_comparatives.rankings.projects|length) %}
+            {% if advanced_comparatives and advanced_comparatives.rankings %}
+            {% if advanced_comparatives.rankings.organizations|length or advanced_comparatives.rankings.projects|length %}
             <div class="col-lg-12 mb-4" data-aos="fade-up">
                 <div class="chart-container">
                     <h5><i class="fas fa-diagram-project me-2"></i>قیف/سَِنکی مسیر بودجه</h5>
@@ -1130,6 +1139,7 @@
                     </div>
                 </div>
             </div>
+            {% endif %}
             {% endif %}
         </div>
 
@@ -1238,7 +1248,8 @@
         </div>
 
         <div class="row mb-4">
-            {% if advanced_comparatives and advanced_comparatives.monthly and (advanced_comparatives.monthly.consumption|length or advanced_comparatives.monthly.returns|length) %}
+            {% if advanced_comparatives and advanced_comparatives.monthly %}
+            {% if advanced_comparatives.monthly.consumption|length or advanced_comparatives.monthly.returns|length %}
             <div class="col-lg-6 mb-4" data-aos="fade-up">
                 <div class="chart-container">
                     <h5><i class="fas fa-building me-2"></i>رتبه‌بندی سازمان‌ها</h5>
@@ -1259,6 +1270,7 @@
                         {% endif %}
                 </div>
             </div>
+            {% endif %}
             {% endif %}
         </div>
         <div class="mt-3">

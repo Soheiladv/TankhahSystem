@@ -144,12 +144,16 @@ class BudgetPeriodListView(PermissionBaseView, ListView):
                 today = timezone.now().date()
                 if status == 'active':
                     # فعال: is_active=True, تمام نشده, بایگانی نشده, و تاریخ فعلی در بازه باشد
+                    from datetime import timedelta as _td
+                    grace_days = getattr(settings, 'BUDGET_PERIOD_GRACE_DAYS', 0) or 0
+                    effective_today = today
+                    effective_end_offset = _td(days=int(grace_days))
                     queryset = queryset.filter(
                         is_active=True,
                         is_completed=False,
                         is_archived=False,
-                        start_date__lte=today,
-                        end_date__gte=today
+                        start_date__lte=effective_today,
+                        end_date__gte=effective_today - effective_end_offset
                     )
                 elif status == 'inactive':
                     # غیرفعال: is_active=False, تمام نشده, بایگانی نشده
@@ -174,11 +178,14 @@ class BudgetPeriodListView(PermissionBaseView, ListView):
                     )
                 elif status == 'expired':
                     # منقضی (اما تمام نشده): is_active=True, تمام نشده, بایگانی نشده, و تاریخ پایان گذشته است
+                    from datetime import timedelta as _td
+                    grace_days = getattr(settings, 'BUDGET_PERIOD_GRACE_DAYS', 0) or 0
+                    effective_cutoff = today - _td(days=int(grace_days))
                     queryset = queryset.filter(
                         is_active=True,
                         is_completed=False,
                         is_archived=False,
-                        end_date__lt=today
+                        end_date__lt=effective_cutoff
                     )
             # -------------------------------------------
 

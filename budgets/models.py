@@ -8,6 +8,7 @@ from django.contrib.contenttypes.models import ContentType
 from budgets.budget_calculations import     calculate_threshold_amount
 
 from django.utils import timezone
+from datetime import timedelta
 import jdatetime
 from django.db import models, transaction
 from django.utils.translation import gettext_lazy as _
@@ -101,7 +102,10 @@ class BudgetPeriod(models.Model):
                 return True, _("دوره بودجه غیرفعال است.")
             if self.is_completed:
                 return True, _("دوره بودجه تمام‌شده است.")
-            if self.lock_condition == 'AFTER_DATE' and self.end_date < timezone.now().date():
+            # مهلت تمدید پس از تاریخ پایان
+            grace_days = getattr(settings, 'BUDGET_PERIOD_GRACE_DAYS', 0) or 0
+            effective_end_date = self.end_date + timedelta(days=int(grace_days))
+            if self.lock_condition == 'AFTER_DATE' and effective_end_date < timezone.now().date():
                 return True, _("دوره بودجه به دلیل پایان تاریخ قفل شده است.")
             remaining = self.get_remaining_amount()
             locked_amount = (self.total_amount * self.locked_percentage) / Decimal('100')
@@ -180,14 +184,19 @@ class BudgetPeriod(models.Model):
                 result = 'completed', _('بودجه تمام‌شده است.')
             elif remaining <= 0 and self.lock_condition == 'ZERO_REMAINING':
                 result = 'completed', _('بودجه به صفر رسیده و تمام‌شده است.')
-            elif self.lock_condition == 'AFTER_DATE' and self.end_date < timezone.now().date():
-                result = 'locked', _('دوره به دلیل پایان تاریخ قفل شده است.')
-            elif self.lock_condition == 'MANUAL' and remaining <= locked:
-                result = 'locked', _('بودجه به حد قفل‌شده رسیده است.')
-            elif remaining <= warning:
-                result = 'warning', _('بودجه به آستانه هشدار رسیده است.')
             else:
-                result = 'normal', _('وضعیت عادی')
+                # اعمال مهلت تمدید در بررسی وضعیت بدون ذخیره
+                from datetime import timedelta as _td
+                grace_days = getattr(settings, 'BUDGET_PERIOD_GRACE_DAYS', 0) or 0
+                effective_end_date = self.end_date + _td(days=int(grace_days))
+                if self.lock_condition == 'AFTER_DATE' and effective_end_date < timezone.now().date():
+                    result = 'locked', _('دوره به دلیل پایان تاریخ قفل شده است.')
+                elif self.lock_condition == 'MANUAL' and remaining <= locked:
+                    result = 'locked', _('بودجه به حد قفل‌شده رسیده است.')
+                elif remaining <= warning:
+                    result = 'warning', _('بودجه به آستانه هشدار رسیده است.')
+                else:
+                    result = 'normal', _('وضعیت عادی')
 
             cache.set(cache_key, result, timeout=300)
             logger.debug(f"check_budget_status_no_save: obj={self}, result={result}")

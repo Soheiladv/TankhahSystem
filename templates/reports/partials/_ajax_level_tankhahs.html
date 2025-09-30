@@ -1,3 +1,85 @@
+{% load i18n humanize jformat %}
+
+<div class="table-responsive">
+    <table class="table table-sm table-striped table-hover align-middle">
+        <thead class="table-light">
+            <tr>
+                <th scope="col" style="width:10%">{% translate "شماره" %}</th>
+                <th scope="col" style="width:15%" class="text-center">{% translate "مبلغ" %}</th>
+                <th scope="col" style="width:10%" class="text-center">{% translate "وضعیت" %}</th>
+                <th scope="col" style="width:15%" class="text-center">{% translate "تاریخ" %}</th>
+                <th scope="col" style="width:10%" class="text-center">{% translate "تعداد فاکتور" %}</th>
+                <th scope="col" style="width:20%" class="text-center">{% translate "عملیات" %}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for t in tankhahs_list_data %}
+                <tr>
+                    <td class="fw-bold">{{ t.number }}</td>
+                    <td class="text-center">{{ t.amount_formatted }} {% translate "ریال" %}</td>
+                    <td class="text-center">
+                        <span class="badge bg-secondary">{{ t.status_display }}</span>
+                    </td>
+                    <td class="text-center">{{ t.date_jalali }}</td>
+                    <td class="text-center">{{ t.factors_count|default:0 }}</td>
+                    <td class="text-center">
+                        <a href="{{ t.detail_url }}" class="btn btn-sm btn-outline-primary me-1">
+                            <i class="fas fa-eye"></i> {% translate "جزئیات" %}
+                        </a>
+                        <button class="btn btn-sm btn-outline-info"
+                                onclick="loadFactors('{{ t.factors_ajax_url }}', '#factorsContainer-{{ t.id }}', this)">
+                            <i class="fas fa-file-invoice"></i> {% translate "نمایش فاکتورها" %}
+                        </button>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="6" class="p-0">
+                        <div id="factorsContainer-{{ t.id }}" class="collapse">
+                            <div class="p-3 text-center text-muted">
+                                <i class="fas fa-info-circle me-1"></i>
+                                {% translate "برای مشاهده فاکتورها روی دکمه نمایش فاکتورها کلیک کنید." %}
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center py-3">{% translate "هیچ تنخواهی یافت نشد." %}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<script>
+function loadFactors(url, targetSelector, btn) {
+    const $target = $(targetSelector);
+    const $btn = $(btn);
+    if ($target.data('loaded')) {
+        $target.toggleClass('show');
+        return;
+    }
+    $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> ' + ($btn.text() || '')); 
+    $target.addClass('show').html(`
+        <div class="text-center py-4">
+            <i class="fas fa-spinner fa-spin fa-2x"></i>
+            <p class="mb-0">{% translate "در حال بارگذاری فاکتورها..." %}</p>
+        </div>
+    `);
+    $.get(url)
+        .done(function(resp){
+            $target.html(resp.html_content || '<div class="alert alert-warning">{% translate "داده‌ای دریافت نشد." %}</div>');
+            $target.data('loaded', true);
+        })
+        .fail(function(){
+            $target.html('<div class="alert alert-danger">{% translate "خطا در ارتباط با سرور." %}</div>');
+        })
+        .always(function(){
+            $btn.prop('disabled', false).html('<i class="fas fa-file-invoice"></i> ' + '{% translate "نمایش فاکتورها" %}');
+        });
+}
+</script>
+
 {% load i18n jformat rcms_custom_filters %}
 
 <div class="tankhahs-section">

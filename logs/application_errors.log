@@ -10881,3 +10881,716 @@ Traceback (most recent call last):
                                                           ~~~~~~~~~~~~~~~~^^
 TypeError: list.count() takes exactly one argument (0 given)
 ERROR 2025-09-30 11:46:41 views_executive_dashboard get_context_data خطا در گزارشات تحلیلی: Expression contains mixed types: DecimalField, IntegerField. You must set output_field.
+ERROR 2025-09-30 12:09:03 PermissionBase dispatch [PERM_CHECK] Permission denied for user dash_tester to /reports/dashboard/
+ERROR 2025-09-30 12:09:04 PermissionBase dispatch [PERM_CHECK] Permission denied for user dash_tester to /reports/dashboard/
+ERROR 2025-09-30 12:09:04 PermissionBase dispatch [PERM_CHECK] Permission denied for user dash_tester to /reports/dashboard/
+ERROR 2025-09-30 12:29:19 views_executive_dashboard get_context_data خطا در گزارشات تحلیلی: Expression contains mixed types: DecimalField, IntegerField. You must set output_field.
+ERROR 2025-09-30 12:29:22 views_executive_dashboard get_context_data خطا در گزارشات تحلیلی: Expression contains mixed types: DecimalField, IntegerField. You must set output_field.
+ERROR 2025-09-30 12:49:18 get_budget_details get_budget_details Error in get_budget_details for entity تست تاریخ و عودت بودجه (HQ_ITDC): Entity must be Organization or Project, got <class 'budgets.models.BudgetPeriod'>
+ERROR 2025-09-30 12:49:18 views_BudgetPeriod check_budget_status ImportError: check_budget_status not found for BudgetPeriod 27
+ERROR 2025-09-30 12:56:29 get_budget_details get_budget_details Error in get_budget_details for entity تست تاریخ و عودت بودجه (HQ_ITDC): Entity must be Organization or Project, got <class 'budgets.models.BudgetPeriod'>
+ERROR 2025-09-30 12:56:29 views_BudgetPeriod check_budget_status ImportError: check_budget_status not found for BudgetPeriod 27
+ERROR 2025-09-30 12:58:09 get_budget_details get_budget_details Error in get_budget_details for entity تست تاریخ و عودت بودجه (HQ_ITDC): Entity must be Organization or Project, got <class 'budgets.models.BudgetPeriod'>
+ERROR 2025-09-30 12:58:09 views_BudgetPeriod check_budget_status ImportError: check_budget_status not found for BudgetPeriod 27
+ERROR 2025-09-30 13:01:27 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 13:01:27 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 13:01:27 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 13:01:27 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 13:01:27 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 13:01:27 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 13:01:27 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 13:01:27 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 13:01:27 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 13:01:27 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 13:01:27 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 13:01:27 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 13:01:27 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040605-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-09-30 13:01:27 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 13:01:27 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040604-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-09-30 13:01:27 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 13:01:27 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 13:01:27 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-09-30 13:01:27 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-09-30 13:47:53 budget_calculations check_tankhah_lock_status خطا در بررسی وضعیت قفل تنخواه TNKH-14040701-HSarein-IPTV_Sarein-001: '__proxy__' object is not callable
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 1069, in check_tankhah_lock_status
+    return False, _("تنخواه فعال است.")
+                  ~^^^^^^^^^^^^^^^^^^^^
+TypeError: '__proxy__' object is not callable
+ERROR 2025-09-30 13:48:23 FactorStatusReviewView get_object An unexpected error occurred while fetching Factor pk=80: Invalid field name(s) given in select_related: 'stage'. Choices are: tankhah, factor, factor_item, content_type, from_status, to_status, action, user, post, created_by
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\FactorStatusReviewView.py", line 232, in get_object
+    obj = optimized_queryset.get(pk=pk)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 645, in get
+    num = len(clone)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 382, in __len__
+    self._fetch_all()
+    ~~~~~~~~~~~~~~~^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1930, in _fetch_all
+    self._prefetch_related_objects()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1320, in _prefetch_related_objects
+    prefetch_related_objects(self._result_cache, *self._prefetch_related_lookups)
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 2380, in prefetch_related_objects
+    obj_list, additional_lookups = prefetch_one_level(
+                                   ~~~~~~~~~~~~~~~~~~^
+        obj_to_fetch,
+        ^^^^^^^^^^^^^
+    ...<2 lines>...
+        level,
+        ^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 2544, in prefetch_one_level
+    ) = prefetcher.get_prefetch_querysets(
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        instances, lookup.get_current_querysets(level)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 797, in get_prefetch_querysets
+    for rel_obj in queryset:
+                   ^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 400, in __iter__
+    self._fetch_all()
+    ~~~~~~~~~~~~~~~^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1928, in _fetch_all
+    self._result_cache = list(self._iterable_class(self))
+                         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 91, in __iter__
+    results = compiler.execute_sql(
+        chunked_fetch=self.chunked_fetch, chunk_size=self.chunk_size
+    )
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\compiler.py", line 1561, in execute_sql
+    sql, params = self.as_sql()
+                  ~~~~~~~~~~~^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\compiler.py", line 747, in as_sql
+    extra_select, order_by, group_by = self.pre_sql_setup(
+                                       ~~~~~~~~~~~~~~~~~~^
+        with_col_aliases=with_col_aliases or bool(combinator),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\compiler.py", line 84, in pre_sql_setup
+    self.setup_query(with_col_aliases=with_col_aliases)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\compiler.py", line 73, in setup_query
+    self.select, self.klass_info, self.annotation_col_map = self.get_select(
+                                                            ~~~~~~~~~~~~~~~^
+        with_col_aliases=with_col_aliases,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\compiler.py", line 279, in get_select
+    related_klass_infos = self.get_related_selections(select, select_mask)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\compiler.py", line 1379, in get_related_selections
+    raise FieldError(
+    ...<6 lines>...
+    )
+django.core.exceptions.FieldError: Invalid field name(s) given in select_related: 'stage'. Choices are: tankhah, factor, factor_item, content_type, from_status, to_status, action, user, post, created_by
+ERROR 2025-09-30 13:58:10 budget_calculations check_tankhah_lock_status خطا در بررسی وضعیت قفل تنخواه TNKH-14040701-HSarein-IPTV_Sarein-001: '__proxy__' object is not callable
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 1069, in check_tankhah_lock_status
+    return False, _("تنخواه فعال است.")
+                  ~^^^^^^^^^^^^^^^^^^^^
+TypeError: '__proxy__' object is not callable
+ERROR 2025-09-30 13:58:12 budget_calculations check_tankhah_lock_status خطا در بررسی وضعیت قفل تنخواه TNKH-14040701-HSarein-IPTV_Sarein-001: '__proxy__' object is not callable
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 1069, in check_tankhah_lock_status
+    return False, _("تنخواه فعال است.")
+                  ~^^^^^^^^^^^^^^^^^^^^
+TypeError: '__proxy__' object is not callable
+ERROR 2025-09-30 13:59:31 rcms_custom_filters format_negative Error formatting number 375,000,000: could not convert string to float: '375,000,000'
+ERROR 2025-09-30 13:59:31 rcms_custom_filters format_negative Error formatting number -75,000,000: could not convert string to float: '-75,000,000'
+ERROR 2025-09-30 13:59:31 rcms_custom_filters format_negative Error formatting number 450,000,000: could not convert string to float: '450,000,000'
+ERROR 2025-09-30 13:59:31 rcms_custom_filters format_negative Error formatting number 850,000,000: could not convert string to float: '850,000,000'
+ERROR 2025-09-30 13:59:31 rcms_custom_filters format_negative Error formatting number 850,000,000: could not convert string to float: '850,000,000'
+ERROR 2025-09-30 13:59:31 rcms_custom_filters format_negative Error formatting number 3,157,000,000: could not convert string to float: '3,157,000,000'
+ERROR 2025-09-30 13:59:31 rcms_custom_filters format_negative Error formatting number -7,566,430,000: could not convert string to float: '-7,566,430,000'
+ERROR 2025-09-30 13:59:31 rcms_custom_filters format_negative Error formatting number 10,723,430,000: could not convert string to float: '10,723,430,000'
+ERROR 2025-09-30 13:59:32 rcms_custom_filters format_negative Error formatting number 375,000,000: could not convert string to float: '375,000,000'
+ERROR 2025-09-30 13:59:32 rcms_custom_filters format_negative Error formatting number -75,000,000: could not convert string to float: '-75,000,000'
+ERROR 2025-09-30 13:59:32 rcms_custom_filters format_negative Error formatting number 450,000,000: could not convert string to float: '450,000,000'
+ERROR 2025-09-30 13:59:32 rcms_custom_filters format_negative Error formatting number 850,000,000: could not convert string to float: '850,000,000'
+ERROR 2025-09-30 13:59:32 rcms_custom_filters format_negative Error formatting number 850,000,000: could not convert string to float: '850,000,000'
+ERROR 2025-09-30 13:59:32 rcms_custom_filters format_negative Error formatting number 3,157,000,000: could not convert string to float: '3,157,000,000'
+ERROR 2025-09-30 13:59:32 rcms_custom_filters format_negative Error formatting number -7,566,430,000: could not convert string to float: '-7,566,430,000'
+ERROR 2025-09-30 13:59:32 rcms_custom_filters format_negative Error formatting number 10,723,430,000: could not convert string to float: '10,723,430,000'
+ERROR 2025-09-30 13:59:33 rcms_custom_filters format_negative Error formatting number 375,000,000: could not convert string to float: '375,000,000'
+ERROR 2025-09-30 13:59:33 rcms_custom_filters format_negative Error formatting number -75,000,000: could not convert string to float: '-75,000,000'
+ERROR 2025-09-30 13:59:33 rcms_custom_filters format_negative Error formatting number 450,000,000: could not convert string to float: '450,000,000'
+ERROR 2025-09-30 13:59:33 rcms_custom_filters format_negative Error formatting number 850,000,000: could not convert string to float: '850,000,000'
+ERROR 2025-09-30 13:59:33 rcms_custom_filters format_negative Error formatting number 850,000,000: could not convert string to float: '850,000,000'
+ERROR 2025-09-30 13:59:33 rcms_custom_filters format_negative Error formatting number 3,157,000,000: could not convert string to float: '3,157,000,000'
+ERROR 2025-09-30 13:59:33 rcms_custom_filters format_negative Error formatting number -7,566,430,000: could not convert string to float: '-7,566,430,000'
+ERROR 2025-09-30 13:59:33 rcms_custom_filters format_negative Error formatting number 10,723,430,000: could not convert string to float: '10,723,430,000'
+ERROR 2025-09-30 13:59:35 rcms_custom_filters format_negative Error formatting number 375,000,000: could not convert string to float: '375,000,000'
+ERROR 2025-09-30 13:59:35 rcms_custom_filters format_negative Error formatting number -75,000,000: could not convert string to float: '-75,000,000'
+ERROR 2025-09-30 13:59:35 rcms_custom_filters format_negative Error formatting number 450,000,000: could not convert string to float: '450,000,000'
+ERROR 2025-09-30 13:59:35 rcms_custom_filters format_negative Error formatting number 850,000,000: could not convert string to float: '850,000,000'
+ERROR 2025-09-30 13:59:35 rcms_custom_filters format_negative Error formatting number 850,000,000: could not convert string to float: '850,000,000'
+ERROR 2025-09-30 13:59:35 rcms_custom_filters format_negative Error formatting number 3,157,000,000: could not convert string to float: '3,157,000,000'
+ERROR 2025-09-30 13:59:35 rcms_custom_filters format_negative Error formatting number -7,566,430,000: could not convert string to float: '-7,566,430,000'
+ERROR 2025-09-30 13:59:35 rcms_custom_filters format_negative Error formatting number 10,723,430,000: could not convert string to float: '10,723,430,000'
+ERROR 2025-09-30 13:59:46 rcms_custom_filters format_negative Error formatting number 375,000,000: could not convert string to float: '375,000,000'
+ERROR 2025-09-30 13:59:46 rcms_custom_filters format_negative Error formatting number -75,000,000: could not convert string to float: '-75,000,000'
+ERROR 2025-09-30 13:59:46 rcms_custom_filters format_negative Error formatting number 450,000,000: could not convert string to float: '450,000,000'
+ERROR 2025-09-30 13:59:46 rcms_custom_filters format_negative Error formatting number 850,000,000: could not convert string to float: '850,000,000'
+ERROR 2025-09-30 13:59:46 rcms_custom_filters format_negative Error formatting number 850,000,000: could not convert string to float: '850,000,000'
+ERROR 2025-09-30 13:59:46 rcms_custom_filters format_negative Error formatting number 3,157,000,000: could not convert string to float: '3,157,000,000'
+ERROR 2025-09-30 13:59:46 rcms_custom_filters format_negative Error formatting number -7,566,430,000: could not convert string to float: '-7,566,430,000'
+ERROR 2025-09-30 13:59:46 rcms_custom_filters format_negative Error formatting number 10,723,430,000: could not convert string to float: '10,723,430,000'
+ERROR 2025-09-30 14:02:22 rcms_custom_filters format_negative Error formatting number 375,000,000: could not convert string to float: '375,000,000'
+ERROR 2025-09-30 14:02:22 rcms_custom_filters format_negative Error formatting number -75,000,000: could not convert string to float: '-75,000,000'
+ERROR 2025-09-30 14:02:22 rcms_custom_filters format_negative Error formatting number 450,000,000: could not convert string to float: '450,000,000'
+ERROR 2025-09-30 14:02:22 rcms_custom_filters format_negative Error formatting number 850,000,000: could not convert string to float: '850,000,000'
+ERROR 2025-09-30 14:02:22 rcms_custom_filters format_negative Error formatting number 850,000,000: could not convert string to float: '850,000,000'
+ERROR 2025-09-30 14:02:22 rcms_custom_filters format_negative Error formatting number 3,157,000,000: could not convert string to float: '3,157,000,000'
+ERROR 2025-09-30 14:02:22 rcms_custom_filters format_negative Error formatting number -7,566,430,000: could not convert string to float: '-7,566,430,000'
+ERROR 2025-09-30 14:02:22 rcms_custom_filters format_negative Error formatting number 10,723,430,000: could not convert string to float: '10,723,430,000'
+ERROR 2025-09-30 14:02:23 rcms_custom_filters format_negative Error formatting number 375,000,000: could not convert string to float: '375,000,000'
+ERROR 2025-09-30 14:02:23 rcms_custom_filters format_negative Error formatting number -75,000,000: could not convert string to float: '-75,000,000'
+ERROR 2025-09-30 14:02:23 rcms_custom_filters format_negative Error formatting number 450,000,000: could not convert string to float: '450,000,000'
+ERROR 2025-09-30 14:02:23 rcms_custom_filters format_negative Error formatting number 850,000,000: could not convert string to float: '850,000,000'
+ERROR 2025-09-30 14:02:23 rcms_custom_filters format_negative Error formatting number 850,000,000: could not convert string to float: '850,000,000'
+ERROR 2025-09-30 14:02:23 rcms_custom_filters format_negative Error formatting number 3,157,000,000: could not convert string to float: '3,157,000,000'
+ERROR 2025-09-30 14:02:23 rcms_custom_filters format_negative Error formatting number -7,566,430,000: could not convert string to float: '-7,566,430,000'
+ERROR 2025-09-30 14:02:23 rcms_custom_filters format_negative Error formatting number 10,723,430,000: could not convert string to float: '10,723,430,000'
+ERROR 2025-09-30 14:02:32 rcms_custom_filters format_negative Error formatting number 375,000,000: could not convert string to float: '375,000,000'
+ERROR 2025-09-30 14:02:32 rcms_custom_filters format_negative Error formatting number -75,000,000: could not convert string to float: '-75,000,000'
+ERROR 2025-09-30 14:02:32 rcms_custom_filters format_negative Error formatting number 450,000,000: could not convert string to float: '450,000,000'
+ERROR 2025-09-30 14:02:32 rcms_custom_filters format_negative Error formatting number 850,000,000: could not convert string to float: '850,000,000'
+ERROR 2025-09-30 14:02:32 rcms_custom_filters format_negative Error formatting number 850,000,000: could not convert string to float: '850,000,000'
+ERROR 2025-09-30 14:02:32 rcms_custom_filters format_negative Error formatting number 3,157,000,000: could not convert string to float: '3,157,000,000'
+ERROR 2025-09-30 14:02:32 rcms_custom_filters format_negative Error formatting number -7,566,430,000: could not convert string to float: '-7,566,430,000'
+ERROR 2025-09-30 14:02:32 rcms_custom_filters format_negative Error formatting number 10,723,430,000: could not convert string to float: '10,723,430,000'
+ERROR 2025-09-30 14:02:33 rcms_custom_filters format_negative Error formatting number 375,000,000: could not convert string to float: '375,000,000'
+ERROR 2025-09-30 14:02:33 rcms_custom_filters format_negative Error formatting number -75,000,000: could not convert string to float: '-75,000,000'
+ERROR 2025-09-30 14:02:33 rcms_custom_filters format_negative Error formatting number 450,000,000: could not convert string to float: '450,000,000'
+ERROR 2025-09-30 14:02:33 rcms_custom_filters format_negative Error formatting number 850,000,000: could not convert string to float: '850,000,000'
+ERROR 2025-09-30 14:02:33 rcms_custom_filters format_negative Error formatting number 850,000,000: could not convert string to float: '850,000,000'
+ERROR 2025-09-30 14:02:33 rcms_custom_filters format_negative Error formatting number 3,157,000,000: could not convert string to float: '3,157,000,000'
+ERROR 2025-09-30 14:02:33 rcms_custom_filters format_negative Error formatting number -7,566,430,000: could not convert string to float: '-7,566,430,000'
+ERROR 2025-09-30 14:02:33 rcms_custom_filters format_negative Error formatting number 10,723,430,000: could not convert string to float: '10,723,430,000'
+ERROR 2025-09-30 14:02:41 rcms_custom_filters format_negative Error formatting number 375,000,000: could not convert string to float: '375,000,000'
+ERROR 2025-09-30 14:02:41 rcms_custom_filters format_negative Error formatting number -75,000,000: could not convert string to float: '-75,000,000'
+ERROR 2025-09-30 14:02:41 rcms_custom_filters format_negative Error formatting number 450,000,000: could not convert string to float: '450,000,000'
+ERROR 2025-09-30 14:02:41 rcms_custom_filters format_negative Error formatting number 850,000,000: could not convert string to float: '850,000,000'
+ERROR 2025-09-30 14:02:41 rcms_custom_filters format_negative Error formatting number 850,000,000: could not convert string to float: '850,000,000'
+ERROR 2025-09-30 14:02:41 rcms_custom_filters format_negative Error formatting number 3,157,000,000: could not convert string to float: '3,157,000,000'
+ERROR 2025-09-30 14:02:41 rcms_custom_filters format_negative Error formatting number -7,566,430,000: could not convert string to float: '-7,566,430,000'
+ERROR 2025-09-30 14:02:41 rcms_custom_filters format_negative Error formatting number 10,723,430,000: could not convert string to float: '10,723,430,000'
+ERROR 2025-09-30 14:02:43 rcms_custom_filters format_negative Error formatting number 375,000,000: could not convert string to float: '375,000,000'
+ERROR 2025-09-30 14:02:43 rcms_custom_filters format_negative Error formatting number -75,000,000: could not convert string to float: '-75,000,000'
+ERROR 2025-09-30 14:02:43 rcms_custom_filters format_negative Error formatting number 450,000,000: could not convert string to float: '450,000,000'
+ERROR 2025-09-30 14:02:43 rcms_custom_filters format_negative Error formatting number 850,000,000: could not convert string to float: '850,000,000'
+ERROR 2025-09-30 14:02:43 rcms_custom_filters format_negative Error formatting number 850,000,000: could not convert string to float: '850,000,000'
+ERROR 2025-09-30 14:02:43 rcms_custom_filters format_negative Error formatting number 3,157,000,000: could not convert string to float: '3,157,000,000'
+ERROR 2025-09-30 14:02:43 rcms_custom_filters format_negative Error formatting number -7,566,430,000: could not convert string to float: '-7,566,430,000'
+ERROR 2025-09-30 14:02:43 rcms_custom_filters format_negative Error formatting number 10,723,430,000: could not convert string to float: '10,723,430,000'
+ERROR 2025-09-30 14:02:43 rcms_custom_filters format_negative Error formatting number 375,000,000: could not convert string to float: '375,000,000'
+ERROR 2025-09-30 14:02:43 rcms_custom_filters format_negative Error formatting number -75,000,000: could not convert string to float: '-75,000,000'
+ERROR 2025-09-30 14:02:43 rcms_custom_filters format_negative Error formatting number 450,000,000: could not convert string to float: '450,000,000'
+ERROR 2025-09-30 14:02:43 rcms_custom_filters format_negative Error formatting number 850,000,000: could not convert string to float: '850,000,000'
+ERROR 2025-09-30 14:02:43 rcms_custom_filters format_negative Error formatting number 850,000,000: could not convert string to float: '850,000,000'
+ERROR 2025-09-30 14:02:43 rcms_custom_filters format_negative Error formatting number 3,157,000,000: could not convert string to float: '3,157,000,000'
+ERROR 2025-09-30 14:02:43 rcms_custom_filters format_negative Error formatting number -7,566,430,000: could not convert string to float: '-7,566,430,000'
+ERROR 2025-09-30 14:02:43 rcms_custom_filters format_negative Error formatting number 10,723,430,000: could not convert string to float: '10,723,430,000'
+ERROR 2025-09-30 14:02:44 rcms_custom_filters format_negative Error formatting number 375,000,000: could not convert string to float: '375,000,000'
+ERROR 2025-09-30 14:02:44 rcms_custom_filters format_negative Error formatting number -75,000,000: could not convert string to float: '-75,000,000'
+ERROR 2025-09-30 14:02:44 rcms_custom_filters format_negative Error formatting number 450,000,000: could not convert string to float: '450,000,000'
+ERROR 2025-09-30 14:02:44 rcms_custom_filters format_negative Error formatting number 850,000,000: could not convert string to float: '850,000,000'
+ERROR 2025-09-30 14:02:44 rcms_custom_filters format_negative Error formatting number 850,000,000: could not convert string to float: '850,000,000'
+ERROR 2025-09-30 14:02:44 rcms_custom_filters format_negative Error formatting number 3,157,000,000: could not convert string to float: '3,157,000,000'
+ERROR 2025-09-30 14:02:44 rcms_custom_filters format_negative Error formatting number -7,566,430,000: could not convert string to float: '-7,566,430,000'
+ERROR 2025-09-30 14:02:44 rcms_custom_filters format_negative Error formatting number 10,723,430,000: could not convert string to float: '10,723,430,000'
+ERROR 2025-09-30 14:15:29 ComprehensiveBudgetReportView get Error in APIFactorsForTankhahView: Invalid filter: 'format_negative'
+ERROR 2025-09-30 14:16:30 ComprehensiveBudgetReportView get Error in APIFactorsForTankhahView: Invalid filter: 'format_negative'
+ERROR 2025-09-30 14:16:59 ComprehensiveBudgetReportView get Error in APIFactorsForTankhahView: Invalid filter: 'format_negative'
+ERROR 2025-09-30 14:18:43 ComprehensiveBudgetReportView get Error in APIFactorsForTankhahView: Invalid filter: 'format_negative'
+ERROR 2025-09-30 14:18:44 ComprehensiveBudgetReportView get Error in APIFactorsForTankhahView: Invalid filter: 'format_negative'
+ERROR 2025-09-30 14:18:45 budget_calculations check_tankhah_lock_status خطا در بررسی وضعیت قفل تنخواه TNKH-14040701-HSarein-IPTV_Sarein-001: '__proxy__' object is not callable
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 1069, in check_tankhah_lock_status
+    return False, _("تنخواه فعال است.")
+                  ~^^^^^^^^^^^^^^^^^^^^
+TypeError: '__proxy__' object is not callable
+ERROR 2025-09-30 14:18:54 ComprehensiveBudgetReportView get Error in APIFactorsForTankhahView: Invalid filter: 'format_negative'
+ERROR 2025-09-30 14:25:06 budget_calculations check_tankhah_lock_status خطا در بررسی وضعیت قفل تنخواه TNKH-14040701-HSarein-IPTV_Sarein-001: '__proxy__' object is not callable
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 1069, in check_tankhah_lock_status
+    return False, _("تنخواه فعال است.")
+                  ~^^^^^^^^^^^^^^^^^^^^
+TypeError: '__proxy__' object is not callable
+ERROR 2025-09-30 14:25:18 ComprehensiveBudgetReportView get Error in APIFactorsForTankhahView: Invalid filter: 'to_persian_number'
+ERROR 2025-09-30 14:25:19 ComprehensiveBudgetReportView get Error in APIFactorsForTankhahView: Invalid filter: 'to_persian_number'
+ERROR 2025-09-30 14:46:55 views_executive_dashboard get_context_data خطا در گزارشات تحلیلی: Expression contains mixed types: DecimalField, IntegerField. You must set output_field.
+ERROR 2025-09-30 14:47:37 FactorStatusReviewView get_object An unexpected error occurred while fetching Factor pk=80: Invalid field name(s) given in select_related: 'stage'. Choices are: tankhah, factor, factor_item, content_type, from_status, to_status, action, user, post, created_by
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\FactorStatusReviewView.py", line 232, in get_object
+    obj = optimized_queryset.get(pk=pk)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 645, in get
+    num = len(clone)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 382, in __len__
+    self._fetch_all()
+    ~~~~~~~~~~~~~~~^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1930, in _fetch_all
+    self._prefetch_related_objects()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1320, in _prefetch_related_objects
+    prefetch_related_objects(self._result_cache, *self._prefetch_related_lookups)
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 2380, in prefetch_related_objects
+    obj_list, additional_lookups = prefetch_one_level(
+                                   ~~~~~~~~~~~~~~~~~~^
+        obj_to_fetch,
+        ^^^^^^^^^^^^^
+    ...<2 lines>...
+        level,
+        ^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 2544, in prefetch_one_level
+    ) = prefetcher.get_prefetch_querysets(
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        instances, lookup.get_current_querysets(level)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 797, in get_prefetch_querysets
+    for rel_obj in queryset:
+                   ^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 400, in __iter__
+    self._fetch_all()
+    ~~~~~~~~~~~~~~~^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1928, in _fetch_all
+    self._result_cache = list(self._iterable_class(self))
+                         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 91, in __iter__
+    results = compiler.execute_sql(
+        chunked_fetch=self.chunked_fetch, chunk_size=self.chunk_size
+    )
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\compiler.py", line 1561, in execute_sql
+    sql, params = self.as_sql()
+                  ~~~~~~~~~~~^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\compiler.py", line 747, in as_sql
+    extra_select, order_by, group_by = self.pre_sql_setup(
+                                       ~~~~~~~~~~~~~~~~~~^
+        with_col_aliases=with_col_aliases or bool(combinator),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\compiler.py", line 84, in pre_sql_setup
+    self.setup_query(with_col_aliases=with_col_aliases)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\compiler.py", line 73, in setup_query
+    self.select, self.klass_info, self.annotation_col_map = self.get_select(
+                                                            ~~~~~~~~~~~~~~~^
+        with_col_aliases=with_col_aliases,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\compiler.py", line 279, in get_select
+    related_klass_infos = self.get_related_selections(select, select_mask)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\compiler.py", line 1379, in get_related_selections
+    raise FieldError(
+    ...<6 lines>...
+    )
+django.core.exceptions.FieldError: Invalid field name(s) given in select_related: 'stage'. Choices are: tankhah, factor, factor_item, content_type, from_status, to_status, action, user, post, created_by
+ERROR 2025-09-30 14:56:45 get_budget_details get_budget_details Error in get_budget_details for entity تست تاریخ و عودت بودجه (HQ_ITDC): Entity must be Organization or Project, got <class 'budgets.models.BudgetPeriod'>
+ERROR 2025-09-30 14:56:45 views_BudgetPeriod check_budget_status ImportError: check_budget_status not found for BudgetPeriod 27
+ERROR 2025-09-30 14:58:12 budget_calculations check_tankhah_lock_status خطا در بررسی وضعیت قفل تنخواه TNKH-14040701-HSarein-IPTV_Sarein-002: '__proxy__' object is not callable
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 1069, in check_tankhah_lock_status
+    return False, _("تنخواه فعال است.")
+                  ~^^^^^^^^^^^^^^^^^^^^
+TypeError: '__proxy__' object is not callable
+ERROR 2025-09-30 14:58:41 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 14:58:41 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 14:58:41 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 14:58:41 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 14:58:41 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 14:58:41 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 14:58:41 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 14:58:41 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 14:58:41 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 14:58:41 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 14:58:41 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 14:58:41 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 14:58:41 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040605-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-09-30 14:58:41 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 14:58:41 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040604-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-09-30 14:58:41 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 14:58:41 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 14:58:41 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-09-30 14:58:41 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-09-30 15:00:25 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 15:00:25 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 15:00:25 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 15:00:25 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 15:00:25 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 15:00:25 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 15:00:25 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 15:00:25 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 15:00:25 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 15:00:25 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 15:00:25 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 15:00:25 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 15:00:25 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 15:00:25 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040605-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-09-30 15:00:25 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 15:00:25 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040604-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-09-30 15:00:25 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 15:00:25 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 15:00:25 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-09-30 15:00:25 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-09-30 15:00:28 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 15:00:28 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 15:00:28 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 15:00:28 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 15:00:28 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 15:00:28 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 15:00:28 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 15:00:28 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 15:00:29 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 15:00:29 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 15:00:29 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 15:00:29 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 15:00:29 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 15:00:29 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040605-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-09-30 15:00:29 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 15:00:29 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040604-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-09-30 15:00:29 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 15:00:29 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 15:00:29 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-09-30 15:00:29 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-09-30 15:01:04 PermissionBase dispatch [PERM_CHECK] Permission denied for user snejate to /
+ERROR 2025-09-30 15:05:12 views_enhanced get_context_data [WORKFLOW_PARTICIPANTS_ERROR] 'AuthorizedUser' object is not subscriptable
+ERROR 2025-09-30 15:05:45 views_enhanced get_context_data [WORKFLOW_PARTICIPANTS_ERROR] 'AuthorizedUser' object is not subscriptable
+ERROR 2025-09-30 15:06:30 views_enhanced get_context_data [WORKFLOW_PARTICIPANTS_ERROR] 'AuthorizedUser' object is not subscriptable
+ERROR 2025-09-30 15:08:17 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 15:08:17 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 15:08:17 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 15:08:17 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 15:08:17 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 15:08:17 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 15:08:17 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 15:08:17 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 15:08:17 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 15:08:17 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 15:08:17 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 15:08:17 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 15:08:17 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 15:08:17 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040605-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-09-30 15:08:17 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 15:08:17 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040604-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-09-30 15:08:17 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 15:08:17 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 15:08:17 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-09-30 15:08:17 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-09-30 15:08:18 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 15:08:18 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 15:17:04 views_executive_dashboard get_context_data خطا در گزارشات تحلیلی: Expression contains mixed types: DecimalField, IntegerField. You must set output_field.
+ERROR 2025-09-30 15:17:50 FactorStatusReviewView get_object An unexpected error occurred while fetching Factor pk=81: Invalid field name(s) given in select_related: 'stage'. Choices are: tankhah, factor, factor_item, content_type, from_status, to_status, action, user, post, created_by
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\FactorStatusReviewView.py", line 232, in get_object
+    obj = optimized_queryset.get(pk=pk)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 645, in get
+    num = len(clone)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 382, in __len__
+    self._fetch_all()
+    ~~~~~~~~~~~~~~~^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1930, in _fetch_all
+    self._prefetch_related_objects()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1320, in _prefetch_related_objects
+    prefetch_related_objects(self._result_cache, *self._prefetch_related_lookups)
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 2380, in prefetch_related_objects
+    obj_list, additional_lookups = prefetch_one_level(
+                                   ~~~~~~~~~~~~~~~~~~^
+        obj_to_fetch,
+        ^^^^^^^^^^^^^
+    ...<2 lines>...
+        level,
+        ^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 2544, in prefetch_one_level
+    ) = prefetcher.get_prefetch_querysets(
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        instances, lookup.get_current_querysets(level)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 797, in get_prefetch_querysets
+    for rel_obj in queryset:
+                   ^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 400, in __iter__
+    self._fetch_all()
+    ~~~~~~~~~~~~~~~^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1928, in _fetch_all
+    self._result_cache = list(self._iterable_class(self))
+                         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 91, in __iter__
+    results = compiler.execute_sql(
+        chunked_fetch=self.chunked_fetch, chunk_size=self.chunk_size
+    )
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\compiler.py", line 1561, in execute_sql
+    sql, params = self.as_sql()
+                  ~~~~~~~~~~~^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\compiler.py", line 747, in as_sql
+    extra_select, order_by, group_by = self.pre_sql_setup(
+                                       ~~~~~~~~~~~~~~~~~~^
+        with_col_aliases=with_col_aliases or bool(combinator),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\compiler.py", line 84, in pre_sql_setup
+    self.setup_query(with_col_aliases=with_col_aliases)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\compiler.py", line 73, in setup_query
+    self.select, self.klass_info, self.annotation_col_map = self.get_select(
+                                                            ~~~~~~~~~~~~~~~^
+        with_col_aliases=with_col_aliases,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\compiler.py", line 279, in get_select
+    related_klass_infos = self.get_related_selections(select, select_mask)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\compiler.py", line 1379, in get_related_selections
+    raise FieldError(
+    ...<6 lines>...
+    )
+django.core.exceptions.FieldError: Invalid field name(s) given in select_related: 'stage'. Choices are: tankhah, factor, factor_item, content_type, from_status, to_status, action, user, post, created_by

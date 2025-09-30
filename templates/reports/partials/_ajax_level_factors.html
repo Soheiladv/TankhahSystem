@@ -1,3 +1,44 @@
+{% load i18n humanize %}
+
+<div class="table-responsive">
+    <table class="table table-sm table-striped table-hover align-middle">
+        <thead class="table-light">
+            <tr>
+                <th scope="col" style="width:12%">{% translate "شماره" %}</th>
+                <th scope="col" style="width:12%">{% translate "شماره تنخواه" %}</th>
+                <th scope="col" style="width:15%" class="text-center">{% translate "مبلغ" %}</th>
+                <th scope="col" style="width:12%" class="text-center">{% translate "وضعیت" %}</th>
+                <th scope="col" style="width:15%" class="text-center">{% translate "تاریخ" %}</th>
+                <th scope="col" style="width:12%" class="text-center">{% translate "گروه" %}</th>
+                <th scope="col" style="width:12%" class="text-center">{% translate "تعداد اقلام" %}</th>
+                <th scope="col" style="width:22%" class="text-center">{% translate "عملیات" %}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for f in factors_list %}
+                <tr>
+                    <td class="fw-bold">{{forloop }}</td>
+                    <td class="text-center">{{ f.tankhah_number }}</td>
+                    <td class="text-center">{{ f.amount_formatted }} {% translate "ریال" %}</td>
+                    <td class="text-center"><span class="badge bg-secondary">{{ f.status_display }}</span></td>
+                    <td class="text-center">{{ f.date_jalali }}</td>
+                    <td class="text-center">{{ f.category_name }}</td>
+                    <td class="text-center">{{ f.items_count|default:0 }}</td>
+                    <td class="text-center">
+                        <a href="{{ f.detail_url }}" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-eye"></i> {% translate "جزئیات" %}
+                        </a>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center py-3">{% translate "هیچ فاکتوری یافت نشد." %}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
 {% load i18n jformat rcms_custom_filters %}
 
 <div class="factors-section">

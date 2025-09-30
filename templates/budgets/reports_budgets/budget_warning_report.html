@@ -17,17 +17,32 @@
                         <th>{% trans "پروژه" %}</th>
                         <th>{% trans "مبلغ تخصیص‌یافته" %}</th>
                         <th>{% trans "مصرف خالص" %}</th>
+                        <th>{% trans "باقی‌مانده" %}</th>
+                        <th>{% trans "آستانه هشدار" %}</th>
                         <th>{% trans "هشدار" %}</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for allocation in allocations %}
-                    <tr>
+                    <tr class="{% if allocation.warning_message == 'نزدیک آستانه هشدار' %}table-warning{% elif allocation.warning_message %}table-danger{% endif %}">
                         <td><a href="{% url 'project_budget_allocation_detail' allocation.pk %}">{{ allocation.id }}</a></td>
                         <td>{{ allocation.project.name }}</td>
                         <td>{{ allocation.allocated_amount|intcomma }} {% trans "ریال" %}</td>
                         <td>{{ allocation.total_consumed|intcomma }} {% trans "ریال" %}</td>
-                        <td class="text-danger">{{ allocation.warning_message }}</td>
+                        <td>{{ allocation.remaining_budget|intcomma }} {% trans "ریال" %}</td>
+                        <td>
+                            {{ allocation.get_warning_amount|default:0|intcomma }} {% trans "ریال" %}
+                            <small class="text-muted">({{ allocation.warning_threshold|default:0 }}%)</small>
+                        </td>
+                        <td>
+                            {% if allocation.warning_message == 'نزدیک آستانه هشدار' %}
+                                <span class="badge bg-warning text-dark">{{ allocation.warning_message }}</span>
+                            {% elif allocation.warning_message %}
+                                <span class="badge bg-danger">{{ allocation.warning_message }}</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{% trans "بدون هشدار" %}</span>
+                            {% endif %}
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>

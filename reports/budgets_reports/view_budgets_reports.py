@@ -58,31 +58,47 @@ class BudgetWarningReportView(PermissionBaseView, ListView):
         queryset = super().get_queryset()
         warnings = []
         for allocation in queryset:
-            budget_allocation = allocation.budget_allocation
+            # استفاده از خود «allocation» به جای فیلد ناموجود «allocation.budget_allocation»
             consumed = BudgetTransaction.objects.filter(
-                allocation=budget_allocation,
+                allocation=allocation,
                 allocation__project=allocation.project,
                 transaction_type='CONSUMPTION'
             ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
             returned = BudgetTransaction.objects.filter(
-                allocation=budget_allocation,
+                allocation=allocation,
                 allocation__project=allocation.project,
                 transaction_type='RETURN'
             ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
             total_consumed = consumed - returned
-            remaining_budget =Decimal(  budget_allocation.allocated_amount) -Decimal(  BudgetTransaction.objects.filter(
-                allocation=budget_allocation,
-                transaction_type='CONSUMPTION'
-            ).aggregate(total=Sum('amount'))['total'] or Decimal('0') )+Decimal(  BudgetTransaction.objects.filter(
-                allocation=budget_allocation,
-                transaction_type='RETURN'
-            ).aggregate(total=Sum('amount'))['total'] or Decimal('0'))
+            remaining_budget = (
+                Decimal(allocation.allocated_amount)
+                - Decimal(
+                    BudgetTransaction.objects.filter(
+                        allocation=allocation,
+                        transaction_type='CONSUMPTION'
+                    ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+                )
+                + Decimal(
+                    BudgetTransaction.objects.filter(
+                        allocation=allocation,
+                        transaction_type='RETURN'
+                    ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+                )
+            )
 
             warning_message = None
             if total_consumed > allocation.allocated_amount:
                 warning_message = _("مصرف بیش از تخصیص")
             elif remaining_budget < 0:
                 warning_message = _("بودجه منفی")
+            else:
+                # هشدار نرم بر اساس آستانه تعریف‌شده در خود تخصیص
+                try:
+                    warning_amount = allocation.get_warning_amount()
+                except Exception:
+                    warning_amount = Decimal('0')
+                if remaining_budget <= warning_amount:
+                    warning_message = _("نزدیک آستانه هشدار")
 
             if warning_message:
                 allocation.total_consumed = total_consumed

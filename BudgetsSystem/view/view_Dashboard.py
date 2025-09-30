@@ -37,7 +37,7 @@ dashboard_links = {
             {'name': _('فهرست فاکتورها'), 'url': 'factor_list', 'permission': 'tankhah.view_factor', 'icon': 'fas fa-clipboard-list'},
             {'name': _('ایجاد فاکتور'), 'url': 'Nfactor_create', 'permission': 'tankhah.add_factor', 'icon': 'fas fa-file-invoice'},
             {'name': _('گردش کار فاکتور'), 'url': 'workflow_chart', 'permission': 'tankhah.view_factor', 'icon': 'fas fa-project-diagram'},
-            {'name': _('وضعیت فاکتورها'), 'url': 'factor_status_dashboard', 'permission': 'tankhah.view_factor', 'icon': 'fas fa-file-invoice'},
+            # {'name': _('وضعیت فاکتورها'), 'url': 'factor_status_dashboard', 'permission': 'tankhah.view_factor', 'icon': 'fas fa-file-invoice'},
         ]
     },
     'مدیریت تنخواه': {
@@ -93,9 +93,9 @@ dashboard_links = {
     'مدیریت پروژه‌ها': {
         'header': 'مدیریت مراکز هزینه و پروژه‌ها',
         'links': [
-            {'name': _('فهرست پروژه‌ها'), 'url': 'project_list', 'permission': 'core.view_project', 'icon': 'fas fa-folder-open'},
-            {'name': _('ایجاد پروژه'), 'url': 'project_create', 'permission': 'core.add_project', 'icon': 'fas fa-folder-plus'},
-            {'name': _('ایجاد زیرپروژه'), 'url': 'subproject_create', 'permission': 'core.add_subproject', 'icon': 'fas fa-sitemap'},
+            {'name': _('فهرست مراکز هزینه '), 'url': 'project_list', 'permission': 'core.view_project', 'icon': 'fas fa-folder-open'},
+            {'name': _('ایجاد مرکز هزینه '), 'url': 'project_create', 'permission': 'core.add_project', 'icon': 'fas fa-folder-plus'},
+            {'name': _('ایجاد شعبه در مرکز'), 'url': 'subproject_create', 'permission': 'core.add_subproject', 'icon': 'fas fa-sitemap'},
         ]
     },
     'مدیریت سازمانی': {
@@ -721,7 +721,7 @@ class ReportsDashboardMainView(PermissionBaseView, View):
     - خروجی: chartData یکپارچه + فلگ‌های دسترسی + آمار ساده
     """
     template_name = 'reports/dashboard/main_dashboard.html'
-    permission_codename = 'reports.view_dashboard'
+    # permission_codename = 'reports.view_dashboard'
 
     def get(self, request, *args, **kwargs):
         context = self._build_context(request)

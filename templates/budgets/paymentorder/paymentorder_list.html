@@ -7,7 +7,7 @@
             <div class="col-md-4">
                 <input type="text" name="query" value="{{ query }}" class="form-control" placeholder="جستجو در توضیحات...">
             </div>
-            <div class="col-md-4">
+            <div class="col-md-4"> 
                 <select name="status" class="form-control">
                     <option value="">همه وضعیت‌ها</option>
                     {% for value, label in status_choices %}
@@ -37,11 +37,21 @@
                 {% for order in payment_orders %}
                     <tr>
                         <td>{{ order.order_number }}</td>
-                        <td>{{ order.tankhah.number|default:order.related_tankhah.number }}</td>
+                        <td>
+                            {% if order.tankhah %}
+                                {{ order.tankhah.number }}
+                            {% elif order.related_tankhah %}
+                                {{ order.related_tankhah.number }}
+                            {% else %}-{% endif %}
+                        </td>
                         <td>{{ order.amount|floatformat:0|default:"0" }} ریال</td>
                         <td>{{ order.get_status_display }}</td>
-                        <td>{{ order.current_stage.name|default:"-" }}</td>
-                        <td>{{ order.created_by.get_full_name|default:"-" }}</td>
+                        <td>
+                            {% if order.current_stage %}{{ order.current_stage.name }}{% else %}-{% endif %}
+                        </td>
+                        <td>
+                            {% if order.created_by %}{{ order.created_by.get_full_name }}{% else %}-{% endif %}
+                        </td>
                         <td>
                             <a href="{% url 'paymentorder_detail' order.pk %}" class="btn btn-sm btn-info">جزئیات</a>
                         </td>
