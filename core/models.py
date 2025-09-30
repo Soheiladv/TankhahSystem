@@ -976,6 +976,10 @@ class DynamicConfiguration(models.Model):
         verbose_name = _("پیکربندی پویا")
         verbose_name_plural = _("پیکربندی‌های پویا")
         ordering = ['category', 'key']
+        default_permissions= ()
+        permissions = [
+            ('DynamicConfiguration_admin','پیکربندی پویای سیستم'),
+        ]
 
     def __str__(self):
         return f"{self.category} - {self.key}"

@@ -1,3 +1,7 @@
+
+# Namespace for reverse('reports:...') safety
+# app_name = 'reports'
+
 from django.urls import path, include
 from reports.ComprehensiveBudgetReportView import (
     ComprehensiveBudgetReportView,
@@ -13,6 +17,20 @@ from reports.views import TankhahFinancialReportView, FinancialDashboardView, Ta
     BudgetAllocationReportView
 from reports.views_enhanced import BudgetAllocationReportEnhancedView
 from reports.views import print_financial_report, send_to_accounting
+from django.urls import path
+from reports.TransitionAccess.views_user_permission_report import (
+    UserPermissionReportView,
+    ToggleTransitionAccessView,
+    TransitionAccessReportView
+)
+from reports.TransitionAccess.export_views import (
+    ExportUserPermissionsView,
+    GenerateRuleTextView,
+    CopyUserPermissionsView,
+    GetUserPermissionsSummaryView
+)
+from reports.views_staff_api_docs import StaffAPIDocumentationView
+from reports.api import simple_views
 
 urlpatterns = [
     # گزارشات مالی و داشبورد
@@ -43,22 +61,6 @@ urlpatterns = [
     path('reports/comprehensive-budget/', ComprehensiveBudgetReportView.as_view(), name='comprehensive_budget_report'),
     path('report/paymentorderreport/', PaymentOrderReportView.as_view(), name='payment_order_report'),
 ]
-from django.urls import path
-from reports.TransitionAccess.views_user_permission_report import (
-    UserPermissionReportView,
-    ToggleTransitionAccessView,
-    TransitionAccessReportView
-)
-from reports.TransitionAccess.export_views import (
-    ExportUserPermissionsView,
-    GenerateRuleTextView,
-    CopyUserPermissionsView,
-    GetUserPermissionsSummaryView
-)
-from reports.views_staff_api_docs import StaffAPIDocumentationView
-from reports.dashboard.urls import urlpatterns as dashboard_urls
-from reports.api.urls import urlpatterns as api_urls
-from reports.api import simple_views
 
 urlpatterns += [
     # Dashboard Reports

@@ -8,7 +8,7 @@ from django.views.i18n import JavaScriptCatalog
 
 from BudgetsSystem import views
 from BudgetsSystem.Dashboard_Project.DashboardView_1 import TabbedFinancialDashboardView
-from BudgetsSystem.view.view_Dashboard import DashboardView
+from BudgetsSystem.view.view_Dashboard import DashboardView, ReportsDashboardMainView
 from BudgetsSystem.views import TanbakhWorkflowView, GuideView, soft_Help
 from accounts.views import SetTimeLockView, TimeLockListView, LockStatusView
 from accounts.RCMS_Lock.views import lock_status
@@ -26,7 +26,8 @@ urlpatterns = [
                   path('accounts/', include('accounts.urls')),
 
                   path('', include('core.urls')),
-                  path('reports/', include('reports.urls')),
+                  path('reports/dashboard/', ReportsDashboardMainView.as_view(), name='reports_dashboard_main'),
+                  path('reports/', include('reports.urls')),  # اضافه کردن اپلیکیشن reports
 
                   path('tankhah/', include('tankhah.urls')),  # اضافه کردن اپلیکیشن tankhah
                   path('version_tracker/', include('version_tracker.urls')),  # اضافه کردن اپلیکیشن tankhah

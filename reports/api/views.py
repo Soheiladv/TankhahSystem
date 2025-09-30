@@ -8,12 +8,14 @@ from django.views.decorators.csrf import csrf_exempt
 import json
 
 from core.models import Organization, Project
+from core.PermissionBase import PermissionBaseView
 from budgets.models import BudgetPeriod
 
 
 @method_decorator(csrf_exempt, name='dispatch')
-class OrganizationsAPIView(View):
+class OrganizationsAPIView(PermissionBaseView, View):
     """API برای دریافت لیست سازمان‌ها"""
+    permission_codename = 'core.view_organization'
     
     def get(self, request):
         try:
@@ -24,8 +26,9 @@ class OrganizationsAPIView(View):
 
 
 @method_decorator(csrf_exempt, name='dispatch')
-class ProjectsAPIView(View):
+class ProjectsAPIView(PermissionBaseView, View):
     """API برای دریافت لیست پروژه‌ها"""
+    permission_codename = 'core.view_project'
     
     def get(self, request):
         try:
@@ -35,18 +38,18 @@ class ProjectsAPIView(View):
             return JsonResponse({'error': str(e)}, status=500)
 
 
-@method_decorator(login_required, name='dispatch')
-class BudgetPeriodsAPIView(View):
+class BudgetPeriodsAPIView(PermissionBaseView, View):
     """API برای دریافت لیست دوره‌های بودجه"""
+    permission_codename = 'budgets.view_budgetperiod'
     
     def get(self, request):
         periods = BudgetPeriod.objects.filter(is_active=True).values('id', 'name', 'start_date', 'end_date')
         return JsonResponse(list(periods), safe=False)
 
 
-@method_decorator(login_required, name='dispatch')
-class DashboardDataAPIView(View):
+class DashboardDataAPIView(PermissionBaseView, View):
     """API برای دریافت داده‌های داشبورد"""
+    permission_codename = 'reports.view_dashboard'
     
     def get(self, request):
         # دریافت فیلترها
@@ -55,17 +58,25 @@ class DashboardDataAPIView(View):
         organization_id = request.GET.get('organization')
         project_id = request.GET.get('project')
         
-        # آمار کلی بودجه
+        # آمار کلی بودجه و متریک‌های پیشرفته
         from reports.dashboard.views import DashboardMainView
         dashboard_view = DashboardMainView()
+        dashboard_view.request = request
         
-        # دریافت آمار
-        budget_stats = dashboard_view.get_budget_statistics()
-        tankhah_stats = dashboard_view.get_tankhah_statistics()
-        factor_stats = dashboard_view.get_factor_statistics()
-        payment_stats = dashboard_view.get_payment_statistics()
-        return_stats = dashboard_view.get_budget_return_statistics()
-        chart_data = dashboard_view.get_chart_data()
+        # دریافت آمار پایه
+        budget_stats = dashboard_view.get_budget_statistics(start_date, end_date, organization_id, project_id)
+        tankhah_stats = dashboard_view.get_tankhah_statistics(start_date, end_date, organization_id, project_id)
+        factor_stats = dashboard_view.get_factor_statistics(start_date, end_date, organization_id, project_id)
+        payment_stats = dashboard_view.get_payment_statistics(start_date, end_date, organization_id, project_id)
+        return_stats = dashboard_view.get_budget_return_statistics(start_date, end_date, organization_id, project_id)
+        chart_data = dashboard_view.get_chart_data(start_date, end_date, organization_id, project_id)
+
+        # دریافت متریک‌های پیشرفته
+        advanced_budget = dashboard_view.get_advanced_budget_metrics(start_date, end_date, organization_id, project_id)
+        advanced_tankhah = dashboard_view.get_advanced_tankhah_metrics(start_date, end_date, organization_id, project_id)
+        advanced_factor = dashboard_view.get_advanced_factor_metrics(start_date, end_date, organization_id, project_id)
+        advanced_comparatives = dashboard_view.get_advanced_comparatives(start_date, end_date, organization_id, project_id)
+        advanced_risk = dashboard_view.get_advanced_risk_metrics(start_date, end_date, organization_id, project_id)
         
         return JsonResponse({
             'budget_stats': budget_stats,
@@ -73,13 +84,18 @@ class DashboardDataAPIView(View):
             'factor_stats': factor_stats,
             'payment_stats': payment_stats,
             'return_stats': return_stats,
-            'chart_data': chart_data
+            'chart_data': chart_data,
+            'advanced_budget': advanced_budget,
+            'advanced_tankhah': advanced_tankhah,
+            'advanced_factor': advanced_factor,
+            'advanced_comparatives': advanced_comparatives,
+            'advanced_risk': advanced_risk,
         })
 
 
-@method_decorator(login_required, name='dispatch')
-class ExportDataAPIView(View):
+class ExportDataAPIView(PermissionBaseView, View):
     """API برای صادرات داده‌ها"""
+    permission_codename = 'reports.export_reports'
     
     def get(self, request):
         report_type = request.GET.get('type', 'budget')

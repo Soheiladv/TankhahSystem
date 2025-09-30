@@ -1,7 +1,8 @@
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.views.generic import TemplateView
+from core.PermissionBase import PermissionBaseView
 from django.http import JsonResponse
 from django.db.models import Sum, Count, Q, F, Case, When, DecimalField
 from django.db.models.functions import TruncMonth, TruncDay, TruncYear
@@ -22,9 +23,10 @@ from tankhah.models import Tankhah, Factor
 from core.models import Organization, Project, Status
 
 
-class DashboardMainView(TemplateView):
+class DashboardMainView(PermissionBaseView, TemplateView):
     """داشبورد اصلی گزارشات با آمار کلی"""
     template_name = 'reports/dashboard/main_dashboard.html'
+    permission_codename = 'reports.view_dashboard'
     # کدهای دسترسی تب‌ها (قابل تغییر در آینده)
     TAB_PERMISSION_CODES = {
         'overview': 'reports.Dashboard_view',
@@ -195,7 +197,7 @@ class DashboardMainView(TemplateView):
         if end_date:
             allocations = allocations.filter(allocation_date__lte=end_date)
         if organization_id:
-            allocations = allocations.filter(organization_id=organization_id)
+            allocations = allocations.filter(organization=organization_id)
         if project_id:
             allocations = allocations.filter(project_id=project_id)
 
@@ -209,7 +211,7 @@ class DashboardMainView(TemplateView):
         if end_date:
             transactions = transactions.filter(timestamp__date__lte=end_date)
         if organization_id:
-            transactions = transactions.filter(allocation__organization_id=organization_id)
+            transactions = transactions.filter(allocation__organization=organization_id)
         if project_id:
             transactions = transactions.filter(allocation__project_id=project_id)
 
@@ -245,7 +247,7 @@ class DashboardMainView(TemplateView):
         if end_date:
             tankhah_qs = tankhah_qs.filter(date__date__lte=end_date)
         if organization_id:
-            tankhah_qs = tankhah_qs.filter(organization_id=organization_id)
+            tankhah_qs = tankhah_qs.filter(organization=organization_id)
         if project_id:
             tankhah_qs = tankhah_qs.filter(project_id=project_id)
 
@@ -281,7 +283,7 @@ class DashboardMainView(TemplateView):
         if end_date:
             factor_qs = factor_qs.filter(date__lte=end_date)
         if organization_id:
-            factor_qs = factor_qs.filter(tankhah__organization_id=organization_id)
+            factor_qs = factor_qs.filter(tankhah__organization=organization_id)
         if project_id:
             factor_qs = factor_qs.filter(tankhah__project_id=project_id)
 
@@ -317,7 +319,7 @@ class DashboardMainView(TemplateView):
         if end_date:
             payments_qs = payments_qs.filter(issue_date__lte=end_date)
         if organization_id:
-            payments_qs = payments_qs.filter(organization_id=organization_id)
+            payments_qs = payments_qs.filter(organization=organization_id)
         if project_id:
             payments_qs = payments_qs.filter(project_id=project_id)
 
@@ -351,7 +353,7 @@ class DashboardMainView(TemplateView):
         if project_id:
             projects_qs = projects_qs.filter(id=project_id)
         if organization_id:
-            projects_qs = projects_qs.filter(allocations__organization_id=organization_id)
+            projects_qs = projects_qs.filter(allocations__organization=organization_id)
 
         total_projects = projects_qs.count()
         
@@ -383,7 +385,7 @@ class DashboardMainView(TemplateView):
         if end_date:
             tankhah_qs = tankhah_qs.filter(date__date__lte=end_date)
         if organization_id:
-            tankhah_qs = tankhah_qs.filter(organization_id=organization_id)
+            tankhah_qs = tankhah_qs.filter(organization=organization_id)
         if project_id:
             tankhah_qs = tankhah_qs.filter(project_id=project_id)
 
@@ -497,7 +499,7 @@ class DashboardMainView(TemplateView):
         if end_date:
             factor_qs = factor_qs.filter(date__lte=end_date)
         if organization_id:
-            factor_qs = factor_qs.filter(tankhah__organization_id=organization_id)
+            factor_qs = factor_qs.filter(tankhah__organization=organization_id)
         if project_id:
             factor_qs = factor_qs.filter(tankhah__project_id=project_id)
 
@@ -588,8 +590,8 @@ class DashboardMainView(TemplateView):
             cons_qs = cons_qs.filter(timestamp__date__lte=end_date)
             ret_qs = ret_qs.filter(timestamp__date__lte=end_date)
         if organization_id:
-            cons_qs = cons_qs.filter(allocation__organization_id=organization_id)
-            ret_qs = ret_qs.filter(allocation__organization_id=organization_id)
+            cons_qs = cons_qs.filter(allocation__organization=organization_id)
+            ret_qs = ret_qs.filter(allocation__organization=organization_id)
         if project_id:
             cons_qs = cons_qs.filter(allocation__project_id=project_id)
             ret_qs = ret_qs.filter(allocation__project_id=project_id)
@@ -696,8 +698,8 @@ class DashboardMainView(TemplateView):
             cons_qs = cons_qs.filter(timestamp__date__lte=end_date)
             ret_qs = ret_qs.filter(timestamp__date__lte=end_date)
         if organization_id:
-            cons_qs = cons_qs.filter(allocation__organization_id=organization_id)
-            ret_qs = ret_qs.filter(allocation__organization_id=organization_id)
+            cons_qs = cons_qs.filter(allocation__organization=organization_id)
+            ret_qs = ret_qs.filter(allocation__organization=organization_id)
         if project_id:
             cons_qs = cons_qs.filter(allocation__project_id=project_id)
             ret_qs = ret_qs.filter(allocation__project_id=project_id)
@@ -743,7 +745,7 @@ class DashboardMainView(TemplateView):
         # Delay risk: long factor cycles and tankhah settlements
         po_factors = PaymentOrder.objects.filter(payment_date__isnull=False)
         if organization_id:
-            po_factors = po_factors.filter(organization_id=organization_id)
+            po_factors = po_factors.filter(organization=organization_id)
         if project_id:
             po_factors = po_factors.filter(project_id=project_id)
         long_cycles = []
@@ -826,7 +828,7 @@ class DashboardMainView(TemplateView):
         if end_date:
             allocations = allocations.filter(allocation_date__lte=end_date)
         if organization_id:
-            allocations = allocations.filter(organization_id=organization_id)
+            allocations = allocations.filter(organization=organization_id)
         if project_id:
             allocations = allocations.filter(project_id=project_id)
 
@@ -836,7 +838,7 @@ class DashboardMainView(TemplateView):
         if end_date:
             transactions = transactions.filter(timestamp__date__lte=end_date)
         if organization_id:
-            transactions = transactions.filter(allocation__organization_id=organization_id)
+            transactions = transactions.filter(allocation__organization=organization_id)
         if project_id:
             transactions = transactions.filter(allocation__project_id=project_id)
 
@@ -1061,7 +1063,7 @@ class DashboardMainView(TemplateView):
         if end_date:
             tankhah_qs = tankhah_qs.filter(date__date__lte=end_date)
         if organization_id:
-            tankhah_qs = tankhah_qs.filter(organization_id=organization_id)
+            tankhah_qs = tankhah_qs.filter(organization=organization_id)
         if project_id:
             tankhah_qs = tankhah_qs.filter(project_id=project_id)
 
@@ -1076,7 +1078,7 @@ class DashboardMainView(TemplateView):
         if end_date:
             factor_qs = factor_qs.filter(date__lte=end_date)
         if organization_id:
-            factor_qs = factor_qs.filter(tankhah__organization_id=organization_id)
+            factor_qs = factor_qs.filter(tankhah__organization=organization_id)
         if project_id:
             factor_qs = factor_qs.filter(tankhah__project_id=project_id)
 
@@ -1104,9 +1106,10 @@ class DashboardMainView(TemplateView):
         }
 
 
-class BudgetAnalyticsView(TemplateView):
+class BudgetAnalyticsView(PermissionBaseView, TemplateView):
     """تحلیل‌های پیشرفته بودجه"""
     template_name = 'reports/analytics/budget_analytics.html'
+    permission_codename = 'reports.view_analytics'
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -1231,9 +1234,10 @@ class BudgetAnalyticsView(TemplateView):
         }
 
 
-class ExportReportsView(LoginRequiredMixin, TemplateView):
+class ExportReportsView(PermissionBaseView, TemplateView):
     """صادرات گزارشات"""
     template_name = 'reports/exports/export_template.html'
+    permission_codename = 'reports.export_reports'
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -1425,44 +1429,52 @@ def api_projects_by_org(request):
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
 
-class TestDashboardView(TemplateView):
+class TestDashboardView(PermissionBaseView, TemplateView):
     """View برای تست داشبورد"""
     template_name = 'reports/dashboard/test_dashboard.html'
+    permission_codename = 'reports.view_dashboard'
 
 
-class SimpleDashboardView(TemplateView):
+class SimpleDashboardView(PermissionBaseView, TemplateView):
     """داشبورد ساده و کارآمد"""
     template_name = 'reports/dashboard/simple_dashboard.html'
+    permission_codename = 'reports.view_dashboard'
 
 
-class SimpleAnalyticsView(TemplateView):
+class SimpleAnalyticsView(PermissionBaseView, TemplateView):
     """تحلیل‌های ساده و کارآمد"""
     template_name = 'reports/dashboard/simple_analytics.html'
+    permission_codename = 'reports.view_analytics'
 
 
-class DashboardSelectorView(TemplateView):
+class DashboardSelectorView(PermissionBaseView, TemplateView):
     """صفحه انتخاب داشبورد"""
     template_name = 'reports/dashboard/dashboard_selector.html'
+    permission_codename = 'reports.view_dashboard'
 
 
-class ChartTestView(TemplateView):
+class ChartTestView(PermissionBaseView, TemplateView):
     """تست مستقل چارت‌ها"""
     template_name = 'reports/dashboard/chart_test.html'
+    permission_codename = 'reports.view_dashboard'
 
 
-class SimpleChartTestView(TemplateView):
+class SimpleChartTestView(PermissionBaseView, TemplateView):
     """تست ساده چارت (مثل URL یاد شده)"""
     template_name = 'reports/dashboard/simple_chart_test.html'
+    permission_codename = 'reports.view_dashboard'
 
 
-class MinimalChartTestView(TemplateView):
+class MinimalChartTestView(PermissionBaseView, TemplateView):
     """تست حداقلی چارت"""
     template_name = 'reports/dashboard/minimal_chart_test.html'
+    permission_codename = 'reports.view_dashboard'
 
 
-class TestAnalyticsView(TemplateView):
+class TestAnalyticsView(PermissionBaseView, TemplateView):
     """تست analytics با داده‌های نمونه"""
     template_name = 'reports/analytics/budget_analytics.html'
+    permission_codename = 'reports.view_analytics'
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -1522,9 +1534,10 @@ class TestAnalyticsView(TemplateView):
         return context
 
 
-class BudgetAnalyticsRedesignedView(TemplateView):
+class BudgetAnalyticsRedesignedView(PermissionBaseView, TemplateView):
     """نسخه بازطراحی شده تحلیل‌ها - از همان داده‌های اصلی استفاده می‌کند"""
     template_name = 'reports/analytics/analytics_redesigned.html'
+    permission_codename = 'reports.view_analytics'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

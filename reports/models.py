@@ -75,3 +75,31 @@ class TankhahDetailView(models.Model):
         permissions = [
             ('TankhahDetailView_report_view',_('گزارش جزئیات تنخواه‌ها '))
         ]
+
+# ===== مجوزهای جدید برای Reports =====
+class ReportsDashboard(models.Model):
+    """مدل برای تعریف مجوزهای داشبورد گزارشات"""
+    class Meta:
+        verbose_name = _('داشبورد گزارشات')
+        verbose_name_plural = _('داشبورد گزارشات')
+        default_permissions = ()
+        permissions = [
+            ('reports.view_dashboard', _('نمایش داشبورد گزارشات')),
+            ('reports.view_analytics', _('نمایش تحلیل‌های پیشرفته')),
+            ('reports.export_reports', _('صادرات گزارشات')),
+            ('reports.view_executive_dashboard', _('نمایش داشبورد اجرایی')),
+        ]
+
+class ReportsAPIs(models.Model):
+    """مدل برای تعریف مجوزهای API های گزارشات"""
+    class Meta:
+        verbose_name = _('API های گزارشات')
+        verbose_name_plural = _('API های گزارشات')
+        default_permissions = ()
+        permissions = [
+            ('reports.api_dashboard_data', _('دسترسی به API داده‌های داشبورد')),
+            ('reports.api_organizations', _('دسترسی به API سازمان‌ها')),
+            ('reports.api_projects', _('دسترسی به API پروژه‌ها')),
+            ('reports.api_budget_periods', _('دسترسی به API دوره‌های بودجه')),
+            ('reports.api_export_data', _('دسترسی به API صادرات داده')),
+        ]

@@ -10407,3 +10407,155 @@ ERROR 2025-09-29 10:54:23 check_user_access check_user_factor_access خطا در
 ERROR 2025-09-29 10:54:23 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
 ERROR 2025-09-29 10:54:24 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
 ERROR 2025-09-29 10:54:24 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-09-29 21:58:51 view_Dashboard _get_org_budget_summary org budget summary error: Cannot resolve keyword 'organization' into field. Choices are: allocations, code, description, end_date, id, is_active, name, organizations, payment_orders, priority, start_date, subprojects, tankhah_set
+ERROR 2025-09-30 08:09:23 view_Dashboard _get_org_budget_summary org budget summary error: Cannot resolve keyword 'organization' into field. Choices are: allocations, code, description, end_date, id, is_active, name, organizations, payment_orders, priority, start_date, subprojects, tankhah_set
+ERROR 2025-09-30 08:09:24 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:09:24 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:09:24 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:09:24 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:09:24 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:09:24 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:09:29 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 08:09:29 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 08:09:29 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 08:09:29 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 08:09:29 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 08:09:29 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 08:09:29 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 08:09:29 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 08:09:29 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 08:09:29 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 08:09:29 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 08:09:29 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 08:09:29 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040605-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-09-30 08:09:29 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 08:09:29 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040604-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-09-30 08:09:29 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 08:09:29 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 08:09:29 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-09-30 08:09:29 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-09-30 08:11:13 view_Dashboard _get_org_budget_summary org budget summary error: Cannot resolve keyword 'organization' into field. Choices are: allocations, code, description, end_date, id, is_active, name, organizations, payment_orders, priority, start_date, subprojects, tankhah_set
+ERROR 2025-09-30 08:11:13 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:11:13 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:11:13 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:11:13 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:11:13 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:11:13 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:21:10 view_Dashboard _get_org_budget_summary org budget summary error: Cannot resolve keyword 'organization' into field. Choices are: allocations, code, description, end_date, id, is_active, name, organizations, payment_orders, priority, start_date, subprojects, tankhah_set
+ERROR 2025-09-30 08:21:10 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:21:10 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:21:10 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:21:10 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:21:10 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:21:10 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:21:54 view_Dashboard _get_org_budget_summary org budget summary error: Cannot resolve keyword 'organization' into field. Choices are: allocations, code, description, end_date, id, is_active, name, organizations, payment_orders, priority, start_date, subprojects, tankhah_set
+ERROR 2025-09-30 08:21:55 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:21:55 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:21:55 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:21:55 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:21:55 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:21:55 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:24:45 view_Dashboard _get_org_budget_summary org budget summary error: Cannot resolve keyword 'organization' into field. Choices are: allocations, code, description, end_date, id, is_active, name, organizations, payment_orders, priority, start_date, subprojects, tankhah_set
+ERROR 2025-09-30 08:24:46 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:24:46 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:24:46 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:24:46 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:24:46 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:24:46 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:25:36 view_Dashboard _get_org_budget_summary org budget summary error: Cannot resolve keyword 'organization' into field. Choices are: allocations, code, description, end_date, id, is_active, name, organizations, payment_orders, priority, start_date, subprojects, tankhah_set
+ERROR 2025-09-30 08:25:36 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:25:36 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:25:36 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:25:36 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:25:36 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:25:36 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:25:39 view_Dashboard _get_org_budget_summary org budget summary error: Cannot resolve keyword 'organization' into field. Choices are: allocations, code, description, end_date, id, is_active, name, organizations, payment_orders, priority, start_date, subprojects, tankhah_set
+ERROR 2025-09-30 08:25:39 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:25:39 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:25:39 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:25:39 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:25:39 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:25:39 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:25:42 view_Dashboard _get_org_budget_summary org budget summary error: Cannot resolve keyword 'organization' into field. Choices are: allocations, code, description, end_date, id, is_active, name, organizations, payment_orders, priority, start_date, subprojects, tankhah_set
+ERROR 2025-09-30 08:25:42 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:25:42 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:25:42 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:25:42 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:25:42 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:25:42 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:35:10 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:35:10 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:35:10 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:35:10 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:35:10 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:35:10 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:35:10 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:35:10 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:35:10 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:35:10 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:35:10 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:35:10 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:35:38 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:35:38 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:35:38 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:35:38 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:35:38 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:35:38 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:38:50 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:38:50 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:38:50 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:38:50 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:38:50 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:38:50 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:41:07 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:41:07 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:41:07 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:41:07 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:41:07 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:41:07 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''

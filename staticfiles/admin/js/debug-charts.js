@@ -76,7 +76,7 @@ function createTestChart() {
         const testChart = new Chart(ctx, {
             type: 'doughnut',
             data: {
-                labels: ['تست ۱', 'تست ۲', 'تست ۳'],
+                labels: [],
                 datasets: [{
                     data: [30, 50, 20],
                     backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56']

@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load i18n static jformat rcms_custom_filters jalali_tags %}
 
- 
+
 {% block content %}
     <div class="container-fluid mt-4">
     <h2 class="mb-4 text-center animate__animated animate__fadeInDown">
@@ -33,26 +33,28 @@
             <div id="collapseQuickLinks" class="accordion-collapse collapse show"
                  aria-labelledby="headingQuickLinks"
                  data-bs-parent="#accordionQuickLinks">
-                <div class="accordion-body"> {% for category, links_list in dashboard_links.items %}
-                    <h6 class="mt-3 mb-2 text-secondary"><i class="fas fa-folder-open mr-2"></i>{{ category }} </h6>
-                    <div class="row">
-                        {% for link_item in links_list %}
-                            <div class="col-lg-3 col-md-4 col-sm-6 mb-3"><a
-                                    href="{% if link_item.direct_url %}{{ link_item.direct_url }}{% elif link_item.url_kwargs %}{% url link_item.url link_item.url_kwargs.pk %}{% elif link_item.url %}{% url link_item.url %}{% else %}#{% endif %}"
-                                    class="btn btn-outline-primary btn-block d-flex align-items-center justify-content-start py-2 text-truncate">
-                                <i class="{{ link_item.icon|default:'fas fa-caret-left' }} mr-2"></i>
-                                <span>{{ link_item.name }}</span> </a>
-                            </div>
-                        {% endfor %}
-                    </div>
-                    {% if not forloop.last %}
-                        <hr class="my-3"> {% endif %}
-                {% endfor %}
+                <div class="accordion-body">
+                    {% for category, links_list in dashboard_links.items %}
+                        <h6 class="mt-3 mb-2 text-secondary"><i class="fas fa-folder-open mr-2"></i>{{ category }} </h6>
+                        <div class="row">
+                            {% for link_item in links_list %}
+                                <div class="col-lg-3 col-md-4 col-sm-6 mb-3"><a
+                                        href="
+                                                {% if link_item.direct_url %}{{ link_item.direct_url }}{% elif link_item.url_kwargs %}{% url link_item.url link_item.url_kwargs.pk %}{% elif link_item.url %}{% url link_item.url %}{% else %}#{% endif %}"
+                                        class="btn btn-outline-primary btn-block d-flex align-items-center justify-content-start py-2 text-truncate">
+                                    <i class="{{ link_item.icon|default:'fas fa-caret-left' }} mr-2"></i>
+                                    <span>{{ link_item.name }}</span> </a>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        {% if not forloop.last %}
+                            <hr class="my-3"> {% endif %}
+                    {% endfor %}
                 </div>
             </div>
         </div>
     </div>
- 
+
     <div class="accordion mb-4 animate__animated animate__fadeInUp animate__delay-0.1s" id="accordionBudgetOverview">
         <div class="accordion-item dashboard-card">
             <h2 class="accordion-header" id="headingBudgetOverview"
@@ -443,10 +445,10 @@
                     </div>
                 </div>
             </div>
-        </div> 
+        </div>
 
     </div>
-    
+
 {% endblock %}
 
 {% block extra_js %}

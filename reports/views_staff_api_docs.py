@@ -54,6 +54,38 @@ class StaffAPIDocumentationView(StaffRequiredMixin, TemplateView):
                         'usage': 'برای نمایش گزارش جامع بودجه در داشبورد اصلی'
                     },
                     {
+                        'name': 'BudgetWarningReportView',
+                        'class_name': 'BudgetWarningReportView',
+                        'url': '/reports/budget/warnings/',
+                        'method': 'GET',
+                        'description': 'گزارش هشدارهای بودجه و وضعیت تخصیص',
+                        'permissions': 'PermissionBaseView',
+                        'features': [
+                            'نمایش هشدارهای بودجه',
+                            'فیلتر بر اساس وضعیت',
+                            'خروجی HTML',
+                            'جستجو و فیلتر'
+                        ],
+                        'template': 'budgets/reports_budgets/budget_warning_report.html',
+                        'usage': 'برای نمایش هشدارهای بودجه در داشبورد'
+                    },
+                    {
+                        'name': 'PaymentOrderReportView',
+                        'class_name': 'PaymentOrderReportView',
+                        'url': '/reports/report/paymentorderreport/',
+                        'method': 'GET',
+                        'description': 'گزارش دستورات پرداخت با جزئیات کامل',
+                        'permissions': 'PermissionBaseView',
+                        'features': [
+                            'گزارش دستورات پرداخت',
+                            'فیلتر بر اساس تاریخ',
+                            'خروجی Excel',
+                            'جستجو و فیلتر'
+                        ],
+                        'template': 'reports/PaymentOrderReport/payment_order_report.html',
+                        'usage': 'برای گزارش‌گیری از دستورات پرداخت'
+                    },
+                    {
                         'name': 'APIOrganizationsForPeriodView',
                         'class_name': 'APIOrganizationsForPeriodView',
                         'url': '/reports/api/organizations-for-period/<int:period_pk>/',
@@ -122,6 +154,60 @@ class StaffAPIDocumentationView(StaffRequiredMixin, TemplateView):
                             'خروجی JSON با HTML content'
                         ],
                         'usage': 'برای نمایش تخصیص‌های سازمان در رابط کاربری'
+                    }
+                ]
+            },
+            'dashboard_apis': {
+                'title': 'API های داشبورد',
+                'description': 'API های مربوط به داشبورد و نمایش آمار',
+                'apis': [
+                    {
+                        'name': 'ReportsDashboardMainView',
+                        'class_name': 'ReportsDashboardMainView',
+                        'url': '/reports/dashboard/',
+                        'method': 'GET',
+                        'description': 'داشبورد اصلی گزارشات با چارت‌های تعاملی',
+                        'permissions': 'PermissionBaseView',
+                        'features': [
+                            'چارت‌های تعاملی',
+                            'آمار کلی سیستم',
+                            'فیلتر بر اساس دوره',
+                            'خروجی HTML'
+                        ],
+                        'template': 'reports/dashboard/main_dashboard.html',
+                        'usage': 'برای نمایش داشبورد اصلی گزارشات'
+                    },
+                    {
+                        'name': 'TabbedFinancialDashboardView',
+                        'class_name': 'TabbedFinancialDashboardView',
+                        'url': '/dashboard/',
+                        'method': 'GET',
+                        'description': 'داشبورد مالی با تب‌های مختلف',
+                        'permissions': 'PermissionBaseView',
+                        'features': [
+                            'تب‌های مختلف',
+                            'آمار مالی',
+                            'چارت‌های پیشرفته',
+                            'خروجی HTML'
+                        ],
+                        'template': 'BudgetsSystem/Dashboard_Project/dashboard_main.html',
+                        'usage': 'برای نمایش داشبورد مالی اصلی'
+                    },
+                    {
+                        'name': 'DashboardView',
+                        'class_name': 'DashboardView',
+                        'url': '/',
+                        'method': 'GET',
+                        'description': 'داشبورد اصلی سیستم',
+                        'permissions': 'PermissionBaseView',
+                        'features': [
+                            'نمایش کلی سیستم',
+                            'دسترسی سریع',
+                            'آمار کلی',
+                            'خروجی HTML'
+                        ],
+                        'template': 'BudgetsSystem/view/dashboard_main.html',
+                        'usage': 'برای نمایش صفحه اصلی سیستم'
                     }
                 ]
             },
@@ -269,6 +355,86 @@ class StaffAPIDocumentationView(StaffRequiredMixin, TemplateView):
                     }
                 ]
             },
+            'notification_apis': {
+                'title': 'API های اعلان‌ها',
+                'description': 'API های مربوط به سیستم اعلان‌ها و اطلاع‌رسانی',
+                'apis': [
+                    {
+                        'name': 'NotificationInboxView',
+                        'class_name': 'NotificationInboxView',
+                        'url': '/inbox/notifications/',
+                        'method': 'GET',
+                        'description': 'صندوق ورودی اعلان‌ها',
+                        'permissions': 'LoginRequiredMixin',
+                        'features': [
+                            'نمایش اعلان‌ها',
+                            'فیلتر بر اساس وضعیت',
+                            'خروجی HTML',
+                            'صفحه‌بندی'
+                        ],
+                        'template': 'notificationApp/inbox.html',
+                        'usage': 'برای نمایش اعلان‌های کاربر'
+                    },
+                    {
+                        'name': 'MarkNotificationReadView',
+                        'class_name': 'MarkNotificationReadView',
+                        'url': '/inbox/notifications/mark-read/<int:pk>/',
+                        'method': 'POST',
+                        'description': 'علامت‌گذاری اعلان به عنوان خوانده شده',
+                        'permissions': 'LoginRequiredMixin',
+                        'features': [
+                            'تغییر وضعیت اعلان',
+                            'AJAX endpoint',
+                            'خروجی JSON'
+                        ],
+                        'usage': 'برای تغییر وضعیت اعلان‌ها'
+                    }
+                ]
+            },
+            'usb_key_apis': {
+                'title': 'API های کلید USB',
+                'description': 'API های مربوط به اعتبارسنجی کلید USB',
+                'apis': [
+                    {
+                        'name': 'USBKeyValidatorView',
+                        'class_name': 'USBKeyValidatorView',
+                        'url': '/usb-key-validator/',
+                        'method': 'GET',
+                        'description': 'اعتبارسنجی کلید USB',
+                        'permissions': 'LoginRequiredMixin',
+                        'features': [
+                            'اعتبارسنجی کلید',
+                            'بررسی دسترسی',
+                            'خروجی HTML',
+                            'امنیت بالا'
+                        ],
+                        'template': 'usb_key_validator/validator.html',
+                        'usage': 'برای اعتبارسنجی دسترسی USB'
+                    }
+                ]
+            },
+            'version_tracker_apis': {
+                'title': 'API های ردیابی نسخه',
+                'description': 'API های مربوط به ردیابی و مدیریت نسخه‌ها',
+                'apis': [
+                    {
+                        'name': 'VersionTrackerAPI',
+                        'class_name': 'VersionTrackerAPI',
+                        'url': '/version_tracker/',
+                        'method': 'GET',
+                        'description': 'ردیابی نسخه‌های سیستم',
+                        'permissions': 'StaffRequiredMixin',
+                        'features': [
+                            'نمایش نسخه‌ها',
+                            'تاریخچه تغییرات',
+                            'خروجی JSON',
+                            'مقایسه نسخه‌ها'
+                        ],
+                        'template': 'version_tracker/version_list.html',
+                        'usage': 'برای ردیابی تغییرات سیستم'
+                    }
+                ]
+            },
             'transition_access_apis': {
                 'title': 'API های دسترسی و مجوز',
                 'description': 'API های مربوط به مدیریت دسترسی‌ها و مجوزها',
@@ -370,6 +536,40 @@ class StaffAPIDocumentationView(StaffRequiredMixin, TemplateView):
                             'خروجی JSON'
                         ],
                         'usage': 'برای نمایش خلاصه دسترسی‌های کاربر'
+                    }
+                ]
+            },
+            'simple_apis': {
+                'title': 'API های ساده',
+                'description': 'API های ساده برای تست و توسعه',
+                'apis': [
+                    {
+                        'name': 'SimpleOrganizationsAPI',
+                        'class_name': 'simple_organizations_api',
+                        'url': '/reports/test-api/organizations/',
+                        'method': 'GET',
+                        'description': 'API ساده برای دریافت سازمان‌ها',
+                        'permissions': 'LoginRequiredMixin',
+                        'features': [
+                            'خروجی JSON ساده',
+                            'برای تست',
+                            'بدون پیچیدگی'
+                        ],
+                        'usage': 'برای تست و توسعه'
+                    },
+                    {
+                        'name': 'SimpleProjectsAPI',
+                        'class_name': 'simple_projects_api',
+                        'url': '/reports/test-api/projects/',
+                        'method': 'GET',
+                        'description': 'API ساده برای دریافت پروژه‌ها',
+                        'permissions': 'LoginRequiredMixin',
+                        'features': [
+                            'خروجی JSON ساده',
+                            'برای تست',
+                            'بدون پیچیدگی'
+                        ],
+                        'usage': 'برای تست و توسعه'
                     }
                 ]
             }

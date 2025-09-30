@@ -169,6 +169,13 @@ class BackupSchedule(models.Model):
         verbose_name = _("اسکچول پشتیبان‌گیری")
         verbose_name_plural = _("اسکچول‌های پشتیبان‌گیری")
         ordering = ['-created_at']
+        default_permissions=()
+        permissions = [
+            ('BackupSchedule_admin','مدیریت پشتیبان گیری'),
+            ('BackupSchedule_view','نمایش پشتیبان ها '),
+            ('BackupSchedule_delete','نمایش پشتیبان ها '),
+            ('BackupSchedule_create','نمایش پشتیبان ها '),
+        ]
     
     def __str__(self):
         return f"{self.name} - {self.get_frequency_display()}"
