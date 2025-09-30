@@ -10559,3 +10559,325 @@ ERROR 2025-09-30 08:41:07 rcms_custom_filters format_negative Error formatting n
 ERROR 2025-09-30 08:41:07 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
 ERROR 2025-09-30 08:41:07 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
 ERROR 2025-09-30 08:41:07 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:57:56 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:57:56 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:57:56 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:57:56 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:57:56 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:57:56 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:57:56 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:57:56 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:57:56 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:57:56 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:57:56 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 08:57:56 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-09-30 10:52:39 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 92, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1175, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-09-30 10:53:12 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 92, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1175, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-09-30 10:57:47 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 92, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1175, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-09-30 10:57:50 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 92, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1175, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-09-30 10:58:07 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 92, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1175, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-09-30 10:58:26 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 92, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1175, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-09-30 10:59:14 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 92, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1175, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-09-30 11:07:28 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 92, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1175, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-09-30 11:11:36 view_Dashboard get_enhanced_dashboard_stats خطا در دریافت آمار پیشرفته: list.count() takes exactly one argument (0 given)
+ERROR 2025-09-30 11:11:38 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 92, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1175, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-09-30 11:20:46 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 92, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1181, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-09-30 11:21:14 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 92, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1181, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-09-30 11:21:38 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 92, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1181, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-09-30 11:21:43 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 92, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1181, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-09-30 11:21:46 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 92, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1181, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-09-30 11:22:53 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 92, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1181, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-09-30 11:23:04 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 92, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1181, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-09-30 11:23:10 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 92, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1181, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-09-30 11:26:44 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 92, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1181, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-09-30 11:26:52 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 92, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1181, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-09-30 11:27:06 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 92, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1181, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-09-30 11:27:10 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 92, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1181, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-09-30 11:27:10 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 92, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1181, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-09-30 11:27:10 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 92, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1181, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-09-30 11:27:11 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 92, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1181, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-09-30 11:27:11 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 92, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1181, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-09-30 11:27:11 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 92, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1181, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-09-30 11:31:29 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 92, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1181, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-09-30 11:32:52 view_Dashboard get_enhanced_dashboard_stats خطا در دریافت آمار پیشرفته: list.count() takes exactly one argument (0 given)
+ERROR 2025-09-30 11:35:20 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 92, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1192, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-09-30 11:38:02 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 92, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1192, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-09-30 11:38:04 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 92, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1192, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-09-30 11:38:09 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 92, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1192, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-09-30 11:38:15 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 92, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1192, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-09-30 11:38:18 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 92, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1192, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-09-30 11:39:57 view_Dashboard get_enhanced_dashboard_stats خطا در دریافت آمار پیشرفته: list.count() takes exactly one argument (0 given)
+ERROR 2025-09-30 11:40:49 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 92, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1192, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-09-30 11:46:41 views_executive_dashboard get_context_data خطا در گزارشات تحلیلی: Expression contains mixed types: DecimalField, IntegerField. You must set output_field.

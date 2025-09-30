@@ -90,6 +90,14 @@ class SystemSettingsForm(forms.ModelForm):
         except Exception:
             raise ValidationError(_('قالب سازمان‌های مجاز باید لیست JSON معتبر باشد.'))
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Removed dynamic dashboard toggles; dashboard visibility is no longer managed via SystemSettings
+
+    def save(self, commit=True):
+        instance = super().save(commit)
+        return instance
+
 # ========================
 
 

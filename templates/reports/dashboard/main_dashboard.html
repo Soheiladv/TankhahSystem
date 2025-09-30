@@ -83,12 +83,29 @@
     }
     
     /* Color variants for different stat types */
-    .stats-card.budget .card-icon { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
-    .stats-card.tankhah .card-icon { background: linear-gradient(135deg, #10b981, #059669); }
-    .stats-card.factor .card-icon { background: linear-gradient(135deg, #f59e0b, #d97706); }
-    .stats-card.payment .card-icon { background: linear-gradient(135deg, #ef4444, #dc2626); }
-    .stats-card.project .card-icon { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
-    .stats-card.return .card-icon { background: linear-gradient(135deg, #06b6d4, #0891b2); }
+        .stats-card.budget .card-icon {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+        }
+
+        .stats-card.tankhah .card-icon {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+
+        .stats-card.factor .card-icon {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+        }
+
+        .stats-card.payment .card-icon {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+        }
+
+        .stats-card.project .card-icon {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+        }
+
+        .stats-card.return .card-icon {
+            background: linear-gradient(135deg, #06b6d4, #0891b2);
+        }
     
     /* Chart Containers */
     .chart-container {
@@ -256,13 +273,23 @@
     
     /* Animation keyframes */
     @keyframes pulse {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.5; }
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
     }
     
     @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
     }
 </style>
 {% endblock %}
@@ -341,9 +368,12 @@
     <!-- Tabs Navigation -->
     <div class="dash-tabs" id="dashTabs">
         <div class="dash-tab active" data-tab="overview">نمای کلی</div>
-        {% if can_view_budget %}<div class="dash-tab" data-tab="budget">بودجه</div>{% endif %}
-        {% if can_view_tankhah %}<div class="dash-tab" data-tab="tankhah">تنخواه</div>{% endif %}
-        {% if can_view_factors %}<div class="dash-tab" data-tab="factors">فاکتورها</div>{% endif %}
+            {% if can_view_budget %}
+                <div class="dash-tab" data-tab="budget">بودجه</div>{% endif %}
+            {% if can_view_tankhah %}
+                <div class="dash-tab" data-tab="tankhah">تنخواه</div>{% endif %}
+            {% if can_view_factors %}
+                <div class="dash-tab" data-tab="factors">فاکتورها</div>{% endif %}
         <div class="dash-tab" data-tab="risk">ریسک و تحلیل</div>
         
         <div class="tab-toolbar">
@@ -354,7 +384,7 @@
                 <option value="doughnut">حلقه‌ای</option>
             </select>
             <label class="chart-3d-toggle">
-                <input type="checkbox" id="enable3D" />
+                    <input type="checkbox" id="enable3D"/>
                 <span>نمای سه‌بعدی</span>
             </label>
             <button id="fontSmaller" class="font-size-btn" title="کوچک‌تر">A−</button>
@@ -373,11 +403,13 @@
                     <div class="row g-3">
                         <div class="col-md-3">
                             <label class="form-label">تاریخ شروع</label>
-                            <input type="text" class="form-control" data-jdp name="start_date" id="start_date" value="{{ request.GET.start_date }}" placeholder="YYYY/MM/DD">
+                                <input type="text" class="form-control" data-jdp name="start_date" id="start_date"
+                                       value="{{ request.GET.start_date }}" placeholder="YYYY/MM/DD">
                         </div>
                         <div class="col-md-3">
                             <label class="form-label">تاریخ پایان</label>
-                            <input type="text" class="form-control" data-jdp name="end_date" id="end_date" value="{{ request.GET.end_date }}" placeholder="YYYY/MM/DD">
+                                <input type="text" class="form-control" data-jdp name="end_date" id="end_date"
+                                       value="{{ request.GET.end_date }}" placeholder="YYYY/MM/DD">
                         </div>
                         <div class="col-md-3">
                             <label class="form-label">سازمان</label>
@@ -385,7 +417,8 @@
                                 <option value="">همه سازمان‌ها</option>
                                 {% if organizations %}
                                 {% for org in organizations %}
-                                <option value="{{ org.id }}" {% if request.GET.organization == org.id|stringformat:'s' %}selected{% endif %}>{{ org.name }}</option>
+                                            <option value="{{ org.id }}"
+                                                    {% if request.GET.organization == org.id|stringformat:'s' %}selected{% endif %}>{{ org.name }}</option>
                                 {% endfor %}
                                 {% endif %}
                             </select>
@@ -396,7 +429,8 @@
                                 <option value="">همه پروژه‌ها</option>
                                 {% if projects %}
                                 {% for p in projects %}
-                                <option value="{{ p.id }}" {% if request.GET.project == p.id|stringformat:'s' %}selected{% endif %}>{{ p.name }}</option>
+                                            <option value="{{ p.id }}"
+                                                    {% if request.GET.project == p.id|stringformat:'s' %}selected{% endif %}>{{ p.name }}</option>
                                 {% endfor %}
                                 {% endif %}
                             </select>
@@ -463,7 +497,7 @@
             <div class="col-lg-3 col-md-6">
                 <div class="stats-card">
                     <div class="card-title">تعداد فاکتور</div>
-                    <div class="card-value">{{ factor_stats.total_count|default:"0" }}</div>
+                    <div class="card-value">{{ factor_stats.total_count|format_negative }}</div>
                 </div>
             </div>
             <div class="col-lg-3 col-md-6">
@@ -476,6 +510,7 @@
 
         <!-- Key Charts in Overview -->
         <div class="row mb-4">
+            {% if chart_data.org_budget and chart_data.org_budget|length %}
             <div class="col-lg-6 mb-4" data-aos="fade-right">
                 <div class="chart-container">
                     <h5>
@@ -487,17 +522,22 @@
                                 </div>
                             </div>
                                 </div>
+            {% endif %}
+            {% if chart_data.monthly_consumption and chart_data.monthly_consumption|length and advanced_comparatives and advanced_comparatives.rankings and advanced_comparatives.rankings.projects|length %}
             <div class="col-lg-6 mb-4" data-aos="fade-left">
                 <div class="chart-container">
                     <h5>
                         <i class="fas fa-chart-line me-2" style="color: #10b981;"></i>
                         روند مصرف بودجه (ماهانه)
                     </h5>
+                    {% if chart_data and chart_data.monthly_consumption|length %}
                     <div class="chart-wrapper">
                         <canvas id="monthlyConsumptionChart"></canvas>
-                            </div>
+                    </div>
+                    {% endif %}
                                 </div>
                             </div>
+            {% endif %}
                         </div>
                     </div>
 
@@ -569,9 +609,12 @@
                     <canvas id="budgetWaterfallChart"></canvas>
                 </div>
                 <div class="mt-2">
-                    <a class="text-decoration-none" data-bs-toggle="collapse" href="#help-budgetWaterfallChart">راهنمای محاسبات</a>
+                            <a class="text-decoration-none" data-bs-toggle="collapse" href="#help-budgetWaterfallChart">راهنمای
+                                محاسبات</a>
                     <div class="collapse" id="help-budgetWaterfallChart">
-                        <div class="mt-2 small text-muted">تخصیص ← مصرف (منفی) ← برگشت (مثبت) ← باقی‌مانده (جمع نهایی)</div>
+                                <div class="mt-2 small text-muted">تخصیص ← مصرف (منفی) ← برگشت (مثبت) ← باقی‌مانده (جمع
+                                    نهایی)
+                                </div>
                     </div>
                 </div>
                 </div>
@@ -579,7 +622,8 @@
         </div>
 
     <div class="row mb-4">
-            <div class="col-lg-6 mb-4" data-aos="fade-up">
+        {% if advanced_budget and advanced_budget.concentration and (advanced_budget.concentration.organizations|length or advanced_budget.concentration.projects|length) %}
+        <div class="col-lg-6 mb-4" data-aos="fade-up">
             <div class="chart-container">
                 <h5>
                         <i class="fas fa-bullseye me-2" style="color:#f59e0b;"></i>
@@ -590,7 +634,9 @@
                 </div>
             </div>
         </div>
-            <div class="col-lg-6 mb-4" data-aos="fade-up">
+        {% endif %}
+        {% if advanced_budget and advanced_budget.aging and (advanced_budget.aging.d_0_30 or advanced_budget.aging.d_31_60 or advanced_budget.aging.d_61_90 or advanced_budget.aging.d_90_plus) %}
+        <div class="col-lg-6 mb-4" data-aos="fade-up">
             <div class="chart-container">
                 <h5>
                         <i class="fas fa-hourglass-half me-2" style="color:#8b5cf6;"></i>
@@ -601,44 +647,71 @@
                 </div>
             </div>
         </div>
+        {% endif %}
     </div>
 
     <!-- Aging Heatmap (Matrix) -->
     <div class="row mb-4">
+        {% if advanced_budget and advanced_budget.aging and (advanced_budget.aging.d_0_30 or advanced_budget.aging.d_31_60 or advanced_budget.aging.d_61_90 or advanced_budget.aging.d_90_plus) %}
         <div class="col-lg-12 mb-4" data-aos="fade-up">
             <div class="chart-container">
                 <h5><i class="fas fa-fire me-2"></i>Heatmap سن تخصیص/تسویه</h5>
-                <div class="chart-wrapper"><canvas id="agingHeatmapChart"></canvas></div>
+                        <div class="chart-wrapper">
+                            <canvas id="agingHeatmapChart"></canvas>
+                        </div>
                 <div class="mt-2">
-                    <a class="text-decoration-none" data-bs-toggle="collapse" href="#help-agingHeatmapChart">راهنمای محاسبات</a>
-                    <div class="collapse" id="help-agingHeatmapChart"><div class="mt-2 small text-muted">شدت رنگ متناسب با تعداد آیتم‌ها در هر بازه (0-30/31-60/61-90/90+).</div></div>
+                            <a class="text-decoration-none" data-bs-toggle="collapse" href="#help-agingHeatmapChart">راهنمای
+                                محاسبات</a>
+                            <div class="collapse" id="help-agingHeatmapChart">
+                                <div class="mt-2 small text-muted">شدت رنگ متناسب با تعداد آیتم‌ها در هر بازه
+                                    (0-30/31-60/61-90/90+).
+                                </div>
+                            </div>
                 </div>
             </div>
         </div>
+        {% endif %}
     </div>
 
     <!-- Extra Advanced Visuals: Gauge + Radar -->
     <div class="row mb-4">
+        {% if advanced_budget and advanced_budget.absorption_rate %}
         <div class="col-lg-6 mb-4" data-aos="fade-right">
             <div class="chart-container">
                 <h5><i class="fas fa-gauge-high me-2"></i>نرخ جذب بودجه (Gauge)</h5>
-                <div class="chart-wrapper"><canvas id="budgetGaugeChart"></canvas></div>
+                        <div class="chart-wrapper">
+                            <canvas id="budgetGaugeChart"></canvas>
+                        </div>
                 <div class="mt-2">
-                    <a class="text-decoration-none" data-bs-toggle="collapse" href="#help-budgetGaugeChart">راهنمای محاسبات</a>
-                    <div class="collapse" id="help-budgetGaugeChart"><div class="mt-2 small text-muted">نرخ جذب = مصرف ÷ تخصیص × ۱۰۰؛ محدوده‌ها: سبز/زرد/قرمز.</div></div>
+                            <a class="text-decoration-none" data-bs-toggle="collapse" href="#help-budgetGaugeChart">راهنمای
+                                محاسبات</a>
+                            <div class="collapse" id="help-budgetGaugeChart">
+                                <div class="mt-2 small text-muted">نرخ جذب = مصرف ÷ تخصیص × ۱۰۰؛ محدوده‌ها:
+                                    سبز/زرد/قرمز.
+                                </div>
+                            </div>
                 </div>
             </div>
         </div>
+        {% endif %}
+        {% if advanced_comparatives and advanced_comparatives.rankings and (advanced_comparatives.rankings.organizations|length or advanced_comparatives.rankings.projects|length) %}
         <div class="col-lg-6 mb-4" data-aos="fade-left">
             <div class="chart-container">
                 <h5><i class="fas fa-radar me-2"></i>رادار KPI سازمان/پروژه</h5>
-                <div class="chart-wrapper"><canvas id="kpiRadarChart"></canvas></div>
+                        <div class="chart-wrapper">
+                            <canvas id="kpiRadarChart"></canvas>
+                        </div>
                 <div class="mt-2">
-                    <a class="text-decoration-none" data-bs-toggle="collapse" href="#help-kpiRadarChart">راهنمای محاسبات</a>
-                    <div class="collapse" id="help-kpiRadarChart"><div class="mt-2 small text-muted">نرمال‌سازی KPIها ۰..۱۰۰ و مقایسه چند سازمان/پروژه.</div></div>
+                            <a class="text-decoration-none" data-bs-toggle="collapse" href="#help-kpiRadarChart">راهنمای
+                                محاسبات</a>
+                            <div class="collapse" id="help-kpiRadarChart">
+                                <div class="mt-2 small text-muted">نرمال‌سازی KPIها ۰..۱۰۰ و مقایسه چند سازمان/پروژه.
+                                </div>
+                            </div>
                 </div>
             </div>
         </div>
+        {% endif %}
     </div>
 
     <!-- Detailed Statistics Tables -->
@@ -749,9 +822,11 @@
                         <i class="fas fa-chart-bar me-2" style="color: #f59e0b;"></i>
                         وضعیت تنخواه‌ها
                     </h5>
+                    {% if chart_data and chart_data.tankhah_status|length %}
                     <div class="chart-wrapper">
                         <canvas id="tankhahStatusChart"></canvas>
                     </div>
+                    {% endif %}
                 </div>
             </div>
 
@@ -766,8 +841,13 @@
                         <canvas id="tankhahStatusByOrgChart"></canvas>
                     </div>
                     <div class="mt-2">
-                        <a class="text-decoration-none" data-bs-toggle="collapse" href="#help-tankhahStatusByOrgPct">راهنمای محاسبات (درصدی)</a>
-                        <div class="collapse" id="help-tankhahStatusByOrgPct"><div class="mt-2 small text-muted">برای هر سازمان، سهم هر وضعیت = تعداد وضعیت ÷ مجموع سازمان × ۱۰۰</div></div>
+                            <a class="text-decoration-none" data-bs-toggle="collapse"
+                               href="#help-tankhahStatusByOrgPct">راهنمای محاسبات (درصدی)</a>
+                            <div class="collapse" id="help-tankhahStatusByOrgPct">
+                                <div class="mt-2 small text-muted">برای هر سازمان، سهم هر وضعیت = تعداد وضعیت ÷ مجموع
+                                    سازمان × ۱۰۰
+                                </div>
+                            </div>
                     </div>
                 </div>
             </div>
@@ -794,8 +874,13 @@
                     <canvas id="tankhahStatusByOrgPct"></canvas>
                 </div>
                 <div class="mt-2">
-                    <a class="text-decoration-none" data-bs-toggle="collapse" href="#help-tankhahStatusByOrgPct2">راهنمای محاسبات</a>
-                    <div class="collapse" id="help-tankhahStatusByOrgPct2"><div class="mt-2 small text-muted">هر میله برابر ۱۰۰٪ و رنگ‌ها سهم هر وضعیت را نشان می‌دهند.</div></div>
+                                <a class="text-decoration-none" data-bs-toggle="collapse"
+                                   href="#help-tankhahStatusByOrgPct2">راهنمای محاسبات</a>
+                                <div class="collapse" id="help-tankhahStatusByOrgPct2">
+                                    <div class="mt-2 small text-muted">هر میله برابر ۱۰۰٪ و رنگ‌ها سهم هر وضعیت را نشان
+                                        می‌دهند.
+                                    </div>
+                                </div>
                 </div>
             </div>
         </div>
@@ -836,16 +921,22 @@
         </div>
 
         <div class="row mb-4">
+            {% if chart_data.factor_category and chart_data.factor_category|length %}
             <div class="col-lg-6 mb-4" data-aos="fade-right">
                 <div class="chart-container">
                     <h5><i class="fas fa-list me-2"></i>پراکندگی دسته‌بندی فاکتورها</h5>
-                    <div class="chart-wrapper"><canvas id="factorCategoryChart"></canvas></div>
+                        <div class="chart-wrapper">
+                            <canvas id="factorCategoryChart"></canvas>
+                        </div>
                 </div>
             </div>
+            {% endif %}
             <div class="col-lg-6 mb-4" data-aos="fade-left">
                 <div class="chart-container">
                     <h5><i class="fas fa-bug me-2"></i>فاکتورهای پرریسک (Top مبلغ)</h5>
-                    <div class="chart-wrapper"><canvas id="factorHighRiskTopAmount"></canvas></div>
+                        <div class="chart-wrapper">
+                            <canvas id="factorHighRiskTopAmount"></canvas>
+                        </div>
                 </div>
             </div>
         </div>
@@ -855,10 +946,17 @@
             <div class="col-lg-12 mb-4" data-aos="fade-up">
                 <div class="chart-container">
                     <h5><i class="fas fa-filter me-2"></i>قیف فرآیند فاکتور</h5>
-                    <div class="chart-wrapper"><canvas id="factorProcessFunnel"></canvas></div>
+                        <div class="chart-wrapper">
+                            <canvas id="factorProcessFunnel"></canvas>
+                        </div>
                     <div class="mt-2">
-                        <a class="text-decoration-none" data-bs-toggle="collapse" href="#help-factorProcessFunnel">راهنمای محاسبات</a>
-                        <div class="collapse" id="help-factorProcessFunnel"><div class="mt-2 small text-muted">مراحل نمونه: ثبت → تایید → پرداخت؛ هر مرحله تعداد باقی‌مانده را نشان می‌دهد.</div></div>
+                            <a class="text-decoration-none" data-bs-toggle="collapse" href="#help-factorProcessFunnel">راهنمای
+                                محاسبات</a>
+                            <div class="collapse" id="help-factorProcessFunnel">
+                                <div class="mt-2 small text-muted">مراحل نمونه: ثبت → تایید → پرداخت؛ هر مرحله تعداد
+                                    باقی‌مانده را نشان می‌دهد.
+                                </div>
+                            </div>
                     </div>
                 </div>
             </div>
@@ -869,10 +967,17 @@
             <div class="col-lg-12 mb-4" data-aos="fade-up">
                 <div class="chart-container">
                     <h5><i class="fas fa-project-diagram me-2"></i>جریان تخصیص → مصرف → پرداخت (Sankey)</h5>
-                    <div class="chart-wrapper"><canvas id="budgetAllocationSankey"></canvas></div>
+                        <div class="chart-wrapper">
+                            <canvas id="budgetAllocationSankey"></canvas>
+                        </div>
                     <div class="mt-2">
-                        <a class="text-decoration-none" data-bs-toggle="collapse" href="#help-budgetAllocationSankey">راهنمای محاسبات</a>
-                        <div class="collapse" id="help-budgetAllocationSankey"><div class="mt-2 small text-muted">پیوندها نشان‌دهنده مقدار جریان بین مراحل است. هر لینک = مقدار مرحله مبدا که به مرحله مقصد منتقل شده است.</div></div>
+                            <a class="text-decoration-none" data-bs-toggle="collapse"
+                               href="#help-budgetAllocationSankey">راهنمای محاسبات</a>
+                            <div class="collapse" id="help-budgetAllocationSankey">
+                                <div class="mt-2 small text-muted">پیوندها نشان‌دهنده مقدار جریان بین مراحل است. هر لینک
+                                    = مقدار مرحله مبدا که به مرحله مقصد منتقل شده است.
+                                </div>
+                            </div>
                     </div>
                 </div>
             </div>
@@ -883,10 +988,18 @@
             <div class="col-lg-12 mb-4" data-aos="fade-up">
                 <div class="chart-container">
                     <h5><i class="fas fa-chart-bar me-2"></i>سهم دسته‌های هزینه (۱۰۰٪ استک: تعداد/مبلغ)</h5>
-                    <div class="chart-wrapper"><canvas id="factorCategoryStackedPct"></canvas></div>
+                        <div class="chart-wrapper">
+                            <canvas id="factorCategoryStackedPct"></canvas>
+                        </div>
                     <div class="mt-2">
-                        <a class="text-decoration-none" data-bs-toggle="collapse" href="#help-factorCategoryStackedPct">راهنمای محاسبات</a>
-                        <div class="collapse" id="help-factorCategoryStackedPct"><div class="mt-2 small text-muted">برای هر میله، مجموع ۱۰۰٪ است و هر دسته سهم خود را دارد: سهم = مقدار دسته ÷ مجموع × ۱۰۰. میله اول برای «سهم تعداد»، میله دوم برای «سهم مبلغ».</div></div>
+                            <a class="text-decoration-none" data-bs-toggle="collapse"
+                               href="#help-factorCategoryStackedPct">راهنمای محاسبات</a>
+                            <div class="collapse" id="help-factorCategoryStackedPct">
+                                <div class="mt-2 small text-muted">برای هر میله، مجموع ۱۰۰٪ است و هر دسته سهم خود را
+                                    دارد: سهم = مقدار دسته ÷ مجموع × ۱۰۰. میله اول برای «سهم تعداد»، میله دوم برای «سهم
+                                    مبلغ».
+                                </div>
+                            </div>
                     </div>
                 </div>
             </div>
@@ -897,10 +1010,17 @@
             <div class="col-lg-12 mb-4" data-aos="fade-up">
                 <div class="chart-container">
                     <h5><i class="fas fa-chart-pie me-2"></i>سهم سازمان‌ها از مصرف/تخصیص (PolarArea)</h5>
-                    <div class="chart-wrapper"><canvas id="orgPolarShareChart"></canvas></div>
+                        <div class="chart-wrapper">
+                            <canvas id="orgPolarShareChart"></canvas>
+                        </div>
                     <div class="mt-2">
-                        <a class="text-decoration-none" data-bs-toggle="collapse" href="#help-orgPolarShare">راهنمای محاسبات</a>
-                        <div class="collapse" id="help-orgPolarShare"><div class="mt-2 small text-muted">سهم سازمان = مقدار سازمان ÷ مجموع مقادیر × ۱۰۰. نمایش راداری شعاع‌محور.</div></div>
+                            <a class="text-decoration-none" data-bs-toggle="collapse" href="#help-orgPolarShare">راهنمای
+                                محاسبات</a>
+                            <div class="collapse" id="help-orgPolarShare">
+                                <div class="mt-2 small text-muted">سهم سازمان = مقدار سازمان ÷ مجموع مقادیر × ۱۰۰. نمایش
+                                    راداری شعاع‌محور.
+                                </div>
+                            </div>
                     </div>
                 </div>
             </div>
@@ -911,10 +1031,17 @@
             <div class="col-lg-12 mb-4" data-aos="fade-up">
                 <div class="chart-container">
                     <h5><i class="fas fa-th-large me-2"></i>تمرکز مصرف/تخصیص سازمان/پروژه (Treemap)</h5>
-                    <div class="chart-wrapper"><canvas id="concentrationTreemap"></canvas></div>
+                        <div class="chart-wrapper">
+                            <canvas id="concentrationTreemap"></canvas>
+                        </div>
                     <div class="mt-2">
-                        <a class="text-decoration-none" data-bs-toggle="collapse" href="#help-concentrationTreemap">راهنمای محاسبات</a>
-                        <div class="collapse" id="help-concentrationTreemap"><div class="mt-2 small text-muted">مساحت هر باکس متناسب با مقدار سازمان/پروژه است. شاخص تمرکز = مجموع Top N ÷ کل × ۱۰۰.</div></div>
+                            <a class="text-decoration-none" data-bs-toggle="collapse" href="#help-concentrationTreemap">راهنمای
+                                محاسبات</a>
+                            <div class="collapse" id="help-concentrationTreemap">
+                                <div class="mt-2 small text-muted">مساحت هر باکس متناسب با مقدار سازمان/پروژه است. شاخص
+                                    تمرکز = مجموع Top N ÷ کل × ۱۰۰.
+                                </div>
+                            </div>
                     </div>
                 </div>
             </div>
@@ -925,10 +1052,17 @@
             <div class="col-lg-12 mb-4" data-aos="fade-up">
                 <div class="chart-container">
                     <h5><i class="fas fa-tachometer-alt me-2"></i>سقف استفاده تنخواه (Semi-Gauge)</h5>
-                    <div class="chart-wrapper"><canvas id="tankhahCeilingGauge"></canvas></div>
+                        <div class="chart-wrapper">
+                            <canvas id="tankhahCeilingGauge"></canvas>
+                        </div>
                     <div class="mt-2">
-                        <a class="text-decoration-none" data-bs-toggle="collapse" href="#help-tankhahCeilingGauge">راهنمای محاسبات</a>
-                        <div class="collapse" id="help-tankhahCeilingGauge"><div class="mt-2 small text-muted">نرخ استفاده = مبلغ استفاده‌شده ÷ سقف تنخواه × ۱۰۰. ناحیه‌های آستانه برای هشدار تعریف می‌شوند.</div></div>
+                            <a class="text-decoration-none" data-bs-toggle="collapse" href="#help-tankhahCeilingGauge">راهنمای
+                                محاسبات</a>
+                            <div class="collapse" id="help-tankhahCeilingGauge">
+                                <div class="mt-2 small text-muted">نرخ استفاده = مبلغ استفاده‌شده ÷ سقف تنخواه × ۱۰۰.
+                                    ناحیه‌های آستانه برای هشدار تعریف می‌شوند.
+                                </div>
+                            </div>
                     </div>
                 </div>
             </div>
@@ -939,10 +1073,17 @@
             <div class="col-lg-12 mb-4" data-aos="fade-up">
                 <div class="chart-container">
                     <h5><i class="fas fa-bullseye me-2"></i>بودجه واحدها: هدف در برابر عملکرد (Bullet)</h5>
-                    <div class="chart-wrapper"><canvas id="unitBudgetsBullet"></canvas></div>
+                        <div class="chart-wrapper">
+                            <canvas id="unitBudgetsBullet"></canvas>
+                        </div>
                     <div class="mt-2">
-                        <a class="text-decoration-none" data-bs-toggle="collapse" href="#help-unitBudgetsBullet">راهنمای محاسبات</a>
-                        <div class="collapse" id="help-unitBudgetsBullet"><div class="mt-2 small text-muted">Bullet برای هر واحد: مقدار فعلی، هدف (Target)، و آستانه‌ها (کم/متوسط/زیاد). انحراف = عملکرد − هدف.</div></div>
+                            <a class="text-decoration-none" data-bs-toggle="collapse" href="#help-unitBudgetsBullet">راهنمای
+                                محاسبات</a>
+                            <div class="collapse" id="help-unitBudgetsBullet">
+                                <div class="mt-2 small text-muted">Bullet برای هر واحد: مقدار فعلی، هدف (Target)، و
+                                    آستانه‌ها (کم/متوسط/زیاد). انحراف = عملکرد − هدف.
+                                </div>
+                            </div>
                     </div>
                 </div>
             </div>
@@ -950,47 +1091,67 @@
 
         <!-- Factor Category Treemap -->
         <div class="row mb-4">
+            {% if chart_data.factor_category and chart_data.factor_category|length %}
             <div class="col-lg-12 mb-4" data-aos="fade-up">
                 <div class="chart-container">
                     <h5><i class="fas fa-th-large me-2"></i>نقشه درختی دسته‌بندی فاکتورها (Treemap)</h5>
-                    <div class="chart-wrapper"><canvas id="factorCategoryTreemap"></canvas></div>
+                        <div class="chart-wrapper">
+                            <canvas id="factorCategoryTreemap"></canvas>
+                        </div>
                     <div class="mt-2">
-                        <a class="text-decoration-none" data-bs-toggle="collapse" href="#help-factorCategoryTreemap">راهنمای محاسبات</a>
+                            <a class="text-decoration-none" data-bs-toggle="collapse"
+                               href="#help-factorCategoryTreemap">راهنمای محاسبات</a>
                         <div class="collapse" id="help-factorCategoryTreemap">
                             <div class="mt-2 small text-muted">ابعاد هر بلوک متناسب با مبلغ/تعداد دسته است.</div>
                         </div>
                     </div>
                 </div>
             </div>
+            {% endif %}
         </div>
 
         <!-- Funnel/Sankey (optional) for مسیر تخصیص→پروژه→مصرف -->
         <div class="row mb-4">
+            {% if advanced_comparatives and advanced_comparatives.rankings and (advanced_comparatives.rankings.organizations|length or advanced_comparatives.rankings.projects|length) %}
             <div class="col-lg-12 mb-4" data-aos="fade-up">
                 <div class="chart-container">
                     <h5><i class="fas fa-diagram-project me-2"></i>قیف/سَِنکی مسیر بودجه</h5>
-                    <div class="chart-wrapper"><canvas id="budgetFlowSankey"></canvas></div>
+                        <div class="chart-wrapper">
+                            <canvas id="budgetFlowSankey"></canvas>
+                        </div>
                     <div class="mt-2">
-                        <a class="text-decoration-none" data-bs-toggle="collapse" href="#help-budgetFlowSankey">راهنمای محاسبات</a>
-                        <div class="collapse" id="help-budgetFlowSankey"><div class="mt-2 small text-muted">لبه‌ها نشان‌دهنده انتقال مبلغ از تخصیص به پروژه‌ها و مصرف است.</div></div>
+                            <a class="text-decoration-none" data-bs-toggle="collapse" href="#help-budgetFlowSankey">راهنمای
+                                محاسبات</a>
+                            <div class="collapse" id="help-budgetFlowSankey">
+                                <div class="mt-2 small text-muted">لبه‌ها نشان‌دهنده انتقال مبلغ از تخصیص به پروژه‌ها و
+                                    مصرف است.
+                                </div>
+                            </div>
                     </div>
                 </div>
             </div>
+            {% endif %}
         </div>
 
         <div class="row mb-4">
             <div class="col-lg-6 mb-4" data-aos="fade-up">
                 <div class="chart-container">
                     <h5><i class="fas fa-users me-2"></i>فروشندگان پرتکرار</h5>
-                    <div class="chart-wrapper"><canvas id="factorRepeatedVendors"></canvas></div>
+                        <div class="chart-wrapper">
+                            <canvas id="factorRepeatedVendors"></canvas>
+                        </div>
                 </div>
             </div>
+            {% if advanced_factor and advanced_factor.high_risk and advanced_factor.high_risk.outside_budget and advanced_factor.high_risk.outside_budget|length %}
             <div class="col-lg-6 mb-4" data-aos="fade-up">
                 <div class="chart-container">
                     <h5><i class="fas fa-triangle-exclamation me-2"></i>خارج از محدوده بودجه</h5>
-                    <div class="chart-wrapper"><canvas id="factorOutsideBudget"></canvas></div>
+                        <div class="chart-wrapper">
+                            <canvas id="factorOutsideBudget"></canvas>
+                        </div>
                 </div>
             </div>
+            {% endif %}
         </div>
         <div class="mt-3">
             {% include 'reports/dashboard/dashboard_help.html' %}
@@ -1027,18 +1188,26 @@
         </div>
 
         <div class="row">
+            {% if chart_data.monthly_consumption and chart_data.monthly_consumption|length %}
             <div class="col-lg-6 mb-4" data-aos="fade-right">
                 <div class="chart-container">
                     <h5><i class="fas fa-arrow-trend-up me-2"></i>روند مصرف (ماهانه)</h5>
-                    <div class="chart-wrapper"><canvas id="compMonthlyConsumption"></canvas></div>
+                        <div class="chart-wrapper">
+                            <canvas id="compMonthlyConsumption"></canvas>
+                        </div>
                 </div>
             </div>
+            {% endif %}
+            {% if return_stats and return_stats.monthly_returns and return_stats.monthly_returns|length %}
             <div class="col-lg-6 mb-4" data-aos="fade-left">
                 <div class="chart-container">
                     <h5><i class="fas fa-rotate-left me-2"></i>روند برگشت (ماهانه)</h5>
-                    <div class="chart-wrapper"><canvas id="compMonthlyReturns"></canvas></div>
+                        <div class="chart-wrapper">
+                            <canvas id="compMonthlyReturns"></canvas>
+                        </div>
                 </div>
             </div>
+            {% endif %}
         </div>
 
         <div class="row mb-3">
@@ -1069,18 +1238,28 @@
         </div>
 
         <div class="row mb-4">
+            {% if advanced_comparatives and advanced_comparatives.monthly and (advanced_comparatives.monthly.consumption|length or advanced_comparatives.monthly.returns|length) %}
             <div class="col-lg-6 mb-4" data-aos="fade-up">
                 <div class="chart-container">
                     <h5><i class="fas fa-building me-2"></i>رتبه‌بندی سازمان‌ها</h5>
-                    <div class="chart-wrapper"><canvas id="rankOrganizations"></canvas></div>
+                        {% if advanced_comparatives and advanced_comparatives.rankings and advanced_comparatives.rankings.organizations|length %}
+                        <div class="chart-wrapper">
+                            <canvas id="rankOrganizations"></canvas>
+                        </div>
+                        {% endif %}
                 </div>
             </div>
             <div class="col-lg-6 mb-4" data-aos="fade-up">
                 <div class="chart-container">
                     <h5><i class="fas fa-project-diagram me-2"></i>رتبه‌بندی پروژه‌ها</h5>
-                    <div class="chart-wrapper"><canvas id="rankProjects"></canvas></div>
+                        {% if advanced_comparatives and advanced_comparatives.rankings and advanced_comparatives.rankings.projects|length %}
+                        <div class="chart-wrapper">
+                            <canvas id="rankProjects"></canvas>
+                        </div>
+                        {% endif %}
                 </div>
             </div>
+            {% endif %}
         </div>
         <div class="mt-3">
             {% include 'reports/dashboard/dashboard_help.html' %}
@@ -1116,26 +1295,47 @@
 <script src="{% static 'admin/js/debug-charts.js' %}"></script>
 <!-- AOS Animation Library -->
 <script src="{% static 'admin/js/aos.js' %}"></script>
-<!-- Persian date dependency MUST load before persian-datepicker -->
-<script src="{% static 'admin/js/persian-date.min.js' %}"></script>
-<!-- Persian Datepicker (guarded) -->
-{#<script src="{% static 'admin/js/persian-datepicker.min.js' %}"></script>#}
-{#<script src="{% static 'admin/js/persian_datepicker_init.js' %}"></script>#}
-<!-- Chart.js Plugins (Zoom, Annotation, Treemap, Waterfall) -->
-{% load static %}
-<!-- Local Chart.js plugins -->
-<script src="{% static 'admin/js/chartjs-plugin-zoom.min.js' %}"></script>
-<script src="{% static 'admin/js/chartjs-plugin-annotation.min.js' %}"></script>
-<script src="{% static 'admin/js/chartjs-chart-treemap.min.js' %}"></script>
-<script src="{% static 'admin/js/chartjs-chart-sankey.min.js' %}"></script>
-<script src="{% static 'admin/js/chartjs-chart-matrix.min.js' %}"></script>
-
+ تاریخ برای این صفحه ضروری نیست؛ جهت جلوگیری از خطاها غیرفعال شد
+ <script src="{% static 'admin/js/persian-date.min.js' %}"></script>
+{# <script src="{% static 'admin/js/persian-datepicker.min.js' %}"></script>#}
+{# <script src="{% static 'admin/js/persian_datepicker_init.js' %}"></script>#}
+{# افزونه‌های Chart.js فعلاً در استاتیک موجود نیستند و 404 می‌دهند؛ موقتاً غیرفعال شدند #}
+ {% load static %}
+ <script src="{% static 'admin/js/chartjs-plugin-zoom.min.js' %}"></script>
+ <script src="{% static 'admin/js/chartjs-plugin-annotation.min.js' %}"></script>
+ <script src="{% static 'admin/js/chartjs-chart-treemap.min.js' %}"></script>
+ <script src="{% static 'admin/js/chartjs-chart-sankey.min.js' %}"></script>
+ <script src="{% static 'admin/js/chartjs-chart-matrix.min.js' %}"></script>
+ 
 <script>
 // Chart data from Django context
-var chartData = {{ chartData|default:"{}"|safe }};
+        var chartData = {{ chart_data_json|default:"{}"|safe }};
+        console.log('chart_data_json from context:', '{{ chart_data_json|default:"NOT_FOUND" }}');
 var advancedBudget = {{ advanced_budget|default:"{}"|safe }};
 var advancedTankhah = {{ advanced_tankhah|default:"{}"|safe }};
 var advancedFactor = {{ advanced_factor|default:"{}"|safe }};
+
+        try {
+            var obCount = Array.isArray(chartData.org_budget) ? chartData.org_budget.length : 0;
+            var tgt = document.getElementById('dbg-org-budget-count');
+            if (tgt) tgt.textContent = obCount;
+            console.log('[DEBUG] org_budget count:', obCount);
+        } catch (e) {
+            console.warn('[DEBUG] cannot compute org_budget count', e);
+        }
+
+        // Auto-submit on change for quick testing
+        try {
+            var orgSel = document.getElementById('filter-organization');
+            var projSel = document.getElementById('filter-project');
+            if (orgSel) orgSel.addEventListener('change', function () {
+                this.form.requestSubmit();
+            });
+            if (projSel) projSel.addEventListener('change', function () {
+                this.form.requestSubmit();
+            });
+        } catch (e) {
+        }
 var advancedComparatives = {{ advanced_comparatives|default:"{}"|safe }};
 var advancedRisk = {{ advanced_risk|default:"{}"|safe }};
 
@@ -1154,35 +1354,37 @@ try {
 if (!chartData || typeof chartData !== 'object' || Object.keys(chartData).length === 0) {
     console.log('Using fallback chart data');
     chartData = {
-        org_budget: [
-        ],
-        monthly_consumption: [
-        ],
-        tankhah_status: [
-        ],
-        factor_category: [
-        ]
+                org_budget: [],
+                monthly_consumption: [],
+                tankhah_status: [],
+                factor_category: []
     };
 }
 
 // Tab switching functionality
-document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
     // Quick links search filter
-    (function(){
+            (function () {
         var input = document.getElementById('quickLinksSearch');
         if (!input) return;
-        input.addEventListener('input', function(){
+                input.addEventListener('input', function () {
             var q = (this.value || '').trim().toLowerCase();
             var items = document.querySelectorAll('.quick-link-item');
-            items.forEach(function(it){
-                var title = (it.getAttribute('data-title')||'').toLowerCase();
-                var note = (it.getAttribute('data-note')||'').toLowerCase();
+                    items.forEach(function (it) {
+                        var title = (it.getAttribute('data-title') || '').toLowerCase();
+                        var note = (it.getAttribute('data-note') || '').toLowerCase();
                 var show = !q || title.indexOf(q) !== -1 || note.indexOf(q) !== -1;
                 it.style.display = show ? '' : 'none';
             });
         });
         // enable tooltips for disabled buttons
-        try { var tt = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]')); tt.forEach(function(el){ new bootstrap.Tooltip(el); }); } catch(e){}
+                try {
+                    var tt = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+                    tt.forEach(function (el) {
+                        new bootstrap.Tooltip(el);
+                    });
+                } catch (e) {
+                }
     })();
 // Initialize AOS
 AOS.init({
@@ -1196,7 +1398,7 @@ AOS.init({
     const panes = document.querySelectorAll('.dash-pane');
     
     tabs.forEach(tab => {
-        tab.addEventListener('click', function() {
+                tab.addEventListener('click', function () {
             const tabName = this.getAttribute('data-tab');
             
             // Remove active class from all tabs and panes
@@ -1227,53 +1429,77 @@ AOS.init({
     
     // Write advanced KPIs
     try {
-        if (typeof advancedBudget === 'string') { advancedBudget = JSON.parse(advancedBudget); }
+                if (typeof advancedBudget === 'string') {
+                    advancedBudget = JSON.parse(advancedBudget);
+                }
         var ab = advancedBudget || {};
-        var fmt = function(n){ try { return Number(n||0).toLocaleString('fa-IR'); } catch(e){ return n||0; } };
-        var byId = function(id){ return document.getElementById(id); };
-        if (byId('kpiAbsorption')) byId('kpiAbsorption').textContent = ((ab.absorption_rate||0).toFixed ? ab.absorption_rate.toFixed(1) : Number(ab.absorption_rate||0).toFixed(1)) + '%';
-        if (byId('kpiAllocated')) byId('kpiAllocated').textContent = fmt((ab.totals||{}).allocated);
-        if (byId('kpiConsumed')) byId('kpiConsumed').textContent = fmt((ab.totals||{}).consumed);
-        if (byId('kpiRemaining')) byId('kpiRemaining').textContent = fmt((ab.totals||{}).remaining);
+                var fmt = function (n) {
+                    try {
+                        return Number(n || 0).toLocaleString('fa-IR');
+                    } catch (e) {
+                        return n || 0;
+                    }
+                };
+                var byId = function (id) {
+                    return document.getElementById(id);
+                };
+                if (byId('kpiAbsorption')) byId('kpiAbsorption').textContent = ((ab.absorption_rate || 0).toFixed ? ab.absorption_rate.toFixed(1) : Number(ab.absorption_rate || 0).toFixed(1)) + '%';
+                if (byId('kpiAllocated')) byId('kpiAllocated').textContent = fmt((ab.totals || {}).allocated);
+                if (byId('kpiConsumed')) byId('kpiConsumed').textContent = fmt((ab.totals || {}).consumed);
+                if (byId('kpiRemaining')) byId('kpiRemaining').textContent = fmt((ab.totals || {}).remaining);
         // Tankhah KPIs
-        if (typeof advancedTankhah === 'string') { advancedTankhah = JSON.parse(advancedTankhah); }
+                if (typeof advancedTankhah === 'string') {
+                    advancedTankhah = JSON.parse(advancedTankhah);
+                }
         var at = advancedTankhah || {};
-        if (byId('kpiAvgSettlement')) byId('kpiAvgSettlement').textContent = ((at.avg_settlement_days||0).toFixed ? at.avg_settlement_days.toFixed(1) : Number(at.avg_settlement_days||0).toFixed(1)) + ' روز';
-        if (byId('kpiOverdueRate')) byId('kpiOverdueRate').textContent = ((at.overdue_rate_pct||0).toFixed ? at.overdue_rate_pct.toFixed(1) : Number(at.overdue_rate_pct||0).toFixed(1)) + '%';
-        if (byId('kpiAvgCeilingUsage')) byId('kpiAvgCeilingUsage').textContent = ((at.avg_ceiling_usage_pct||0).toFixed ? at.avg_ceiling_usage_pct.toFixed(1) : Number(at.avg_ceiling_usage_pct||0).toFixed(1)) + '%';
+                if (byId('kpiAvgSettlement')) byId('kpiAvgSettlement').textContent = ((at.avg_settlement_days || 0).toFixed ? at.avg_settlement_days.toFixed(1) : Number(at.avg_settlement_days || 0).toFixed(1)) + ' روز';
+                if (byId('kpiOverdueRate')) byId('kpiOverdueRate').textContent = ((at.overdue_rate_pct || 0).toFixed ? at.overdue_rate_pct.toFixed(1) : Number(at.overdue_rate_pct || 0).toFixed(1)) + '%';
+                if (byId('kpiAvgCeilingUsage')) byId('kpiAvgCeilingUsage').textContent = ((at.avg_ceiling_usage_pct || 0).toFixed ? at.avg_ceiling_usage_pct.toFixed(1) : Number(at.avg_ceiling_usage_pct || 0).toFixed(1)) + '%';
 
         // Factor KPIs
-        if (typeof advancedFactor === 'string') { advancedFactor = JSON.parse(advancedFactor); }
+                if (typeof advancedFactor === 'string') {
+                    advancedFactor = JSON.parse(advancedFactor);
+                }
         var af = advancedFactor || {};
-        if (byId('kpiFactorAvgCycle')) byId('kpiFactorAvgCycle').textContent = ((af.totals?.avg_cycle_days||0).toFixed ? af.totals.avg_cycle_days.toFixed(1) : Number(af.totals?.avg_cycle_days||0).toFixed(1)) + ' روز';
-        if (byId('kpiFactorRejection')) byId('kpiFactorRejection').textContent = ((af.totals?.rejection_rate_pct||0).toFixed ? af.totals.rejection_rate_pct.toFixed(1) : Number(af.totals?.rejection_rate_pct||0).toFixed(1)) + '%';
+                if (byId('kpiFactorAvgCycle')) byId('kpiFactorAvgCycle').textContent = ((af.totals?.avg_cycle_days || 0).toFixed ? af.totals.avg_cycle_days.toFixed(1) : Number(af.totals?.avg_cycle_days || 0).toFixed(1)) + ' روز';
+                if (byId('kpiFactorRejection')) byId('kpiFactorRejection').textContent = ((af.totals?.rejection_rate_pct || 0).toFixed ? af.totals.rejection_rate_pct.toFixed(1) : Number(af.totals?.rejection_rate_pct || 0).toFixed(1)) + '%';
         // Comparative KPIs (changes)
-        if (typeof advancedComparatives === 'string') { advancedComparatives = JSON.parse(advancedComparatives); }
+                if (typeof advancedComparatives === 'string') {
+                    advancedComparatives = JSON.parse(advancedComparatives);
+                }
         var ac = advancedComparatives || {};
         var ch = ac.changes || {};
-        if (byId('kpiMoMCons')) byId('kpiMoMCons').textContent = ((ch.consumption?.mom_pct||0).toFixed ? ch.consumption.mom_pct.toFixed(1) : Number(ch.consumption?.mom_pct||0).toFixed(1)) + '%';
-        if (byId('kpiYoYCons')) byId('kpiYoYCons').textContent = ((ch.consumption?.yoy_pct||0).toFixed ? ch.consumption.yoy_pct.toFixed(1) : Number(ch.consumption?.yoy_pct||0).toFixed(1)) + '%';
-        if (byId('kpiMoMRet')) byId('kpiMoMRet').textContent = ((ch.returns?.mom_pct||0).toFixed ? ch.returns.mom_pct.toFixed(1) : Number(ch.returns?.mom_pct||0).toFixed(1)) + '%';
-        if (byId('kpiYoYRet')) byId('kpiYoYRet').textContent = ((ch.returns?.yoy_pct||0).toFixed ? ch.returns.yoy_pct.toFixed(1) : Number(ch.returns?.yoy_pct||0).toFixed(1)) + '%';
+                if (byId('kpiMoMCons')) byId('kpiMoMCons').textContent = ((ch.consumption?.mom_pct || 0).toFixed ? ch.consumption.mom_pct.toFixed(1) : Number(ch.consumption?.mom_pct || 0).toFixed(1)) + '%';
+                if (byId('kpiYoYCons')) byId('kpiYoYCons').textContent = ((ch.consumption?.yoy_pct || 0).toFixed ? ch.consumption.yoy_pct.toFixed(1) : Number(ch.consumption?.yoy_pct || 0).toFixed(1)) + '%';
+                if (byId('kpiMoMRet')) byId('kpiMoMRet').textContent = ((ch.returns?.mom_pct || 0).toFixed ? ch.returns.mom_pct.toFixed(1) : Number(ch.returns?.mom_pct || 0).toFixed(1)) + '%';
+                if (byId('kpiYoYRet')) byId('kpiYoYRet').textContent = ((ch.returns?.yoy_pct || 0).toFixed ? ch.returns.yoy_pct.toFixed(1) : Number(ch.returns?.yoy_pct || 0).toFixed(1)) + '%';
 
         // Risk summary badges (optional hook)
         try {
-            if (typeof advancedRisk === 'string') { advancedRisk = JSON.parse(advancedRisk); }
+                    if (typeof advancedRisk === 'string') {
+                        advancedRisk = JSON.parse(advancedRisk);
+                    }
             var rs = advancedRisk || {};
             console.log('Risk summary:', rs.summary);
-        } catch(e) {}
-    } catch(e) { console.warn('advanced KPIs error', e); }
+                } catch (e) {
+                }
+            } catch (e) {
+                console.warn('advanced KPIs error', e);
+            }
     
     // Debounced initialize to prevent duplicate runs
     var __dashInitTimer;
-    function initializeChartsDebounced(delay){
-        if (__dashInitTimer) { clearTimeout(__dashInitTimer); }
-        __dashInitTimer = setTimeout(function(){
+
+            function initializeChartsDebounced(delay) {
+                if (__dashInitTimer) {
+                    clearTimeout(__dashInitTimer);
+                }
+                __dashInitTimer = setTimeout(function () {
             console.log('Initializing charts...');
             initializeChartsDebounced(50);
             setTimeout(injectPerChartHelp, 300);
             setTimeout(injectPerKPIHelp, 350);
-        }, delay||400);
+                }, delay || 400);
     }
 
     // Kick off initialization
@@ -1305,29 +1531,55 @@ function initializeCharts() {
         // Treemap for factor categories (by amount)
         try {
             var treemapCanvas = document.getElementById('factorCategoryTreemap');
-            if (treemapCanvas && (chartData.factor_category||[]).length && window['TreemapController']) {
+                    if (treemapCanvas && (chartData.factor_category || []).length && window['TreemapController']) {
                 var fct = chartData.factor_category || [];
-                var total = fct.reduce(function(s,x){ return s + Number(x.total || x.total_amount || 0); }, 0);
-                var treeData = fct.map(function(x){
+                        var total = fct.reduce(function (s, x) {
+                            return s + Number(x.total || x.total_amount || 0);
+                        }, 0);
+                        var treeData = fct.map(function (x) {
                     var v = Number(x.total || x.total_amount || 0);
-                    return { group: x.category__name || 'نامشخص', value: v };
+                            return {group: x.category__name || 'نامشخص', value: v};
                 });
                 new Chart(treemapCanvas, {
                     type: 'treemap',
-                    data: { datasets: [{
+                            data: {
+                                datasets: [{
                         tree: treeData,
                         key: 'value',
                         groups: ['group'],
                         label: 'دسته‌بندی فاکتورها',
-                        backgroundColor: function(ctx){
-                            var v = ctx.raw && ctx.raw.v || 0; var idx = ctx.dataIndex || 0; return ChartUtils.getColorFromPalette(idx);
-                        },
-                        labels: { display: true, formatter: function(ctx){ var r=ctx.raw||{}; return (r.g||r.group||'') + '\n' + ChartUtils.formatCurrency(r.v||r.value||0); } }
-                    }]},
-                    options: { plugins:{ legend:{ display:false }, tooltip:{ callbacks:{ label:function(c){ var r=c.raw||{}; return (r.group||'') + ': ' + ChartUtils.formatCurrency(r.value||0); } } }, zoom:{ zoom:{ wheel:{enabled:true}, mode:'xy' }, pan:{enabled:true, mode:'xy'} } } }
-                });
-            }
-        } catch(e) { console.warn('treemap init error', e); }
+                                    backgroundColor: function (ctx) {
+                                        var v = ctx.raw && ctx.raw.v || 0;
+                                        var idx = ctx.dataIndex || 0;
+                                        return ChartUtils.getColorFromPalette(idx);
+                                    },
+                                    labels: {
+                                        display: true, formatter: function (ctx) {
+                                            var r = ctx.raw || {};
+                                            return (r.g || r.group || '') + '\n' + ChartUtils.formatCurrency(r.v || r.value || 0);
+                                        }
+                                    }
+                                }]
+                            },
+                            options: {
+                                plugins: {
+                                    legend: {display: false},
+                                    tooltip: {
+                                        callbacks: {
+                                            label: function (c) {
+                                                var r = c.raw || {};
+                                                return (r.group || '') + ': ' + ChartUtils.formatCurrency(r.value || 0);
+                                            }
+                                        }
+                                    },
+                                    zoom: {zoom: {wheel: {enabled: true}, mode: 'xy'}, pan: {enabled: true, mode: 'xy'}}
+                                }
+                            }
+                        });
+                    }
+                } catch (e) {
+                    console.warn('treemap init error', e);
+                }
         
         // Budget Distribution Chart
         var budgetCtx = document.getElementById('budgetDistributionChart');
@@ -1346,9 +1598,13 @@ function initializeCharts() {
         }
         
         const budgetChartData = {
-            labels: orgBudgetData.map(function(item) { return item.organization__name || 'نامشخص'; }),
+                    labels: orgBudgetData.map(function (item) {
+                        return item.organization__name || 'نامشخص';
+                    }),
             datasets: [{
-                data: orgBudgetData.map(function(item) { return item.total || 0; }),
+                        data: orgBudgetData.map(function (item) {
+                            return item.total || 0;
+                        }),
                 backgroundColor: ChartUtils.COLOR_PALETTES.primary,
                 borderWidth: 2,
                 borderColor: '#fff'
@@ -1362,14 +1618,14 @@ function initializeCharts() {
                 },
                 tooltip: {
                     callbacks: {
-                        label: function(context) {
+                                label: function (context) {
                             return context.label + ': ' + ChartUtils.formatCurrency(context.parsed);
                         }
                     }
                 },
                 zoom: {
-                    zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'xy' },
-                    pan: { enabled: true, mode: 'xy' }
+                            zoom: {wheel: {enabled: true}, pinch: {enabled: true}, mode: 'xy'},
+                            pan: {enabled: true, mode: 'xy'}
                 }
             },
             animation: {
@@ -1399,13 +1655,15 @@ function initializeCharts() {
     }
     
         const consumptionChartData = {
-            labels: monthlyData.map(function(item) {
+                    labels: monthlyData.map(function (item) {
                 var date = new Date(item.month);
                 return date.toLocaleDateString('fa-IR');
             }),
             datasets: [{
                 label: 'مصرف بودجه',
-                data: monthlyData.map(function(item) { return item.total || 0; }),
+                        data: monthlyData.map(function (item) {
+                            return item.total || 0;
+                        }),
                 borderColor: '#10b981',
                 backgroundColor: 'rgba(16, 185, 129, 0.1)',
                 borderWidth: 3,
@@ -1421,18 +1679,25 @@ function initializeCharts() {
                 },
                 tooltip: {
                     callbacks: {
-                        label: function(context) {
+                                label: function (context) {
                             return 'مصرف: ' + ChartUtils.formatCurrency(context.parsed.y);
                         }
                     }
                 },
                 zoom: {
-                    zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x' },
-                    pan: { enabled: true, mode: 'x' }
+                            zoom: {wheel: {enabled: true}, pinch: {enabled: true}, mode: 'x'},
+                            pan: {enabled: true, mode: 'x'}
                 },
                 annotation: {
                     annotations: {
-                        threshold: { type: 'line', yMin: 0, yMax: 0, borderColor: '#ef4444', borderWidth: 1, label: { display: false } }
+                                threshold: {
+                                    type: 'line',
+                                    yMin: 0,
+                                    yMax: 0,
+                                    borderColor: '#ef4444',
+                                    borderWidth: 1,
+                                    label: {display: false}
+                                }
                     }
                 }
             },
@@ -1440,7 +1705,7 @@ function initializeCharts() {
                 y: {
                     beginAtZero: true,
                     ticks: {
-                        callback: function(value) {
+                                callback: function (value) {
                             return ChartUtils.formatCurrency(value);
                         }
                     }
@@ -1454,40 +1719,61 @@ function initializeCharts() {
     // Budget Gauge (semi-doughnut): uses advancedBudget.totals
     try {
         var bg = document.getElementById('budgetGaugeChart');
-        if (bg && advancedBudget && (advancedBudget.totals||{}).allocated) {
+                    if (bg && advancedBudget && (advancedBudget.totals || {}).allocated) {
             var tt = advancedBudget.totals || {};
             var rate = 0;
-            if (Number(tt.allocated||0) > 0) {
-                rate = Math.max(0, Math.min(100, (Number(tt.consumed||0) / Number(tt.allocated||0)) * 100));
+                        if (Number(tt.allocated || 0) > 0) {
+                            rate = Math.max(0, Math.min(100, (Number(tt.consumed || 0) / Number(tt.allocated || 0)) * 100));
             }
             var green = Math.min(100, Math.max(0, rate));
             var red = Math.max(0, 100 - green);
             new Chart(bg, {
                 type: 'doughnut',
-                data: { labels: ['مصرف','باقی'], datasets: [{ data: [green, red], backgroundColor: ['#22c55e','#ef4444'] }] },
-                options: { rotation: -90, circumference: 180, cutout: '70%', plugins:{ legend:{ display:false }, tooltip:{ enabled:false } } }
-            });
-        }
-    } catch(e) { console.warn('gauge init error', e); }
+                            data: {
+                                labels: ['مصرف', 'باقی'],
+                                datasets: [{data: [green, red], backgroundColor: ['#22c55e', '#ef4444']}]
+                            },
+                            options: {
+                                rotation: -90,
+                                circumference: 180,
+                                cutout: '70%',
+                                plugins: {legend: {display: false}, tooltip: {enabled: false}}
+                            }
+                        });
+                    }
+                } catch (e) {
+                    console.warn('gauge init error', e);
+                }
 
     // KPI Radar (consumption/returns/efficiency) demo from advancedComparatives.rankings.organizations top 5
     try {
         var rc = document.getElementById('kpiRadarChart');
         if (rc && advancedComparatives && advancedComparatives.rankings && advancedComparatives.rankings.organizations) {
-            var orgs = (advancedComparatives.rankings.organizations||[]).slice(0,5);
-            var labelsRadar = ['مصرف','برگشت','کارایی'];
-            var datasetsRadar = orgs.map(function(o,idx){
-                return { label: o.name, data:[Number(o.consumption||0), Number(o.returns||0), Number(o.efficiency_pct||0)], borderColor: ChartUtils.getColorFromPalette(idx), backgroundColor: ChartUtils.getColorFromPalette(idx)+'33', pointBackgroundColor: ChartUtils.getColorFromPalette(idx) };
-            });
-            new Chart(rc, { type:'radar', data:{ labels: labelsRadar, datasets: datasetsRadar }, options:{ plugins:{ legend:{ position:'bottom' } }, scales:{ r:{ beginAtZero:true } } } });
-        }
-    } catch(e) { console.warn('radar init error', e); }
+                        var orgs = (advancedComparatives.rankings.organizations || []).slice(0, 5);
+                        var labelsRadar = ['مصرف', 'برگشت', 'کارایی'];
+                        var datasetsRadar = orgs.map(function (o, idx) {
+                            return {
+                                label: o.name,
+                                data: [Number(o.consumption || 0), Number(o.returns || 0), Number(o.efficiency_pct || 0)],
+                                borderColor: ChartUtils.getColorFromPalette(idx),
+                                backgroundColor: ChartUtils.getColorFromPalette(idx) + '33',
+                                pointBackgroundColor: ChartUtils.getColorFromPalette(idx)
+                            };
+                        });
+                        new Chart(rc, {
+                            type: 'radar',
+                            data: {labels: labelsRadar, datasets: datasetsRadar},
+                            options: {plugins: {legend: {position: 'bottom'}}, scales: {r: {beginAtZero: true}}}
+                        });
+                    }
+                } catch (e) {
+                    console.warn('radar init error', e);
+                }
     // Tankhah Status Chart
-    var tankhahCtx = document.getElementById('tankhahStatusChart');
-    if (!tankhahCtx) {
-        console.error('Tankhah status chart canvas not found');
-        return;
-    }
+        var tankhahCtx = document.getElementById('tankhahStatusChart');
+        if (!tankhahCtx) {
+            console.warn('Tankhah status chart canvas not present (disabled or no data)');
+        } else {
     
     var tankhahData = chartData.tankhah_status || [];
     console.log('Tankhah status data:', tankhahData);
@@ -1499,10 +1785,14 @@ function initializeCharts() {
     }
     
         const tankhahChartData = {
-            labels: tankhahData.map(function(item) { return item.status__name || 'نامشخص'; }),
+                    labels: tankhahData.map(function (item) {
+                        return item.status__name || 'نامشخص';
+                    }),
             datasets: [{
                 label: 'تعداد تنخواه‌ها',
-                data: tankhahData.map(function(item) { return item.count || 0; }),
+                        data: tankhahData.map(function (item) {
+                            return item.count || 0;
+                        }),
                 backgroundColor: '#3b82f6',
                 borderColor: '#1d4ed8',
                 borderWidth: 1
@@ -1514,7 +1804,7 @@ function initializeCharts() {
                 legend: {
                     display: false
                 },
-                zoom: { zoom: { wheel: { enabled: true }, mode: 'y' }, pan: { enabled: true, mode: 'y' } }
+                        zoom: {zoom: {wheel: {enabled: true}, mode: 'y'}, pan: {enabled: true, mode: 'y'}}
             },
             scales: {
                 y: {
@@ -1528,6 +1818,7 @@ function initializeCharts() {
 
         var mode3 = (typeSel && typeSel.value) || 'bar';
         ChartUtils.createAdaptiveChart('tankhahStatusChart', mode3, tankhahChartData, tankhahChartOptions, !!(enable3D && enable3D.checked));
+        }
 
     // Factor Category Chart
     var factorCtx = document.getElementById('factorCategoryChart');
@@ -1540,16 +1831,28 @@ function initializeCharts() {
         factorCtx.parentElement.innerHTML = '<div class="text-center text-muted p-4">داده‌ای برای نمایش وجود ندارد</div>';
                 } else {
                     const factorChartData = {
-            labels: factorData.map(function(item) { return item.category__name || 'نامشخص'; }),
+                            labels: factorData.map(function (item) {
+                                return item.category__name || 'نامشخص';
+                            }),
             datasets: [{
-                            data: factorData.map(function(item) { return item.total || item.total_amount || 0; }),
+                                data: factorData.map(function (item) {
+                                    return item.total || item.total_amount || 0;
+                                }),
                             backgroundColor: ChartUtils.COLOR_PALETTES.primary,
                 borderWidth: 2,
                 borderColor: '#fff'
             }]
                     };
                     const factorChartOptions = {
-                        plugins: { legend: { position: 'bottom' }, tooltip: { callbacks: { label: function(context){ return context.label + ': ' + ChartUtils.formatCurrency(context.parsed); } } }, zoom: { zoom: { wheel: { enabled: true }, mode: 'xy' }, pan: { enabled: true, mode: 'xy' } } }
+                            plugins: {
+                                legend: {position: 'bottom'}, tooltip: {
+                                    callbacks: {
+                                        label: function (context) {
+                                            return context.label + ': ' + ChartUtils.formatCurrency(context.parsed);
+                                        }
+                                    }
+                                }, zoom: {zoom: {wheel: {enabled: true}, mode: 'xy'}, pan: {enabled: true, mode: 'xy'}}
+                            }
                     };
                     var mode4 = (typeSel && typeSel.value) || 'pie';
                     ChartUtils.createAdaptiveChart('factorCategoryChart', mode4, factorChartData, factorChartOptions, !!(enable3D && enable3D.checked));
@@ -1565,27 +1868,41 @@ function initializeCharts() {
 }
 
 // Advanced charts drawing (planned vs actual, forecast, concentration, aging)
-(function(){
-    document.addEventListener('DOMContentLoaded', function(){
+        (function () {
+            document.addEventListener('DOMContentLoaded', function () {
             // font size controls for charts
             var fontSmaller = document.getElementById('fontSmaller');
             var fontBigger = document.getElementById('fontBigger');
             var baseSize = (Chart.defaults.font && Chart.defaults.font.size) ? Chart.defaults.font.size : 12;
-            function applyFont(size){
+
+                function applyFont(size) {
                 if (!Chart || !Chart.defaults) return;
                 Chart.defaults.font = Chart.defaults.font || {};
                 Chart.defaults.font.size = size;
                 initializeChartsDebounced(50);
             }
-            if (fontSmaller) fontSmaller.addEventListener('click', function(){ baseSize = Math.max(8, baseSize - 1); applyFont(baseSize); });
-            if (fontBigger) fontBigger.addEventListener('click', function(){ baseSize = Math.min(24, baseSize + 1); applyFont(baseSize); });
+
+                if (fontSmaller) fontSmaller.addEventListener('click', function () {
+                    baseSize = Math.max(8, baseSize - 1);
+                    applyFont(baseSize);
+                });
+                if (fontBigger) fontBigger.addEventListener('click', function () {
+                    baseSize = Math.min(24, baseSize + 1);
+                    applyFont(baseSize);
+                });
 
             var typeSel = document.getElementById('chartMode');
             var enable3D = document.getElementById('enable3D');
-            if (typeSel) typeSel.addEventListener('change', function(){ initializeChartsDebounced(50); });
-            if (enable3D) enable3D.addEventListener('change', function(){ initializeChartsDebounced(50); });
-        try {
-            if (typeof advancedBudget === 'string') { advancedBudget = JSON.parse(advancedBudget); }
+                if (typeSel) typeSel.addEventListener('change', function () {
+                    initializeChartsDebounced(50);
+                });
+                if (enable3D) enable3D.addEventListener('change', function () {
+                    initializeChartsDebounced(50);
+                });
+                try {
+                    if (typeof advancedBudget === 'string') {
+                        advancedBudget = JSON.parse(advancedBudget);
+                    }
             if (typeof Chart === 'undefined') return;
             var ab = advancedBudget || {};
 
@@ -1593,44 +1910,85 @@ function initializeCharts() {
             var needsBootstrap = !(ab && ab.totals && (ab.totals.allocated != null));
             if (needsBootstrap) {
                 try {
-                    fetch('/reports/api/dashboard-data/').then(function(r){ return r.json(); }).then(function(resp){
+                            fetch('/reports/api/dashboard-data/').then(function (r) {
+                                return r.json();
+                            }).then(function (resp) {
                         try {
                             if (resp.advanced_budget) window.advancedBudget = resp.advanced_budget;
                             if (resp.advanced_tankhah) window.advancedTankhah = resp.advanced_tankhah;
                             if (resp.advanced_factor) window.advancedFactor = resp.advanced_factor;
                             if (resp.advanced_comparatives) window.advancedComparatives = resp.advanced_comparatives;
                             if (resp.advanced_risk) window.advancedRisk = resp.advanced_risk;
-                            if (typeof initializeChartsDebounced === 'function') { initializeChartsDebounced(50); }
+                                    if (typeof initializeChartsDebounced === 'function') {
+                                        initializeChartsDebounced(50);
+                                    }
                             setTimeout(injectPerChartHelp, 200);
                             setTimeout(injectPerKPIHelp, 220);
-                        } catch(e){ console.warn('bootstrap assign error', e); }
-                    }).catch(function(e){ console.warn('bootstrap fetch error', e); });
-                } catch(e){ console.warn('bootstrap error', e); }
+                                } catch (e) {
+                                    console.warn('bootstrap assign error', e);
+                                }
+                            }).catch(function (e) {
+                                console.warn('bootstrap fetch error', e);
+                            });
+                        } catch (e) {
+                            console.warn('bootstrap error', e);
+                        }
                 return;
             }
 
             // Planned vs Actual
-            var p = (ab.planned_vs_actual||{}).planned || [];
-            var a = (ab.planned_vs_actual||{}).actual || [];
-            var labels = (p.length ? p : a).map(function(x){ return new Date(x.month).toLocaleDateString('fa-IR'); });
-            var plannedDataMap = {}; p.forEach(function(x){ plannedDataMap[x.month] = x.total||0; });
-            var actualDataMap = {}; a.forEach(function(x){ actualDataMap[x.month] = x.total||0; });
-            var plannedSeries = labels.map(function(lbl){
+                    var p = (ab.planned_vs_actual || {}).planned || [];
+                    var a = (ab.planned_vs_actual || {}).actual || [];
+                    var labels = (p.length ? p : a).map(function (x) {
+                        return new Date(x.month).toLocaleDateString('fa-IR');
+                    });
+                    var plannedDataMap = {};
+                    p.forEach(function (x) {
+                        plannedDataMap[x.month] = x.total || 0;
+                    });
+                    var actualDataMap = {};
+                    a.forEach(function (x) {
+                        actualDataMap[x.month] = x.total || 0;
+                    });
+                    var plannedSeries = labels.map(function (lbl) {
                 // reconstruct month key from label not reliable; use original arrays if lengths match
-                return p.length ? (p[labels.indexOf(lbl)]?.total||0) : 0;
+                        return p.length ? (p[labels.indexOf(lbl)]?.total || 0) : 0;
             });
-            var actualSeries = labels.map(function(lbl){
-                return a.length ? (a[labels.indexOf(lbl)]?.total||0) : 0;
+                    var actualSeries = labels.map(function (lbl) {
+                        return a.length ? (a[labels.indexOf(lbl)]?.total || 0) : 0;
             });
             var ctxPA = document.getElementById('plannedActualChart');
             if (ctxPA && (p.length || a.length)) {
                 new Chart(ctxPA, {
                     type: 'line',
-                    data: { labels: labels, datasets: [
-                        { label: 'برنامه', data: plannedSeries, borderColor:'#0ea5e9', backgroundColor:'rgba(14,165,233,0.12)', fill:true, tension:0.35 },
-                        { label: 'واقعی', data: actualSeries, borderColor:'#ef4444', backgroundColor:'rgba(239,68,68,0.12)', fill:true, tension:0.35 }
-                    ]},
-                    options:{ responsive:true, plugins:{legend:{position:'bottom'}, zoom:{ zoom:{ wheel:{enabled:true}, mode:'x' }, pan:{enabled:true, mode:'x'} }}, scales:{ y:{ beginAtZero:true } } }
+                            data: {
+                                labels: labels, datasets: [
+                                    {
+                                        label: 'برنامه',
+                                        data: plannedSeries,
+                                        borderColor: '#0ea5e9',
+                                        backgroundColor: 'rgba(14,165,233,0.12)',
+                                        fill: true,
+                                        tension: 0.35
+                                    },
+                                    {
+                                        label: 'واقعی',
+                                        data: actualSeries,
+                                        borderColor: '#ef4444',
+                                        backgroundColor: 'rgba(239,68,68,0.12)',
+                                        fill: true,
+                                        tension: 0.35
+                                    }
+                                ]
+                            },
+                            options: {
+                                responsive: true,
+                                plugins: {
+                                    legend: {position: 'bottom'},
+                                    zoom: {zoom: {wheel: {enabled: true}, mode: 'x'}, pan: {enabled: true, mode: 'x'}}
+                                },
+                                scales: {y: {beginAtZero: true}}
+                            }
                 });
             }
 
@@ -1641,17 +1999,39 @@ function initializeCharts() {
                 new Chart(ctxF, {
                     type: 'line',
                     data: {
-                        labels: f.map(function(x){ return new Date(x.month).toLocaleDateString('fa-IR'); }),
-                        datasets: [{ label:'باقی‌مانده پیش‌بینی‌شده', data: f.map(function(x){ return x.remaining||0; }), borderColor:'#22c55e', backgroundColor:'rgba(34,197,94,0.12)', fill:true, tension:0.35 }]
-                    },
-                    options:{ responsive:true, plugins:{legend:{display:true}, zoom:{ zoom:{ wheel:{enabled:true}, mode:'x' }, pan:{enabled:true, mode:'x'} }}, scales:{ y:{ beginAtZero:true } } }
+                                labels: f.map(function (x) {
+                                    return new Date(x.month).toLocaleDateString('fa-IR');
+                                }),
+                                datasets: [{
+                                    label: 'باقی‌مانده پیش‌بینی‌شده',
+                                    data: f.map(function (x) {
+                                        return x.remaining || 0;
+                                    }),
+                                    borderColor: '#22c55e',
+                                    backgroundColor: 'rgba(34,197,94,0.12)',
+                                    fill: true,
+                                    tension: 0.35
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                plugins: {
+                                    legend: {display: true},
+                                    zoom: {zoom: {wheel: {enabled: true}, mode: 'x'}, pan: {enabled: true, mode: 'x'}}
+                                },
+                                scales: {y: {beginAtZero: true}}
+                            }
                 });
             }
 
             // Concentration (stack org + project side-by-side as grouped bar)
-            var orgs = ((ab.concentration||{}).organizations)||[];
-            var projs = ((ab.concentration||{}).projects)||[];
-            var labelsC = (orgs.map(function(x){return x.name;}).concat(projs.map(function(x){return x.name;}))).slice(0,5);
+                    var orgs = ((ab.concentration || {}).organizations) || [];
+                    var projs = ((ab.concentration || {}).projects) || [];
+                    var labelsC = (orgs.map(function (x) {
+                        return x.name;
+                    }).concat(projs.map(function (x) {
+                        return x.name;
+                    }))).slice(0, 5);
             var ctxC = document.getElementById('concentrationChart');
             if (ctxC && (orgs.length || projs.length)) {
                 new Chart(ctxC, {
@@ -1659,11 +2039,26 @@ function initializeCharts() {
                     data: {
                         labels: labelsC,
                         datasets: [
-                            { label:'سازمان', data: orgs.map(function(x){return x.total||0;}), backgroundColor:'#3b82f6' },
-                            { label:'پروژه', data: projs.map(function(x){return x.total||0;}), backgroundColor:'#8b5cf6' }
-                        ]
-                    },
-                    options:{ responsive:true, plugins:{legend:{position:'bottom'}, zoom:{ zoom:{ wheel:{enabled:true}, mode:'xy' }, pan:{enabled:true, mode:'xy'} }}, scales:{ y:{ beginAtZero:true } } }
+                                    {
+                                        label: 'سازمان', data: orgs.map(function (x) {
+                                            return x.total || 0;
+                                        }), backgroundColor: '#3b82f6'
+                                    },
+                                    {
+                                        label: 'پروژه', data: projs.map(function (x) {
+                                            return x.total || 0;
+                                        }), backgroundColor: '#8b5cf6'
+                                    }
+                                ]
+                            },
+                            options: {
+                                responsive: true,
+                                plugins: {
+                                    legend: {position: 'bottom'},
+                                    zoom: {zoom: {wheel: {enabled: true}, mode: 'xy'}, pan: {enabled: true, mode: 'xy'}}
+                                },
+                                scales: {y: {beginAtZero: true}}
+                            }
                 });
             }
 
@@ -1674,87 +2069,183 @@ function initializeCharts() {
                 new Chart(ctxAg, {
                     type: 'bar',
                     data: {
-                        labels: ['0-30','31-60','61-90','90+'],
-                        datasets: [{ label:'تعداد', data: [ag.d_0_30||0, ag.d_31_60||0, ag.d_61_90||0, ag.d_90_plus||0], backgroundColor:'#f59e0b' }]
-                    },
-                    options:{ responsive:true, plugins:{legend:{display:false}, zoom:{ zoom:{ wheel:{enabled:true}, mode:'y' }, pan:{enabled:true, mode:'y'} }}, scales:{ y:{ beginAtZero:true, precision:0 } } }
+                                labels: ['0-30', '31-60', '61-90', '90+'],
+                                datasets: [{
+                                    label: 'تعداد',
+                                    data: [ag.d_0_30 || 0, ag.d_31_60 || 0, ag.d_61_90 || 0, ag.d_90_plus || 0],
+                                    backgroundColor: '#f59e0b'
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                plugins: {
+                                    legend: {display: false},
+                                    zoom: {zoom: {wheel: {enabled: true}, mode: 'y'}, pan: {enabled: true, mode: 'y'}}
+                                },
+                                scales: {y: {beginAtZero: true, precision: 0}}
+                            }
                 });
             }
 
             // Advanced Tankhah charts
-            if (typeof advancedTankhah === 'string') { advancedTankhah = JSON.parse(advancedTankhah); }
+                    if (typeof advancedTankhah === 'string') {
+                        advancedTankhah = JSON.parse(advancedTankhah);
+                    }
             var at = advancedTankhah || {};
             // Status by organization
-            var sbo = (at.status_by_org||[]);
+                    var sbo = (at.status_by_org || []);
             if (sbo.length) {
                 var orgGroups = {};
-                sbo.forEach(function(x){
+                        sbo.forEach(function (x) {
                     var org = x.organization__name || 'نامشخص';
                     orgGroups[org] = orgGroups[org] || {};
                     orgGroups[org][x.status__name || 'نامشخص'] = x.count || 0;
                 });
                 var orgLabels = Object.keys(orgGroups);
-                var statusLabels = Array.from(new Set([].concat.apply([], Object.values(orgGroups).map(function(m){return Object.keys(m);}))))
-                var datasets = statusLabels.map(function(st, idx){
-                    return { label: st, data: orgLabels.map(function(org){ return orgGroups[org][st]||0; }), backgroundColor: ChartUtils.COLOR_PALETTES.primary[idx % ChartUtils.COLOR_PALETTES.primary.length] };
+                        var statusLabels = Array.from(new Set([].concat.apply([], Object.values(orgGroups).map(function (m) {
+                            return Object.keys(m);
+                        }))))
+                        var datasets = statusLabels.map(function (st, idx) {
+                            return {
+                                label: st,
+                                data: orgLabels.map(function (org) {
+                                    return orgGroups[org][st] || 0;
+                                }),
+                                backgroundColor: ChartUtils.COLOR_PALETTES.primary[idx % ChartUtils.COLOR_PALETTES.primary.length]
+                            };
                 });
                 var ctxSBO = document.getElementById('tankhahStatusByOrgChart');
                 if (ctxSBO) {
-                    var chartBar = new Chart(ctxSBO, { type:'bar', data:{ labels: orgLabels, datasets: datasets }, options:{ responsive:true, plugins:{ legend:{ position:'bottom' }, zoom:{ zoom:{ wheel:{enabled:true}, mode:'xy' }, pan:{enabled:true, mode:'xy'} } }, scales:{ y:{ beginAtZero:true } } } });
-                    try { ChartUtils.apply3DEffect(chartBar); chartBar.update(); } catch(e) {}
+                            var chartBar = new Chart(ctxSBO, {
+                                type: 'bar',
+                                data: {labels: orgLabels, datasets: datasets},
+                                options: {
+                                    responsive: true,
+                                    plugins: {
+                                        legend: {position: 'bottom'},
+                                        zoom: {
+                                            zoom: {wheel: {enabled: true}, mode: 'xy'},
+                                            pan: {enabled: true, mode: 'xy'}
+                                        }
+                                    },
+                                    scales: {y: {beginAtZero: true}}
+                                }
+                            });
+                            try {
+                                ChartUtils.apply3DEffect(chartBar);
+                                chartBar.update();
+                            } catch (e) {
+                            }
                 }
 
                 // Build 100% stacked dataset
                 var ctxPct = document.getElementById('tankhahStatusByOrgPct');
                 if (ctxPct) {
                     var totalPerOrg = {};
-                    orgLabels.forEach(function(org){
-                        totalPerOrg[org] = statusLabels.reduce(function(sum, st){ return sum + (orgGroups[org][st]||0); }, 0) || 1;
-                    });
-                    var pctDatasets = statusLabels.map(function(st, idx){
+                            orgLabels.forEach(function (org) {
+                                totalPerOrg[org] = statusLabels.reduce(function (sum, st) {
+                                    return sum + (orgGroups[org][st] || 0);
+                                }, 0) || 1;
+                            });
+                            var pctDatasets = statusLabels.map(function (st, idx) {
                         return {
                             label: st,
-                            data: orgLabels.map(function(org){ return ((orgGroups[org][st]||0) / totalPerOrg[org]) * 100; }),
+                                    data: orgLabels.map(function (org) {
+                                        return ((orgGroups[org][st] || 0) / totalPerOrg[org]) * 100;
+                                    }),
                             backgroundColor: ChartUtils.COLOR_PALETTES.primary[idx % ChartUtils.COLOR_PALETTES.primary.length]
                         };
                     });
                     var chartPct = new Chart(ctxPct, {
-                        type:'bar',
-                        data:{ labels: orgLabels, datasets: pctDatasets },
-                        options:{ responsive:true, plugins:{ legend:{ position:'bottom' } }, scales:{ x:{ stacked:true }, y:{ stacked:true, beginAtZero:true, max:100, ticks:{ callback:function(v){ return v+'%'; } } } } }
-                    });
-                    try { ChartUtils.apply3DEffect(chartPct); chartPct.update(); } catch(e) {}
+                                type: 'bar',
+                                data: {labels: orgLabels, datasets: pctDatasets},
+                                options: {
+                                    responsive: true,
+                                    plugins: {legend: {position: 'bottom'}},
+                                    scales: {
+                                        x: {stacked: true},
+                                        y: {
+                                            stacked: true, beginAtZero: true, max: 100, ticks: {
+                                                callback: function (v) {
+                                                    return v + '%';
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            });
+                            try {
+                                ChartUtils.apply3DEffect(chartPct);
+                                chartPct.update();
+                            } catch (e) {
+                            }
                 }
             }
 
             // Status by project
-            var sbp = (at.status_by_project||[]);
+                    var sbp = (at.status_by_project || []);
             if (sbp.length) {
                 var projGroups = {};
-                sbp.forEach(function(x){
+                        sbp.forEach(function (x) {
                     var pr = x.project__name || 'نامشخص';
                     projGroups[pr] = projGroups[pr] || {};
                     projGroups[pr][x.status__name || 'نامشخص'] = x.count || 0;
                 });
                 var projLabels = Object.keys(projGroups);
-                var statusLabelsP = Array.from(new Set([].concat.apply([], Object.values(projGroups).map(function(m){return Object.keys(m);}))))
-                var datasetsP = statusLabelsP.map(function(st, idx){
-                    return { label: st, data: projLabels.map(function(pr){ return projGroups[pr][st]||0; }), backgroundColor: ChartUtils.COLOR_PALETTES.primary[idx % ChartUtils.COLOR_PALETTES.primary.length] };
+                        var statusLabelsP = Array.from(new Set([].concat.apply([], Object.values(projGroups).map(function (m) {
+                            return Object.keys(m);
+                        }))))
+                        var datasetsP = statusLabelsP.map(function (st, idx) {
+                            return {
+                                label: st,
+                                data: projLabels.map(function (pr) {
+                                    return projGroups[pr][st] || 0;
+                                }),
+                                backgroundColor: ChartUtils.COLOR_PALETTES.primary[idx % ChartUtils.COLOR_PALETTES.primary.length]
+                            };
                 });
                 var ctxSBP = document.getElementById('tankhahStatusByProjectChart');
                 if (ctxSBP) {
-                    new Chart(ctxSBP, { type:'bar', data:{ labels: projLabels, datasets: datasetsP }, options:{ responsive:true, plugins:{ legend:{ position:'bottom' }, zoom:{ zoom:{ wheel:{enabled:true}, mode:'xy' }, pan:{enabled:true, mode:'xy'} } }, scales:{ y:{ beginAtZero:true } } } });
+                            new Chart(ctxSBP, {
+                                type: 'bar',
+                                data: {labels: projLabels, datasets: datasetsP},
+                                options: {
+                                    responsive: true,
+                                    plugins: {
+                                        legend: {position: 'bottom'},
+                                        zoom: {
+                                            zoom: {wheel: {enabled: true}, mode: 'xy'},
+                                            pan: {enabled: true, mode: 'xy'}
+                                        }
+                                    },
+                                    scales: {y: {beginAtZero: true}}
+                                }
+                            });
                 }
             }
 
             // Settlement aging
-            var sag = (at.settlement_aging||{});
+                    var sag = (at.settlement_aging || {});
             var ctxSA = document.getElementById('tankhahSettlementAgingChart');
             if (ctxSA) {
                 new Chart(ctxSA, {
-                    type:'bar',
-                    data:{ labels:['0-30','31-60','61-90','90+'], datasets:[{ label:'تعداد', data:[sag.d_0_30||0, sag.d_31_60||0, sag.d_61_90||0, sag.d_90_plus||0], backgroundColor:'#f97316' }] },
-                    options:{ responsive:true, plugins:{ legend:{ display:false }, zoom:{ zoom:{ wheel:{enabled:true}, mode:'y' }, pan:{enabled:true, mode:'y'} } }, scales:{ y:{ beginAtZero:true } } }
+                            type: 'bar',
+                            data: {
+                                labels: ['0-30', '31-60', '61-90', '90+'],
+                                datasets: [{
+                                    label: 'تعداد',
+                                    data: [sag.d_0_30 || 0, sag.d_31_60 || 0, sag.d_61_90 || 0, sag.d_90_plus || 0],
+                                    backgroundColor: '#f97316'
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                plugins: {
+                                    legend: {display: false},
+                                    zoom: {zoom: {wheel: {enabled: true}, mode: 'y'}, pan: {enabled: true, mode: 'y'}}
+                                },
+                                scales: {y: {beginAtZero: true}}
+                            }
                 });
             }
 
@@ -1762,135 +2253,297 @@ function initializeCharts() {
             try {
                 var ctxHM = document.getElementById('agingHeatmapChart');
                 if (ctxHM && window['MatrixController']) {
-                    var ranges = ['0-30','31-60','61-90','90+'];
-                    var series = ['تخصیص','تسویه'];
+                            var ranges = ['0-30', '31-60', '61-90', '90+'];
+                            var series = ['تخصیص', 'تسویه'];
                     var values = [
-                        { x:0, y:0, v: (ab.aging||{}).d_0_30 || 0 },
-                        { x:1, y:0, v: (ab.aging||{}).d_31_60 || 0 },
-                        { x:2, y:0, v: (ab.aging||{}).d_61_90 || 0 },
-                        { x:3, y:0, v: (ab.aging||{}).d_90_plus || 0 },
-                        { x:0, y:1, v: (sag||{}).d_0_30 || 0 },
-                        { x:1, y:1, v: (sag||{}).d_31_60 || 0 },
-                        { x:2, y:1, v: (sag||{}).d_61_90 || 0 },
-                        { x:3, y:1, v: (sag||{}).d_90_plus || 0 }
-                    ];
-                    var maxV = values.reduce(function(m,x){ return Math.max(m, x.v); }, 1) || 1;
+                                {x: 0, y: 0, v: (ab.aging || {}).d_0_30 || 0},
+                                {x: 1, y: 0, v: (ab.aging || {}).d_31_60 || 0},
+                                {x: 2, y: 0, v: (ab.aging || {}).d_61_90 || 0},
+                                {x: 3, y: 0, v: (ab.aging || {}).d_90_plus || 0},
+                                {x: 0, y: 1, v: (sag || {}).d_0_30 || 0},
+                                {x: 1, y: 1, v: (sag || {}).d_31_60 || 0},
+                                {x: 2, y: 1, v: (sag || {}).d_61_90 || 0},
+                                {x: 3, y: 1, v: (sag || {}).d_90_plus || 0}
+                            ];
+                            var maxV = values.reduce(function (m, x) {
+                                return Math.max(m, x.v);
+                            }, 1) || 1;
                     new Chart(ctxHM, {
                         type: 'matrix',
-                        data: { datasets: [{
+                                data: {
+                                    datasets: [{
                             label: 'Heatmap Aging',
                             data: values,
-                            backgroundColor: function(ctx){ var val = ctx.raw.v || 0; var a = Math.max(0.2, val / maxV); return 'rgba(239,68,68,'+a+')'; },
-                            width: function(){ return 50; },
-                            height: function(){ return 35; },
+                                        backgroundColor: function (ctx) {
+                                            var val = ctx.raw.v || 0;
+                                            var a = Math.max(0.2, val / maxV);
+                                            return 'rgba(239,68,68,' + a + ')';
+                                        },
+                                        width: function () {
+                                            return 50;
+                                        },
+                                        height: function () {
+                                            return 35;
+                                        },
                             borderWidth: 1,
                             borderColor: '#fff'
-                        }]},
-                        options: { scales:{ x:{ ticks:{ callback:function(v){ return ranges[v]; } }, offset:true, grid:{ display:false } }, y:{ ticks:{ callback:function(v){ return series[v]; } }, offset:true, grid:{ display:false } } }, plugins:{ legend:{ display:false } } }
-                    });
-                }
-            } catch(e) { console.warn('heatmap init error', e); }
+                                    }]
+                                },
+                                options: {
+                                    scales: {
+                                        x: {
+                                            ticks: {
+                                                callback: function (v) {
+                                                    return ranges[v];
+                                                }
+                                            }, offset: true, grid: {display: false}
+                                        }, y: {
+                                            ticks: {
+                                                callback: function (v) {
+                                                    return series[v];
+                                                }
+                                            }, offset: true, grid: {display: false}
+                                        }
+                                    }, plugins: {legend: {display: false}}
+                                }
+                            });
+                        }
+                    } catch (e) {
+                        console.warn('heatmap init error', e);
+                    }
 
             // Ceiling usage top 5
-            var top = (at.top_ceiling_usage||[]);
+                    var top = (at.top_ceiling_usage || []);
             var ctxTop = document.getElementById('tankhahCeilingTopChart');
             if (ctxTop && top.length) {
                 new Chart(ctxTop, {
-                    type:'bar',
-                    data:{ labels: top.map(function(x){ return x.number; }), datasets:[{ label:'درصد استفاده', data: top.map(function(x){ return x.usage_pct||0; }), backgroundColor:'#ef4444' }] },
-                    options:{ responsive:true, plugins:{ legend:{ position:'bottom' } }, scales:{ y:{ beginAtZero:true, max:100 } } }
+                            type: 'bar',
+                            data: {
+                                labels: top.map(function (x) {
+                                    return x.number;
+                                }), datasets: [{
+                                    label: 'درصد استفاده', data: top.map(function (x) {
+                                        return x.usage_pct || 0;
+                                    }), backgroundColor: '#ef4444'
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                plugins: {legend: {position: 'bottom'}},
+                                scales: {y: {beginAtZero: true, max: 100}}
+                            }
                 });
             }
 
             // Factor charts from advancedFactor
-            if (typeof advancedFactor === 'string') { advancedFactor = JSON.parse(advancedFactor); }
+                    if (typeof advancedFactor === 'string') {
+                        advancedFactor = JSON.parse(advancedFactor);
+                    }
             var af = advancedFactor || {};
             // High risk top amount
             var ta = af.high_risk?.top_amount || [];
             var ctxTA = document.getElementById('factorHighRiskTopAmount');
             if (ctxTA && ta.length) {
                 new Chart(ctxTA, {
-                    type:'bar',
-                    data:{ labels: ta.map(function(x){ return x.number || ('#'+x.id); }), datasets:[{ label:'مبلغ', data: ta.map(function(x){ return Number(x.amount||0); }), backgroundColor:'#ef4444' }] },
-                    options:{ responsive:true, plugins:{ legend:{ position:'bottom' }, tooltip:{ callbacks:{ label:function(ctx){ return ChartUtils.formatCurrency(ctx.parsed.y); } } }, zoom:{ zoom:{ wheel:{enabled:true}, mode:'y' }, pan:{enabled:true, mode:'y'} } }, scales:{ y:{ beginAtZero:true } } }
+                            type: 'bar',
+                            data: {
+                                labels: ta.map(function (x) {
+                                    return x.number || ('#' + x.id);
+                                }), datasets: [{
+                                    label: 'مبلغ', data: ta.map(function (x) {
+                                        return Number(x.amount || 0);
+                                    }), backgroundColor: '#ef4444'
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                plugins: {
+                                    legend: {position: 'bottom'},
+                                    tooltip: {
+                                        callbacks: {
+                                            label: function (ctx) {
+                                                return ChartUtils.formatCurrency(ctx.parsed.y);
+                                            }
+                                        }
+                                    },
+                                    zoom: {zoom: {wheel: {enabled: true}, mode: 'y'}, pan: {enabled: true, mode: 'y'}}
+                                },
+                                scales: {y: {beginAtZero: true}}
+                            }
                 });
             }
 
             // Factor Category 100% Stacked (Count vs Amount)
             try {
                 var stackedPctCanvas = document.getElementById('factorCategoryStackedPct');
-                function drawFactorStackedPct(catLabels, counts, amounts){
-                    var totalCount = counts.reduce(function(a,b){ return a + (Number(b)||0); }, 0) || 1;
-                    var totalAmount = amounts.reduce(function(a,b){ return a + (Number(b)||0); }, 0) || 1;
-                    var countShare = counts.map(function(v){ return (Number(v)||0) / totalCount * 100; });
-                    var amountShare = amounts.map(function(v){ return (Number(v)||0) / totalAmount * 100; });
+
+                        function drawFactorStackedPct(catLabels, counts, amounts) {
+                            var totalCount = counts.reduce(function (a, b) {
+                                return a + (Number(b) || 0);
+                            }, 0) || 1;
+                            var totalAmount = amounts.reduce(function (a, b) {
+                                return a + (Number(b) || 0);
+                            }, 0) || 1;
+                            var countShare = counts.map(function (v) {
+                                return (Number(v) || 0) / totalCount * 100;
+                            });
+                            var amountShare = amounts.map(function (v) {
+                                return (Number(v) || 0) / totalAmount * 100;
+                            });
                     var data = {
-                        labels: ['سهم تعداد','سهم مبلغ'],
-                        datasets: catLabels.map(function(lbl, idx){
+                                labels: ['سهم تعداد', 'سهم مبلغ'],
+                                datasets: catLabels.map(function (lbl, idx) {
                             return {
                                 label: lbl,
-                                data: [countShare[idx]||0, amountShare[idx]||0],
+                                        data: [countShare[idx] || 0, amountShare[idx] || 0],
                                 backgroundColor: ChartUtils.getColorFromPalette(idx)
                             };
                         })
                     };
-                    var chart = new Chart(stackedPctCanvas, { type:'bar', data: data, options:{ responsive:true, plugins:{ legend:{ position:'bottom' }, annotation: { annotations: { threshold: { type:'line', yMin:80, yMax:80, borderColor:'#ef4444', borderWidth:2, borderDash:[6,6], label:{ enabled:true, content:'۸۰٪ هشدار', position:'start', backgroundColor:'rgba(239,68,68,0.1)', color:'#ef4444' } } } } }, scales:{ x:{ stacked:true }, y:{ stacked:true, beginAtZero:true, max:100, ticks:{ callback:function(v){ return v+'%'; } } } } } });
-                    try { ChartUtils.apply3DEffect(chart); chart.update(); } catch(e) {}
-                }
+                            var chart = new Chart(stackedPctCanvas, {
+                                type: 'bar',
+                                data: data,
+                                options: {
+                                    responsive: true,
+                                    plugins: {
+                                        legend: {position: 'bottom'},
+                                        annotation: {
+                                            annotations: {
+                                                threshold: {
+                                                    type: 'line',
+                                                    yMin: 80,
+                                                    yMax: 80,
+                                                    borderColor: '#ef4444',
+                                                    borderWidth: 2,
+                                                    borderDash: [6, 6],
+                                                    label: {
+                                                        enabled: true,
+                                                        content: '۸۰٪ هشدار',
+                                                        position: 'start',
+                                                        backgroundColor: 'rgba(239,68,68,0.1)',
+                                                        color: '#ef4444'
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    },
+                                    scales: {
+                                        x: {stacked: true},
+                                        y: {
+                                            stacked: true, beginAtZero: true, max: 100, ticks: {
+                                                callback: function (v) {
+                                                    return v + '%';
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            });
+                            try {
+                                ChartUtils.apply3DEffect(chart);
+                                chart.update();
+                            } catch (e) {
+                            }
+                        }
+
                 if (stackedPctCanvas) {
                     if (af.category_analysis || af.category_stats) {
-                        var catLabels = (af.category_analysis?.labels || (af.category_stats||[]).map(function(x){ return x.category__name||x.name||''; })).slice();
-                        var counts = (af.category_analysis?.counts || (af.category_stats||[]).map(function(x){ return Number(x.count||0); })).slice();
-                        var amounts = (af.category_analysis?.amounts || (af.category_stats||[]).map(function(x){ return Number(x.total_amount||x.total||0); })).slice();
+                                var catLabels = (af.category_analysis?.labels || (af.category_stats || []).map(function (x) {
+                                    return x.category__name || x.name || '';
+                                })).slice();
+                                var counts = (af.category_analysis?.counts || (af.category_stats || []).map(function (x) {
+                                    return Number(x.count || 0);
+                                })).slice();
+                                var amounts = (af.category_analysis?.amounts || (af.category_stats || []).map(function (x) {
+                                    return Number(x.total_amount || x.total || 0);
+                                })).slice();
                         drawFactorStackedPct(catLabels, counts, amounts);
                     } else {
                         // Fallback: fetch dashboard-data and build from factor_stats
-                        fetch('/reports/api/dashboard-data/').then(function(r){ return r.json(); }).then(function(resp){
+                                fetch('/reports/api/dashboard-data/').then(function (r) {
+                                    return r.json();
+                                }).then(function (resp) {
                             try {
-                                var fs = resp && (resp.factor_stats||resp.factors||{});
+                                        var fs = resp && (resp.factor_stats || resp.factors || {});
                                 var cats = fs.categories || fs.category_breakdown || [];
                                 var labels = [], counts = [], amounts = [];
                                 if (Array.isArray(cats) && cats.length) {
-                                    cats.forEach(function(c){ labels.push(c.name||c.category||''); counts.push(Number(c.count||0)); amounts.push(Number(c.amount||c.total||0)); });
+                                            cats.forEach(function (c) {
+                                                labels.push(c.name || c.category || '');
+                                                counts.push(Number(c.count || 0));
+                                                amounts.push(Number(c.amount || c.total || 0));
+                                            });
                                     drawFactorStackedPct(labels, counts, amounts);
                                 }
-                            } catch(e) { console.warn('factor stacked derive error', e); }
-                        }).catch(function(e){ console.warn('factor stacked fetch error', e); });
+                                    } catch (e) {
+                                        console.warn('factor stacked derive error', e);
                     }
+                                }).catch(function (e) {
+                                    console.warn('factor stacked fetch error', e);
+                                });
                 }
-            } catch(e) { console.warn('factor category 100% init error', e); }
+                        }
+                    } catch (e) {
+                        console.warn('factor category 100% init error', e);
+                    }
 
             // Tankhah Ceiling Semi-Gauge
             try {
                 var gaugeCanvas = document.getElementById('tankhahCeilingGauge');
                 if (gaugeCanvas && window['GaugeController']) {
                     var tm = advancedTankhah || {};
-                    if (typeof tm === 'string') { tm = JSON.parse(tm); }
-                    function drawGauge(pct){
-                        var usagePct = Number(pct||0);
+                            if (typeof tm === 'string') {
+                                tm = JSON.parse(tm);
+                            }
+
+                            function drawGauge(pct) {
+                                var usagePct = Number(pct || 0);
                         new Chart(gaugeCanvas, {
-                            type:'gauge',
-                            data:{ datasets:[{ value: usagePct, data:[0, 50, 80, 100], backgroundColor:['#22c55e','#f59e0b','#ef4444'], borderWidth:0 }] },
-                            options:{ needle:{ radiusPercentage: 2, widthPercentage:3.2, lengthPercentage:80 }, valueLabel:{ formatter:function(v){ return Math.round(v)+'%'; } } }
-                        });
-                    }
+                                    type: 'gauge',
+                                    data: {
+                                        datasets: [{
+                                            value: usagePct,
+                                            data: [0, 50, 80, 100],
+                                            backgroundColor: ['#22c55e', '#f59e0b', '#ef4444'],
+                                            borderWidth: 0
+                                        }]
+                                    },
+                                    options: {
+                                        needle: {radiusPercentage: 2, widthPercentage: 3.2, lengthPercentage: 80},
+                                        valueLabel: {
+                                            formatter: function (v) {
+                                                return Math.round(v) + '%';
+                                            }
+                                        }
+                                    }
+                                });
+                            }
+
                     var pct0 = (tm.ceiling_usage && tm.ceiling_usage.percent) || tm.ceiling_usage_percent;
                     if (pct0 != null) {
                         drawGauge(pct0);
                     } else {
                         // Fallback: load from dashboard-data
-                        fetch('/reports/api/dashboard-data/').then(function(r){ return r.json(); }).then(function(resp){
-                            try {
-                                var ts = resp && (resp.tankhah_stats||resp.tankhah||{});
-                                var used = Number(ts.used||ts.total_used||ts.total||0);
-                                var ceiling = Number(ts.ceiling||ts.total_ceiling||ts.limit||0);
-                                var pct = ceiling > 0 ? (used/ceiling)*100 : 0;
+                                fetch('/reports/api/dashboard-data/').then(function (r) {
+                                    return r.json();
+                                }).then(function (resp) {
+                                    try {
+                                        var ts = resp && (resp.tankhah_stats || resp.tankhah || {});
+                                        var used = Number(ts.used || ts.total_used || ts.total || 0);
+                                        var ceiling = Number(ts.ceiling || ts.total_ceiling || ts.limit || 0);
+                                        var pct = ceiling > 0 ? (used / ceiling) * 100 : 0;
                                 drawGauge(pct);
-                            } catch(e) { console.warn('gauge derive error', e); }
-                        }).catch(function(e){ console.warn('gauge fetch error', e); });
+                                    } catch (e) {
+                                        console.warn('gauge derive error', e);
                     }
+                                }).catch(function (e) {
+                                    console.warn('gauge fetch error', e);
+                                });
                 }
-            } catch(e) { console.warn('gauge init error', e); }
+                        }
+                    } catch (e) {
+                        console.warn('gauge init error', e);
+                    }
 
             // Factor process funnel (demo using available totals)
             try {
@@ -1898,15 +2551,23 @@ function initializeCharts() {
                 if (funnel && window['FunnelController']) {
                     var totalsF = af.totals || {};
                     var created = Number(totalsF.created_count || totalsF.total_count || 0);
-                    var approved = Math.max(0, created - Number(totalsF.rejected_count||0));
-                    var paid = Math.max(0, approved - Math.round(approved*0.1));
+                            var approved = Math.max(0, created - Number(totalsF.rejected_count || 0));
+                            var paid = Math.max(0, approved - Math.round(approved * 0.1));
                     new Chart(funnel, {
-                        type:'funnel',
-                        data:{ labels:['ثبت','تایید','پرداخت'], datasets:[{ data:[created, approved, paid], backgroundColor:['#3b82f6','#22c55e','#f59e0b'] }] },
-                        options:{ plugins:{ legend:{ display:false } } }
-                    });
-                }
-            } catch(e) { console.warn('funnel init error', e); }
+                                type: 'funnel',
+                                data: {
+                                    labels: ['ثبت', 'تایید', 'پرداخت'],
+                                    datasets: [{
+                                        data: [created, approved, paid],
+                                        backgroundColor: ['#3b82f6', '#22c55e', '#f59e0b']
+                                    }]
+                                },
+                                options: {plugins: {legend: {display: false}}}
+                            });
+                        }
+                    } catch (e) {
+                        console.warn('funnel init error', e);
+                    }
 
             // PolarArea: organization share using available data (comparatives or budget concentration)
             try {
@@ -1914,24 +2575,45 @@ function initializeCharts() {
                 if (polarCanvas) {
                     var labels = [];
                     var values = [];
-                    if (typeof advancedComparatives === 'string') { advancedComparatives = JSON.parse(advancedComparatives); }
+                            if (typeof advancedComparatives === 'string') {
+                                advancedComparatives = JSON.parse(advancedComparatives);
+                            }
                     var ac = advancedComparatives || {};
                     var orgRanks = (ac.rankings && Array.isArray(ac.rankings.organizations)) ? ac.rankings.organizations : ac.org_rankings;
                     if (orgRanks && Array.isArray(orgRanks)) {
-                        orgRanks.slice(0, 12).forEach(function(row){ labels.push(row.name || row.org || ''); values.push(Number(row.value || row.total || row.amount || row.consumption || row.allocated || 0)); });
+                                orgRanks.slice(0, 12).forEach(function (row) {
+                                    labels.push(row.name || row.org || '');
+                                    values.push(Number(row.value || row.total || row.amount || row.consumption || row.allocated || 0));
+                                });
                     } else if (advancedBudget && advancedBudget.concentration && Array.isArray(advancedBudget.concentration.top)) {
-                        advancedBudget.concentration.top.slice(0, 12).forEach(function(row){ labels.push(row.name || row.org || ''); values.push(Number(row.value || row.amount || 0)); });
+                                advancedBudget.concentration.top.slice(0, 12).forEach(function (row) {
+                                    labels.push(row.name || row.org || '');
+                                    values.push(Number(row.value || row.amount || 0));
+                                });
                     }
                     if (labels.length && values.length) {
                         var polarChart = new Chart(polarCanvas, {
-                            type:'polarArea',
-                            data:{ labels: labels, datasets:[{ data: values, backgroundColor: labels.map(function(_,i){ return ChartUtils.getColorFromPalette(i); }) }] },
-                            options:{ plugins:{ legend:{ position:'bottom' } } }
-                        });
-                        try { ChartUtils.apply3DEffect(polarChart); polarChart.update(); } catch(e) {}
+                                    type: 'polarArea',
+                                    data: {
+                                        labels: labels,
+                                        datasets: [{
+                                            data: values, backgroundColor: labels.map(function (_, i) {
+                                                return ChartUtils.getColorFromPalette(i);
+                                            })
+                                        }]
+                                    },
+                                    options: {plugins: {legend: {position: 'bottom'}}}
+                                });
+                                try {
+                                    ChartUtils.apply3DEffect(polarChart);
+                                    polarChart.update();
+                                } catch (e) {
+                                }
+                            }
+                        }
+                    } catch (e) {
+                        console.warn('polar init error', e);
                     }
-                }
-            } catch(e) { console.warn('polar init error', e); }
 
             // Treemap: concentration from advancedBudget.concentration or advancedComparatives
             try {
@@ -1939,154 +2621,351 @@ function initializeCharts() {
                 if (treeCanvas && window['TreemapController']) {
                     var items = [];
                     if (advancedBudget && advancedBudget.concentration && Array.isArray(advancedBudget.concentration.all)) {
-                        items = advancedBudget.concentration.all.map(function(row){ return { group: (row.group||row.type||'سازمان'), label: row.name||row.org||row.project||'', value: Number(row.value||row.amount||0) }; });
+                                items = advancedBudget.concentration.all.map(function (row) {
+                                    return {
+                                        group: (row.group || row.type || 'سازمان'),
+                                        label: row.name || row.org || row.project || '',
+                                        value: Number(row.value || row.amount || 0)
+                                    };
+                                });
                     } else if (advancedComparatives && advancedComparatives.org_rankings) {
-                        items = (advancedComparatives.org_rankings||[]).map(function(row){ return { group: 'سازمان', label: row.name||row.org||'', value: Number(row.value||row.total||0) }; });
-                    }
-                    function drawTreemap(arr){
+                                items = (advancedComparatives.org_rankings || []).map(function (row) {
+                                    return {
+                                        group: 'سازمان',
+                                        label: row.name || row.org || '',
+                                        value: Number(row.value || row.total || 0)
+                                    };
+                                });
+                            }
+
+                            function drawTreemap(arr) {
                         if (!Array.isArray(arr) || !arr.length) return;
                         new Chart(treeCanvas, {
-                            type:'treemap',
-                            data:{ datasets:[{ tree: arr, key:'value', groups:['group','label'], spacing:0.5, borderColor:'#ffffff', borderWidth:1, backgroundColor:function(ctx){ var i = ctx.dataIndex||0; return ChartUtils.getColorFromPalette(i,'pastel'); } }] },
-                            options:{ plugins:{ legend:{ display:false }, tooltip:{ callbacks:{ label:function(ctx){ var d = ctx.raw||{}; return (d.label||'') + ': ' + ChartUtils.formatNumber(d.v||d.value||0); } } } } }
-                        });
-                    }
+                                    type: 'treemap',
+                                    data: {
+                                        datasets: [{
+                                            tree: arr,
+                                            key: 'value',
+                                            groups: ['group', 'label'],
+                                            spacing: 0.5,
+                                            borderColor: '#ffffff',
+                                            borderWidth: 1,
+                                            backgroundColor: function (ctx) {
+                                                var i = ctx.dataIndex || 0;
+                                                return ChartUtils.getColorFromPalette(i, 'pastel');
+                                            }
+                                        }]
+                                    },
+                                    options: {
+                                        plugins: {
+                                            legend: {display: false},
+                                            tooltip: {
+                                                callbacks: {
+                                                    label: function (ctx) {
+                                                        var d = ctx.raw || {};
+                                                        return (d.label || '') + ': ' + ChartUtils.formatNumber(d.v || d.value || 0);
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                });
+                            }
+
                     if (items.length) {
                         drawTreemap(items);
                     } else {
                         // Fallback: fetch dashboard-data and try to derive org/project totals
-                        fetch('/reports/api/dashboard-data/').then(function(r){ return r.json(); }).then(function(resp){
+                                fetch('/reports/api/dashboard-data/').then(function (r) {
+                                    return r.json();
+                                }).then(function (resp) {
                             try {
                                 var cd = resp && resp.chart_data ? resp.chart_data : {};
                                 var arr = [];
                                 // Prefer explicit series if available
                                 var orgCons = cd.consumption_by_org || cd.org_consumption || [];
                                 if (Array.isArray(orgCons) && orgCons.length) {
-                                    arr = orgCons.map(function(o){ return { group:'سازمان', label: o.name||o.org||'', value: Number(o.total||o.value||o.amount||0) }; });
+                                            arr = orgCons.map(function (o) {
+                                                return {
+                                                    group: 'سازمان',
+                                                    label: o.name || o.org || '',
+                                                    value: Number(o.total || o.value || o.amount || 0)
+                                                };
+                                            });
                                 } else {
                                     var alloc = cd.allocation_by_org || [];
                                     if (Array.isArray(alloc) && alloc.length) {
-                                        arr = alloc.map(function(o){ return { group:'سازمان', label: o.name||o.org||'', value: Number(o.total||o.value||o.amount||0) }; });
+                                                arr = alloc.map(function (o) {
+                                                    return {
+                                                        group: 'سازمان',
+                                                        label: o.name || o.org || '',
+                                                        value: Number(o.total || o.value || o.amount || 0)
+                                                    };
+                                                });
                                     }
                                 }
                                 if (!arr.length && Array.isArray(cd.projects) && cd.projects.length) {
-                                    arr = cd.projects.map(function(p){ return { group:'پروژه', label: p.name||'', value: Number(p.total||p.value||p.amount||0) }; });
+                                            arr = cd.projects.map(function (p) {
+                                                return {
+                                                    group: 'پروژه',
+                                                    label: p.name || '',
+                                                    value: Number(p.total || p.value || p.amount || 0)
+                                                };
+                                            });
                                 }
                                 drawTreemap(arr);
-                            } catch(e) { console.warn('treemap derive error', e); }
-                        }).catch(function(e){ console.warn('treemap fallback fetch error', e); });
+                                    } catch (e) {
+                                        console.warn('treemap derive error', e);
                     }
+                                }).catch(function (e) {
+                                    console.warn('treemap fallback fetch error', e);
+                                });
                 }
-            } catch(e) { console.warn('treemap init error', e); }
+                        }
+                    } catch (e) {
+                        console.warn('treemap init error', e);
+                    }
 
             // Bullet: unit budgets (requires chartjs-chart-bullet), with API fallback
             try {
                 var bulletCanvas = document.getElementById('unitBudgetsBullet');
                 if (bulletCanvas && window['BulletController']) {
                     var ab = advancedBudget || {};
-                    if (typeof ab === 'string') { ab = JSON.parse(ab); }
-                    function drawBullet(units){
+                            if (typeof ab === 'string') {
+                                ab = JSON.parse(ab);
+                            }
+
+                            function drawBullet(units) {
                         if (!Array.isArray(units) || !units.length) return;
                         new Chart(bulletCanvas, {
-                            type:'bullet',
-                            data:{ labels: units.map(function(u){ return u.name||u.unit||''; }), datasets:[{ label:'عملکرد', data: units.map(function(u){ return { value:Number(u.actual||0), target:Number(u.target||0), ranges:[Number(u.low||0), Number(u.mid||0), Number(u.high||0)] }; }), backgroundColor:'#3b82f6' }] },
-                            options:{ indexAxis:'y', plugins:{ legend:{ display:false }, tooltip:{ callbacks:{ label:function(ctx){ var d = ctx.raw||{}; return 'عملکرد: ' + ChartUtils.formatNumber(d.value||0) + ' | هدف: ' + ChartUtils.formatNumber(d.target||0); } } } } }
-                        });
-                    }
-                    var units = (ab.unit_budgets && Array.isArray(ab.unit_budgets)) ? ab.unit_budgets.slice(0,8) : [];
-                    if (units.length) { drawBullet(units); }
-                    else {
+                                    type: 'bullet',
+                                    data: {
+                                        labels: units.map(function (u) {
+                                            return u.name || u.unit || '';
+                                        }), datasets: [{
+                                            label: 'عملکرد', data: units.map(function (u) {
+                                                return {
+                                                    value: Number(u.actual || 0),
+                                                    target: Number(u.target || 0),
+                                                    ranges: [Number(u.low || 0), Number(u.mid || 0), Number(u.high || 0)]
+                                                };
+                                            }), backgroundColor: '#3b82f6'
+                                        }]
+                                    },
+                                    options: {
+                                        indexAxis: 'y',
+                                        plugins: {
+                                            legend: {display: false},
+                                            tooltip: {
+                                                callbacks: {
+                                                    label: function (ctx) {
+                                                        var d = ctx.raw || {};
+                                                        return 'عملکرد: ' + ChartUtils.formatNumber(d.value || 0) + ' | هدف: ' + ChartUtils.formatNumber(d.target || 0);
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                });
+                            }
+
+                            var units = (ab.unit_budgets && Array.isArray(ab.unit_budgets)) ? ab.unit_budgets.slice(0, 8) : [];
+                            if (units.length) {
+                                drawBullet(units);
+                            } else {
                         // Fallback: fetch dashboard-data
-                        fetch('/reports/api/dashboard-data/').then(function(r){ return r.json(); }).then(function(resp){
+                                fetch('/reports/api/dashboard-data/').then(function (r) {
+                                    return r.json();
+                                }).then(function (resp) {
                             try {
-                                var bs = resp && (resp.budget_stats||{});
+                                        var bs = resp && (resp.budget_stats || {});
                                 var list = bs.unit_budgets || bs.units || [];
                                 if (!Array.isArray(list) || !list.length) {
                                     // try from chart_data cost center if present
                                     var cc = resp && resp.chart_data && resp.chart_data.cost_centers;
                                     if (Array.isArray(cc)) {
-                                        list = cc.map(function(x){ return { name:x.name||'', actual:Number(x.actual||x.value||0), target:Number(x.target||x.budget||0), low:0, mid: (Number(x.target||0)*0.7), high: Number(x.target||0) }; });
+                                                list = cc.map(function (x) {
+                                                    return {
+                                                        name: x.name || '',
+                                                        actual: Number(x.actual || x.value || 0),
+                                                        target: Number(x.target || x.budget || 0),
+                                                        low: 0,
+                                                        mid: (Number(x.target || 0) * 0.7),
+                                                        high: Number(x.target || 0)
+                                                    };
+                                                });
+                                            }
+                                        }
+                                        drawBullet(list.slice(0, 8));
+                                    } catch (e) {
+                                        console.warn('bullet derive error', e);
                                     }
-                                }
-                                drawBullet(list.slice(0,8));
-                            } catch(e) { console.warn('bullet derive error', e); }
-                        }).catch(function(e){ console.warn('bullet fetch error', e); });
+                                }).catch(function (e) {
+                                    console.warn('bullet fetch error', e);
+                                });
+                            }
+                        }
+                    } catch (e) {
+                        console.warn('bullet init error', e);
                     }
-                }
-            } catch(e) { console.warn('bullet init error', e); }
 
             // Sankey: allocation -> consumption -> payment (with API fallback)
             try {
                 var sankeyCanvas = document.getElementById('budgetAllocationSankey');
                 if (sankeyCanvas && window['SankeyController']) {
                     var ab2 = advancedBudget || {};
-                    if (typeof ab2 === 'string') { ab2 = JSON.parse(ab2); }
+                            if (typeof ab2 === 'string') {
+                                ab2 = JSON.parse(ab2);
+                            }
                     var flow = (ab2.flow && Array.isArray(ab2.flow)) ? ab2.flow : null;
                     if (!flow && ab2.totals) {
-                        var alloc = Number(ab2.totals.allocated||0);
-                        var consumed = Number(ab2.totals.consumed||0);
-                        var paid = Number(ab2.totals.paid||consumed*0.8||0);
+                                var alloc = Number(ab2.totals.allocated || 0);
+                                var consumed = Number(ab2.totals.consumed || 0);
+                                var paid = Number(ab2.totals.paid || consumed * 0.8 || 0);
                         flow = [
-                            { from:'تخصیص', to:'مصرف', flow: Math.min(alloc, consumed) },
-                            { from:'مصرف', to:'پرداخت', flow: Math.min(consumed, paid) }
+                                    {from: 'تخصیص', to: 'مصرف', flow: Math.min(alloc, consumed)},
+                                    {from: 'مصرف', to: 'پرداخت', flow: Math.min(consumed, paid)}
                         ];
                     }
-                    function drawSankey(f){
+
+                            function drawSankey(f) {
                         if (!Array.isArray(f) || !f.length) return;
                         new Chart(sankeyCanvas, {
-                            type:'sankey',
-                            data:{ datasets:[{ label:'جریان بودجه', data: f.map(function(x){ return { from:String(x.from), to:String(x.to), flow:Number(x.flow||0) }; }), colorFrom:'#3b82f6', colorTo:'#22c55e', colorMode:'gradient' }] },
-                            options:{ plugins:{ legend:{ display:false }, tooltip:{ callbacks:{ label:function(c){ var d=c.raw||{}; return (d.from||'') + ' → ' + (d.to||'') + ': ' + ChartUtils.formatNumber(d.flow||0); } } } } }
-                        });
-                    }
+                                    type: 'sankey',
+                                    data: {
+                                        datasets: [{
+                                            label: 'جریان بودجه', data: f.map(function (x) {
+                                                return {
+                                                    from: String(x.from),
+                                                    to: String(x.to),
+                                                    flow: Number(x.flow || 0)
+                                                };
+                                            }), colorFrom: '#3b82f6', colorTo: '#22c55e', colorMode: 'gradient'
+                                        }]
+                                    },
+                                    options: {
+                                        plugins: {
+                                            legend: {display: false},
+                                            tooltip: {
+                                                callbacks: {
+                                                    label: function (c) {
+                                                        var d = c.raw || {};
+                                                        return (d.from || '') + ' → ' + (d.to || '') + ': ' + ChartUtils.formatNumber(d.flow || 0);
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                });
+                            }
+
                     if (flow) {
                         drawSankey(flow);
                     } else {
-                        fetch('/reports/api/dashboard-data/').then(function(r){ return r.json(); }).then(function(resp){
+                                fetch('/reports/api/dashboard-data/').then(function (r) {
+                                    return r.json();
+                                }).then(function (resp) {
                             try {
-                                var bs = (resp && (resp.budget_stats||resp.budget||resp.totals)) || {};
+                                        var bs = (resp && (resp.budget_stats || resp.budget || resp.totals)) || {};
                                 var t = bs.totals || bs;
-                                var alloc2 = Number(t.allocated||t.total_allocated||0);
-                                var consumed2 = Number(t.consumed||t.total_consumed||0);
-                                var paid2 = Number(t.paid||t.total_paid||0);
+                                        var alloc2 = Number(t.allocated || t.total_allocated || 0);
+                                        var consumed2 = Number(t.consumed || t.total_consumed || 0);
+                                        var paid2 = Number(t.paid || t.total_paid || 0);
                                 var f2 = [];
                                 if (alloc2 || consumed2 || paid2) {
                                     f2 = [
-                                        { from:'تخصیص', to:'مصرف', flow: Math.min(alloc2, consumed2 || alloc2) },
-                                        { from:'مصرف', to:'پرداخت', flow: Math.min(consumed2 || alloc2, paid2 || consumed2) }
+                                                {
+                                                    from: 'تخصیص',
+                                                    to: 'مصرف',
+                                                    flow: Math.min(alloc2, consumed2 || alloc2)
+                                                },
+                                                {
+                                                    from: 'مصرف',
+                                                    to: 'پرداخت',
+                                                    flow: Math.min(consumed2 || alloc2, paid2 || consumed2)
+                                                }
                                     ];
                                 }
                                 drawSankey(f2);
-                            } catch(e) { console.warn('sankey derive error', e); }
-                        }).catch(function(e){ console.warn('sankey fallback fetch error', e); });
+                                    } catch (e) {
+                                        console.warn('sankey derive error', e);
                     }
+                                }).catch(function (e) {
+                                    console.warn('sankey fallback fetch error', e);
+                                });
                 }
-            } catch(e) { console.warn('sankey init error', e); }
+                        }
+                    } catch (e) {
+                        console.warn('sankey init error', e);
+                    }
 
             // Inject export controls (PNG/CSV) for all chart containers
             try {
-                document.querySelectorAll('.chart-container canvas').forEach(function(cv){
+                        document.querySelectorAll('.chart-container canvas').forEach(function (cv) {
                     var container = cv.closest('.chart-container');
                     if (!container || container.querySelector('.export-controls')) return;
                     var bar = document.createElement('div');
                     bar.className = 'mt-2 d-flex gap-2 export-controls';
-                    var btnPng = document.createElement('button'); btnPng.type='button'; btnPng.className='btn btn-sm btn-outline-secondary'; btnPng.textContent='PNG'; btnPng.addEventListener('click', function(){ ChartUtils.exportChartAsPNG(cv.id, (cv.id||'chart') + '.png'); });
-                    var btnCsv = document.createElement('button'); btnCsv.type='button'; btnCsv.className='btn btn-sm btn-outline-secondary'; btnCsv.textContent='CSV'; btnCsv.addEventListener('click', function(){ ChartUtils.exportChartAsCSV(cv.id, (cv.id||'chart') + '.csv'); });
-                    var btnFs = document.createElement('button'); btnFs.type='button'; btnFs.className='btn btn-sm btn-outline-secondary'; btnFs.textContent='Fullscreen'; btnFs.addEventListener('click', function(){ ChartUtils.toggleFullscreenForCanvas(cv.id); });
-                    var btn3d = document.createElement('button'); btn3d.type='button'; btn3d.className='btn btn-sm btn-outline-secondary'; btn3d.textContent='3D'; btn3d.addEventListener('click', function(){ ChartUtils.apply3DEffectToChartId(cv.id); });
-                    bar.appendChild(btnPng); bar.appendChild(btnCsv);
-                    bar.appendChild(btnFs); bar.appendChild(btn3d);
+                            var btnPng = document.createElement('button');
+                            btnPng.type = 'button';
+                            btnPng.className = 'btn btn-sm btn-outline-secondary';
+                            btnPng.textContent = 'PNG';
+                            btnPng.addEventListener('click', function () {
+                                ChartUtils.exportChartAsPNG(cv.id, (cv.id || 'chart') + '.png');
+                            });
+                            var btnCsv = document.createElement('button');
+                            btnCsv.type = 'button';
+                            btnCsv.className = 'btn btn-sm btn-outline-secondary';
+                            btnCsv.textContent = 'CSV';
+                            btnCsv.addEventListener('click', function () {
+                                ChartUtils.exportChartAsCSV(cv.id, (cv.id || 'chart') + '.csv');
+                            });
+                            var btnFs = document.createElement('button');
+                            btnFs.type = 'button';
+                            btnFs.className = 'btn btn-sm btn-outline-secondary';
+                            btnFs.textContent = 'Fullscreen';
+                            btnFs.addEventListener('click', function () {
+                                ChartUtils.toggleFullscreenForCanvas(cv.id);
+                            });
+                            var btn3d = document.createElement('button');
+                            btn3d.type = 'button';
+                            btn3d.className = 'btn btn-sm btn-outline-secondary';
+                            btn3d.textContent = '3D';
+                            btn3d.addEventListener('click', function () {
+                                ChartUtils.apply3DEffectToChartId(cv.id);
+                            });
+                            bar.appendChild(btnPng);
+                            bar.appendChild(btnCsv);
+                            bar.appendChild(btnFs);
+                            bar.appendChild(btn3d);
                     container.appendChild(bar);
                 });
-            } catch(e) { console.warn('export controls inject error', e); }
+                    } catch (e) {
+                        console.warn('export controls inject error', e);
+                    }
             // Repeated vendors
             var rv = af.high_risk?.repeated_vendors || [];
             var ctxRV = document.getElementById('factorRepeatedVendors');
             if (ctxRV && rv.length) {
                 new Chart(ctxRV, {
-                    type:'bar',
-                    data:{ labels: rv.map(function(x){ return x.payee__legal_name || x.payee__name || ('#'+x.payee__id); }), datasets:[{ label:'تعداد', data: rv.map(function(x){ return x.count||0; }), backgroundColor:'#3b82f6' }] },
-                    options:{ responsive:true, plugins:{ legend:{ position:'bottom' }, zoom:{ zoom:{ wheel:{enabled:true}, mode:'y' }, pan:{enabled:true, mode:'y'} } }, scales:{ y:{ beginAtZero:true, precision:0 } } }
+                            type: 'bar',
+                            data: {
+                                labels: rv.map(function (x) {
+                                    return x.payee__legal_name || x.payee__name || ('#' + x.payee__id);
+                                }), datasets: [{
+                                    label: 'تعداد', data: rv.map(function (x) {
+                                        return x.count || 0;
+                                    }), backgroundColor: '#3b82f6'
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                plugins: {
+                                    legend: {position: 'bottom'},
+                                    zoom: {zoom: {wheel: {enabled: true}, mode: 'y'}, pan: {enabled: true, mode: 'y'}}
+                                },
+                                scales: {y: {beginAtZero: true, precision: 0}}
+                            }
                 });
             }
 
@@ -2095,57 +2974,162 @@ function initializeCharts() {
             var ctxOB = document.getElementById('factorOutsideBudget');
             if (ctxOB && ob.length) {
                 new Chart(ctxOB, {
-                    type:'bar',
-                    data:{ labels: ob.map(function(x){ return x.number || ('#'+x.id); }), datasets:[{ label:'مبلغ', data: ob.map(function(x){ return Number(x.amount||0); }), backgroundColor:'#f59e0b' }] },
-                    options:{ responsive:true, plugins:{ legend:{ position:'bottom' }, zoom:{ zoom:{ wheel:{enabled:true}, mode:'y' }, pan:{enabled:true, mode:'y'} } }, scales:{ y:{ beginAtZero:true } } }
+                            type: 'bar',
+                            data: {
+                                labels: ob.map(function (x) {
+                                    return x.number || ('#' + x.id);
+                                }), datasets: [{
+                                    label: 'مبلغ', data: ob.map(function (x) {
+                                        return Number(x.amount || 0);
+                                    }), backgroundColor: '#f59e0b'
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                plugins: {
+                                    legend: {position: 'bottom'},
+                                    zoom: {zoom: {wheel: {enabled: true}, mode: 'y'}, pan: {enabled: true, mode: 'y'}}
+                                },
+                                scales: {y: {beginAtZero: true}}
+                            }
                 });
             }
 
             // Comparatives charts
-            if (typeof advancedComparatives === 'string') { advancedComparatives = JSON.parse(advancedComparatives); }
+                    if (typeof advancedComparatives === 'string') {
+                        advancedComparatives = JSON.parse(advancedComparatives);
+                    }
             var ac = advancedComparatives || {};
             var mcons = ac.monthly?.consumption || [];
-            var mret  = ac.monthly?.returns || [];
+                    var mret = ac.monthly?.returns || [];
             var ctxMC = document.getElementById('compMonthlyConsumption');
             if (ctxMC && mcons.length) {
                 new Chart(ctxMC, {
-                    type:'line',
-                    data:{ labels: mcons.map(function(x){ return new Date(x.month).toLocaleDateString('fa-IR'); }), datasets:[{ label:'مصرف', data: mcons.map(function(x){ return Number(x.total||0); }), borderColor:'#3b82f6', backgroundColor:'rgba(59,130,246,0.12)', fill:true, tension:0.35 }] },
-                    options:{ responsive:true, plugins:{ legend:{ position:'bottom' }, zoom:{ zoom:{ wheel:{enabled:true}, mode:'x' }, pan:{enabled:true, mode:'x'} } }, scales:{ y:{ beginAtZero:true } } }
+                            type: 'line',
+                            data: {
+                                labels: mcons.map(function (x) {
+                                    return new Date(x.month).toLocaleDateString('fa-IR');
+                                }), datasets: [{
+                                    label: 'مصرف',
+                                    data: mcons.map(function (x) {
+                                        return Number(x.total || 0);
+                                    }),
+                                    borderColor: '#3b82f6',
+                                    backgroundColor: 'rgba(59,130,246,0.12)',
+                                    fill: true,
+                                    tension: 0.35
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                plugins: {
+                                    legend: {position: 'bottom'},
+                                    zoom: {zoom: {wheel: {enabled: true}, mode: 'x'}, pan: {enabled: true, mode: 'x'}}
+                                },
+                                scales: {y: {beginAtZero: true}}
+                            }
                 });
             }
             var ctxMR = document.getElementById('compMonthlyReturns');
             if (ctxMR && mret.length) {
                 new Chart(ctxMR, {
-                    type:'line',
-                    data:{ labels: mret.map(function(x){ return new Date(x.month).toLocaleDateString('fa-IR'); }), datasets:[{ label:'برگشت', data: mret.map(function(x){ return Number(x.total||0); }), borderColor:'#22c55e', backgroundColor:'rgba(34,197,94,0.12)', fill:true, tension:0.35 }] },
-                    options:{ responsive:true, plugins:{ legend:{ position:'bottom' }, zoom:{ zoom:{ wheel:{enabled:true}, mode:'x' }, pan:{enabled:true, mode:'x'} } }, scales:{ y:{ beginAtZero:true } } }
+                            type: 'line',
+                            data: {
+                                labels: mret.map(function (x) {
+                                    return new Date(x.month).toLocaleDateString('fa-IR');
+                                }), datasets: [{
+                                    label: 'برگشت',
+                                    data: mret.map(function (x) {
+                                        return Number(x.total || 0);
+                                    }),
+                                    borderColor: '#22c55e',
+                                    backgroundColor: 'rgba(34,197,94,0.12)',
+                                    fill: true,
+                                    tension: 0.35
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                plugins: {
+                                    legend: {position: 'bottom'},
+                                    zoom: {zoom: {wheel: {enabled: true}, mode: 'x'}, pan: {enabled: true, mode: 'x'}}
+                                },
+                                scales: {y: {beginAtZero: true}}
+                            }
                 });
             }
 
             // Sankey/Funnel: budget flow (demo) if data present
             try {
                 var sank = document.getElementById('budgetFlowSankey');
-                if (sank && window['SankeyController'] && (ab.concentration||{}).organizations) {
-                    var orgsS = (ab.concentration.organizations||[]).slice(0,4);
+                        if (sank && window['SankeyController'] && (ab.concentration || {}).organizations) {
+                            var orgsS = (ab.concentration.organizations || []).slice(0, 4);
                     var links = [];
-                    orgsS.forEach(function(o){ links.push({ from:'تخصیص', to:o.name, flow:Number(o.total||0) }); });
-                    new Chart(sank, { type:'sankey', data:{ datasets:[{ label:'جریان تخصیص→سازمان', data: links, colorFrom:'#3b82f6', colorTo:'#8b5cf6', colorMode:'gradient' }] }, options:{ plugins:{ legend:{ position:'bottom' } } } });
-                }
-            } catch(e) { console.warn('sankey init error', e); }
+                            orgsS.forEach(function (o) {
+                                links.push({from: 'تخصیص', to: o.name, flow: Number(o.total || 0)});
+                            });
+                            new Chart(sank, {
+                                type: 'sankey',
+                                data: {
+                                    datasets: [{
+                                        label: 'جریان تخصیص→سازمان',
+                                        data: links,
+                                        colorFrom: '#3b82f6',
+                                        colorTo: '#8b5cf6',
+                                        colorMode: 'gradient'
+                                    }]
+                                },
+                                options: {plugins: {legend: {position: 'bottom'}}}
+                            });
+                        }
+                    } catch (e) {
+                        console.warn('sankey init error', e);
+                    }
 
             // Rankings
             var orgs = ac.rankings?.organizations || [];
             var ctxRO = document.getElementById('rankOrganizations');
             if (ctxRO && orgs.length) {
                 new Chart(ctxRO, {
-                    type:'bar',
-                    data:{ labels: orgs.map(function(x){ return x.name; }), datasets:[
-                        { label:'مصرف', data: orgs.map(function(x){ return x.consumption||0; }), backgroundColor:'#3b82f6' },
-                        { label:'برگشت', data: orgs.map(function(x){ return x.returns||0; }), backgroundColor:'#22c55e' },
-                        { label:'کارایی (%)', data: orgs.map(function(x){ return x.efficiency_pct||0; }), backgroundColor:'#f59e0b', yAxisID:'y1' }
-                    ] },
-                    options:{ responsive:true, plugins:{ legend:{ position:'bottom' }, zoom:{ zoom:{ wheel:{enabled:true}, mode:'xy' }, pan:{enabled:true, mode:'xy'} } }, scales:{ y:{ beginAtZero:true }, y1:{ beginAtZero:true, position:'right', ticks:{ callback:function(v){ return v+'%'; } } } } }
+                            type: 'bar',
+                            data: {
+                                labels: orgs.map(function (x) {
+                                    return x.name;
+                                }), datasets: [
+                                    {
+                                        label: 'مصرف', data: orgs.map(function (x) {
+                                            return x.consumption || 0;
+                                        }), backgroundColor: '#3b82f6'
+                                    },
+                                    {
+                                        label: 'برگشت', data: orgs.map(function (x) {
+                                            return x.returns || 0;
+                                        }), backgroundColor: '#22c55e'
+                                    },
+                                    {
+                                        label: 'کارایی (%)', data: orgs.map(function (x) {
+                                            return x.efficiency_pct || 0;
+                                        }), backgroundColor: '#f59e0b', yAxisID: 'y1'
+                                    }
+                                ]
+                            },
+                            options: {
+                                responsive: true,
+                                plugins: {
+                                    legend: {position: 'bottom'},
+                                    zoom: {zoom: {wheel: {enabled: true}, mode: 'xy'}, pan: {enabled: true, mode: 'xy'}}
+                                },
+                                scales: {
+                                    y: {beginAtZero: true},
+                                    y1: {
+                                        beginAtZero: true, position: 'right', ticks: {
+                                            callback: function (v) {
+                                                return v + '%';
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                 });
             }
 
@@ -2153,27 +3137,67 @@ function initializeCharts() {
             var ctxRP = document.getElementById('rankProjects');
             if (ctxRP && projs.length) {
                 new Chart(ctxRP, {
-                    type:'bar',
-                    data:{ labels: projs.map(function(x){ return x.name; }), datasets:[
-                        { label:'مصرف', data: projs.map(function(x){ return x.consumption||0; }), backgroundColor:'#3b82f6' },
-                        { label:'برگشت', data: projs.map(function(x){ return x.returns||0; }), backgroundColor:'#22c55e' },
-                        { label:'کارایی (%)', data: projs.map(function(x){ return x.efficiency_pct||0; }), backgroundColor:'#f59e0b', yAxisID:'y1' }
-                    ] },
-                    options:{ responsive:true, plugins:{ legend:{ position:'bottom' }, zoom:{ zoom:{ wheel:{enabled:true}, mode:'xy' }, pan:{enabled:true, mode:'xy'} } }, scales:{ y:{ beginAtZero:true }, y1:{ beginAtZero:true, position:'right', ticks:{ callback:function(v){ return v+'%'; } } } } }
+                            type: 'bar',
+                            data: {
+                                labels: projs.map(function (x) {
+                                    return x.name;
+                                }), datasets: [
+                                    {
+                                        label: 'مصرف', data: projs.map(function (x) {
+                                            return x.consumption || 0;
+                                        }), backgroundColor: '#3b82f6'
+                                    },
+                                    {
+                                        label: 'برگشت', data: projs.map(function (x) {
+                                            return x.returns || 0;
+                                        }), backgroundColor: '#22c55e'
+                                    },
+                                    {
+                                        label: 'کارایی (%)', data: projs.map(function (x) {
+                                            return x.efficiency_pct || 0;
+                                        }), backgroundColor: '#f59e0b', yAxisID: 'y1'
+                                    }
+                                ]
+                            },
+                            options: {
+                                responsive: true,
+                                plugins: {
+                                    legend: {position: 'bottom'},
+                                    zoom: {zoom: {wheel: {enabled: true}, mode: 'xy'}, pan: {enabled: true, mode: 'xy'}}
+                                },
+                                scales: {
+                                    y: {beginAtZero: true},
+                                    y1: {
+                                        beginAtZero: true, position: 'right', ticks: {
+                                            callback: function (v) {
+                                                return v + '%';
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                 });
             }
 
             // Populate risk summary counts
             try {
-                if (typeof advancedRisk === 'string') { advancedRisk = JSON.parse(advancedRisk); }
+                        if (typeof advancedRisk === 'string') {
+                            advancedRisk = JSON.parse(advancedRisk);
+                        }
                 var rs = advancedRisk || {};
-                var byId = function(id){ return document.getElementById(id); };
+                        var byId = function (id) {
+                            return document.getElementById(id);
+                        };
                 if (byId('riskOverconsumptionCount')) byId('riskOverconsumptionCount').textContent = rs.summary?.overconsumption_count || 0;
-                if (byId('riskHighReturnCount')) byId('riskHighReturnCount').textContent = (Math.max(rs.summary?.high_return_org_count||0, rs.summary?.high_return_project_count||0));
+                        if (byId('riskHighReturnCount')) byId('riskHighReturnCount').textContent = (Math.max(rs.summary?.high_return_org_count || 0, rs.summary?.high_return_project_count || 0));
                 if (byId('riskDelayCount')) byId('riskDelayCount').textContent = rs.summary?.long_cycles_count || 0;
                 if (byId('riskConcentrationCount')) byId('riskConcentrationCount').textContent = rs.summary?.payee_concentration_count || 0;
-            } catch(e) { console.warn('risk summary fill error', e); }
-        } catch(e){ console.warn('advanced budget charts error', e); }
+                    } catch (e) {
+                        console.warn('risk summary fill error', e);
+                    }
+                } catch (e) {
+                    console.warn('advanced budget charts error', e);
+                }
     });
 })();
 
@@ -2182,15 +3206,15 @@ function loadFilterOptions() {
     console.log('Loading filter options with static data...');
     
     // Static organizations data
-    var organizations = [    ];
+            var organizations = [];
     
     // Static projects data
-    var projects = [ ];
+            var projects = [];
     
     // Load organizations
     var orgSelect = document.getElementById('organization');
     if (orgSelect) {
-        organizations.forEach(function(org) {
+                organizations.forEach(function (org) {
             var option = document.createElement('option');
             option.value = org.id;
             option.textContent = org.name;
@@ -2202,7 +3226,7 @@ function loadFilterOptions() {
     // Load projects
     var projectSelect = document.getElementById('project');
     if (projectSelect) {
-        projects.forEach(function(project) {
+                projects.forEach(function (project) {
             var option = document.createElement('option');
             option.value = project.id;
             option.textContent = project.name;
@@ -2216,13 +3240,13 @@ function loadFilterOptions() {
 function animateCounters() {
     var counters = document.querySelectorAll('.stat-value');
     
-    counters.forEach(function(counter) {
+            counters.forEach(function (counter) {
         var target = parseInt(counter.textContent.replace(/,/g, ''));
         var duration = 2000;
         var increment = target / (duration / 16);
         var current = 0;
         
-        var timer = setInterval(function() {
+                var timer = setInterval(function () {
             current += increment;
             if (current >= target) {
                 current = target;
@@ -2259,7 +3283,7 @@ function animateProgressRing() {
 setTimeout(animateProgressRing, 1000);
 
 // Initialize date inputs (no pDatepicker needed)
-$(document).ready(function() {
+        $(document).ready(function () {
     console.log('Date inputs initialized with regular HTML5 date picker');
 });
 
@@ -2267,7 +3291,7 @@ $(document).ready(function() {
 function updateChartsForTheme() {
     // Reinitialize charts with new theme colors
     if (typeof initializeCharts === 'function') {
-        setTimeout(function() {
+                setTimeout(function () {
             initializeChartsDebounced(50);
             setTimeout(injectPerChartHelp, 200);
             setTimeout(injectPerKPIHelp, 220);
@@ -2278,26 +3302,26 @@ function updateChartsForTheme() {
 // Inject collapsible per-chart help blocks
 function injectPerChartHelp() {
     var definitions = [
-        { id:'budgetDistributionChart', text:'درصد سهم هر سازمان = مبلغ سازمان ÷ مجموع مبالغ × ۱۰۰' },
-        { id:'monthlyConsumptionChart', text:'روند مصرف = جمع مصرف ماهانه؛ برچسب تاریخ به تقویم فارسی.' },
-        { id:'plannedActualChart', text:'درصد انحراف = (واقعی − برنامه) ÷ برنامه × ۱۰۰' },
-        { id:'forecastRemainingChart', text:'باقی‌مانده پیش‌بینی‌شده بر مبنای روند مصرف اخیر.' },
-        { id:'concentrationChart', text:'سهم هر مورد = مقدار ÷ مجموع × ۱۰۰ (Top-N).' },
-        { id:'agingChart', text:'تعداد تخصیص‌ها در بازه‌های 0-30/31-60/61-90/90+ روز.' },
-        { id:'tankhahStatusChart', text:'تعداد هر وضعیت در بازه فیلتر؛ مقیاس‌گذاری از صفر.' },
-        { id:'tankhahStatusByOrgChart', text:'تعداد وضعیت‌ها به تفکیک سازمان؛ نمایش گروهی.' },
-        { id:'tankhahStatusByProjectChart', text:'تعداد وضعیت‌ها به تفکیک پروژه؛ نمایش گروهی.' },
-        { id:'tankhahSettlementAgingChart', text:'تعداد تسویه‌ها در بازه‌های 0-30/31-60/61-90/90+ روز.' },
-        { id:'factorCategoryChart', text:'سهم هر دسته = مبلغ/تعداد دسته ÷ مجموع × ۱۰۰' },
-        { id:'factorHighRiskTopAmount', text:'شناسایی Top مبلغ‌ها؛ نمایش بر حسب مبلغ ریالی.' },
-        { id:'factorRepeatedVendors', text:'شمارش تعداد فاکتورهای هر فروشنده و رتبه‌بندی پرتکرارها.' },
-        { id:'factorOutsideBudget', text:'موارد عبور از سقف بودجه یا فاقد بودجه مرتبط.' },
-        { id:'compMonthlyConsumption', text:'درصد تغییرات MoM/YoY از سری زمانی مصرف.' },
-        { id:'compMonthlyReturns', text:'درصد تغییرات MoM/YoY از سری زمانی برگشت.' },
-        { id:'rankOrganizations', text:'رتبه‌بندی بر اساس مصرف، برگشت و کارایی (مصرف ÷ تخصیص × ۱۰۰).' },
-        { id:'rankProjects', text:'رتبه‌بندی پروژه‌ها بر اساس مصرف، برگشت و کارایی.' }
-    ];
-    definitions.forEach(function(d) {
+                {id: 'budgetDistributionChart', text: 'درصد سهم هر سازمان = مبلغ سازمان ÷ مجموع مبالغ × ۱۰۰'},
+                {id: 'monthlyConsumptionChart', text: 'روند مصرف = جمع مصرف ماهانه؛ برچسب تاریخ به تقویم فارسی.'},
+                {id: 'plannedActualChart', text: 'درصد انحراف = (واقعی − برنامه) ÷ برنامه × ۱۰۰'},
+                {id: 'forecastRemainingChart', text: 'باقی‌مانده پیش‌بینی‌شده بر مبنای روند مصرف اخیر.'},
+                {id: 'concentrationChart', text: 'سهم هر مورد = مقدار ÷ مجموع × ۱۰۰ (Top-N).'},
+                {id: 'agingChart', text: 'تعداد تخصیص‌ها در بازه‌های 0-30/31-60/61-90/90+ روز.'},
+                {id: 'tankhahStatusChart', text: 'تعداد هر وضعیت در بازه فیلتر؛ مقیاس‌گذاری از صفر.'},
+                {id: 'tankhahStatusByOrgChart', text: 'تعداد وضعیت‌ها به تفکیک سازمان؛ نمایش گروهی.'},
+                {id: 'tankhahStatusByProjectChart', text: 'تعداد وضعیت‌ها به تفکیک پروژه؛ نمایش گروهی.'},
+                {id: 'tankhahSettlementAgingChart', text: 'تعداد تسویه‌ها در بازه‌های 0-30/31-60/61-90/90+ روز.'},
+                {id: 'factorCategoryChart', text: 'سهم هر دسته = مبلغ/تعداد دسته ÷ مجموع × ۱۰۰'},
+                {id: 'factorHighRiskTopAmount', text: 'شناسایی Top مبلغ‌ها؛ نمایش بر حسب مبلغ ریالی.'},
+                {id: 'factorRepeatedVendors', text: 'شمارش تعداد فاکتورهای هر فروشنده و رتبه‌بندی پرتکرارها.'},
+                {id: 'factorOutsideBudget', text: 'موارد عبور از سقف بودجه یا فاقد بودجه مرتبط.'},
+                {id: 'compMonthlyConsumption', text: 'درصد تغییرات MoM/YoY از سری زمانی مصرف.'},
+                {id: 'compMonthlyReturns', text: 'درصد تغییرات MoM/YoY از سری زمانی برگشت.'},
+                {id: 'rankOrganizations', text: 'رتبه‌بندی بر اساس مصرف، برگشت و کارایی (مصرف ÷ تخصیص × ۱۰۰).'},
+                {id: 'rankProjects', text: 'رتبه‌بندی پروژه‌ها بر اساس مصرف، برگشت و کارایی.'}
+            ];
+            definitions.forEach(function (d) {
         var canvas = document.getElementById(d.id);
         if (!canvas) return;
         var container = canvas.closest('.chart-container');
@@ -2313,7 +3337,9 @@ function injectPerChartHelp() {
 
     // Tables help: returns by organization
     try {
-        var orgTitle = Array.from(document.querySelectorAll('.chart-container h5')).find(function(h){ return h.textContent.indexOf('برگشت بودجه بر اساس سازمان') !== -1; });
+                var orgTitle = Array.from(document.querySelectorAll('.chart-container h5')).find(function (h) {
+                    return h.textContent.indexOf('برگشت بودجه بر اساس سازمان') !== -1;
+                });
         if (orgTitle) {
             var orgContainer = orgTitle.closest('.chart-container');
             if (orgContainer && !orgContainer.querySelector('#help-returnsByOrg')) {
@@ -2324,7 +3350,9 @@ function injectPerChartHelp() {
                 orgContainer.appendChild(div);
             }
         }
-        var prjTitle = Array.from(document.querySelectorAll('.chart-container h5')).find(function(h){ return h.textContent.indexOf('برگشت بودجه بر اساس پروژه') !== -1; });
+                var prjTitle = Array.from(document.querySelectorAll('.chart-container h5')).find(function (h) {
+                    return h.textContent.indexOf('برگشت بودجه بر اساس پروژه') !== -1;
+                });
         if (prjTitle) {
             var prjContainer = prjTitle.closest('.chart-container');
             if (prjContainer && !prjContainer.querySelector('#help-returnsByProject')) {
@@ -2335,41 +3363,46 @@ function injectPerChartHelp() {
                 prjContainer.appendChild(div2);
             }
         }
-    } catch(e) { console.warn('table help injection error', e); }
+            } catch (e) {
+                console.warn('table help injection error', e);
+            }
 }
 
 // Inject collapsible help blocks for KPI cards
 function injectPerKPIHelp() {
     // Budget KPIs
     var kpiMap = [
-        { id:'kpiAbsorption', text:'نرخ جذب بودجه = مصرف ÷ تخصیص × ۱۰۰' },
-        { id:'kpiAllocated', text:'کل تخصیص = مجموع مبالغ تخصیص‌یافته در بازه/فیلتر' },
-        { id:'kpiConsumed', text:'کل مصرف = مجموع تراکنش‌های مصرف (CONSUMPTION)' },
-        { id:'kpiRemaining', text:'باقی‌مانده = تخصیص − مصرف + برگشت' },
+                {id: 'kpiAbsorption', text: 'نرخ جذب بودجه = مصرف ÷ تخصیص × ۱۰۰'},
+                {id: 'kpiAllocated', text: 'کل تخصیص = مجموع مبالغ تخصیص‌یافته در بازه/فیلتر'},
+                {id: 'kpiConsumed', text: 'کل مصرف = مجموع تراکنش‌های مصرف (CONSUMPTION)'},
+                {id: 'kpiRemaining', text: 'باقی‌مانده = تخصیص − مصرف + برگشت'},
 
         // Tankhah KPIs
-        { id:'kpiAvgSettlement', text:'میانگین زمان تسویه = میانگین(تاریخ تسویه − تاریخ ایجاد) به روز' },
-        { id:'kpiOverdueRate', text:'نرخ معوق = (تعداد بازهای > N روز ÷ کل درخواست‌های باز) × ۱۰۰' },
-        { id:'kpiAvgCeilingUsage', text:'میانگین استفاده از سقف = میانگین(مبلغ استفاده ÷ سقف) × ۱۰۰' },
+                {id: 'kpiAvgSettlement', text: 'میانگین زمان تسویه = میانگین(تاریخ تسویه − تاریخ ایجاد) به روز'},
+                {id: 'kpiOverdueRate', text: 'نرخ معوق = (تعداد بازهای > N روز ÷ کل درخواست‌های باز) × ۱۰۰'},
+                {id: 'kpiAvgCeilingUsage', text: 'میانگین استفاده از سقف = میانگین(مبلغ استفاده ÷ سقف) × ۱۰۰'},
 
         // Factor KPIs
-        { id:'kpiFactorAvgCycle', text:'میانگین چرخه فاکتور = میانگین(تاریخ پرداخت/تایید − تاریخ ثبت) به روز' },
-        { id:'kpiFactorRejection', text:'نرخ رد/بازگشت = (تعداد رد یا بازگشت ÷ کل فاکتورها) × ۱۰۰' },
+                {id: 'kpiFactorAvgCycle', text: 'میانگین چرخه فاکتور = میانگین(تاریخ پرداخت/تایید − تاریخ ثبت) به روز'},
+                {id: 'kpiFactorRejection', text: 'نرخ رد/بازگشت = (تعداد رد یا بازگشت ÷ کل فاکتورها) × ۱۰۰'},
 
         // Comparative KPIs
-        { id:'kpiMoMCons', text:'MoM مصرف = ((مصرف این ماه − ماه قبل) ÷ ماه قبل) × ۱۰۰' },
-        { id:'kpiYoYCons', text:'YoY مصرف = ((مصرف این ماه − همان ماه سال قبل) ÷ سال قبل) × ۱۰۰' },
-        { id:'kpiMoMRet', text:'MoM برگشت = ((برگشت این ماه − ماه قبل) ÷ ماه قبل) × ۱۰۰' },
-        { id:'kpiYoYRet', text:'YoY برگشت = ((برگشت این ماه − همان ماه سال قبل) ÷ سال قبل) × ۱۰۰' },
+                {id: 'kpiMoMCons', text: 'MoM مصرف = ((مصرف این ماه − ماه قبل) ÷ ماه قبل) × ۱۰۰'},
+                {id: 'kpiYoYCons', text: 'YoY مصرف = ((مصرف این ماه − همان ماه سال قبل) ÷ سال قبل) × ۱۰۰'},
+                {id: 'kpiMoMRet', text: 'MoM برگشت = ((برگشت این ماه − ماه قبل) ÷ ماه قبل) × ۱۰۰'},
+                {id: 'kpiYoYRet', text: 'YoY برگشت = ((برگشت این ماه − همان ماه سال قبل) ÷ سال قبل) × ۱۰۰'},
 
         // Risk summary badges
-        { id:'riskOverconsumptionCount', text:'اضافه‌مصرف: مواردی که مصرف به آستانه تعیین‌شده از تخصیص رسیده/عبور کرده' },
-        { id:'riskHighReturnCount', text:'برگشت بالا: سازمان/پروژه با نسبت برگشت به تخصیص بیش از آستانه' },
-        { id:'riskDelayCount', text:'تأخیر: چرخه‌های طولانی‌تر از N روز در پرداخت/تسویه' },
-        { id:'riskConcentrationCount', text:'تمرکز: سهم زیاد چند ذی‌نفع/پروژه از مجموع پرداخت‌ها' }
-    ];
+                {
+                    id: 'riskOverconsumptionCount',
+                    text: 'اضافه‌مصرف: مواردی که مصرف به آستانه تعیین‌شده از تخصیص رسیده/عبور کرده'
+                },
+                {id: 'riskHighReturnCount', text: 'برگشت بالا: سازمان/پروژه با نسبت برگشت به تخصیص بیش از آستانه'},
+                {id: 'riskDelayCount', text: 'تأخیر: چرخه‌های طولانی‌تر از N روز در پرداخت/تسویه'},
+                {id: 'riskConcentrationCount', text: 'تمرکز: سهم زیاد چند ذی‌نفع/پروژه از مجموع پرداخت‌ها'}
+            ];
 
-    kpiMap.forEach(function(item) {
+            kpiMap.forEach(function (item) {
         var el = document.getElementById(item.id);
         if (!el) return;
         var card = el.closest('.stats-card');
@@ -2385,13 +3418,13 @@ function injectPerKPIHelp() {
 
     // Overview 4 top cards by title text (if IDs نبود)
     var titleMap = {
-        'کل بودجه':'کل بودجه = مجموع BudgetPeriod.total_amount',
-        'کل تخصیص':'کل تخصیص = مجموع مبلغ تخصیص‌ها با اعمال فیلتر',
-        'کل مصرف':'کل مصرف = مجموع تراکنش‌های CONSUMPTION',
-        'کل برگشت':'کل برگشت = مجموع تراکنش‌های RETURN'
+                'کل بودجه': 'کل بودجه = مجموع BudgetPeriod.total_amount',
+                'کل تخصیص': 'کل تخصیص = مجموع مبلغ تخصیص‌ها با اعمال فیلتر',
+                'کل مصرف': 'کل مصرف = مجموع تراکنش‌های CONSUMPTION',
+                'کل برگشت': 'کل برگشت = مجموع تراکنش‌های RETURN'
     };
     var cards = document.querySelectorAll('.dash-pane.active #pane-overview .stats-card, #pane-overview .stats-card');
-    cards.forEach(function(c){
+            cards.forEach(function (c) {
         var title = c.querySelector('.card-title');
         if (!title) return;
         var hint = titleMap[title.textContent && title.textContent.trim()];
@@ -2399,7 +3432,7 @@ function injectPerKPIHelp() {
         if (c.querySelector('.collapse[data-overview-help="1"]')) return;
         var div = document.createElement('div');
         div.className = 'mt-2';
-        var id = 'help-overview-' + (title.textContent || '').replace(/\s+/g,'-');
+                var id = 'help-overview-' + (title.textContent || '').replace(/\s+/g, '-');
         div.innerHTML = '<a class="text-decoration-none" data-bs-toggle="collapse" href="#' + id + '">راهنمای محاسبات</a>' +
             '<div class="collapse" id="' + id + '" data-overview-help="1"><div class="mt-2 small text-muted">' + hint + '</div></div>';
         c.appendChild(div);

@@ -8,6 +8,7 @@ from django.db.models import Sum, Count, Q, F, Case, When, DecimalField
 from django.db.models.functions import TruncMonth, TruncDay, TruncYear
 from django.utils import timezone
 from datetime import datetime, timedelta
+from django.utils.translation import gettext_lazy as _  
 import json
 from decimal import Decimal
 try:
@@ -20,13 +21,17 @@ from budgets.models import (
     PaymentOrder, BudgetItem
 )
 from tankhah.models import Tankhah, Factor
-from core.models import Organization, Project, Status
+from core.models import Organization, Project, Status, SystemSettings
 
 
 class DashboardMainView(PermissionBaseView, TemplateView):
     """داشبورد اصلی گزارشات با آمار کلی"""
     template_name = 'reports/dashboard/main_dashboard.html'
     permission_codename = 'reports.view_dashboard'
+    check_permissions = True
+    check_organization = False
+    permission_denied_message = _('متاسفانه دسترسی لازم برای مشاهده این گزارش را ندارید.')
+    
     # کدهای دسترسی تب‌ها (قابل تغییر در آینده)
     TAB_PERMISSION_CODES = {
         'overview': 'reports.Dashboard_view',
@@ -35,14 +40,24 @@ class DashboardMainView(PermissionBaseView, TemplateView):
         'factors': 'reports.Dashboard_factors',
         'risk': 'reports.Dashboard_risk',
     }
+
+    # Use default PermissionBaseView checks
     
     def get_context_data(self, **kwargs):
+        import logging
+        logger = logging.getLogger(__name__)
+        
+        logger.info(f"[DASHBOARD] شروع get_context_data - User: {self.request.user}")
         context = super().get_context_data(**kwargs)
+        logger.info(f"[DASHBOARD] super().get_context_data اجرا شد")
+        
         # فیلترهای دریافت شده (ست اصلی)
         start_date = self._parse_jalali_date(self.request.GET.get('start_date'))
         end_date = self._parse_jalali_date(self.request.GET.get('end_date'))
         organization_id = self.request.GET.get('organization')
         project_id = self.request.GET.get('project')
+        
+        logger.info(f"[DASHBOARD] فیلترها - start_date: {start_date}, end_date: {end_date}, org: {organization_id}, project: {project_id}")
         
         # آمار کلی بودجه (با فیلترها)
         budget_stats = self.get_budget_statistics(start_date, end_date, organization_id, project_id)
@@ -69,18 +84,41 @@ class DashboardMainView(PermissionBaseView, TemplateView):
         context['return_stats'] = return_stats
         
         # چارت‌های داده
-        chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id)
-        context['chart_data'] = json.dumps(chart_data, ensure_ascii=False)
+        logger.info("[DASHBOARD] شروع get_chart_data")
+        chart_data = {}
+        try:
+            chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+            logger.info(f"[DASHBOARD] chart_data دریافت شد - نوع: {type(chart_data)}, کلیدها: {list(chart_data.keys()) if isinstance(chart_data, dict) else 'Not dict'}")
+            for key, value in (chart_data.items() if isinstance(chart_data, dict) else []):
+                if isinstance(value, list):
+                    logger.info(f"[DASHBOARD] {key}: {len(value)} آیتم")
+                else:
+                    logger.info(f"[DASHBOARD] {key}: {value}")
+        except Exception as e:
+            logger.error(f"[DASHBOARD] خطا در get_chart_data: {e}", exc_info=True)
+            chart_data = {}
+        
+        context['chart_data'] = chart_data  # بدون json.dumps - در template استفاده می‌شود
+        context['chart_data_json'] = json.dumps(chart_data, ensure_ascii=False) if chart_data else "{}"  # برای JavaScript
+        logger.info(f"[DASHBOARD] chart_data_json طول: {len(context['chart_data_json'])}")
+        logger.info(f"[DASHBOARD] chart_data_json در context اضافه شد: {'chart_data_json' in context}")
+        logger.info(f"[DASHBOARD] کلیدهای context: {list(context.keys())}")
 
-        # متریک‌های پیشرفته بودجه (نرخ جذب، برنامه/واقعی، پیش‌بینی، تمرکز، ایجینگ)
+        # Debug markers for template
+        context['debug_marker'] = 'CTX-OK'
+        context['debug_chart_len'] = len(context['chart_data_json'] or '')
+
+        # Remove SystemSettings-driven widget flags; rendering will be data-driven only
+
+        # متریک‌های پیشرفته بودجه (همیشه محاسبه می‌شود؛ نمایش در تمپلیت بر اساس وجود داده)
         advanced_budget = self.get_advanced_budget_metrics(start_date, end_date, organization_id, project_id)
         context['advanced_budget'] = json.dumps(advanced_budget, ensure_ascii=False, default=str)
 
-        # متریک‌های پیشرفته تنخواه (تسویه، معوق، سقف، وضعیت، ایجینگ تسویه)
+        # متریک‌های پیشرفته تنخواه (همیشه محاسبه می‌شود)
         advanced_tankhah = self.get_advanced_tankhah_metrics(start_date, end_date, organization_id, project_id)
         context['advanced_tankhah'] = json.dumps(advanced_tankhah, ensure_ascii=False, default=str)
 
-        # متریک‌های پیشرفته فاکتور
+        # متریک‌های پیشرفته فاکتور (همیشه محاسبه می‌شود)
         advanced_factor = self.get_advanced_factor_metrics(start_date, end_date, organization_id, project_id)
         context['advanced_factor'] = json.dumps(advanced_factor, ensure_ascii=False, default=str)
 
@@ -107,8 +145,42 @@ class DashboardMainView(PermissionBaseView, TemplateView):
             context['chart_data_compare'] = json.dumps(self.get_chart_data(compare_start, compare_end, compare_org, compare_project), ensure_ascii=False)
 
         # گزینه‌های واقعی سازمان و پروژه برای فیلترها
-        context['organizations'] = list(Organization.objects.values('id', 'name').order_by('name'))
-        context['projects'] = list(Project.objects.values('id', 'name').order_by('name'))
+        orgs = list(Organization.objects.values('id', 'name').order_by('name'))
+        projs = list(Project.objects.values('id', 'name').order_by('name'))
+        # Fallbacks if base tables are empty but linked data exists
+        if not orgs:
+            try:
+                orgs = list(
+                    BudgetAllocation.objects.values('organization__id', 'organization__name')
+                    .distinct().order_by('organization__name')
+                )
+                # normalize keys
+                orgs = [
+                    {'id': o.get('organization__id'), 'name': o.get('organization__name')}
+                    for o in orgs if o.get('organization__id')
+                ]
+            except Exception:
+                pass
+        if not projs:
+            try:
+                projs = list(
+                    BudgetAllocation.objects.values('project__id', 'project__name')
+                    .distinct().order_by('project__name')
+                )
+                projs = [
+                    {'id': p.get('project__id'), 'name': p.get('project__name')}
+                    for p in projs if p.get('project__id')
+                ]
+            except Exception:
+                pass
+        context['organizations'] = orgs
+        context['projects'] = projs
+        context['debug_org_count'] = len(orgs)
+        context['debug_proj_count'] = len(projs)
+        try:
+            logger.info(f"[DASHBOARD] organizations count: {len(orgs)} | projects count: {len(projs)}")
+        except Exception:
+            pass
 
         # جدول دسته‌بندی فاکتورها (Top 10)
         context['factor_category_table'] = factor_stats.get('category_stats', [])[:10]
@@ -162,7 +234,30 @@ class DashboardMainView(PermissionBaseView, TemplateView):
         context['can_view_tankhah'] = True
         context['can_view_factors'] = True
         context['can_view_risk'] = True
-        
+
+        # Debug: database info and live counts to detect DB mismatch
+        try:
+            from django.conf import settings
+            default_db = settings.DATABASES.get('default', {})
+            context['debug_db'] = {
+                'ENGINE': default_db.get('ENGINE'),
+                'NAME': default_db.get('NAME'),
+                'HOST': default_db.get('HOST'),
+                'USER': default_db.get('USER'),
+            }
+            context['debug_counts'] = {
+                'organizations': Organization.objects.count(),
+                'projects': Project.objects.count(),
+                'budget_periods': BudgetPeriod.objects.count(),
+                'allocations': BudgetAllocation.objects.count(),
+                'transactions': BudgetTransaction.objects.count(),
+                'tankhah': Tankhah.objects.count(),
+                'factors': Factor.objects.count(),
+            }
+            context['debug_total_budget_direct'] = BudgetPeriod.objects.aggregate(total=Sum('total_amount'))['total'] or Decimal('0')
+        except Exception:
+            pass
+
         return context
     
     def _parse_jalali_date(self, value):
@@ -1024,13 +1119,18 @@ class DashboardMainView(PermissionBaseView, TemplateView):
     
     def get_chart_data(self, start_date=None, end_date=None, organization_id=None, project_id=None):
         """داده‌های چارت‌ها"""
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.info(f"[CHART_DATA] شروع get_chart_data - start_date: {start_date}, end_date: {end_date}, org: {organization_id}, project: {project_id}")
+        
         allocations_qs = BudgetAllocation.objects.all()
+        logger.info(f"[CHART_DATA] تعداد تخصیص‌های اولیه: {allocations_qs.count()}")
         if start_date:
             allocations_qs = allocations_qs.filter(allocation_date__gte=start_date)
         if end_date:
             allocations_qs = allocations_qs.filter(allocation_date__lte=end_date)
         if organization_id:
-            allocations_qs = allocations_qs.filter(organization_id=organization_id)
+            allocations_qs = allocations_qs.filter(organization=organization_id)
         if project_id:
             allocations_qs = allocations_qs.filter(project_id=project_id)
 
@@ -1038,6 +1138,31 @@ class DashboardMainView(PermissionBaseView, TemplateView):
         org_budget = allocations_qs.values('organization__name').annotate(
             total=Sum('allocated_amount')
         ).order_by('-total')[:10]
+        # Fallback: اگر تخصیص‌ها خالی باشد از تراکنش‌های بودجه استفاده کن (ALLOCATION/INCREASE)
+        if not org_budget:
+            allocations_from_tx = BudgetTransaction.objects.filter(
+                allocation__isnull=False,
+                transaction_type__in=['ALLOCATION', 'INCREASE']
+            )
+            if start_date:
+                allocations_from_tx = allocations_from_tx.filter(timestamp__date__gte=start_date)
+            if end_date:
+                allocations_from_tx = allocations_from_tx.filter(timestamp__date__lte=end_date)
+            if organization_id:
+                allocations_from_tx = allocations_from_tx.filter(allocation__organization_id=organization_id)
+            if project_id:
+                allocations_from_tx = allocations_from_tx.filter(allocation__project_id=project_id)
+            org_budget = allocations_from_tx.values('allocation__organization__name').annotate(
+                total=Sum('amount')
+            ).order_by('-total')[:10]
+            # نرمال‌سازی کلید برای خروجی یکتا
+            org_budget = [
+                {'organization__name': r.get('allocation__organization__name') or 'نامشخص', 'total': r.get('total')}
+                for r in org_budget
+            ]
+        logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+        for item in org_budget:
+            logger.info(f"[CHART_DATA] org_budget - {item['organization__name']}: {item['total']}")
         
         # چارت مصرف بودجه در زمان - استفاده از روش ساده‌تر
         tx_qs = BudgetTransaction.objects.filter(transaction_type='CONSUMPTION')
@@ -1046,7 +1171,7 @@ class DashboardMainView(PermissionBaseView, TemplateView):
         if end_date:
             tx_qs = tx_qs.filter(timestamp__date__lte=end_date)
         if organization_id:
-            tx_qs = tx_qs.filter(allocation__organization_id=organization_id)
+            tx_qs = tx_qs.filter(allocation__organization=organization_id)
         if project_id:
             tx_qs = tx_qs.filter(allocation__project_id=project_id)
 
@@ -1055,6 +1180,20 @@ class DashboardMainView(PermissionBaseView, TemplateView):
         ).values('month').annotate(
             total=Sum('amount')
         ).order_by('month')
+        # Fallback: اگر مصرفی ثبت نشده، از فاکتورها به عنوان نماینده مصرف استفاده کن
+        if not monthly_consumption:
+            fx = Factor.objects.all()
+            if start_date:
+                fx = fx.filter(date__gte=start_date)
+            if end_date:
+                fx = fx.filter(date__lte=end_date)
+            if organization_id:
+                fx = fx.filter(tankhah__organization_id=organization_id)
+            if project_id:
+                fx = fx.filter(tankhah__project_id=project_id)
+            monthly_consumption = fx.extra(
+                select={'month': "DATE_FORMAT(date, '%%Y-%%m-01')"}
+            ).values('month').annotate(total=Sum('amount')).order_by('month')
         
         # چارت وضعیت تنخواه‌ها
         tankhah_qs = Tankhah.objects.all()

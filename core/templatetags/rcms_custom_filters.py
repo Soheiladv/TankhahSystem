@@ -195,7 +195,11 @@ logger = logging.getLogger(__name__)
 @register.filter(name='format_negative')
 def format_negative(value):
     """نمایش عدد با جداکننده هزارگان و تبدیل به فارسی. اعداد منفی درون پرانتز قرار می‌گیرند."""
-    if value is None:
+    if value is None or value == '' or value == 'None':
+        return "۰"
+
+    # بررسی اینکه آیا مقدار یک رشته خالی یا فقط فاصله است
+    if isinstance(value, str) and value.strip() == '':
         return "۰"
 
     try:

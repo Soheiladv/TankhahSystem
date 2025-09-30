@@ -26,7 +26,8 @@ urlpatterns = [
                   path('accounts/', include('accounts.urls')),
 
                   path('', include('core.urls')),
-                  path('reports/dashboard/', ReportsDashboardMainView.as_view(), name='reports_dashboard_main'),
+                  # داشبورد گزارش‌ها: استفاده از روتر جدید اپ reports.dashboard
+                  path('reports/dashboard/', include('reports.dashboard.urls')),
                   path('reports/', include('reports.urls')),  # اضافه کردن اپلیکیشن reports
 
                   path('tankhah/', include('tankhah.urls')),  # اضافه کردن اپلیکیشن tankhah

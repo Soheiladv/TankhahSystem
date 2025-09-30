@@ -10,6 +10,8 @@ from django.http import JsonResponse, HttpResponse, HttpResponseBadRequest
 import json
 
 from core.models import SystemSettings
+from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import csrf_exempt
 from core.models import Action, Status
 from core.models import Organization, Post, UserPost, Transition, EntityType
 from core.PermissionBase import PermissionBaseView
@@ -26,6 +28,7 @@ class SystemSettingsDashboardView(PermissionBaseView, TemplateView):
         settings_obj = SystemSettings.objects.first()
         context['settings'] = settings_obj
         context['has_settings'] = settings_obj is not None
+        # Dashboard widget flags removed; no coupling with system settings
         return context
 
 
@@ -412,3 +415,13 @@ class SystemSettingsPreviewView(PermissionBaseView, TemplateView):
         except Exception as e:
             result['error'] = str(e)
         return JsonResponse(result)
+
+# =========================================================
+# API: Toggle dashboard widget visibility (approve/deny)
+# =========================================================
+class ToggleDashboardWidgetView(PermissionBaseView, TemplateView):
+    permission_codename = 'core.SystemSettings_access'
+    check_organization = True
+
+    def post(self, request, *args, **kwargs):
+        return JsonResponse({'ok': False, 'error': 'Dashboard widget toggles are disabled'}, status=400)

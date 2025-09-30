@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load i18n static humanize %}
+{% load i18n static humanize rcms_custom_filters %}
 
 {% block page_title %}{% trans "داشبورد تنظیمات سیستم" %}{% endblock %}
 
@@ -195,6 +195,60 @@
             </div>
         </div>
     </div>
+    <!-- Dashboard Widgets Visibility Management -->
+    <div class="row">
+        <div class="col-12 mb-4">
+            <div class="card setting-category-card h-100">
+                <div class="card-header bg-workflow">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-eye me-2"></i>
+                        مدیریت نمایش ویجت‌های داشبورد گزارشات
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if widget_keys %}
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle">
+                            <thead>
+                                <tr>
+                                    <th>کد ویجت</th>
+                                    <th>وضعیت</th>
+                                    <th class="text-end">اقدام</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for code in widget_keys %}
+                                <tr>
+                                    <td><code>{{ code }}</code></td>
+                                    <td>
+                                        {% if widget_flags and widget_flags|get_item:code %}
+                                            <span class="badge bg-success">نمایش</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">مخفی</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end">
+                                        <div class="btn-group btn-group-sm">
+                                            <button type="button" class="btn btn-outline-success" onclick="toggleWidget('{{ code }}', true)">
+                                                <i class="fas fa-check"></i> تایید نمایش
+                                            </button>
+                                            <button type="button" class="btn btn-outline-danger" onclick="toggleWidget('{{ code }}', false)">
+                                                <i class="fas fa-times"></i> مخفی کردن
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                        <div class="text-muted">هیچ ویجتی تعریف نشده است.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
     {% else %}
     <div class="row">
         <div class="col-12">
@@ -241,6 +295,54 @@
     .setting-item { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
 }
 </style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function getCSRFCookie() {
+    try {
+        const m = document.cookie.match(/(?:^|; )csrftoken=([^;]+)/);
+        return m ? decodeURIComponent(m[1]) : '';
+    } catch (_) { return ''; }
+}
+
+function toggleWidget(code, approve) {
+    const url = '{% url "system_settings_toggle_widget" %}';
+    const payload = { widget: code, approve: !!approve };
+    const headers = {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCSRFCookie(),
+        'X-Requested-With': 'XMLHttpRequest'
+    };
+    fetch(url, {
+        method: 'POST',
+        headers: headers,
+        credentials: 'same-origin',
+        body: JSON.stringify(payload)
+    }).then(async (r) => {
+        const ct = r.headers.get('content-type') || '';
+        if (!r.ok) {
+            // Try to extract text error (e.g., HTML 403/login page)
+            const txt = await r.text().catch(() => '');
+            throw new Error((txt && txt.slice(0, 200)) || ('HTTP ' + r.status));
+        }
+        if (ct.includes('application/json')) {
+            return r.json();
+        } else {
+            const txt = await r.text();
+            throw new Error('پاسخ JSON نبود: ' + txt.slice(0, 200));
+        }
+    }).then((data) => {
+        if (data && data.ok) {
+            window.location.reload();
+        } else {
+            throw new Error(data && data.error ? data.error : 'Operation failed');
+        }
+    }).catch((err) => {
+        alert('خطای شبکه/پاسخ: ' + err.message + '\n\nاحتمالاً مشکل CSRF یا دسترسی. لطفاً صفحه را رفرش کنید و مجدداً تلاش کنید.');
+    });
+}
+</script>
 {% endblock %}
 
 

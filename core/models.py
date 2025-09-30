@@ -788,6 +788,8 @@ class SystemSettings(models.Model):
         obj.save()
         return obj
 
+    # Dashboard widget toggles removed; visibility is no longer managed here
+
     # def __str__(self):
     #     return "تنظیمات سیستم بودجه"
 ############################################################# End Off models
@@ -808,6 +810,45 @@ class DashboardView(models.Model):
         default_permissions = ()
         permissions = [
             ('Dashboard__view', 'دسترسی به داشبورد اصلی 💻')
+        ]
+
+class DashboardWidgetPermissions(models.Model):
+    """Virtual model to declare per-widget view permissions."""
+    class Meta:
+        default_permissions = ()
+        permissions = [
+            # Permissions for each widget (grant to roles/users as needed)
+            ('view_widget_org_budget', 'مشاهده ویجت توزیع بودجه سازمان‌ها'),
+            ('view_widget_monthly_consumption', 'مشاهده ویجت روند مصرف (ماهانه)'),
+            ('view_widget_monthly_returns', 'مشاهده ویجت روند برگشت (ماهانه)'),
+            ('view_widget_tankhah_status', 'مشاهده ویجت وضعیت تنخواه‌ها'),
+            ('view_widget_factor_category', 'مشاهده ویجت دسته‌بندی فاکتورها'),
+            ('view_widget_out_of_budget', 'مشاهده ویجت خارج از محدوده بودجه'),
+            ('view_widget_funnel_budget_path_sankey', 'مشاهده ویجت قیف/سنکی مسیر بودجه'),
+            ('view_widget_factor_category_treemap', 'مشاهده ویجت Treemap دسته‌بندی فاکتورها'),
+            ('view_widget_units_budget_bullet', 'مشاهده ویجت Bullet بودجه واحدها'),
+            ('view_widget_tankhah_ceiling_usage_gauge', 'مشاهده ویجت Gauge سقف تنخواه'),
+            ('view_widget_consumption_allocation_treemap', 'مشاهده ویجت Treemap تمرکز مصرف/تخصیص'),
+            ('view_widget_allocation_to_payment_sankey', 'مشاهده ویجت سنکی تخصیص→مصرف→پرداخت'),
+            ('view_widget_factor_process_funnel', 'مشاهده ویجت قیف فرآیند فاکتور'),
+            ('view_widget_factor_category_scatter', 'مشاهده ویجت Scatter دسته‌بندی فاکتورها'),
+            ('view_widget_reject_return_rate', 'مشاهده ویجت نرخ رد/بازگشت'),
+            ('view_widget_factor_cycle_avg_days', 'مشاهده ویجت میانگین چرخه فاکتور'),
+            ('view_widget_settlement_aging', 'مشاهده ویجت Aging تسویه‌ها'),
+            ('view_widget_forecast_remaining_3m', 'مشاهده ویجت پیش‌بینی مانده (۳ ماه)'),
+            ('view_widget_budget_flow_waterfall', 'مشاهده ویجت جریان بودجه (Waterfall)'),
+            ('view_widget_allocation_settlement_age_heatmap', 'مشاهده ویجت Heatmap سن تخصیص/تسویه'),
+            ('view_widget_budget_absorption_gauge', 'مشاهده ویجت Gauge نرخ جذب بودجه'),
+            ('view_widget_org_project_kpi_radar', 'مشاهده ویجت Radar KPI سازمان/پروژه'),
+            ('view_widget_delay_risk', 'مشاهده ویجت ریسک تأخیر'),
+            ('view_widget_overconsumption_risk', 'مشاهده ویجت ریسک اضافه‌مصرف'),
+            ('view_widget_org_share_polar', 'مشاهده ویجت Polar سهم سازمان‌ها'),
+            ('view_widget_factor_category_stacked_pct', 'مشاهده ویجت ۱۰۰٪ استک دسته‌ها'),
+            ('view_widget_planned_vs_actual', 'مشاهده ویجت برنامه‌ریزی‌شده/واقعی'),
+            ('view_widget_factor_repeated_vendors', 'مشاهده ویجت فروشندگان پرتکرار'),
+            ('view_widget_tankhah_status_by_org', 'مشاهده ویجت وضعیت تنخواه به تفکیک سازمان'),
+            ('view_widget_tankhah_status_by_project', 'مشاهده ویجت وضعیت تنخواه به تفکیک پروژه'),
+            ('view_widget_tankhah_settlement_aging', 'مشاهده ویجت Aging تسویه‌های تنخواه'),
         ]
 class OrganizationChartAPIView(models.Model):
     class Meta:

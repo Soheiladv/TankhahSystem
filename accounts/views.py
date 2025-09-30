@@ -85,7 +85,7 @@ def dashboard_view(request):
             "items": [
                 {"label": "لیست نقش‌ها", "url": "accounts:role_list", "icon": "fas fa-list", "color": "info"},
                 {"label": "ایجاد نقش جدید", "url": "accounts:role_create", "icon": "fas fa-plus", "color": "success"},
-                {"label": "مدیریت قانون کاربری", "url": "user_permission_report", "icon": "fas fa-plus", "color": "success"},
+                {"label": "مدیریت قانون کاربری", "url": "user_permission_report", "icon": "fas fa-plus",  "color": "danger"},
             ],
         },
         {
@@ -93,7 +93,7 @@ def dashboard_view(request):
             "icon": "fas fa-users-cog",
             "items": [
                 {"label": "لیست گروه‌ها", "url": "accounts:group_list", "icon": "fas fa-list", "color": "info"},
-                {"label": "ایجاد گروه جدید", "url": "accounts:group_create", "icon": "fas fa-plus", "color": "success"},
+                {"label": "ایجاد گروه جدید", "url": "accounts:group_create", "icon": "fas fa-plus", "color": "danger"},
             ],
         },
         {
@@ -113,18 +113,14 @@ def dashboard_view(request):
                  "color": "secondary"},
             ],
         },
+
         {
-            "title": "مدیریت نسخه",
-            "icon": "fas fa-soft",
+            "title": "تنطیمات سامانه",
+            "icon": "fas fa-user-tag",
             "items": [
-                {"label": " ثبت قفل جدید و نمایش وضعیت ", "url": "accounts:set_time_lock", "icon": "fas fa-history",
-                 "color": "warning"},
-                {"label": " نمایش لیست تنظیمات قفل ", "url": "accounts:timelock_list", "icon": "fas fa-history",
-                 "color": "warning"},
-                {"label": "وضعیت قفل ", "url": "accounts:lock_status", "icon": "fas fa-history", "color": "warning"},
-                {"label": "فهرست کاربران فعال سیستم ", "url": "accounts:active_user_list", "icon": "fas fa-history",
-                 "color": "warning"},
-                    ],
+                {'name': '  نتنظیمات ساماه (SystemSettings)' , 'url': 'system_settings_dashboard',
+                 'icon': 'fas fa-sliders-h'},
+            ],
         },
         {
             "title": "مدیریت دیتابیس",
@@ -138,14 +134,14 @@ def dashboard_view(request):
             ],
         },
         {
-            "title": "مدیریت پیام ها ",
+            "title": "تنظیمات پیام ها ",
             "icon": "fas fa-user-tag",
             "items": [
-                {"label": "مدیریت پیام ها ", "url": "notifications:inbox", "icon": "fas fa-chart", "color": "danger"},
-                {'name': _('تنظیمات سامانه (SystemSettings)'), 'url': 'system_settings_dashboard',
-                 'icon': 'fas fa-sliders-h'},
-            ],
+                {"label": "مدیریت پیام ها " , "url": "notifications:inbox", "icon": "fas fa-chart", "color": "danger"},
+                 ],
         },
+
+
         {
             "title": "چارت مدل ",
             "icon": "fas fa-user-tag",
@@ -164,6 +160,21 @@ def dashboard_view(request):
                 # {"label": " مجوز گردش کار (D)", "url": "permission_list", "icon": "fas fa-chart", "color": "danger"},
             ],
         },
+
+        {
+            "title": "مدیریت نسخه",
+            "icon": "fas fa-soft",
+            "items": [
+                {"label": " ثبت قفل جدید و نمایش وضعیت ", "url": "accounts:set_time_lock", "icon": "fas fa-history",
+                 "color": "warning"},
+                {"label": " نمایش لیست تنظیمات قفل ", "url": "accounts:timelock_list", "icon": "fas fa-history",
+                 "color": "warning"},
+                {"label": "وضعیت قفل ", "url": "accounts:lock_status", "icon": "fas fa-history", "color": "warning"},
+                {"label": "فهرست کاربران فعال سیستم ", "url": "accounts:active_user_list", "icon": "fas fa-history",
+                 "color": "warning"},
+            ],
+        },
+
     ]
 
     return render(request, "accounts/dashboardLink.html", {"cards": cards})

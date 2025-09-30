@@ -84,6 +84,7 @@ from BudgetsSystem.view.view_SystemSettings import (
     SystemSettingsHealthView,
     SystemSettingsPreviewView,
     OrgActionsReportView,
+    ToggleDashboardWidgetView,
 )
 urlpatterns = [
             # داشبوردها
@@ -260,6 +261,7 @@ urlpatterns += [
             path('system-settings/import/', SystemSettingsImportView.as_view(), name='system_settings_import'),
             path('system-settings/health/', SystemSettingsHealthView.as_view(), name='system_settings_health'),
             path('system-settings/preview/', SystemSettingsPreviewView.as_view(), name='system_settings_preview'),
+            path('system-settings/toggle-widget/', ToggleDashboardWidgetView.as_view(), name='system_settings_toggle_widget'),
             
             # گزارشات جامع
             path('comprehensive-budget-report/', ComprehensiveBudgetReportView.as_view(), name='comprehensive_budget_report'),

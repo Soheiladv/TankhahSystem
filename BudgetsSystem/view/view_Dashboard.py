@@ -71,23 +71,23 @@ dashboard_links = {
         'header': 'گزارشات و تحلیل‌های پیشرفته',
         'links': [
             {'name': _('داشبورد گزارشات پیشرفته'), 'url': 'reports_dashboard:main_dashboard', 'permission': 'budgets.view_budgetallocation', 'icon': 'fas fa-chart-line', 'note': 'داشبورد جدید با آمار کامل و چارت‌های تعاملی'},
-            {'name': _('تحلیل‌های پیشرفته بودجه'), 'url': 'reports_dashboard:budget_analytics', 'permission': 'budgets.view_budgetallocation', 'icon': 'fas fa-chart-bar', 'note': 'تحلیل‌های عمیق و روندهای بودجه'},
+            {'name': _('تحلیل‌های پیشرفته بودجه'), 'url': 'reports_dashboard:analytics_redesigned', 'permission': 'budgets.view_budgetallocation', 'icon': 'fas fa-chart-pie'},
             {'name': _('صادرات گزارشات'), 'url': 'reports_dashboard:export_reports', 'permission': 'budgets.view_budgetallocation', 'icon': 'fas fa-download', 'note': 'صادرات گزارشات در فرمت‌های مختلف'},
-            {'name': _('گزارش پیشرفته تخصیص'), 'url': 'budget_allocation_report_enhanced', 'url_kwargs': {'pk': 84}, 'permission': 'budgets.view_budgetallocation', 'icon': 'fas fa-chart-line', 'note': 'گزارش پیشرفته برای تخصیص بودجه شماره 84'},
+            # {'name': _('گزارش پیشرفته تخصیص'), 'url': 'budget_allocation_report_enhanced', 'url_kwargs': {'pk': 84}, 'permission': 'budgets.view_budgetallocation', 'icon': 'fas fa-chart-line', 'note': 'گزارش پیشرفته برای تخصیص بودجه شماره 84'},
             {'name': _('گزارش دستورات پرداخت'), 'url': 'payment_order_report', 'permission': 'budgets.view_paymentorder', 'icon': 'fas fa-receipt'},
         ]
     },
     'گزارشات جامع': {
         'header': 'گزارشات جامع و کلی',
         'links': [
+            {'name': _('گزارشات تحلیلی'), 'url': 'analytical_reports', 'permission': 'budgets.view_budgetallocation', 'icon': 'fas fa-chart-pie'},
+            {'name': _('گزارش لحظه‌ای بودجه'), 'url': 'budgetrealtimeReportView', 'permission': 'budgets.view_budgetallocation', 'icon': 'fas fa-tachometer-alt'},
+            {'name': _('داشبورد مالی'), 'url': 'financialDashboardView', 'permission': 'budgets.view_budgetallocation', 'icon': 'fas fa-chart-pie'},
             {'name': _('داشبورد اجرایی'), 'url': 'executive_dashboard', 'permission': 'budgets.view_budgetallocation', 'icon': 'fas fa-tachometer-alt'},
             {'name': _('گزارشات بودجه کلی'), 'url': 'comprehensive_budget_report', 'permission': 'budgets.view_budgetallocation', 'icon': 'fas fa-chart-bar'},
             {'name': _('گزارشات فاکتور کلی'), 'url': 'comprehensive_factor_report', 'permission': 'tankhah.view_factor', 'icon': 'fas fa-file-invoice'},
             {'name': _('گزارشات تنخواه کلی'), 'url': 'comprehensive_tankhah_report', 'permission': 'tankhah.view_tankhah', 'icon': 'fas fa-money-bill-wave'},
             {'name': _('گزارشات عملکرد مالی'), 'url': 'financial_performance_report', 'permission': 'budgets.view_budgetallocation', 'icon': 'fas fa-chart-line'},
-            {'name': _('گزارشات تحلیلی'), 'url': 'analytical_reports', 'permission': 'budgets.view_budgetallocation', 'icon': 'fas fa-chart-pie'},
-            {'name': _('گزارش لحظه‌ای بودجه'), 'url': 'budgetrealtimeReportView', 'permission': 'budgets.view_budgetallocation', 'icon': 'fas fa-tachometer-alt'},
-            {'name': _('داشبورد مالی'), 'url': 'financialDashboardView', 'permission': 'budgets.view_budgetallocation', 'icon': 'fas fa-chart-pie'},
         ]
     },
     'مدیریت پروژه‌ها': {
