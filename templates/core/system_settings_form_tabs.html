@@ -233,7 +233,13 @@
                                                 {% trans "فعال" %}
                                             </label>
                                         </div>
-                                        <div class="form-text">{% trans "اجبار به رعایت ترتیب سلسله مراتب" %}</div>
+                                        <div class="form-text">
+                                            {% trans "اگر فعال باشد:" %}
+                                            <ul class="mb-0 small">
+                                                <li>{% trans "هر مرحله باید پس از مرحله پایین‌تر خودش انجام شود." %}</li>
+                                                <li>{% trans "مدیر سطح بالاتر نمی‌تواند قبل از تایید سطح پایین اقدام کند." %}</li>
+                                            </ul>
+                                        </div>
                                         {{ form.enforce_strict_approval_order.errors }}
                                     </div>
 
@@ -245,7 +251,13 @@
                                                 {% trans "مجاز" %}
                                             </label>
                                         </div>
-                                        <div class="form-text">{% trans "امکان رد شدن از مراحل چارت سازمانی" %}</div>
+                                        <div class="form-text">
+                                            {% trans "اگر فعال باشد:" %}
+                                            <ul class="mb-0 small">
+                                                <li>{% trans "در شرایط خاص می‌توان برخی محدودیت‌های چارت را نادیده گرفت." %}</li>
+                                                <li>{% trans "پیشنهاد: فقط برای مدیر سیستم یا سناریوهای اضطراری روشن شود." %}</li>
+                                            </ul>
+                                        </div>
                                         {{ form.allow_bypass_org_chart.errors }}
                                     </div>
 
@@ -257,8 +269,60 @@
                                                 {% trans "مجاز" %}
                                             </label>
                                         </div>
-                                        <div class="form-text">{% trans "امکان انجام اقدام بدون چارت سازمانی" %}</div>
+                                        <div class="form-text">
+                                            {% trans "اگر فعال باشد:" %}
+                                            <ul class="mb-0 small">
+                                                <li>{% trans "کاربر حتی بدون داشتن پست سازمانی می‌تواند اقدام ثبت کند." %}</li>
+                                                <li>{% trans "پیشنهاد: در محیط‌های تست/ساده یا برای کاربران خاص استفاده شود." %}</li>
+                                            </ul>
+                                        </div>
                                         {{ form.allow_action_without_org_chart.errors }}
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-semibold d-block">{% trans "محدودیت به یک مرورگر (یک سشن)" %}</label>
+                                        <div class="form-check form-switch">
+                                            {{ form.enforce_single_browser_session }}
+                                            <label class="form-check-label" for="{{ form.enforce_single_browser_session.id_for_label }}">
+                                                {% trans "فعال" %}
+                                            </label>
+                                        </div>
+                                        <div class="form-text">
+                                            {% trans "اگر فعال باشد:" %}
+                                            <ul class="mb-0 small">
+                                                <li>{% trans "هر کاربر فقط یک جلسه فعال در یک مرورگر دارد (Single-Session)." %}</li>
+                                                <li>{% trans "ورود جدید، سشن قبلی را با اعلان به کاربر خاتمه می‌دهد." %}</li>
+                                            </ul>
+                                        </div>
+                                        {{ form.enforce_single_browser_session.errors }}
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-semibold d-block">{% trans "محدودیت به یک تب مرورگر" %}</label>
+                                        <div class="form-check form-switch">
+                                            {{ form.enforce_single_tab }}
+                                            <label class="form-check-label" for="{{ form.enforce_single_tab.id_for_label }}">
+                                                {% trans "فعال" %}
+                                            </label>
+                                        </div>
+                                        <div class="form-text">
+                                            {% trans "اگر فعال باشد:" %}
+                                            <ul class="mb-0 small">
+                                                <li>{% trans "فقط یک تب می‌تواند فعال باشد؛ تب‌های دیگر قفل/مسدود می‌شوند." %}</li>
+                                                <li>{% trans "در صورت بسته شدن تب فعال، پس از چند ثانیه تب دیگر می‌تواند مالکیت بگیرد." %}</li>
+                                            </ul>
+                                        </div>
+                                        {{ form.enforce_single_tab.errors }}
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-semibold d-block">{% trans "بازه ضربان تب (ms)" %}</label>
+                                        {{ form.heartbeat_interval_ms }}
+                                        <div class="form-text">{% trans "هر چند میلی‌ثانیه یکبار ضربان تب فعال ثبت شود." %}</div>
+                                        {{ form.heartbeat_interval_ms.errors }}
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-semibold d-block">{% trans "مهلت منقضی شدن تب (ms)" %}</label>
+                                        {{ form.heartbeat_stale_ms }}
+                                        <div class="form-text">{% trans "اگر ضربانی در این مدت ثبت نشود، تب دیگر می‌تواند مالکیت بگیرد." %}</div>
+                                        {{ form.heartbeat_stale_ms.errors }}
                                     </div>
                                 </div>
                             </div>

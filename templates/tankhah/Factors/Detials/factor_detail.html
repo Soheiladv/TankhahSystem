@@ -1,222 +1,338 @@
 {% extends 'base.html' %}
-{% load i18n static rcms_custom_filters jformat  %}
+{% load i18n static rcms_custom_filters jformat %}
 
 {% block title %}{{ title }}{% endblock %}
 
- 
-
 {% block content %}
-<div class="container-fluid py-4" id="page-content">
+    <div class="container-fluid py-4" id="page-content">
 
-    <button onclick="window.print()" class="btn btn-lg btn-primary rounded-circle btn-print shadow-lg" title="{% trans 'چاپ فاکتور' %}">
-        <i class="fas fa-print"></i>
-    </button>
+        <style>
+            /* نمایش/عدم نمایش برای چاپ */
+            .print-only {
+                display: none;
+            }
 
-    <div class="print-header print-only">
-        <div class="d-flex justify-content-between align-items-center">
-            <div>
-                {# <img src="{% static 'path/to/your/logo.png' %}" alt="Logo" style="height: 50px;"> #}
-                <h4 class="mb-0">{% trans "گزارش جزئیات فاکتور" %}</h4>
-            </div>
-            <div>
-                <p class="mb-0"><strong>{% trans "شماره فاکتور:" %}</strong> {{ factor.number }}</p>
-                <p class="mb-0"><strong>{% trans "تاریخ چاپ:" %}</strong> {% now "Y/m/d"  %}</p>
+            @media print {
+                .no-print {
+                    display: none !important;
+                }
+
+                .print-only {
+                    display: block !important;
+                }
+
+                body {
+                    -webkit-print-color-adjust: exact;
+                    print-color-adjust: exact;
+                }
+
+                @page {
+                    size: A4;
+                    margin: 12mm;
+                    landscape: true;
+                }
+
+                /* جلوگیری از ستون شدن ردیف‌های جدول در چاپ */
+                .table-responsive {
+                    overflow: visible !important;
+                }
+
+                table {
+                    width: 100% !important;
+                    border-collapse: collapse !important;
+                    display: table !important;
+                }
+
+                thead {
+                    display: table-header-group !important;
+                }
+
+                tfoot {
+                    display: table-footer-group !important;
+                }
+
+                tbody {
+                    display: table-row-group !important;
+                }
+
+                tr {
+                    display: table-row !important;
+                    page-break-inside: avoid !important;
+                }
+
+                th, td {
+                    display: table-cell !important;
+                    vertical-align: middle !important;
+                    white-space: nowrap;
+                }
+
+                /* عدم چاپ فوتر اپلیکیشن */
+                footer, .footer, #footer, .app-footer {
+                    display: none !important;
+                }
+            }
+        </style>
+
+
+        <div class="print-header print-only">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    {# <img src="{% static 'path/to/your/logo.png' %}" alt="Logo" style="height: 50px;"> #}
+                    <h4 class="mb-0">{% trans "گزارش جزئیات فاکتور" %}</h4>
+                </div>
+                <div>
+                    <p class="mb-0"><strong>{% trans "شماره فاکتور:" %}</strong> {{ factor.number }}</p>
+                    <p class="mb-0"><strong>{% trans "تاریخ چاپ:" %}</strong> {% now "Y/m/d" %}</p>
+                </div>
             </div>
         </div>
-    </div>
 
-    <div class="d-flex justify-content-between align-items-center mb-4 no-print">
-        <nav aria-label="breadcrumb"><ol class="breadcrumb bg-transparent p-0 mb-0">
-            <li class="breadcrumb-item"><a href="{% url 'factor_list' %}">{% trans "فاکتورها" %}</a></li>
-            <li class="breadcrumb-item active" aria-current="page">{{ factor.number }}</li>
-        </ol></nav>
-        <a href="{% url 'factor_list' %}" class="btn btn-outline-secondary btn-sm"><i class="fas fa-arrow-right me-2"></i>{% trans "بازگشت به لیست" %}</a>
-    </div>
-
-    <div class="row">
-        <div class="col-lg-8">
-            <div class="card mb-4">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <div><i class="fas fa-file-invoice me-2"></i>{% trans "اطلاعات کلی فاکتور" %}</div>
-                    <span class="badge badge-status bg-{{ factor_impact.class }}">{{ factor_impact.label }}</span>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6"><ul class="list-unstyled info-list">
-                            <li><span class="label">{% trans "عنوان:" %}</span><span class="value">{{ factor.title }}</span></li>
-                            <li><span class="label">{% trans "تاریخ:" %}</span><span class="value">{{ factor.date|jformat:"%Y/%m/%d"|to_persian_number }}</span></li>
-                            <li class="align-items-start"><span class="label">{% trans "مبلغ:" %}</span><span class="value fs-5 text-primary fw-bold">{{ factor.amount|to_persian_number }}<small class="text-muted ms-1">{% trans "ریال" %}</small></span></li>
-                        </ul></div>
-                        <div class="col-md-6"><ul class="list-unstyled info-list">
-                            <li><span class="label">{% trans "تنخواه:" %}</span><span class="value"><a href="{% url 'tankhah_detail' pk=factor.tankhah.pk %}">{{ factor.tankhah.title }}</a></span></li>
-                            <li><span class="label">{% trans "ایجاد کننده:" %}</span><span class="value">{{ factor.created_by.get_full_name|default:factor.created_by.username }}</span></li>
-                            <li><span class="label">{% trans "تاریخ ایجاد:" %}</span><span class="value">{{ factor.created_at|jformat:"%Y/%m/%d "|to_persian_number }}</span></li>
-                        </ul></div>
-                    </div>
-                    {% if factor.description %}<p class="mt-3 border p-3 rounded bg-light mb-0">{{ factor.description|linebreaksbr|to_persian_number }}</p>{% endif %}
-                </div>
-            </div>
-
-            <div class="no-print">
-                <ul class="nav nav-tabs" role="tablist">
-                    <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#items-tab-content"><i class="fas fa-list-alt me-2"></i>{% trans "اقلام فاکتور" %} <span class="badge rounded-pill bg-light text-dark ms-1">{{ factor.items.count |to_persian_number}}</span></button></li>
-                    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#docs-tab-content"><i class="fas fa-paperclip me-2"></i>{% trans "اسناد پیوست" %} <span class="badge rounded-pill bg-light text-dark ms-1">{{ factor.documents.count |to_persian_number}}</span></button></li>
-                    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#approval-path-tab-content"><i class="fas fa-route me-2"></i>{% trans "مسیر تأیید" %} <span class="badge rounded-pill bg-light text-dark ms-1">{{ path_stats.total_steps|to_persian_number }}</span></button></li>
-                    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#history-tab-content"><i class="fas fa-history me-2"></i>{% trans "تاریخچه اقدامات" %} <span class="badge rounded-pill bg-light text-dark ms-1">{{ approval_logs.count|to_persian_number }}</span></button></li>
-                </ul>
-                <div class="tab-content">
-                    <div class="tab-pane fade show active" id="items-tab-content" role="tabpanel">{% include 'tankhah/Factors/Detials/_factor_items_tab.html' %}</div>
-                    <div class="tab-pane fade" id="docs-tab-content" role="tabpanel">{% include 'tankhah/Factors/Detials/_factor_documents_tab.html' %}</div>
-                    <div class="tab-pane fade" id="approval-path-tab-content" role="tabpanel">{% include 'tankhah/Factors/Detials/_factor_approval_path_tab.html' %}</div>
-                    <div class="tab-pane fade" id="history-tab-content" role="tabpanel">{% include 'tankhah/Factors/Detials/_factor_history_tab.html' %}</div>
-                </div>
-            </div>
-
-            <div class="print-only">
-                <div class="card mt-4">
-                    <div class="card-header">{% trans "اقلام فاکتور" %}</div>
-                    <div class="card-body">{% include 'tankhah/Factors/Detials/_factor_items_tab.html' %}</div>
-                </div>
-                <div class="card mt-4">
-                    <div class="card-header">{% trans "اسناد پیوست" %}</div>
-                    <div class="card-body">{% include 'tankhah/Factors/Detials/_factor_documents_tab.html' %}</div>
-                </div>
-                <div class="card mt-4">
-                    <div class="card-header">{% trans "تاریخچه اقدامات" %}</div>
-                    <div class="card-body">{% include 'tankhah/Factors/Detials/_factor_history_tab.html' %}</div>
-                </div>
-            </div>
-
+        <div class="d-flex justify-content-between align-items-center mb-4 no-print">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb bg-transparent p-0 mb-0">
+                    <li class="breadcrumb-item"><a href="{% url 'factor_list' %}">{% trans "فاکتورها" %}</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">{{ factor.number }}</li>
+                </ol>
+            </nav>
+            <a href="{% url 'factor_list' %}" class="btn btn-outline-secondary btn-sm"><i
+                    class="fas fa-arrow-right me-2"></i>{% trans "بازگشت به لیست" %}</a>
         </div>
 
-        <div class="col-lg-4 no-print">
-            {% include 'tankhah/Factors/Detials/_factor_sidebar.html' %}
-        </div>
-    </div>
-
-    <div class="print-footer print-only">
         <div class="row">
-            <div class="col-4">{% trans "تهیه کننده:" %}<br><br>....................</div>
-            <div class="col-4">{% trans "تایید کننده:" %}<br><br>....................</div>
-            <div class="col-4">{% trans "تصویب کننده:" %}<br><br>....................</div>
-        </div>
-        <p class="mt-4 text-muted">{% trans "این گزارش به صورت خودکار توسط سامانه مدیریت بودجه تولید شده است." %}</p>
-    </div>
-</div>
+            <div class="col-lg-8">
+                <div class="card mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <div><i class="fas fa-file-invoice me-2"></i>{% trans "اطلاعات کلی فاکتور" %}</div>
+                        <span class="badge badge-status bg-{{ factor_impact.class }}">{{ factor_impact.label }}</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <ul class="list-unstyled info-list">
+                                    <li><span class="label">{% trans "عنوان:" %}</span><span
+                                            class="value">{{ factor.title }}
+                                    {% if factor.description %}
+                                       {{ factor.description|linebreaksbr|to_persian_number }} {% endif %}
+                                    </span></li>
+                                    <li><span class="label">{% trans "تاریخ:" %}</span><span
+                                            class="value">{{ factor.date|jformat:"%Y/%m/%d"|to_persian_number }}</span>
+                                    </li>
+                                    <li class="align-items-start"><span class="label">{% trans "مبلغ:" %}</span><span
+                                            class="value fs-5 text-primary fw-bold">{{ factor.amount|to_persian_number }}<small
+                                            class="text-muted ms-1">{% trans "ریال" %}</small></span></li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <ul class="list-unstyled info-list">
+                                    <li><span class="label">{% trans "تنخواه:" %}</span><span class="value"><a
+                                            href="{% url 'tankhah_detail' pk=factor.tankhah.pk %}">{{ factor.tankhah.title }}</a></span>
+                                    </li>
+                                    <li><span class="label">{% trans "ایجاد کننده:" %}</span><span
+                                            class="value">{{ factor.created_by.get_full_name|default:factor.created_by.username }}</span>
+                                    </li>
+                                    <li><span class="label">{% trans "تاریخ ایجاد:" %}</span><span
+                                            class="value">{{ factor.created_at|jformat:"%Y/%m/%d "|to_persian_number }}</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
 
-<div class="modal fade" id="confirmActionModal" tabindex="-1"
-     data-url-template="{% url 'api_factor_perform_transition' pk=factor.pk transition_id=9999 %}">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header bg-primary text-white"><h5 class="modal-title">{% trans "تأیید اقدام" %}</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                        <button onclick="window.print()"
+                                class="btn btn-lg btn-primary rounded-circle btn-print shadow-lg"
+                                title="{% trans 'چاپ فاکتور' %}">
+                            <i class="fas fa-print"></i>
+                        </button>
+
+                    </div>
+                </div>
+
+                <div class="no-print">
+                    <ul class="nav nav-tabs" role="tablist">
+                        <li class="nav-item">
+                            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#items-tab-content"><i
+                                    class="fas fa-list-alt me-2"></i>{% trans "اقلام فاکتور" %} <span
+                                    class="badge rounded-pill bg-light text-dark ms-1">{{ factor.items.count |to_persian_number }}</span>
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#docs-tab-content"><i
+                                    class="fas fa-paperclip me-2"></i>{% trans "اسناد پیوست" %} <span
+                                    class="badge rounded-pill bg-light text-dark ms-1">{{ factor.documents.count |to_persian_number }}</span>
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#approval-path-tab-content"><i
+                                    class="fas fa-route me-2"></i>{% trans "مسیر تأیید" %} <span
+                                    class="badge rounded-pill bg-light text-dark ms-1">{{ path_stats.total_steps|to_persian_number }}</span>
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#history-tab-content"><i
+                                    class="fas fa-history me-2"></i>{% trans "تاریخچه اقدامات" %} <span
+                                    class="badge rounded-pill bg-light text-dark ms-1">{{ approval_logs.count|to_persian_number }}</span>
+                            </button>
+                        </li>
+                    </ul>
+                    <div class="tab-content">
+                        <div class="tab-pane fade show active" id="items-tab-content"
+                             role="tabpanel">{% include 'tankhah/Factors/Detials/_factor_items_tab.html' %}</div>
+                        <div class="tab-pane fade" id="docs-tab-content"
+                             role="tabpanel">{% include 'tankhah/Factors/Detials/_factor_documents_tab.html' %}</div>
+                        <div class="tab-pane fade" id="approval-path-tab-content"
+                             role="tabpanel">{% include 'tankhah/Factors/Detials/_factor_approval_path_tab.html' %}</div>
+                        <div class="tab-pane fade" id="history-tab-content"
+                             role="tabpanel">{% include 'tankhah/Factors/Detials/_factor_history_tab.html' %}</div>
+                    </div>
+                </div>
+
+                <div class="print-only">
+                    <div class="card mt-4">
+                        <div class="card-header">{% trans "اقلام فاکتور" %}</div>
+                        <div class="card-body">{% include 'tankhah/Factors/Detials/_factor_items_tab.html' %}</div>
+                    </div>
+                    <div class="card mt-4">
+                        <div class="card-header">{% trans "اسناد پیوست" %}</div>
+                        <div class="card-body">{% include 'tankhah/Factors/Detials/_factor_documents_tab.html' %}</div>
+                    </div>
+                    <div class="card mt-4">
+                        <div class="card-header">{% trans "تاریخچه اقدامات" %}</div>
+                        <div class="card-body">{% include 'tankhah/Factors/Detials/_factor_history_tab.html' %}</div>
+                    </div>
+                </div>
+
             </div>
-            <div class="modal-body">
-                <p>{% trans "آیا از انجام اقدام" %} "<strong id="actionName"></strong>" {% trans "اطمینان دارید؟" %}</p>
-                <p class="text-muted small">{% trans "وضعیت فاکتور به" %} "<strong id="nextStatus"></strong>" {% trans "تغییر خواهد یافت." %}</p>
-                <textarea class="form-control" id="actionDescription" rows="3" placeholder="{% trans 'توضیحات (اختیاری)' %}"></textarea>
+
+            <div class="col-lg-4 no-print">
+                {% include 'tankhah/Factors/Detials/_factor_sidebar.html' %}
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "لغو" %}</button>
-                <button type="button" class="btn btn-primary" id="confirmActionButton">{% trans "تأیید" %}</button>
+        </div>
+
+        <div class="print-footer print-only">
+            <div class="row">
+                <div class="col-4">{% trans "تهیه کننده:" %}<br><br>....................</div>
+                <div class="col-4">{% trans "تایید کننده:" %}<br><br>....................</div>
+                <div class="col-4">{% trans "تصویب کننده:" %}<br><br>....................</div>
+            </div>
+            <p class="mt-4 text-muted">{% trans "این گزارش به صورت خودکار توسط سامانه مدیریت بودجه تولید شده است." %}</p>
+        </div>
+    </div>
+
+    <div class="modal fade" id="confirmActionModal" tabindex="-1"
+         data-url-template="{% url 'api_factor_perform_transition' pk=factor.pk transition_id=9999 %}">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white"><h5 class="modal-title">{% trans "تأیید اقدام" %}</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>{% trans "آیا از انجام اقدام" %} "<strong id="actionName"></strong>" {% trans "اطمینان دارید؟" %}
+                    </p>
+                    <p class="text-muted small">{% trans "وضعیت فاکتور به" %} "<strong
+                            id="nextStatus"></strong>" {% trans "تغییر خواهد یافت." %}</p>
+                    <textarea class="form-control" id="actionDescription" rows="3"
+                              placeholder="{% trans 'توضیحات (اختیاری)' %}"></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "لغو" %}</button>
+                    <button type="button" class="btn btn-primary" id="confirmActionButton">{% trans "تأیید" %}</button>
+                </div>
             </div>
         </div>
     </div>
-</div>
 {% endblock %}
 
 {% block extra_js %}
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    // کتابخانه SweetAlert2 را حتما در base.html اضافه کنید
-    // <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11">
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // کتابخانه SweetAlert2 را حتما در base.html اضافه کنید
+            // <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11">
 
-    const confirmActionModal = document.getElementById('confirmActionModal');
-    if (confirmActionModal) {
-        // خواندن الگوی URL از data attribute مودال که اکنون حاوی pk صحیح است
-        const apiUrlTemplate = confirmActionModal.dataset.urlTemplate;
+            const confirmActionModal = document.getElementById('confirmActionModal');
+            if (confirmActionModal) {
+                // خواندن الگوی URL از data attribute مودال که اکنون حاوی pk صحیح است
+                const apiUrlTemplate = confirmActionModal.dataset.urlTemplate;
 
-        const modalInstance = new bootstrap.Modal(confirmActionModal);
-        const modalActionName = confirmActionModal.querySelector('#actionName');
-        const modalNextStatus = confirmActionModal.querySelector('#nextStatus');
-        const confirmButton = confirmActionModal.querySelector('#confirmActionButton');
-        const actionDescription = confirmActionModal.querySelector('#actionDescription');
+                const modalInstance = new bootstrap.Modal(confirmActionModal);
+                const modalActionName = confirmActionModal.querySelector('#actionName');
+                const modalNextStatus = confirmActionModal.querySelector('#nextStatus');
+                const confirmButton = confirmActionModal.querySelector('#confirmActionButton');
+                const actionDescription = confirmActionModal.querySelector('#actionDescription');
 
-        let transitionId;
+                let transitionId;
 
-        confirmActionModal.addEventListener('show.bs.modal', function (event) {
-            const button = event.relatedTarget;
-            transitionId = button.dataset.transitionId;
-            const actionName = button.dataset.actionName;
-            const nextStatus = button.dataset.nextStatus;
+                confirmActionModal.addEventListener('show.bs.modal', function (event) {
+                    const button = event.relatedTarget;
+                    transitionId = button.dataset.transitionId;
+                    const actionName = button.dataset.actionName;
+                    const nextStatus = button.dataset.nextStatus;
 
-            if (modalActionName) modalActionName.textContent = actionName;
-            if (modalNextStatus) modalNextStatus.textContent = nextStatus;
+                    if (modalActionName) modalActionName.textContent = actionName;
+                    if (modalNextStatus) modalNextStatus.textContent = nextStatus;
 
-            if (actionDescription) actionDescription.value = '';
-            if (confirmButton) {
-                confirmButton.disabled = false;
-                confirmButton.innerHTML = '{% trans "تأیید و ارسال" %}';
+                    if (actionDescription) actionDescription.value = '';
+                    if (confirmButton) {
+                        confirmButton.disabled = false;
+                        confirmButton.innerHTML = '{% trans "تأیید و ارسال" %}';
+                    }
+                });
+
+                if (confirmButton) {
+                    confirmButton.addEventListener('click', function () {
+                        if (!transitionId) {
+                            console.error("شناسه انتقال مفقود است!");
+                            return;
+                        }
+
+                        confirmButton.disabled = true;
+                        confirmButton.innerHTML = `<span class="spinner-border spinner-border-sm"></span> {% trans "در حال ارسال..." %}`;
+
+                        // --- FIX: روش امن و پایدار برای ساخت URL ---
+                        // اکنون فقط کافیست placeholder مربوط به transition_id را جایگزین کنیم
+                        const apiUrl = apiUrlTemplate.replace('9999', transitionId);
+
+                        console.log("Final API URL:", apiUrl); // برای دیباگ نهایی
+
+                        fetch(apiUrl, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': '{{ csrf_token }}'
+                            },
+                            body: JSON.stringify({comment: actionDescription.value})
+                        })
+                            .then(response => response.json().then(data => ({status: response.status, body: data})))
+                            .then(({status, body}) => {
+                                modalInstance.hide();
+                                if (status === 200) {
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: '{% trans "موفقیت‌آمیز" %}',
+                                        text: body.message,
+                                        timer: 2000,
+                                        showConfirmButton: false
+                                    }).then(() => {
+                                        // رفرش صفحه پس از تایید/رد موفق
+                                        location.reload();
+                                    });
+                                } else {
+                                    throw new Error(body.error || '{% trans "یک خطای ناشناخته رخ داد." %}');
+                                }
+                            })
+                            .catch(error => {
+                                modalInstance.hide();
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: '{% trans "خطا" %}',
+                                    text: error.message,
+                                    confirmButtonText: '{% trans "متوجه شدم" %}'
+                                });
+                                confirmButton.disabled = false;
+                                confirmButton.innerHTML = '{% trans "تأیید و ارسال" %}';
+                            });
+                    });
+                }
             }
         });
 
-        if (confirmButton) {
-            confirmButton.addEventListener('click', function () {
-                if (!transitionId) {
-                    console.error("شناسه انتقال مفقود است!");
-                    return;
-                }
-
-                confirmButton.disabled = true;
-                confirmButton.innerHTML = `<span class="spinner-border spinner-border-sm"></span> {% trans "در حال ارسال..." %}`;
-
-                // --- FIX: روش امن و پایدار برای ساخت URL ---
-                // اکنون فقط کافیست placeholder مربوط به transition_id را جایگزین کنیم
-                const apiUrl = apiUrlTemplate.replace('9999', transitionId);
-
-                console.log("Final API URL:", apiUrl); // برای دیباگ نهایی
-
-                fetch(apiUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': '{{ csrf_token }}'
-                    },
-                    body: JSON.stringify({ comment: actionDescription.value })
-                })
-                .then(response => response.json().then(data => ({ status: response.status, body: data })))
-                .then(({ status, body }) => {
-                    modalInstance.hide();
-                    if (status === 200) {
-                        Swal.fire({
-                            icon: 'success',
-                            title: '{% trans "موفقیت‌آمیز" %}',
-                            text: body.message,
-                            timer: 2000,
-                            showConfirmButton: false
-                        }).then(() => {
-                            // رفرش صفحه پس از تایید/رد موفق
-                            location.reload();
-                        });
-                    } else {
-                        throw new Error(body.error || '{% trans "یک خطای ناشناخته رخ داد." %}');
-                    }
-                })
-                .catch(error => {
-                    modalInstance.hide();
-                    Swal.fire({
-                        icon: 'error',
-                        title: '{% trans "خطا" %}',
-                        text: error.message,
-                        confirmButtonText: '{% trans "متوجه شدم" %}'
-                    });
-                    confirmButton.disabled = false;
-                    confirmButton.innerHTML = '{% trans "تأیید و ارسال" %}';
-                });
-            });
-        }
-    }
-});
-
-</script>
+    </script>
 {% endblock %}

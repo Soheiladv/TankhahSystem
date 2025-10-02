@@ -54,11 +54,11 @@ urlpatterns = [
          name='api_factors_for_tankhah'),
     path('api/tankhahs-for-allocation/<int:alloc_pk>/', APITankhahsForAllocationView.as_view(),
          name='api_tankhahs_for_allocation'),
-    path('reports/api/organizations-for-period/<int:period_pk>/', APIOrganizationsForPeriodView.as_view(),
+    path('api/organizations-for-period/<int:period_pk>/', APIOrganizationsForPeriodView.as_view(),
          name='api_organizations_for_period'),
-    path('reports/api/budget-items-for-org-period/<int:period_pk>/<int:org_pk>/',
+    path('api/budget-items-for-org-period/<int:period_pk>/<int:org_pk>/',
          BudgetItemsForOrgPeriodAPIView.as_view(), name='api_budget_items_for_org_period'),
-    path('reports/comprehensive-budget/', ComprehensiveBudgetReportView.as_view(), name='comprehensive_budget_report'),
+    path('comprehensive-budget/', ComprehensiveBudgetReportView.as_view(), name='comprehensive_budget_report'),
     path('report/paymentorderreport/', PaymentOrderReportView.as_view(), name='payment_order_report'),
 ]
 

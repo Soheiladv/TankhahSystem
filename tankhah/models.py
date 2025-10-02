@@ -767,7 +767,7 @@ class Factor(models.Model):
             if self.status and self.status.is_final_approve and self.status != getattr(original_status,
                                                                                          'code', None):
                 try:
-                    factor_users = self.related_users.all()
+                    factor_users = list(self.related_users())
                     payment_stage_posts = self.tankhah.get_next_payment_stage_posts()
                     from notificationApp.utils import send_notification
 

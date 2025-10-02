@@ -68,7 +68,7 @@ urlpatterns = [
 
     path('get-tankhah-budget-info/',  get_tankhah_budget_info, name='get_tankhah_budget_info'),
 
-    path('factors/<int:pk>/edit/', FactorUpdateView.as_view(), name='factor_edit'),
+    # path('factors/<int:pk>/edit/', FactorUpdateView.as_view(), name='factor_edit'),  # تعطیل شده - تداخل با خط 147
     path('factor/<int:pk>/status-update/', FactorStatusUpdateView.as_view(), name='factor_status_update'),
     # path('factor/<int:pk>/', FactorDetailView.as_view(), name='factor_detail'),
 

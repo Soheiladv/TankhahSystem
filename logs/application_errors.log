@@ -11594,3 +11594,1514 @@ Traceback (most recent call last):
     ...<6 lines>...
     )
 django.core.exceptions.FieldError: Invalid field name(s) given in select_related: 'stage'. Choices are: tankhah, factor, factor_item, content_type, from_status, to_status, action, user, post, created_by
+ERROR 2025-09-30 19:36:41 utils wrapper CommandConnectorError: Error running:  mysqldump tankhasystem --quick --host=127.0.0.1 --port=3306 --user=root --password=S@123456@1234 
+[WinError 2] The system cannot find the file specified
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\dbbackup\utils.py", line 119, in wrapper
+    func(*args, **kwargs)
+    ~~~~^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\dbbackup\management\commands\dbbackup.py", line 100, in handle
+    self._save_new_backup(database)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\dbbackup\management\commands\dbbackup.py", line 120, in _save_new_backup
+    outputfile = self.connector.create_dump()
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\dbbackup\db\base.py", line 94, in create_dump
+    return self._create_dump()
+           ~~~~~~~~~~~~~~~~~^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\dbbackup\db\mysql.py", line 29, in _create_dump
+    stdout, stderr = self.run_command(cmd, env=self.dump_env)
+                     ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\dbbackup\db\base.py", line 182, in run_command
+    raise exceptions.CommandConnectorError(
+        f"Error running: {command}\n{str(err)}"
+    )
+
+ERROR 2025-09-30 19:36:41 admin_backup backup_mysql_view خطا در dbbackup: Error running:  mysqldump tankhasystem --quick --host=127.0.0.1 --port=3306 --user=root --password=S@123456@1234 
+[WinError 2] The system cannot find the file specified
+ERROR 2025-09-30 19:39:50 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 19:39:50 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 19:39:50 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 19:39:50 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 19:39:50 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 19:39:50 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 19:39:50 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 19:39:50 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 19:39:50 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 19:39:50 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 19:39:50 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 19:39:50 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 19:39:50 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 19:39:50 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040605-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-09-30 19:39:50 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 19:39:50 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040604-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-09-30 19:39:50 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 19:39:50 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 19:39:51 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-09-30 19:39:51 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-09-30 19:40:32 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 19:40:32 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 19:40:32 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 19:40:32 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 19:40:32 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 19:40:32 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 19:40:32 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 19:40:32 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 19:40:32 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 19:40:32 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 19:40:32 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 19:40:32 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 19:40:32 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 19:40:32 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040605-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-09-30 19:40:32 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 19:40:32 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040604-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-09-30 19:40:32 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 19:40:32 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 19:40:33 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-09-30 19:40:33 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-09-30 19:41:22 views_executive_dashboard get_context_data خطا در گزارشات تحلیلی: Expression contains mixed types: DecimalField, IntegerField. You must set output_field.
+ERROR 2025-09-30 19:41:50 views_executive_dashboard get_context_data خطا در گزارشات تحلیلی: Expression contains mixed types: DecimalField, IntegerField. You must set output_field.
+ERROR 2025-09-30 19:42:38 FactorStatusReviewView get_object An unexpected error occurred while fetching Factor pk=81: Invalid field name(s) given in select_related: 'stage'. Choices are: tankhah, factor, factor_item, content_type, from_status, to_status, action, user, post, created_by
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\FactorStatusReviewView.py", line 232, in get_object
+    obj = optimized_queryset.get(pk=pk)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 645, in get
+    num = len(clone)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 382, in __len__
+    self._fetch_all()
+    ~~~~~~~~~~~~~~~^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1930, in _fetch_all
+    self._prefetch_related_objects()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1320, in _prefetch_related_objects
+    prefetch_related_objects(self._result_cache, *self._prefetch_related_lookups)
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 2380, in prefetch_related_objects
+    obj_list, additional_lookups = prefetch_one_level(
+                                   ~~~~~~~~~~~~~~~~~~^
+        obj_to_fetch,
+        ^^^^^^^^^^^^^
+    ...<2 lines>...
+        level,
+        ^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 2544, in prefetch_one_level
+    ) = prefetcher.get_prefetch_querysets(
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        instances, lookup.get_current_querysets(level)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 797, in get_prefetch_querysets
+    for rel_obj in queryset:
+                   ^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 400, in __iter__
+    self._fetch_all()
+    ~~~~~~~~~~~~~~~^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1928, in _fetch_all
+    self._result_cache = list(self._iterable_class(self))
+                         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 91, in __iter__
+    results = compiler.execute_sql(
+        chunked_fetch=self.chunked_fetch, chunk_size=self.chunk_size
+    )
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\compiler.py", line 1561, in execute_sql
+    sql, params = self.as_sql()
+                  ~~~~~~~~~~~^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\compiler.py", line 747, in as_sql
+    extra_select, order_by, group_by = self.pre_sql_setup(
+                                       ~~~~~~~~~~~~~~~~~~^
+        with_col_aliases=with_col_aliases or bool(combinator),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\compiler.py", line 84, in pre_sql_setup
+    self.setup_query(with_col_aliases=with_col_aliases)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\compiler.py", line 73, in setup_query
+    self.select, self.klass_info, self.annotation_col_map = self.get_select(
+                                                            ~~~~~~~~~~~~~~~^
+        with_col_aliases=with_col_aliases,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\compiler.py", line 279, in get_select
+    related_klass_infos = self.get_related_selections(select, select_mask)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\compiler.py", line 1379, in get_related_selections
+    raise FieldError(
+    ...<6 lines>...
+    )
+django.core.exceptions.FieldError: Invalid field name(s) given in select_related: 'stage'. Choices are: tankhah, factor, factor_item, content_type, from_status, to_status, action, user, post, created_by
+ERROR 2025-09-30 19:44:36 FactorStatusReviewView get_object An unexpected error occurred while fetching Factor pk=81: Invalid field name(s) given in select_related: 'stage'. Choices are: tankhah, factor, factor_item, content_type, from_status, to_status, action, user, post, created_by
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\FactorStatusReviewView.py", line 232, in get_object
+    obj = optimized_queryset.get(pk=pk)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 645, in get
+    num = len(clone)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 382, in __len__
+    self._fetch_all()
+    ~~~~~~~~~~~~~~~^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1930, in _fetch_all
+    self._prefetch_related_objects()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1320, in _prefetch_related_objects
+    prefetch_related_objects(self._result_cache, *self._prefetch_related_lookups)
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 2380, in prefetch_related_objects
+    obj_list, additional_lookups = prefetch_one_level(
+                                   ~~~~~~~~~~~~~~~~~~^
+        obj_to_fetch,
+        ^^^^^^^^^^^^^
+    ...<2 lines>...
+        level,
+        ^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 2544, in prefetch_one_level
+    ) = prefetcher.get_prefetch_querysets(
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        instances, lookup.get_current_querysets(level)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 797, in get_prefetch_querysets
+    for rel_obj in queryset:
+                   ^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 400, in __iter__
+    self._fetch_all()
+    ~~~~~~~~~~~~~~~^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1928, in _fetch_all
+    self._result_cache = list(self._iterable_class(self))
+                         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 91, in __iter__
+    results = compiler.execute_sql(
+        chunked_fetch=self.chunked_fetch, chunk_size=self.chunk_size
+    )
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\compiler.py", line 1561, in execute_sql
+    sql, params = self.as_sql()
+                  ~~~~~~~~~~~^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\compiler.py", line 747, in as_sql
+    extra_select, order_by, group_by = self.pre_sql_setup(
+                                       ~~~~~~~~~~~~~~~~~~^
+        with_col_aliases=with_col_aliases or bool(combinator),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\compiler.py", line 84, in pre_sql_setup
+    self.setup_query(with_col_aliases=with_col_aliases)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\compiler.py", line 73, in setup_query
+    self.select, self.klass_info, self.annotation_col_map = self.get_select(
+                                                            ~~~~~~~~~~~~~~~^
+        with_col_aliases=with_col_aliases,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\compiler.py", line 279, in get_select
+    related_klass_infos = self.get_related_selections(select, select_mask)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\compiler.py", line 1379, in get_related_selections
+    raise FieldError(
+    ...<6 lines>...
+    )
+django.core.exceptions.FieldError: Invalid field name(s) given in select_related: 'stage'. Choices are: tankhah, factor, factor_item, content_type, from_status, to_status, action, user, post, created_by
+ERROR 2025-09-30 19:44:51 FactorStatusReviewView get_object An unexpected error occurred while fetching Factor pk=81: Invalid field name(s) given in select_related: 'stage'. Choices are: tankhah, factor, factor_item, content_type, from_status, to_status, action, user, post, created_by
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\FactorStatusReviewView.py", line 232, in get_object
+    obj = optimized_queryset.get(pk=pk)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 645, in get
+    num = len(clone)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 382, in __len__
+    self._fetch_all()
+    ~~~~~~~~~~~~~~~^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1930, in _fetch_all
+    self._prefetch_related_objects()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1320, in _prefetch_related_objects
+    prefetch_related_objects(self._result_cache, *self._prefetch_related_lookups)
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 2380, in prefetch_related_objects
+    obj_list, additional_lookups = prefetch_one_level(
+                                   ~~~~~~~~~~~~~~~~~~^
+        obj_to_fetch,
+        ^^^^^^^^^^^^^
+    ...<2 lines>...
+        level,
+        ^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 2544, in prefetch_one_level
+    ) = prefetcher.get_prefetch_querysets(
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        instances, lookup.get_current_querysets(level)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 797, in get_prefetch_querysets
+    for rel_obj in queryset:
+                   ^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 400, in __iter__
+    self._fetch_all()
+    ~~~~~~~~~~~~~~~^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1928, in _fetch_all
+    self._result_cache = list(self._iterable_class(self))
+                         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 91, in __iter__
+    results = compiler.execute_sql(
+        chunked_fetch=self.chunked_fetch, chunk_size=self.chunk_size
+    )
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\compiler.py", line 1561, in execute_sql
+    sql, params = self.as_sql()
+                  ~~~~~~~~~~~^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\compiler.py", line 747, in as_sql
+    extra_select, order_by, group_by = self.pre_sql_setup(
+                                       ~~~~~~~~~~~~~~~~~~^
+        with_col_aliases=with_col_aliases or bool(combinator),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\compiler.py", line 84, in pre_sql_setup
+    self.setup_query(with_col_aliases=with_col_aliases)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\compiler.py", line 73, in setup_query
+    self.select, self.klass_info, self.annotation_col_map = self.get_select(
+                                                            ~~~~~~~~~~~~~~~^
+        with_col_aliases=with_col_aliases,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\compiler.py", line 279, in get_select
+    related_klass_infos = self.get_related_selections(select, select_mask)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\compiler.py", line 1379, in get_related_selections
+    raise FieldError(
+    ...<6 lines>...
+    )
+django.core.exceptions.FieldError: Invalid field name(s) given in select_related: 'stage'. Choices are: tankhah, factor, factor_item, content_type, from_status, to_status, action, user, post, created_by
+ERROR 2025-09-30 20:14:45 views_executive_dashboard get_context_data خطا در گزارشات تحلیلی: Expression contains mixed types: DecimalField, IntegerField. You must set output_field.
+ERROR 2025-09-30 20:15:12 views_executive_dashboard get_context_data خطا در گزارشات تحلیلی: Expression contains mixed types: DecimalField, IntegerField. You must set output_field.
+ERROR 2025-09-30 20:34:48 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 20:34:48 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 20:34:48 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 20:34:48 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 20:34:48 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 20:34:48 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 20:34:48 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 20:34:48 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 20:34:48 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 20:34:48 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 20:34:48 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 20:34:48 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 20:34:48 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 20:34:48 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040605-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-09-30 20:34:48 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 20:34:48 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040604-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-09-30 20:34:48 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 20:34:48 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-09-30 20:34:48 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-09-30 20:34:48 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-01 09:08:05 budget_calculations check_tankhah_lock_status خطا در بررسی وضعیت قفل تنخواه TNKH-14040701-HSarein-IPTV_Sarein-001: '__proxy__' object is not callable
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 1069, in check_tankhah_lock_status
+    return False, _("تنخواه فعال است.")
+                  ~^^^^^^^^^^^^^^^^^^^^
+TypeError: '__proxy__' object is not callable
+ERROR 2025-10-01 09:08:08 ComprehensiveBudgetReportView get Error in APIFactorsForTankhahView: Invalid filter: 'to_persian_number'
+ERROR 2025-10-01 09:08:57 ComprehensiveBudgetReportView get Error in APIFactorsForTankhahView: Invalid filter: 'to_persian_number'
+ERROR 2025-10-01 09:10:55 budget_calculations check_tankhah_lock_status خطا در بررسی وضعیت قفل تنخواه TNKH-14040701-HSarein-IPTV_Sarein-001: '__proxy__' object is not callable
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 1069, in check_tankhah_lock_status
+    return False, _("تنخواه فعال است.")
+                  ~^^^^^^^^^^^^^^^^^^^^
+TypeError: '__proxy__' object is not callable
+ERROR 2025-10-01 09:11:01 ComprehensiveBudgetReportView get Error in APIFactorsForTankhahView: Invalid filter: 'to_persian_number'
+ERROR 2025-10-01 09:15:35 ComprehensiveBudgetReportView get Unexpected error: Reverse for 'detail_factor' with keyword arguments '{'factor_pk': 80}' not found. 1 pattern(s) tried: ['tankhah/factor/(?P<pk>[0-9]+)/perform\\-action/\\Z'] | Period PK=25, Org PK=1
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\ComprehensiveBudgetReportView.py", line 356, in get
+    'detail_url': reverse('detail_factor', kwargs={'factor_pk': f.pk}),
+                  ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\base.py", line 88, in reverse
+    return resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\resolvers.py", line 831, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'detail_factor' with keyword arguments '{'factor_pk': 80}' not found. 1 pattern(s) tried: ['tankhah/factor/(?P<pk>[0-9]+)/perform\\-action/\\Z']
+ERROR 2025-10-01 09:15:40 ComprehensiveBudgetReportView get Unexpected error: Reverse for 'detail_factor' with keyword arguments '{'factor_pk': 80}' not found. 1 pattern(s) tried: ['tankhah/factor/(?P<pk>[0-9]+)/perform\\-action/\\Z'] | Period PK=25, Org PK=1
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\ComprehensiveBudgetReportView.py", line 356, in get
+    'detail_url': reverse('detail_factor', kwargs={'factor_pk': f.pk}),
+                  ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\base.py", line 88, in reverse
+    return resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\resolvers.py", line 831, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'detail_factor' with keyword arguments '{'factor_pk': 80}' not found. 1 pattern(s) tried: ['tankhah/factor/(?P<pk>[0-9]+)/perform\\-action/\\Z']
+ERROR 2025-10-01 09:16:00 ComprehensiveBudgetReportView get Unexpected error: Reverse for 'detail_factor' with keyword arguments '{'factor_pk': 80}' not found. 1 pattern(s) tried: ['tankhah/factor/(?P<pk>[0-9]+)/perform\\-action/\\Z'] | Period PK=25, Org PK=1
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\ComprehensiveBudgetReportView.py", line 356, in get
+    'detail_url': reverse('detail_factor', kwargs={'factor_pk': f.pk}),
+                  ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\base.py", line 88, in reverse
+    return resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\resolvers.py", line 831, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'detail_factor' with keyword arguments '{'factor_pk': 80}' not found. 1 pattern(s) tried: ['tankhah/factor/(?P<pk>[0-9]+)/perform\\-action/\\Z']
+ERROR 2025-10-01 09:16:09 ComprehensiveBudgetReportView get Unexpected error: Reverse for 'detail_factor' with keyword arguments '{'factor_pk': 80}' not found. 1 pattern(s) tried: ['tankhah/factor/(?P<pk>[0-9]+)/perform\\-action/\\Z'] | Period PK=25, Org PK=1
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\ComprehensiveBudgetReportView.py", line 356, in get
+    'detail_url': reverse('detail_factor', kwargs={'factor_pk': f.pk}),
+                  ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\base.py", line 88, in reverse
+    return resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\resolvers.py", line 831, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'detail_factor' with keyword arguments '{'factor_pk': 80}' not found. 1 pattern(s) tried: ['tankhah/factor/(?P<pk>[0-9]+)/perform\\-action/\\Z']
+ERROR 2025-10-01 09:16:10 ComprehensiveBudgetReportView get Unexpected error: Reverse for 'detail_factor' with keyword arguments '{'factor_pk': 80}' not found. 1 pattern(s) tried: ['tankhah/factor/(?P<pk>[0-9]+)/perform\\-action/\\Z'] | Period PK=25, Org PK=1
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\ComprehensiveBudgetReportView.py", line 356, in get
+    'detail_url': reverse('detail_factor', kwargs={'factor_pk': f.pk}),
+                  ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\base.py", line 88, in reverse
+    return resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\resolvers.py", line 831, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'detail_factor' with keyword arguments '{'factor_pk': 80}' not found. 1 pattern(s) tried: ['tankhah/factor/(?P<pk>[0-9]+)/perform\\-action/\\Z']
+ERROR 2025-10-01 09:16:22 ComprehensiveBudgetReportView get Unexpected error: Reverse for 'detail_factor' with keyword arguments '{'factor_pk': 80}' not found. 1 pattern(s) tried: ['tankhah/factor/(?P<pk>[0-9]+)/perform\\-action/\\Z'] | Period PK=25, Org PK=1
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\ComprehensiveBudgetReportView.py", line 356, in get
+    'detail_url': reverse('detail_factor', kwargs={'factor_pk': f.pk}),
+                  ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\base.py", line 88, in reverse
+    return resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\resolvers.py", line 831, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'detail_factor' with keyword arguments '{'factor_pk': 80}' not found. 1 pattern(s) tried: ['tankhah/factor/(?P<pk>[0-9]+)/perform\\-action/\\Z']
+ERROR 2025-10-01 09:16:27 ComprehensiveBudgetReportView get Unexpected error: Reverse for 'detail_factor' with keyword arguments '{'factor_pk': 80}' not found. 1 pattern(s) tried: ['tankhah/factor/(?P<pk>[0-9]+)/perform\\-action/\\Z'] | Period PK=25, Org PK=1
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\ComprehensiveBudgetReportView.py", line 356, in get
+    'detail_url': reverse('detail_factor', kwargs={'factor_pk': f.pk}),
+                  ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\base.py", line 88, in reverse
+    return resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\resolvers.py", line 831, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'detail_factor' with keyword arguments '{'factor_pk': 80}' not found. 1 pattern(s) tried: ['tankhah/factor/(?P<pk>[0-9]+)/perform\\-action/\\Z']
+ERROR 2025-10-01 09:16:49 ComprehensiveBudgetReportView get Unexpected error: Reverse for 'detail_factor' with keyword arguments '{'factor_pk': 80}' not found. 1 pattern(s) tried: ['tankhah/factor/(?P<pk>[0-9]+)/perform\\-action/\\Z'] | Period PK=25, Org PK=1
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\ComprehensiveBudgetReportView.py", line 356, in get
+    'detail_url': reverse('detail_factor', kwargs={'factor_pk': f.pk}),
+                  ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\base.py", line 88, in reverse
+    return resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\resolvers.py", line 831, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'detail_factor' with keyword arguments '{'factor_pk': 80}' not found. 1 pattern(s) tried: ['tankhah/factor/(?P<pk>[0-9]+)/perform\\-action/\\Z']
+ERROR 2025-10-01 09:20:58 ComprehensiveBudgetReportView get Unexpected error: Reverse for 'detail_factor' with keyword arguments '{'factor_pk': 80}' not found. 1 pattern(s) tried: ['tankhah/factor/(?P<pk>[0-9]+)/perform\\-action/\\Z'] | Period PK=25, Org PK=1
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\ComprehensiveBudgetReportView.py", line 356, in get
+    'detail_url': reverse('detail_factor', kwargs={'factor_pk': f.pk}),
+                  ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\base.py", line 88, in reverse
+    return resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\resolvers.py", line 831, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'detail_factor' with keyword arguments '{'factor_pk': 80}' not found. 1 pattern(s) tried: ['tankhah/factor/(?P<pk>[0-9]+)/perform\\-action/\\Z']
+ERROR 2025-10-01 09:21:00 ComprehensiveBudgetReportView get Unexpected error: Reverse for 'detail_factor' with keyword arguments '{'factor_pk': 80}' not found. 1 pattern(s) tried: ['tankhah/factor/(?P<pk>[0-9]+)/perform\\-action/\\Z'] | Period PK=25, Org PK=1
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\ComprehensiveBudgetReportView.py", line 356, in get
+    'detail_url': reverse('detail_factor', kwargs={'factor_pk': f.pk}),
+                  ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\base.py", line 88, in reverse
+    return resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\resolvers.py", line 831, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'detail_factor' with keyword arguments '{'factor_pk': 80}' not found. 1 pattern(s) tried: ['tankhah/factor/(?P<pk>[0-9]+)/perform\\-action/\\Z']
+ERROR 2025-10-01 09:21:00 ComprehensiveBudgetReportView get Unexpected error: Reverse for 'detail_factor' with keyword arguments '{'factor_pk': 80}' not found. 1 pattern(s) tried: ['tankhah/factor/(?P<pk>[0-9]+)/perform\\-action/\\Z'] | Period PK=25, Org PK=1
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\ComprehensiveBudgetReportView.py", line 356, in get
+    'detail_url': reverse('detail_factor', kwargs={'factor_pk': f.pk}),
+                  ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\base.py", line 88, in reverse
+    return resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\resolvers.py", line 831, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'detail_factor' with keyword arguments '{'factor_pk': 80}' not found. 1 pattern(s) tried: ['tankhah/factor/(?P<pk>[0-9]+)/perform\\-action/\\Z']
+ERROR 2025-10-01 09:21:02 ComprehensiveBudgetReportView get Unexpected error: Reverse for 'detail_factor' with keyword arguments '{'factor_pk': 71}' not found. 1 pattern(s) tried: ['tankhah/factor/(?P<pk>[0-9]+)/perform\\-action/\\Z'] | Period PK=23, Org PK=1
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\ComprehensiveBudgetReportView.py", line 356, in get
+    'detail_url': reverse('detail_factor', kwargs={'factor_pk': f.pk}),
+                  ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\base.py", line 88, in reverse
+    return resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\resolvers.py", line 831, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'detail_factor' with keyword arguments '{'factor_pk': 71}' not found. 1 pattern(s) tried: ['tankhah/factor/(?P<pk>[0-9]+)/perform\\-action/\\Z']
+ERROR 2025-10-01 09:21:06 ComprehensiveBudgetReportView get Unexpected error: Reverse for 'detail_factor' with keyword arguments '{'factor_pk': 71}' not found. 1 pattern(s) tried: ['tankhah/factor/(?P<pk>[0-9]+)/perform\\-action/\\Z'] | Period PK=23, Org PK=1
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\ComprehensiveBudgetReportView.py", line 356, in get
+    'detail_url': reverse('detail_factor', kwargs={'factor_pk': f.pk}),
+                  ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\base.py", line 88, in reverse
+    return resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\resolvers.py", line 831, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'detail_factor' with keyword arguments '{'factor_pk': 71}' not found. 1 pattern(s) tried: ['tankhah/factor/(?P<pk>[0-9]+)/perform\\-action/\\Z']
+ERROR 2025-10-01 09:21:10 ComprehensiveBudgetReportView get Unexpected error: Reverse for 'detail_factor' with keyword arguments '{'factor_pk': 80}' not found. 1 pattern(s) tried: ['tankhah/factor/(?P<pk>[0-9]+)/perform\\-action/\\Z'] | Period PK=25, Org PK=1
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\ComprehensiveBudgetReportView.py", line 356, in get
+    'detail_url': reverse('detail_factor', kwargs={'factor_pk': f.pk}),
+                  ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\base.py", line 88, in reverse
+    return resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\resolvers.py", line 831, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'detail_factor' with keyword arguments '{'factor_pk': 80}' not found. 1 pattern(s) tried: ['tankhah/factor/(?P<pk>[0-9]+)/perform\\-action/\\Z']
+ERROR 2025-10-01 09:21:10 ComprehensiveBudgetReportView get Unexpected error: Reverse for 'detail_factor' with keyword arguments '{'factor_pk': 80}' not found. 1 pattern(s) tried: ['tankhah/factor/(?P<pk>[0-9]+)/perform\\-action/\\Z'] | Period PK=25, Org PK=1
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\ComprehensiveBudgetReportView.py", line 356, in get
+    'detail_url': reverse('detail_factor', kwargs={'factor_pk': f.pk}),
+                  ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\base.py", line 88, in reverse
+    return resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\resolvers.py", line 831, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'detail_factor' with keyword arguments '{'factor_pk': 80}' not found. 1 pattern(s) tried: ['tankhah/factor/(?P<pk>[0-9]+)/perform\\-action/\\Z']
+ERROR 2025-10-01 09:21:55 ComprehensiveBudgetReportView get Unexpected error: Reverse for 'detail_factor' with keyword arguments '{'factor_pk': 80}' not found. 1 pattern(s) tried: ['tankhah/factor/(?P<pk>[0-9]+)/perform\\-action/\\Z'] | Period PK=25, Org PK=1
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\ComprehensiveBudgetReportView.py", line 356, in get
+    'detail_url': reverse('detail_factor', kwargs={'factor_pk': f.pk}),
+                  ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\base.py", line 88, in reverse
+    return resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\resolvers.py", line 831, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'detail_factor' with keyword arguments '{'factor_pk': 80}' not found. 1 pattern(s) tried: ['tankhah/factor/(?P<pk>[0-9]+)/perform\\-action/\\Z']
+ERROR 2025-10-01 09:21:56 ComprehensiveBudgetReportView get Unexpected error: Reverse for 'detail_factor' with keyword arguments '{'factor_pk': 80}' not found. 1 pattern(s) tried: ['tankhah/factor/(?P<pk>[0-9]+)/perform\\-action/\\Z'] | Period PK=25, Org PK=1
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\ComprehensiveBudgetReportView.py", line 356, in get
+    'detail_url': reverse('detail_factor', kwargs={'factor_pk': f.pk}),
+                  ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\base.py", line 88, in reverse
+    return resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\resolvers.py", line 831, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'detail_factor' with keyword arguments '{'factor_pk': 80}' not found. 1 pattern(s) tried: ['tankhah/factor/(?P<pk>[0-9]+)/perform\\-action/\\Z']
+ERROR 2025-10-01 09:22:07 ComprehensiveBudgetReportView get Unexpected error: Reverse for 'detail_factor' with keyword arguments '{'factor_pk': 80}' not found. 1 pattern(s) tried: ['tankhah/factor/(?P<pk>[0-9]+)/perform\\-action/\\Z'] | Period PK=25, Org PK=1
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\ComprehensiveBudgetReportView.py", line 356, in get
+    'detail_url': reverse('detail_factor', kwargs={'factor_pk': f.pk}),
+                  ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\base.py", line 88, in reverse
+    return resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\resolvers.py", line 831, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'detail_factor' with keyword arguments '{'factor_pk': 80}' not found. 1 pattern(s) tried: ['tankhah/factor/(?P<pk>[0-9]+)/perform\\-action/\\Z']
+ERROR 2025-10-01 09:23:18 ComprehensiveBudgetReportView get Unexpected error: Reverse for 'detail_factor' with keyword arguments '{'factor_pk': 80}' not found. 1 pattern(s) tried: ['tankhah/factor/(?P<pk>[0-9]+)/perform\\-action/\\Z'] | Period PK=25, Org PK=1
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\ComprehensiveBudgetReportView.py", line 356, in get
+    'detail_url': reverse('detail_factor', kwargs={'factor_pk': f.pk}),
+                  ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\base.py", line 88, in reverse
+    return resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\resolvers.py", line 831, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'detail_factor' with keyword arguments '{'factor_pk': 80}' not found. 1 pattern(s) tried: ['tankhah/factor/(?P<pk>[0-9]+)/perform\\-action/\\Z']
+ERROR 2025-10-01 10:10:05 ComprehensiveBudgetReportView get Unexpected error: Reverse for 'detail_factor' with keyword arguments '{'factor_pk': 80}' not found. 1 pattern(s) tried: ['tankhah/factor/(?P<pk>[0-9]+)/perform\\-action/\\Z'] | Period PK=25, Org PK=1
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\ComprehensiveBudgetReportView.py", line 358, in get
+    'detail_url': reverse('detail_factor', kwargs={'factor_pk': f.pk}),
+                  ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\base.py", line 88, in reverse
+    return resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\resolvers.py", line 831, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'detail_factor' with keyword arguments '{'factor_pk': 80}' not found. 1 pattern(s) tried: ['tankhah/factor/(?P<pk>[0-9]+)/perform\\-action/\\Z']
+ERROR 2025-10-01 10:10:14 ComprehensiveBudgetReportView get Unexpected error: Reverse for 'detail_factor' with keyword arguments '{'factor_pk': 80}' not found. 1 pattern(s) tried: ['tankhah/factor/(?P<pk>[0-9]+)/perform\\-action/\\Z'] | Period PK=25, Org PK=1
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\ComprehensiveBudgetReportView.py", line 358, in get
+    'detail_url': reverse('detail_factor', kwargs={'factor_pk': f.pk}),
+                  ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\base.py", line 88, in reverse
+    return resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\resolvers.py", line 831, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'detail_factor' with keyword arguments '{'factor_pk': 80}' not found. 1 pattern(s) tried: ['tankhah/factor/(?P<pk>[0-9]+)/perform\\-action/\\Z']
+ERROR 2025-10-01 10:10:16 ComprehensiveBudgetReportView get Unexpected error: Reverse for 'detail_factor' with keyword arguments '{'factor_pk': 80}' not found. 1 pattern(s) tried: ['tankhah/factor/(?P<pk>[0-9]+)/perform\\-action/\\Z'] | Period PK=25, Org PK=1
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\ComprehensiveBudgetReportView.py", line 358, in get
+    'detail_url': reverse('detail_factor', kwargs={'factor_pk': f.pk}),
+                  ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\base.py", line 88, in reverse
+    return resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\resolvers.py", line 831, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'detail_factor' with keyword arguments '{'factor_pk': 80}' not found. 1 pattern(s) tried: ['tankhah/factor/(?P<pk>[0-9]+)/perform\\-action/\\Z']
+ERROR 2025-10-01 10:10:16 ComprehensiveBudgetReportView get Unexpected error: Reverse for 'detail_factor' with keyword arguments '{'factor_pk': 80}' not found. 1 pattern(s) tried: ['tankhah/factor/(?P<pk>[0-9]+)/perform\\-action/\\Z'] | Period PK=25, Org PK=1
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\ComprehensiveBudgetReportView.py", line 358, in get
+    'detail_url': reverse('detail_factor', kwargs={'factor_pk': f.pk}),
+                  ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\base.py", line 88, in reverse
+    return resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\resolvers.py", line 831, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'detail_factor' with keyword arguments '{'factor_pk': 80}' not found. 1 pattern(s) tried: ['tankhah/factor/(?P<pk>[0-9]+)/perform\\-action/\\Z']
+ERROR 2025-10-01 10:10:18 ComprehensiveBudgetReportView get Unexpected error: Reverse for 'detail_factor' with keyword arguments '{'factor_pk': 80}' not found. 1 pattern(s) tried: ['tankhah/factor/(?P<pk>[0-9]+)/perform\\-action/\\Z'] | Period PK=25, Org PK=1
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\ComprehensiveBudgetReportView.py", line 358, in get
+    'detail_url': reverse('detail_factor', kwargs={'factor_pk': f.pk}),
+                  ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\base.py", line 88, in reverse
+    return resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\resolvers.py", line 831, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'detail_factor' with keyword arguments '{'factor_pk': 80}' not found. 1 pattern(s) tried: ['tankhah/factor/(?P<pk>[0-9]+)/perform\\-action/\\Z']
+ERROR 2025-10-01 10:10:18 ComprehensiveBudgetReportView get Unexpected error: Reverse for 'detail_factor' with keyword arguments '{'factor_pk': 80}' not found. 1 pattern(s) tried: ['tankhah/factor/(?P<pk>[0-9]+)/perform\\-action/\\Z'] | Period PK=25, Org PK=1
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\ComprehensiveBudgetReportView.py", line 358, in get
+    'detail_url': reverse('detail_factor', kwargs={'factor_pk': f.pk}),
+                  ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\base.py", line 88, in reverse
+    return resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\resolvers.py", line 831, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'detail_factor' with keyword arguments '{'factor_pk': 80}' not found. 1 pattern(s) tried: ['tankhah/factor/(?P<pk>[0-9]+)/perform\\-action/\\Z']
+ERROR 2025-10-01 10:32:36 ComprehensiveBudgetReportView get Unexpected error: Reverse for 'detail_factor' with keyword arguments '{'factor_pk': 80}' not found. 1 pattern(s) tried: ['tankhah/factor/(?P<pk>[0-9]+)/perform\\-action/\\Z'] | Period PK=25, Org PK=1
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\ComprehensiveBudgetReportView.py", line 359, in get
+    'detail_url': reverse('detail_factor', kwargs={'factor_pk': f.pk}),
+                  ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\base.py", line 88, in reverse
+    return resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\resolvers.py", line 831, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'detail_factor' with keyword arguments '{'factor_pk': 80}' not found. 1 pattern(s) tried: ['tankhah/factor/(?P<pk>[0-9]+)/perform\\-action/\\Z']
+ERROR 2025-10-01 10:32:37 ComprehensiveBudgetReportView get Unexpected error: Reverse for 'detail_factor' with keyword arguments '{'factor_pk': 80}' not found. 1 pattern(s) tried: ['tankhah/factor/(?P<pk>[0-9]+)/perform\\-action/\\Z'] | Period PK=25, Org PK=1
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\ComprehensiveBudgetReportView.py", line 359, in get
+    'detail_url': reverse('detail_factor', kwargs={'factor_pk': f.pk}),
+                  ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\base.py", line 88, in reverse
+    return resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\resolvers.py", line 831, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'detail_factor' with keyword arguments '{'factor_pk': 80}' not found. 1 pattern(s) tried: ['tankhah/factor/(?P<pk>[0-9]+)/perform\\-action/\\Z']
+ERROR 2025-10-01 10:32:38 ComprehensiveBudgetReportView get Unexpected error: Reverse for 'detail_factor' with keyword arguments '{'factor_pk': 80}' not found. 1 pattern(s) tried: ['tankhah/factor/(?P<pk>[0-9]+)/perform\\-action/\\Z'] | Period PK=25, Org PK=1
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\ComprehensiveBudgetReportView.py", line 359, in get
+    'detail_url': reverse('detail_factor', kwargs={'factor_pk': f.pk}),
+                  ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\base.py", line 88, in reverse
+    return resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\resolvers.py", line 831, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'detail_factor' with keyword arguments '{'factor_pk': 80}' not found. 1 pattern(s) tried: ['tankhah/factor/(?P<pk>[0-9]+)/perform\\-action/\\Z']
+ERROR 2025-10-01 10:32:48 ComprehensiveBudgetReportView get Unexpected error: Reverse for 'detail_factor' with keyword arguments '{'factor_pk': 80}' not found. 1 pattern(s) tried: ['tankhah/factor/(?P<pk>[0-9]+)/perform\\-action/\\Z'] | Period PK=25, Org PK=1
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\ComprehensiveBudgetReportView.py", line 359, in get
+    'detail_url': reverse('detail_factor', kwargs={'factor_pk': f.pk}),
+                  ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\base.py", line 88, in reverse
+    return resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\resolvers.py", line 831, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'detail_factor' with keyword arguments '{'factor_pk': 80}' not found. 1 pattern(s) tried: ['tankhah/factor/(?P<pk>[0-9]+)/perform\\-action/\\Z']
+ERROR 2025-10-01 10:33:10 ComprehensiveBudgetReportView get Unexpected error: Reverse for 'detail_factor' with keyword arguments '{'factor_pk': 71}' not found. 1 pattern(s) tried: ['tankhah/factor/(?P<pk>[0-9]+)/perform\\-action/\\Z'] | Period PK=23, Org PK=1
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\ComprehensiveBudgetReportView.py", line 359, in get
+    'detail_url': reverse('detail_factor', kwargs={'factor_pk': f.pk}),
+                  ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\base.py", line 88, in reverse
+    return resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\resolvers.py", line 831, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'detail_factor' with keyword arguments '{'factor_pk': 71}' not found. 1 pattern(s) tried: ['tankhah/factor/(?P<pk>[0-9]+)/perform\\-action/\\Z']
+ERROR 2025-10-01 10:33:14 ComprehensiveBudgetReportView get Unexpected error: Reverse for 'detail_factor' with keyword arguments '{'factor_pk': 71}' not found. 1 pattern(s) tried: ['tankhah/factor/(?P<pk>[0-9]+)/perform\\-action/\\Z'] | Period PK=23, Org PK=1
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\ComprehensiveBudgetReportView.py", line 359, in get
+    'detail_url': reverse('detail_factor', kwargs={'factor_pk': f.pk}),
+                  ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\base.py", line 88, in reverse
+    return resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\resolvers.py", line 831, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'detail_factor' with keyword arguments '{'factor_pk': 71}' not found. 1 pattern(s) tried: ['tankhah/factor/(?P<pk>[0-9]+)/perform\\-action/\\Z']
+ERROR 2025-10-01 10:33:17 ComprehensiveBudgetReportView get Unexpected error: Reverse for 'detail_factor' with keyword arguments '{'factor_pk': 80}' not found. 1 pattern(s) tried: ['tankhah/factor/(?P<pk>[0-9]+)/perform\\-action/\\Z'] | Period PK=25, Org PK=1
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\ComprehensiveBudgetReportView.py", line 359, in get
+    'detail_url': reverse('detail_factor', kwargs={'factor_pk': f.pk}),
+                  ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\base.py", line 88, in reverse
+    return resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\resolvers.py", line 831, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'detail_factor' with keyword arguments '{'factor_pk': 80}' not found. 1 pattern(s) tried: ['tankhah/factor/(?P<pk>[0-9]+)/perform\\-action/\\Z']
+ERROR 2025-10-01 10:33:18 ComprehensiveBudgetReportView get Unexpected error: Reverse for 'detail_factor' with keyword arguments '{'factor_pk': 80}' not found. 1 pattern(s) tried: ['tankhah/factor/(?P<pk>[0-9]+)/perform\\-action/\\Z'] | Period PK=25, Org PK=1
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\ComprehensiveBudgetReportView.py", line 359, in get
+    'detail_url': reverse('detail_factor', kwargs={'factor_pk': f.pk}),
+                  ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\base.py", line 88, in reverse
+    return resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\urls\resolvers.py", line 831, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'detail_factor' with keyword arguments '{'factor_pk': 80}' not found. 1 pattern(s) tried: ['tankhah/factor/(?P<pk>[0-9]+)/perform\\-action/\\Z']
+ERROR 2025-10-01 11:34:18 budget_calculations check_tankhah_lock_status خطا در بررسی وضعیت قفل تنخواه TNKH-14040701-HSarein-IPTV_Sarein-001: '__proxy__' object is not callable
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 1069, in check_tankhah_lock_status
+    return False, _("تنخواه فعال است.")
+                  ~^^^^^^^^^^^^^^^^^^^^
+TypeError: '__proxy__' object is not callable
+ERROR 2025-10-01 12:04:17 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 12:04:17 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 12:04:17 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 12:04:17 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 12:04:17 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 12:04:17 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 12:04:17 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 12:04:17 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 12:04:17 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 12:04:17 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 12:04:17 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 12:04:17 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 12:04:17 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 12:04:17 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040605-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-01 12:04:17 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 12:04:17 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040604-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-01 12:04:17 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 12:04:17 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 12:04:18 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-01 12:04:18 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-01 12:04:21 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 12:04:21 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 12:04:39 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 12:04:39 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 12:04:39 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 12:04:39 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 12:04:39 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 12:04:39 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 12:04:39 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 12:04:40 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 12:04:40 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 12:04:40 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 12:04:40 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 12:04:40 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 12:04:40 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 12:04:40 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040605-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-01 12:04:40 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 12:04:40 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040604-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-01 12:04:40 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 12:04:40 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 12:04:40 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-01 12:04:40 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-01 12:09:12 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 12:09:12 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 12:09:12 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 12:09:12 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 12:09:12 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 12:09:12 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 12:09:12 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 12:09:12 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 12:09:12 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 12:09:12 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 12:09:12 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 12:09:12 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 12:09:12 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 12:09:12 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040605-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-01 12:09:12 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 12:09:12 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040604-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-01 12:09:12 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 12:09:12 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 12:09:12 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-01 12:09:12 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-01 14:37:36 ComprehensiveBudgetReportView get Unexpected error: Factor has no payee. | Period PK=23, Org PK=1
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\ComprehensiveBudgetReportView.py", line 358, in get
+    'payee_name': f.payee.name if f.payee else "-",
+                                  ^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 267, in __get__
+    raise self.RelatedObjectDoesNotExist(
+        "%s has no %s." % (self.field.model.__name__, self.field.name)
+    )
+tankhah.models.Factor.payee.RelatedObjectDoesNotExist: Factor has no payee.
+ERROR 2025-10-01 14:38:04 budget_calculations check_tankhah_lock_status خطا در بررسی وضعیت قفل تنخواه TNKH-14040701-HSarein-IPTV_Sarein-001: '__proxy__' object is not callable
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 1069, in check_tankhah_lock_status
+    return False, _("تنخواه فعال است.")
+                  ~^^^^^^^^^^^^^^^^^^^^
+TypeError: '__proxy__' object is not callable
+ERROR 2025-10-01 15:00:58 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:00:58 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:00:59 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:00:59 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:00:59 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:00:59 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:00:59 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:00:59 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:00:59 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:00:59 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:00:59 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:00:59 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:00:59 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:00:59 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040605-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-01 15:00:59 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:00:59 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040604-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-01 15:00:59 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:00:59 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:00:59 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-01 15:00:59 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-01 15:31:20 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:31:20 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:31:20 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:31:20 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:31:20 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:31:20 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:31:20 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:31:20 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:31:20 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:31:20 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:31:20 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:31:20 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:31:20 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:31:20 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040605-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-01 15:31:20 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:31:20 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040604-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-01 15:31:20 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:31:20 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:31:20 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-01 15:31:20 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-01 15:33:48 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:33:48 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:33:48 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:33:48 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:33:48 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:33:48 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:33:48 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:33:48 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:33:48 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:33:48 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:33:48 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:33:48 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:33:48 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:33:48 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:33:48 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040605-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-01 15:33:48 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:33:48 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040604-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-01 15:33:48 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:33:48 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:33:49 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-01 15:33:49 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-01 15:33:53 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:33:53 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:33:53 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:33:53 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:33:53 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:33:53 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:33:53 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:33:53 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:33:53 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:33:54 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:33:54 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:33:54 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:33:54 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:33:54 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:33:54 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:33:54 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:33:54 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040605-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-01 15:33:54 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:33:54 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040604-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-01 15:33:54 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:33:54 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:33:54 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-01 15:33:54 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-01 15:34:12 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:34:12 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:34:12 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:34:12 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:34:12 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:34:12 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:34:13 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:34:13 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:34:13 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:34:13 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:34:13 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:34:13 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:34:13 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:34:13 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:34:13 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040605-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-01 15:34:13 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:34:13 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040604-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-01 15:34:13 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:34:13 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:34:13 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-01 15:34:13 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-01 15:34:15 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:34:15 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:34:15 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:34:15 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:34:15 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:34:15 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:34:15 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:34:15 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:34:15 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:34:15 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:34:15 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:34:15 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:34:15 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:34:15 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:34:15 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040605-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-01 15:34:15 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:34:15 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040604-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-01 15:34:15 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:34:16 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 15:34:16 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-01 15:34:16 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-01 20:57:54 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 20:57:54 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 20:57:54 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 20:57:54 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 20:57:54 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 20:57:54 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 20:57:54 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 20:57:54 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 20:57:54 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 20:57:54 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 20:57:55 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 20:57:55 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 20:57:55 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 20:57:55 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 20:57:55 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040605-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-01 20:57:55 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 20:57:55 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040604-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-01 20:57:55 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 20:57:55 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-01 20:57:55 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-01 20:57:55 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-01 21:07:16 views_executive_dashboard get_context_data خطا در گزارشات تحلیلی: Expression contains mixed types: DecimalField, IntegerField. You must set output_field.

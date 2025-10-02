@@ -760,6 +760,27 @@ class SystemSettings(models.Model):
         verbose_name=_("اجازه اقدام بدون رعایت پست‌ها"),
         help_text=_("اگر فعال باشد، حتی بدون داشتن پست سازمانی هم اقدام ممکن است.")
     )
+    # Session/Resource controls
+    enforce_single_browser_session = models.BooleanField(
+        default=True,
+        verbose_name=_("محدودیت به یک مرورگر (یک سشن)"),
+        help_text=_("اگر فعال باشد، هر کاربر فقط یک سشن فعال در یک مرورگر خواهد داشت.")
+    )
+    enforce_single_tab = models.BooleanField(
+        default=False,
+        verbose_name=_("محدودیت به یک تب مرورگر"),
+        help_text=_("گزینه فرانت‌اندی برای جلوگیری از باز شدن همزمان چند تب (با localStorage/BroadcastChannel).")
+    )
+    heartbeat_interval_ms = models.IntegerField(
+        default=3000,
+        verbose_name=_("بازه ضربان تب (میلی‌ثانیه)"),
+        help_text=_("هر چند میلی‌ثانیه یک‌بار تب فعال ضربان را ثبت کند؟ (پیشنهادی: 3000)")
+    )
+    heartbeat_stale_ms = models.IntegerField(
+        default=6000,
+        verbose_name=_("مهلت منقضی شدن تب فعال (میلی‌ثانیه)"),
+        help_text=_("اگر به مدت این مقدار ضربان ثبت نشود، تب دیگر می‌تواند مالکیت را بگیرد. (پیشنهادی: 6000)")
+    )
 
     def save(self, *args, **kwargs):
         # اطمینان از وجود تنها یک نمونه
@@ -788,7 +809,40 @@ class SystemSettings(models.Model):
         obj.save()
         return obj
 
-    # Dashboard widget toggles removed; visibility is no longer managed here
+    # Dashboard widget keys for management
+    DASHBOARD_WIDGET_KEYS = [
+        'org_budget',
+        'monthly_consumption', 
+        'monthly_returns',
+        'tankhah_status',
+        'factor_category',
+        'out_of_budget',
+        'funnel_budget_path_sankey',
+        'factor_category_treemap',
+        'units_budget_bullet',
+        'tankhah_ceiling_usage_gauge',
+        'consumption_allocation_treemap',
+        'allocation_to_payment_sankey',
+        'factor_process_funnel',
+        'factor_category_scatter',
+        'reject_return_rate',
+        'factor_cycle_avg_days',
+        'settlement_aging',
+        'forecast_remaining_3m',
+        'budget_flow_waterfall',
+        'allocation_settlement_age_heatmap',
+        'budget_absorption_gauge',
+        'org_project_kpi_radar',
+        'delay_risk',
+        'overconsumption_risk',
+        'org_share_polar',
+        'factor_category_stacked_pct',
+        'planned_vs_actual',
+        'factor_repeated_vendors',
+        'tankhah_status_by_org',
+        'tankhah_status_by_project',
+        'tankhah_settlement_aging',
+    ]
 
     # def __str__(self):
     #     return "تنظیمات سیستم بودجه"

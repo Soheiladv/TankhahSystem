@@ -1,0 +1,289 @@
+/* ================================================== */
+/* === CSS پایه برای base.html با پشتیبانی از تم‌ها === */
+/* === (ادغام/جایگزینی در custom.css شما)         === */
+/* ================================================== */
+
+/* --- متغیرهای پایه (تم روشن پیش‌فرض - از custom.css شما) --- */
+:root {
+    --primary: #007bff;
+    --secondary: #6c757d;
+    --success: #28a745;
+    --danger: #dc3545;
+    --warning: #ffc107;
+    --info: #17a2b8;
+    --light-bg: #f8f9fa;
+    --dark-bg: #212529;
+    --sidebar-bg: #1e2a44; /* پیش‌فرض تم روشن */
+    --footer-bg: #2c3e50;  /* پیش‌فرض تم روشن */
+    --text-light: #ecf0f1;
+    --text-dark: #212529;
+    --shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    --border-radius: 6px;
+    --transition: all 0.2s ease;
+    --input-bg: #ffffff;
+    --input-border: #ced4da;
+    --content-bg: #ffffff;
+    --border-color: #dee2e6;
+
+    /* متغیرهای hover دکمه ها برای تم روشن (مثال) */
+    --btn-hover-primary: #0056b3;
+    --btn-hover-success: #218838;
+    --btn-hover-danger: #c82333;
+
+    /* متغیرهای وضعیت */
+    --status-paid-bg: #d1e7dd; --status-paid-text: #0f5132; --status-paid-border: #a3cfbb;
+    --status-pending-bg: #fff3cd; --status-pending-text: #664d03; --status-pending-border: #ffecb5;
+    --status-rejected-bg: #f8d7da; --status-rejected-text: #842029; --status-rejected-border: #f5c6cb;
+    --status-draft-bg: #e2e3e5; --status-draft-text: #41464b; --status-draft-border: #d3d6d8;
+    --status-default-bg: #f8f9fa; --status-default-text: #6c757d; --status-default-border: #dee2e6;
+}
+
+/* --- تعریف فونت (اگر در base.html نیست) --- */
+@font-face {
+    font-family: 'Parastoo';
+    src: url('../fonts/Parastoo.ttf') format('truetype'); /* مسیر نسبت به فایل CSS */
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* --- استایل‌های پایه Body --- */
+body {
+    font-family: 'Parastoo', sans-serif !important;
+    background-color: var(--light-bg); /* استفاده از متغیر کلی */
+    color: var(--text-dark); /* استفاده از متغیر کلی */
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    direction: rtl !important; /* تاکید بر RTL */
+    text-align: right !important; /* تاکید بر RTL */
+    padding-top: 65px; /* ! فاصله برای navbar ثابت - مقدار دقیق را تنظیم کنید */
+    margin: 0;
+    overflow-x: hidden; /* جلوگیری از اسکرول افقی */
+}
+
+/* --- Navbar اصلی --- */
+.main-navbar {
+    background: var(--sidebar-bg); /* ! استفاده از متغیر تم */
+    color: var(--text-light); /* ! استفاده از متغیر تم */
+    box-shadow: var(--shadow);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 0.5rem 1rem;
+    min-height: 65px;
+    z-index: 1040;
+    /* بقیه استایل‌های navbar از پاسخ قبلی */
+}
+.main-navbar .navbar-brand .brand-text,
+.main-navbar .nav-link,
+.main-navbar .navbar-toggler,
+.main-navbar .dropdown-toggle /* رنگ متن و لینک‌ها */
+{
+    color: var(--text-light);
+    opacity: 0.9;
+}
+.main-navbar .nav-link:hover,
+.main-navbar .nav-link.active,
+.main-navbar .nav-item.show .nav-link,
+.main-navbar .navbar-toggler:hover,
+.main-navbar .dropdown-toggle:hover,
+.main-navbar .dropdown-toggle:focus
+{
+    color: #ffffff;
+    opacity: 1;
+    background-color: rgba(255, 255, 255, 0.1);
+}
+.main-navbar .dropdown-menu { /* استایل منوی کشویی کاربر */
+   background-color: var(--sidebar-bg); /* همرنگ navbar */
+   border: 1px solid rgba(255, 255, 255, 0.1);
+   box-shadow: var(--shadow);
+}
+.main-navbar .dropdown-item {
+   color: var(--text-light);
+   opacity: 0.9;
+}
+.main-navbar .dropdown-item:hover,
+.main-navbar .dropdown-item:focus {
+   background-color: rgba(255, 255, 255, 0.1);
+   color: #ffffff;
+   opacity: 1;
+}
+.main-navbar .dropdown-item.text-danger { color: var(--danger) !important; } /* رنگ خطر برای خروج */
+.main-navbar .dropdown-item.text-danger:hover { background-color: rgba(var(--bs-danger-rgb), 0.1); }
+.main-navbar .dropdown-divider { border-top-color: rgba(255, 255, 255, 0.1); }
+
+
+/* --- Sidebar --- */
+.sidebar {
+    background: var(--sidebar-bg); /* ! استفاده از متغیر تم */
+    color: var(--text-light); /* ! استفاده از متغیر تم */
+    position: fixed; top: 0; right: -300px; left: auto; width: 280px; height: 100vh;
+    z-index: 1035; transition: right 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+    box-shadow: -5px 0 15px rgba(0, 0, 0, 0.2); display: flex; flex-direction: column;
+    padding-top: 65px;
+}
+html[dir="ltr"] .sidebar { left: -300px; right: auto; transition: left 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); box-shadow: 5px 0 15px rgba(0, 0, 0, 0.2); }
+.sidebar.active { right: 0; }
+html[dir="ltr"] .sidebar.active { left: 0; }
+
+.sidebar .nav-link {
+    color: var(--text-light); /* ! استفاده از متغیر تم */
+    opacity: 0.8;
+    border-right: 3px solid transparent; /* RTL */
+    /* بقیه استایل‌های nav-link از پاسخ قبلی */
+}
+html[dir="ltr"] .sidebar .nav-link { border-right: none; border-left: 3px solid transparent; }
+.sidebar .nav-link:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: #ffffff;
+    opacity: 1;
+}
+.sidebar .nav-link.active {
+    background: rgba(0, 0, 0, 0.2);
+    color: #ffffff;
+    font-weight: 600;
+    border-right-color: var(--primary); /* RTL */
+    opacity: 1;
+}
+html[dir="ltr"] .sidebar .nav-link.active { border-left-color: var(--primary); }
+.sidebar-footer { /* فوتر سایدبار */
+   border-top: 1px solid rgba(255, 255, 255, 0.1);
+   background-color: rgba(0, 0, 0, 0.1);
+}
+.sidebar-footer .form-select { /* سلکت تم */
+   background-color: rgba(255, 255, 255, 0.1);
+   color: var(--text-light);
+   border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* --- Main Content --- */
+.content {
+    flex: 1; padding: 0; margin-right: 0; margin-left: auto; /* RTL */
+    transition: margin-right 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); /* RTL */
+}
+html[dir="ltr"] .content { margin-right: auto; margin-left: 0; transition: margin-left 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); }
+.content.shifted { margin-right: 280px; /* RTL */ }
+html[dir="ltr"] .content.shifted { margin-left: 280px; }
+@media (max-width: 767.98px) {
+    .content.shifted { margin-right: 0 !important; margin-left: 0 !important; }
+}
+.main-content-inner { padding: 1.5rem; /* پدینگ داخلی محتوا */ }
+
+
+/* --- Footer --- */
+.footer {
+    background: var(--footer-bg); /* ! استفاده از متغیر تم */
+    color: var(--text-light); /* ! استفاده از متغیر تم */
+    /* بقیه استایل‌های فوتر از پاسخ قبلی */
+}
+.footer-heading { color: #fff; /* یا یک متغیر روشن‌تر */ }
+.footer-heading::after { background-color: var(--primary); }
+.footer-link { color: var(--text-light); opacity: 0.8; }
+.footer-link:hover { color: #fff; opacity: 1; }
+.social-icons a.social-icon { background-color: rgba(255, 255, 255, 0.1); color: var(--text-light); }
+.social-icons a.social-icon:hover { background-color: var(--primary); color: #fff; }
+.footer-divider { border-color: rgba(255, 255, 255, 0.1); }
+.footer-copyright { color: var(--text-light); opacity: 0.7; }
+
+
+/* --- استایل‌های تم‌ها (بر اساس custom.css شما) --- */
+/* این بخش مهم‌ترین قسمت برای هماهنگی است */
+/* مطمئن شوید متغیرهای داخل هر تم، مقادیر درست را از custom.css شما دارند */
+
+body.theme-light {
+    /* متغیرها در :root تعریف شدن و پیش‌فرض هستن */
+    /* در صورت نیاز به override خاص برای تم روشن، اینجا اضافه کنید */
+    --sidebar-bg: #1e2a44; /* مثال: تنظیم مجدد اگر در :root فرق داشت */
+    --footer-bg: #2c3e50;  /* مثال: تنظیم مجدد */
+    --text-light: #ecf0f1;
+    --text-dark: #212529;
+    /* ... سایر متغیرهای خاص تم روشن ... */
+}
+
+body.theme-dark {
+    --primary: #667eea;
+    --sidebar-bg: #2d3748;
+    --footer-bg: #4a5568;
+    --light-bg: #1a202c; /* پس زمینه body */
+    --content-bg: #2d3748; /* پس زمینه کارت‌ها و ماژول‌ها */
+    --text-dark: #e2e8f0; /* متن اصلی */
+    --text-light: #e2e8f0; /* متن روی پس‌زمینه‌های تیره */
+    --border-color: #4a5568;
+    --input-bg: #4a5568;
+    --input-border: #718096;
+    /* متغیرهای hover دکمه ها */
+    --btn-hover-primary: #5a67d8;
+    --btn-hover-success: #38a169; /* مثال */
+    --btn-hover-danger: #e53e3e;  /* مثال */
+    /* متغیرهای وضعیت */
+    /* ... (کپی از :root[data-theme='dark'] در پاسخ قبلی) ... */
+     --status-paid-bg: #0f5132; --status-paid-text: #a3cfbb; --status-paid-border: #146c43;
+     --status-pending-bg: #664d03; --status-pending-text: #ffecb5; --status-pending-border: #997404;
+     --status-rejected-bg: #842029; --status-rejected-text: #f5c6cb; --status-rejected-border: #a52834;
+     --status-draft-bg: #41464b; --status-draft-text: #adb5bd; --status-draft-border: #5c636a;
+     --status-default-bg: #343a40; --status-default-text: #adb5bd; --status-default-border: #495057;
+}
+body.theme-dark { /* اعمال رنگ‌های اصلی */
+     background-color: var(--light-bg); color: var(--text-dark); color-scheme: dark;
+}
+
+
+body.theme-blue {
+    --primary: #4299e1;
+    --sidebar-bg: #3182ce;
+    --footer-bg: #2b6cb0;
+    --light-bg: #e6f0fa;
+    --content-bg: #ffffff; /* یا #ebf8ff */
+    --text-dark: #2c5282; /* تیره‌تر برای خوانایی */
+    --text-light: #ffffff; /* متن روی پس‌زمینه‌های آبی */
+    --border-color: #bee3f8;
+    --input-bg: #ffffff;
+    --input-border: #90cdf4;
+    /* متغیرهای hover دکمه ها */
+    --btn-hover-primary: #2b6cb0;
+    /* ... سایر متغیرها ... */
+}
+body.theme-blue {
+     background-color: var(--light-bg); color: var(--text-dark);
+}
+
+body.theme-green {
+    --primary: #48bb78;
+    --sidebar-bg: #38a169;
+    --footer-bg: #2f855a;
+    --light-bg: #f0fff4;
+    --content-bg: #ffffff; /* یا #f0fff4 */
+    --text-dark: #2f855a;
+    --text-light: #ffffff; /* متن روی پس‌زمینه‌های سبز */
+    --border-color: #c6f6d5;
+    --input-bg: #ffffff;
+    --input-border: #9ae6b4;
+    /* متغیرهای hover دکمه ها */
+     --btn-hover-primary: #2f855a;
+    /* ... سایر متغیرها ... */
+}
+body.theme-green {
+     background-color: var(--light-bg); color: var(--text-dark);
+}
+
+/* --- RTL Specific Overrides (اگر bootstrap.rtl.min.css کافی نیست) --- */
+html[dir="rtl"] {
+    /* اطمینان از جهت */
+}
+/* مثال: اگر input-group در RTL مشکل داشت */
+html[dir="rtl"] .input-group > :not(:first-child):not(.dropdown-menu):not(.valid-tooltip):not(.valid-feedback):not(.invalid-tooltip):not(.invalid-feedback) {
+    margin-left: -1px;
+    margin-right: 0; /* اصلاح احتمالی */
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    border-top-right-radius: var(--bs-border-radius); /* اصلاح احتمالی */
+    border-bottom-right-radius: var(--bs-border-radius); /* اصلاح احتمالی */
+}
+html[dir="rtl"] .input-group:not(.has-validation) > :not(:last-child):not(.dropdown-toggle):not(.dropdown-menu):not(.form-floating),
+html[dir="rtl"] .input-group.has-validation > :nth-child(n+3):not(.dropdown-toggle):not(.dropdown-menu):not(.form-floating) {
+     border-top-right-radius: 0; /* اصلاح احتمالی */
+     border-bottom-right-radius: 0; /* اصلاح احتمالی */
+     border-top-left-radius: var(--bs-border-radius); /* اصلاح احتمالی */
+    border-bottom-left-radius: var(--bs-border-radius); /* اصلاح احتمالی */
+}
+/* سایر override های RTL در صورت نیاز... */

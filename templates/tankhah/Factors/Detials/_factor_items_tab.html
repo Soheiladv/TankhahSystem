@@ -19,14 +19,14 @@
                         <td>{{ item.description |to_persian_number }}</td>
                         <td class="text-center">{{ item.quantity |format_negative}}</td>
                         <td class="text-end">{{ item.unit_price|format_negative }}</td>
-                        <td class="text-end fw-bold">{{ item.total_price|format_negative }}</td>
+                        <td class="text-end fw-bold">{{ item.amount|default:'0'|format_negative }}</td>
                     </tr>
                 {% endfor %}
             </tbody>
             <tfoot>
                 <tr class="table-light">
                     <td colspan="4" class="text-end fw-bold fs-6">{% trans "جمع کل اقلام:" %}</td>
-                    <td class="text-end fw-bold fs-6">{{ items_total|format_negative }}</td>
+                    <td class="text-end fw-bold fs-6">{{ items_total|default:'0'|format_negative }}</td>
                 </tr>
             </tfoot>
         </table>

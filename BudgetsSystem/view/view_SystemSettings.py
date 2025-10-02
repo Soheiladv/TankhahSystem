@@ -28,7 +28,20 @@ class SystemSettingsDashboardView(PermissionBaseView, TemplateView):
         settings_obj = SystemSettings.objects.first()
         context['settings'] = settings_obj
         context['has_settings'] = settings_obj is not None
-        # Dashboard widget flags removed; no coupling with system settings
+        
+        # Add widget management data
+        from core.models import DynamicConfiguration
+        widget_keys = SystemSettings.DASHBOARD_WIDGET_KEYS
+        widget_flags = {}
+        
+        for code in widget_keys:
+            # Check both system setting and user permission
+            has_permission = self.request.user.has_perm(f'core.view_widget_{code}')
+            is_enabled = DynamicConfiguration.get_value(f'dashboard_widget_{code}', '1') == '1'
+            widget_flags[code] = has_permission and is_enabled
+        
+        context['widget_keys'] = widget_keys
+        context['widget_flags'] = widget_flags
         return context
 
 
@@ -424,4 +437,24 @@ class ToggleDashboardWidgetView(PermissionBaseView, TemplateView):
     check_organization = True
 
     def post(self, request, *args, **kwargs):
-        return JsonResponse({'ok': False, 'error': 'Dashboard widget toggles are disabled'}, status=400)
+        try:
+            data = json.loads(request.body)
+            widget_code = data.get('widget')
+            approve = data.get('approve', False)
+            
+            if not widget_code:
+                return JsonResponse({'ok': False, 'error': 'Widget code is required'}, status=400)
+            
+            # Import here to avoid circular imports
+            from core.models import DynamicConfiguration
+            
+            # Set widget visibility
+            DynamicConfiguration.set_value(f'dashboard_widget_{widget_code}', '1' if approve else '0')
+            
+            return JsonResponse({'ok': True, 'message': f'Widget {widget_code} {"enabled" if approve else "disabled"}'})
+            
+        except json.JSONDecodeError:
+            return JsonResponse({'ok': False, 'error': 'Invalid JSON data'}, status=400)
+        except Exception as e:
+            logger.error(f"Error toggling widget: {e}")
+            return JsonResponse({'ok': False, 'error': str(e)}, status=500)

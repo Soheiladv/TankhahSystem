@@ -7,6 +7,7 @@ from django.shortcuts import redirect
 from django.urls import reverse
 from django.contrib import messages
 from .models import ActiveUser, AuditLog  # مدل‌ها باید توی accounts/models.py باشن
+from django.contrib.sessions.models import Session
 from django.contrib.auth import logout as auth_logout  # ایمپورت مستقیم تابع logout
 
 
@@ -43,20 +44,54 @@ class ActiveUserMiddleware:
             return redirect('accounts:login')
 
         # مدیریت لاگین
-        if request.path == reverse('accounts:login') and request.method == 'POST':
+        from django.conf import settings
+        login_path = settings.LOGIN_URL
+        if request.path == login_path and request.method == 'POST':
             if request.user.is_authenticated:
-                existing_session = ActiveUser.objects.filter(user=request.user).first()
+                # احترام به تنظیمات سیستم برای تک‌سشنی بودن
+                try:
+                    from core.models import SystemSettings
+                    if not SystemSettings.get_solo().enforce_single_browser_session:
+                        return redirect('/')
+                except Exception:
+                    pass
+                # در صورت وجود چند رکورد، جدیدترین را نگه دار و بقیه را حذف کن
+                user_sessions = list(ActiveUser.objects.filter(user=request.user).order_by('-last_activity'))
+                existing_session = user_sessions[0] if user_sessions else None
+                for extra in user_sessions[1:]:
+                    if extra.session_key:
+                        Session.objects.filter(session_key=extra.session_key).delete()
+                    extra.delete()
                 if existing_session:  # اگه سشن قبلی وجود داره
                     if existing_session.session_key != session_key:
-                        messages.warning(
-                            request,
-                            f"شما قبلاً با IP {existing_session.user_ip} در تاریخ "
-                            f"{existing_session.login_time.strftime('%Y/%m/%d %H:%M:%S')} وارد سیستم شدید. "
-                            f"برای ورود با این دستگاه، باید سشن قبلی قطع بشه. آیا موافقید؟ "
-                            f"<a href='{reverse('accounts:terminate_session', args=[existing_session.id])}'>بله، قطع کن</a>"
-                        )
-                        logger.info(f"کاربر {request.user.username} سشن فعال قبلی داره: {existing_session.session_key}")
-                        return redirect('accounts:login')
+                        # پایان اجباری سشن قبلی و جایگزینی با سشن فعلی
+                        if existing_session.session_key:
+                            Session.objects.filter(session_key=existing_session.session_key).delete()
+                        # پیام هشدار به کاربر و ثبت لاگ
+                        messages.warning(request, f"اتصال قبلی شما از IP {existing_session.user_ip} در زمان {existing_session.login_time.strftime('%Y/%m/%d %H:%M:%S')} خاتمه یافت و با اتصال فعلی جایگزین شد.")
+                        try:
+                            AuditLog.objects.create(
+                                user=request.user,
+                                action='update',
+                                model_name='Session',
+                                details=f"Session replaced. Old IP: {existing_session.user_ip}",
+                                ip_address=user_ip,
+                                browser=user_agent,
+                                status_code=200,
+                                related_object='SingleSessionEnforced'
+                            )
+                        except Exception:
+                            pass
+                        existing_session.session_key = session_key
+                        existing_session.login_time = timezone.now()
+                        existing_session.last_activity = timezone.now()
+                        existing_session.user_ip = user_ip
+                        existing_session.user_agent = user_agent
+                        existing_session.is_active = True
+                        existing_session.logout_time = None
+                        existing_session.save(update_fields=['session_key','login_time','last_activity','user_ip','user_agent','is_active','logout_time'])
+                        logger.info(f"سشن قبلی کاربر {request.user.username} خاتمه یافت و با سشن جدید جایگزین شد")
+                        return redirect('/')
                     # اگه سشن همونه، فقط آپدیت کن
                     existing_session.last_activity = timezone.now()
                     existing_session.user_ip = user_ip
@@ -89,21 +124,52 @@ class ActiveUserMiddleware:
                 logger.info(f"کاربر {request.user.username} خارج شد")
                 return redirect('accounts:login')
 
-        # به‌روزرسانی فعالیت کاربر
+        # به‌روزرسانی فعالیت کاربر و تضمین تک‌سشنی بودن
         if request.user.is_authenticated and session_key:
-            active_user = ActiveUser.objects.filter(user=request.user).first()
+            # احترام به تنظیمات سیستم برای تک‌سشنی بودن
+            try:
+                from core.models import SystemSettings
+                if not SystemSettings.get_solo().enforce_single_browser_session:
+                    return self.get_response(request)
+            except Exception:
+                pass
+            # رفع رکوردهای اضافی احتمالی
+            user_sessions = list(ActiveUser.objects.filter(user=request.user).order_by('-last_activity'))
+            active_user = user_sessions[0] if user_sessions else None
+            for extra in user_sessions[1:]:
+                if extra.session_key:
+                    Session.objects.filter(session_key=extra.session_key).delete()
+                extra.delete()
             if active_user:
                 if active_user.session_key != session_key:
-                    messages.warning(
-                        request,
-                        f"شما قبلاً با IP {active_user.user_ip} در تاریخ "
-                        f"{active_user.login_time.strftime('%Y/%m/%d %H:%M:%S')} وارد سیستم شدید. "
-                        f"برای ادامه با این دستگاه، باید سشن قبلی قطع بشه. آیا موافقید؟ "
-                        f"<a href='{reverse('accounts:terminate_session', args=[active_user.id])}'>بله، قطع کن</a>"
-                    )
-                    logger.info(f"کاربر {request.user.username} سشن فعال قبلی داره: {active_user.session_key}")
-                    auth_logout(request)  # کاربر رو لاگ‌اوت می‌کنیم تا مجبور بشه دوباره لاگین کنه
-                    return redirect('accounts:login')
+                    # پایان اجباری سشن قبلی و جایگزینی با سشن فعلی بدون نیاز به تأیید کاربر
+                    if active_user.session_key:
+                        Session.objects.filter(session_key=active_user.session_key).delete()
+                    # پیام هشدار به کاربر و ثبت لاگ
+                    messages.warning(request, f"اتصال قبلی شما از IP {active_user.user_ip} در زمان {active_user.login_time.strftime('%Y/%m/%d %H:%M:%S')} خاتمه یافت و با اتصال فعلی جایگزین شد.")
+                    try:
+                        AuditLog.objects.create(
+                            user=request.user,
+                            action='update',
+                            model_name='Session',
+                            details=f"Session replaced during request. Old IP: {active_user.user_ip}",
+                            ip_address=user_ip,
+                            browser=user_agent,
+                            status_code=200,
+                            related_object='SingleSessionEnforced'
+                        )
+                    except Exception:
+                        pass
+                    active_user.session_key = session_key
+                    active_user.login_time = timezone.now()
+                    active_user.last_activity = timezone.now()
+                    active_user.user_ip = user_ip
+                    active_user.user_agent = user_agent
+                    active_user.is_active = True
+                    active_user.logout_time = None
+                    active_user.save(update_fields=['session_key','login_time','last_activity','user_ip','user_agent','is_active','logout_time'])
+                    logger.info(f"سشن قبلی کاربر {request.user.username} خاتمه یافت و با سشن جدید جایگزین شد (حین درخواست)")
+                    # ادامه پردازش درخواست با سشن جدید
                 active_user.last_activity = timezone.now()
                 active_user.user_ip = user_ip
                 active_user.user_agent = user_agent

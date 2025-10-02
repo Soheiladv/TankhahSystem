@@ -66,14 +66,28 @@ function loadFactors(url, targetSelector, btn) {
             <p class="mb-0">{% translate "در حال بارگذاری فاکتورها..." %}</p>
         </div>
     `);
-    $.get(url)
-        .done(function(resp){
-            $target.html(resp.html_content || '<div class="alert alert-warning">{% translate "داده‌ای دریافت نشد." %}</div>');
+    $.ajax({
+        url: url,
+        method: 'GET',
+        dataType: 'json',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': $('input[name="csrfmiddlewaretoken"]').val()
+        }
+    })
+    .done(function(resp){
+        console.log('Factors API Response:', resp);
+        if (resp && resp.html_content) {
+            $target.html(resp.html_content);
             $target.data('loaded', true);
-        })
-        .fail(function(){
-            $target.html('<div class="alert alert-danger">{% translate "خطا در ارتباط با سرور." %}</div>');
-        })
+        } else {
+            $target.html('<div class="alert alert-warning">{% translate "داده‌ای دریافت نشد." %}</div>');
+        }
+    })
+    .fail(function(xhr, status, error){
+        console.error('Factors API Error:', xhr, status, error);
+        $target.html('<div class="alert alert-danger">{% translate "خطا در ارتباط با سرور: " %}' + error + '</div>');
+    })
         .always(function(){
             $btn.prop('disabled', false).html('<i class="fas fa-file-invoice"></i> ' + '{% translate "نمایش فاکتورها" %}');
         });

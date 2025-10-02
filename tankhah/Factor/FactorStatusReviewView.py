@@ -38,7 +38,7 @@ class FactorStatusReviewView(PermissionBaseView, ListView):
         ).prefetch_related(
             Prefetch('items', queryset=FactorItem.objects.order_by('pk')),
             Prefetch('approval_logs', queryset=ApprovalLog.objects.select_related('user', 'post', 'post__organization',
-                                                                                  'stage').order_by('timestamp'))
+                                                                                  'from_status', 'to_status', 'action').order_by('timestamp'))
             # اضافه کردن post__organization
         ).annotate(
             total_items=Count('items'),
@@ -103,10 +103,10 @@ class FactorStatusReviewView(PermissionBaseView, ListView):
                     'post_name': log.post.name if log.post else _("نامشخص"),
                     'post_org_name': log.post.organization.name if log.post and log.post.organization else _("نامشخص"),
                     'user_name': log.user.get_full_name() or log.user.username if log.user else _("سیستم"),
-                    'action': log.get_action_display(),
+                    'action': (log.action.name if getattr(log, 'action', None) and hasattr(log.action, 'name') else (str(log.action) if getattr(log, 'action', None) else _("نامشخص"))),
                     'timestamp': log.timestamp,
                     'comment': log.comment,
-                    'stage_name': log.stage.name if log.stage else _("نامشخص"),
+                    'stage_name': log.to_status.name if getattr(log, 'to_status', None) else _("نامشخص"),
                     'post_branch_class': post_branch_class,  # کلاس برای رنگ‌بندی
                 })
 
@@ -220,7 +220,7 @@ class ComprehensiveFactorDetailView(PermissionBaseView, DetailView):
         ).prefetch_related(
             Prefetch('items', queryset=FactorItem.objects.order_by('pk')),
             Prefetch('approval_logs', queryset=ApprovalLog.objects.select_related(
-                'user', 'post', 'post__organization', 'post__parent', 'stage'
+                'user', 'post', 'post__organization', 'post__parent', 'from_status', 'to_status', 'action'
             ).order_by('timestamp')),
             Prefetch('documents', queryset=FactorDocument.objects.order_by('-uploaded_at')),
             Prefetch('tankhah__project__organizations', queryset=Organization.objects.all())
@@ -305,7 +305,7 @@ class ComprehensiveFactorDetailView(PermissionBaseView, DetailView):
             'date': factor.date,
             'description': factor.description,
             'status': factor.status,
-            'status_display': factor.get_status_display(),
+            'status_display': (factor.status.name if getattr(factor, 'status', None) and hasattr(factor.status, 'name') else (str(factor.status) if getattr(factor, 'status', None) else _("نامشخص"))),
             'is_locked': factor.is_locked,
             'category_name': factor.category.name if factor.category else _("بدون دسته"),
             'created_by_name': factor.created_by.get_full_name() or factor.created_by.username if factor.created_by else _(
@@ -327,7 +327,11 @@ class ComprehensiveFactorDetailView(PermissionBaseView, DetailView):
             base_info.update({
                 'tankhah_pk': factor.tankhah.pk,
                 'tankhah_number': factor.tankhah.number,
-                'tankhah_status': factor.tankhah.get_status_display(),
+                'tankhah_status': (
+                    factor.tankhah.status.name
+                    if getattr(factor.tankhah, 'status', None) and hasattr(factor.tankhah.status, 'name')
+                    else (str(factor.tankhah.status) if getattr(factor.tankhah, 'status', None) else _("نامشخص"))
+                ),
                 'tankhah_is_archived': factor.tankhah.is_archived,
                 'organization_name': factor.tankhah.organization.name if factor.tankhah.organization else _("نامشخص"),
                 'project_pk': factor.tankhah.project.pk if factor.tankhah.project else None,
@@ -355,7 +359,11 @@ class ComprehensiveFactorDetailView(PermissionBaseView, DetailView):
                 'quantity': item.quantity,
                 'unit_price': item.unit_price,
                 'amount': item.amount,
-                'status': item.get_status_display(),
+                'status': (
+                    item.status.name
+                    if getattr(item, 'status', None) and hasattr(item.status, 'name')
+                    else (str(item.status) if getattr(item, 'status', None) else _("نامشخص"))
+                ),
                 'status_code': item.status,
                 'category_name': item.category.name if hasattr(item, 'category') and item.category else "---",
             })
@@ -373,11 +381,11 @@ class ComprehensiveFactorDetailView(PermissionBaseView, DetailView):
                 'post_branch_code': log.post.branch if log.post else '',
                 'post_org_name': log.post.organization.name if log.post and log.post.organization else _("نامشخص"),
                 'user_name': log.user.get_full_name() or log.user.username if log.user else _("سیستم"),
-                'action': log.get_action_display(),
+                'action': (log.action.name if getattr(log, 'action', None) and hasattr(log.action, 'name') else (str(log.action) if getattr(log, 'action', None) else _("نامشخص"))),
                 'action_status_class': action_status_class,
                 'timestamp': log.timestamp,
                 'comment': log.comment or '',
-                'stage_name': log.stage.name if log.stage else _("نامشخص"),
+                'stage_name': log.to_status.name if getattr(log, 'to_status', None) else _("نامشخص"),
             })
 
         # 4. اقدام‌کنندگان مجاز فعلی
@@ -510,7 +518,7 @@ class UltimateFactorDetailView(PermissionBaseView, DetailView):
             # ردیف‌های فاکتور با دسته بندی‌شان
             Prefetch('approval_logs',
                      queryset=ApprovalLog.objects.select_related(
-                         'user', 'post', 'post__organization', 'stage'
+                        'user', 'post', 'post__organization', 'from_status', 'to_status', 'action'
                      ).order_by('timestamp')),  # تاریخچه اقدامات
             Prefetch('documents',
                      queryset=FactorDocument.objects.select_related('uploaded_by').order_by('-uploaded_at')),
@@ -575,7 +583,7 @@ class UltimateFactorDetailView(PermissionBaseView, DetailView):
                 'action_class': action_class,
                 'timestamp': log.timestamp,
                 # jdatetime.datetime.fromgregorian(datetime=log.timestamp).strftime('%Y/%m/%d %H:%M:%S')
-                'stage_name': log.stage.name if log.stage else _("نامشخص"),
+                'stage_name': log.to_status.name if getattr(log, 'to_status', None) else _("نامشخص"),
                 'comment': log.comment or _("بدون توضیح"),
             })
         logger.debug(f"Prepared {len(history)} approval log entries for factor {factor_instance.pk}")
@@ -705,11 +713,8 @@ class UltimateFactorDetailView(PermissionBaseView, DetailView):
             })
 
         # یافتن مرحله بعدی (اگر گردش کار خطی ساده‌ای دارید)
-        try:
-            actions_info['next_stage'] = WorkflowStage.objects.filter(order__gt=current_stage.order,
-                                                                      is_active=True).order_by('order').first()
-        except WorkflowStage.DoesNotExist:
-            pass
+        # TODO: Determine next stage via your workflow engine if needed
+        actions_info['next_stage'] = None
         logger.debug(f"Next actions info for factor {factor_instance.pk}: {actions_info}")
         return actions_info
 
@@ -725,7 +730,7 @@ class UltimateFactorDetailView(PermissionBaseView, DetailView):
         from jdatetime import datetime as jdatetime
         factor_base_info = {
             'instance': factor_instance,  # خود آبجکت برای دسترسی به فیلدهای ساده
-            'status_display': factor_instance.get_status_display(),
+            'status_display': (factor_instance.status.name if getattr(factor_instance, 'status', None) and hasattr(factor_instance.status, 'name') else (str(factor_instance.status) if getattr(factor_instance, 'status', None) else _("نامشخص"))),
             'category_name': factor_instance.category.name if factor_instance.category else _("بدون دسته"),
             'created_by_name': factor_instance.created_by.get_full_name() or factor_instance.created_by.username if factor_instance.created_by else _(
                 "نامشخص"),
@@ -816,7 +821,7 @@ class AdvancedFactorStatusReviewView(PermissionBaseView, ListView):
         ).prefetch_related(
             Prefetch('items', queryset=FactorItem.objects.order_by('pk')),
             Prefetch('approval_logs', queryset=ApprovalLog.objects.select_related(
-                'user', 'post', 'post__organization', 'post__parent', 'stage'
+                'user', 'post', 'post__organization', 'post__parent', 'from_status', 'to_status', 'action'
             ).order_by('timestamp'))
         ).annotate(
             total_items=Count('items'),

@@ -81,45 +81,18 @@
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    function loadTankhahs(url, button, targetId) {
-        console.log(`Sending AJAX request to: ${url}`);
-        const target = document.querySelector(targetId);
-        if (target && !target.dataset.loaded) {
-            target.dataset.loading = 'true';
-            fetch(url, {
-                method: 'GET',
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRFToken': document.querySelector('input[name="csrfmiddlewaretoken"]').value
-                }
-            })
-                .then(response => {
-                    console.log(`Received response with status: ${response.status}`);
-                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                    return response.json();
-                })
-                .then(data => {
-                    console.log('Response data:', data);
-                    target.innerHTML = data.html_content || '<div class="alert alert-danger text-center">{% translate "خطا در بارگذاری تنخواه‌ها." %}</div>';
-                    target.dataset.loaded = 'true';
-                    delete target.dataset.loading;
-                })
-                .catch(error => {
-                    console.error('Error loading tankhahs:', error);
-                    target.innerHTML = '<div class="alert alert-danger text-center">{% translate "خطا در ارتباط با سرور." %}</div>';
-                    delete target.dataset.loading;
-                });
-        }
-    }
-});
-
-
 function loadTankhahs(url, button, targetId) {
     const target = $(targetId);
     const btn = $(button);
     
-    if (!target.length || target.data('loaded')) return;
+    if (!target.length) {
+        console.error('Tankhah target not found:', targetId);
+        return;
+    }
+    if (target.data('loaded')) {
+        console.log('Tankhahs already loaded for', targetId);
+        return;
+    }
     
     // نمایش حالت بارگذاری
     target.html(`
@@ -134,29 +107,51 @@ function loadTankhahs(url, button, targetId) {
         url: url,
         type: 'GET',
         dataType: 'json',
+        cache: false,
+        timeout: 15000,
         headers: {
-            'X-CSRFToken': $('[name=csrfmiddlewaretoken]').val()
+            'X-CSRFToken': $('[name=csrfmiddlewaretoken]').val(),
+            'X-Requested-With': 'XMLHttpRequest'
         },
-        success: function(data) {
-            if (data.status === 'success') {
-                target.html(data.html_content).data('loaded', true);
-            } else {
+        beforeSend: function(xhr) {
+            console.log('Requesting tankhahs:', url, '→ target:', targetId);
+        },
+        success: function(data, textStatus, xhr) {
+            try {
+                if (data && (data.status === 'success' || data.html_content)) {
+                    target.html(data.html_content || '').data('loaded', true);
+                } else if (data && data.status === 'empty') {
+                    target.html(`
+                        <div class="alert alert-info text-center mb-0 py-2">
+                            هیچ تنخواهی برای این تخصیص یافت نشد.
+                        </div>
+                    `).data('loaded', true);
+                } else {
+                    target.html(`
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            داده‌ای دریافت نشد
+                        </div>
+                    `);
+                }
+            } catch (e) {
+                console.error('Parse error:', e);
                 target.html(`
-                    <div class="alert alert-warning">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        ${data.html_content || 'داده‌ای دریافت نشد'}
+                    <div class="alert alert-danger text-center">
+                        <i class="fas fa-times-circle"></i>
+                        خطا در پردازش پاسخ سرور
                     </div>
                 `);
             }
         },
-        error: function(xhr) {
+        error: function(xhr, status, error) {
+            console.error('Tankhahs AJAX error:', status, error, '→', xhr.responseText);
             target.html(`
                 <div class="alert alert-danger">
                     <i class="fas fa-times-circle"></i>
                     خطا در ارتباط با سرور
                 </div>
             `);
-            console.error('Error:', xhr.responseText);
         },
         complete: function() {
             btn.prop('disabled', false).html('نمایش تنخواه‌ها');

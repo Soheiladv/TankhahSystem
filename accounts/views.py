@@ -1113,63 +1113,93 @@ class DeactivateRoleView(LoginRequiredMixin, View):
         return redirect('accounts:role_list')  # یا هر URL که مناسب است
 # Auditlog.py
 def audit_log_list(request):
-    # دریافت تمام لاگ‌ها
+    # دریافت لاگ‌ها با ترتیب زمانی نزولی
     logs = AuditLog.objects.all().order_by('-timestamp')
 
-    # فیلتر بر اساس تاریخ جلالی
-    if 'date' in request.GET and request.GET['date']:
-        jalali_date_str = request.GET['date']
-        try:
-            # تبدیل تاریخ جلالی به میلادی
-            jalali_date = jdatetime.datetime.strptime(jalali_date_str, '%Y/%m/%d %H:%M:%S')
-            gregorian_date = jalali_date.togregorian()
-            logs = logs.filter(timestamp__date=gregorian_date)
-        except ValueError:
-            # اگر تاریخ نامعتبر بود، خطا را مدیریت کنید
-            pass
+    # فیلتر تاریخ جلالی مقایسه‌ای (از/تا) - ورودی به صورت YYYY-MM-DD جلالی
+    date_from_j = request.GET.get('date_from')
+    date_to_j = request.GET.get('date_to')
+    try:
+        if date_from_j:
+            j_from = jdatetime.date.fromisoformat(date_from_j)
+            g_from = j_from.togregorian()
+            logs = logs.filter(timestamp__date__gte=g_from)
+        if date_to_j:
+            j_to = jdatetime.date.fromisoformat(date_to_j)
+            g_to = j_to.togregorian()
+            logs = logs.filter(timestamp__date__lte=g_to)
+    except Exception:
+        pass
 
-    # فیلترها
-    if 'user' in request.GET and request.GET['user']:
-        logs = logs.filter(user_id=request.GET['user'])
+    # فیلترهای کاربر و اکشن
+    user_id = request.GET.get('user')
+    if user_id:
+        logs = logs.filter(user_id=user_id)
 
-    if 'action' in request.GET and request.GET['action']:
-        logs = logs.filter(action=request.GET['action'])
+    action = request.GET.get('action')
+    if action:
+        logs = logs.filter(action=action)
 
-    if 'model_name' in request.GET and request.GET['model_name']:
-        logs = logs.filter(model_name=request.GET['model_name'])
+    # فیلترهای جدید: نام ویو و مسیر (تمپلیت/URL)
+    # فیلتر نام ویو برداشته شد بر اساس درخواست
 
-    if 'related_object' in request.GET and request.GET['related_object']:
-        logs = logs.filter(related_object__icontains=request.GET['related_object'])
+    path_contains = request.GET.get('path')
+    if path_contains:
+        logs = logs.filter(path__icontains=path_contains)
 
-    # کنترل نمایش لاگ‌های بدون تغییر
+    # جستجوی کلی در جزئیات و تغییرات
+    search = request.GET.get('search')
+    if search:
+        logs = logs.filter(
+            Q(details__icontains=search) |
+            Q(changes__icontains=search) |
+            Q(related_object__icontains=search) |
+            Q(model_name__icontains=search) |
+            Q(path__icontains=search)
+        )
+
+    # نمایش/عدم نمایش ردیف‌های بدون تغییر
     show_empty = request.GET.get('show_empty', 'false').lower() == 'true'
     if not show_empty:
-        logs = logs.exclude(changes="-")  # حذف ردیف‌های بدون تغییر
+        logs = logs.exclude(changes='-')
 
     # صفحه‌بندی
-    paginator = Paginator(logs, 20)  # 20 لاگ در هر صفحه
+    paginator = Paginator(logs, 20)
     page_number = request.GET.get('page')
     logs_page = paginator.get_page(page_number)
 
-    # لیست کاربران و مدل‌ها برای فیلترها
+    # داده‌های کمکی فیلترها
     users = User.objects.all()
-    models = []
-    for content_type in ContentType.objects.all():
-        model_class = content_type.model_class()
-        if model_class:
-            models.append({
-                'model_name': content_type.model,
-                'verbose_name': model_class._meta.verbose_name,
-                'verbose_name_plural': model_class._meta.verbose_name_plural
-            })
 
     context = {
         'logs': logs_page,
         'users': users,
-        'models': models,
-        'show_empty': show_empty,  # برای مدیریت نمایش ردیف‌های بدون تغییر
+        'show_empty': show_empty,
     }
     return render(request, 'accounts/AuditLog/log_list.html', context)
+
+def create_test_audit_log(request):
+    """ایجاد یک لاگ تستی برای بررسی گزارش."""
+    try:
+        AuditLog.objects.create(
+            user_id=getattr(request.user, 'id', None),
+            action='create',
+            view_name='test_view',
+            path='/test/audit/',
+            method='GET',
+            model_name='TestModel',
+            object_id='1',
+            details='لاگ تستی ایجاد شد',
+            changes={'field': {'old_value': '-', 'new_value': 'value'}},
+            ip_address=request.META.get('REMOTE_ADDR'),
+            browser=request.META.get('HTTP_USER_AGENT', ''),
+            status_code=200,
+            related_object='TestObject'
+        )
+        messages.success(request, 'لاگ تستی با موفقیت ایجاد شد.')
+    except Exception as e:
+        messages.error(request, f'خطا در ایجاد لاگ تستی: {e}')
+    return redirect('accounts:audit_log_list')
 # ویو داشبوردی منو ها
 def user_management_view(request):
     user_menu = [
@@ -1541,4 +1571,12 @@ def active_users_view(request):
         return JsonResponse(context)
 
     return render(request, 'accounts/active_users.html', context)
+
+@login_required
+def my_session_activity(request):
+    """نمایش 10 فعالیت اخیر سشن‌های کاربر (از جدول AuditLog با مدل Session)."""
+    logs = AuditLog.objects.filter(user=request.user, model_name='Session').order_by('-timestamp')[:15]
+    return render(request, 'accounts/users/session_activity.html', {
+        'logs': logs,
+    })
 

@@ -1,7 +1,7 @@
 {% load static i18n humanize jformat rcms_custom_filters jalali_tags %}
 
 <!DOCTYPE html>
- <html lang="fa" dir="rtl">
+<html lang="fa" dir="rtl">
 
 <head>
     <meta charset="UTF-8">
@@ -26,7 +26,7 @@
     <link rel="stylesheet" href="{% static 'admin/css/budgetsStyle.css' %}">
     <link rel="stylesheet" href="{% static 'css/notification-animations.css' %}">
     <!-- Dashboard Reports CSS -->
-    <!-- <link rel="stylesheet" href="{% static 'reports/css/dashboard.css' %}"> -->
+    <link rel="stylesheet" href="{% static 'reports/css/dashboard.css' %}">
     <!-- Global Styles CSS -->
     <link rel="stylesheet" href="{% static 'css/global-styles.css' %}">
 
@@ -431,15 +431,27 @@
         }
 
         @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            10%, 30%, 50%, 70%, 90% { transform: translateX(-2px); }
-            20%, 40%, 60%, 80% { transform: translateX(2px); }
+            0%, 100% {
+                transform: translateX(0);
+            }
+            10%, 30%, 50%, 70%, 90% {
+                transform: translateX(-2px);
+            }
+            20%, 40%, 60%, 80% {
+                transform: translateX(2px);
+            }
         }
 
         @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); }
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+            100% {
+                transform: scale(1);
+            }
         }
 
         /* انیمیشن برای badge */
@@ -448,9 +460,15 @@
         }
 
         @keyframes bounce {
-            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
-            40% { transform: translateY(-10px); }
-            60% { transform: translateY(-5px); }
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-10px);
+            }
+            60% {
+                transform: translateY(-5px);
+            }
         }
     </style>
 </head>
@@ -458,6 +476,7 @@
 {% if messages %}
     {% for message in messages %}
         <div class="alert {% if message.tags %}alert-
+            
             
             {{ message.tags }}{% else %}alert-info{% endif %} alert-dismissible fade show animate__animated animate__fadeIn"
              role="alert">
@@ -504,25 +523,28 @@
                         <a class="nav-link dropdown-toggle position-relative" href="#" id="notificationDropdown"
                            role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="fas fa-bell notification-bell" id="notificationBell"></i>
-                            <span class="notification-badge badge bg-danger" id="notificationBadge" style="display: none;"></span>
+                            <span class="notification-badge badge bg-danger" id="notificationBadge"
+                                  style="display: none;"></span>
                         </a>
-                                <ul class="dropdown-menu dropdown-menu-end notification-list"
-                                    aria-labelledby="notificationDropdown">
-                                    <li class="dropdown-header">{% trans "اعلان‌ها" %}</li>
-                                    <div id="notification-list"></div>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li>
-                                        <a class="dropdown-item text-center"
-                                           href="{% url 'notifications:inbox' %}">
-                                            {% trans "مشاهده همه اعلان‌ها" %}
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a class="dropdown-item text-center" href="{% url 'notifications:unread' %}">
-                                            {% trans "مشاهده اعلان‌های خوانده‌نشده" %}
-                                        </a>
-                                    </li>
-                                </ul>
+                        <ul class="dropdown-menu dropdown-menu-end notification-list"
+                            aria-labelledby="notificationDropdown">
+                            <li class="dropdown-header">{% trans "اعلان‌ها" %}</li>
+                            <div id="notification-list"></div>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li>
+                                <a class="dropdown-item text-center"
+                                   href="{% url 'notifications:inbox' %}">
+                                    {% trans "مشاهده همه اعلان‌ها" %}
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item text-center" href="{% url 'notifications:unread' %}">
+                                    {% trans "مشاهده اعلان‌های خوانده‌نشده" %}
+                                </a>
+                            </li>
+                        </ul>
                     </li>
                 {% endif %}
             </ul>
@@ -588,14 +610,16 @@
          {% endcomment %}
         <!-- Theme Selector in Sidebar -->
         <li class="nav-item">
-            <div class="nav-link animate__animated animate__fadeInRight" style="cursor: pointer;" id="sidebarThemeToggle">
+            <div class="nav-link animate__animated animate__fadeInRight" style="cursor: pointer;"
+                 id="sidebarThemeToggle">
                 <i class="fas fa-palette"></i>{% trans "انتخاب تم" %}
             </div>
         </li>
-        
+
         <!-- Custom Theme Designer -->
         <li class="nav-item">
-            <a class="nav-link animate__animated animate__fadeInRight" href="{% url 'accounts:custom_theme_designer' %}">
+            <a class="nav-link animate__animated animate__fadeInRight"
+               href="{% url 'accounts:custom_theme_designer' %}">
                 <i class="fas fa-paint-brush"></i>{% trans "طراحی تم سفارشی" %}
             </a>
         </li>
@@ -604,13 +628,13 @@
                 <i class="fas fa-book-open"></i>{% trans "راهنما" %}
             </a>
         </li>
-{#        {% if user.is_staff or user.is_superuser %}#}
-{#        <li class="nav-item">#}
-{#            <a href="{% url 'staff_api_documentation' %}" class="nav-link animate__animated animate__fadeInRight">#}
-{#                <i class="fas fa-code"></i>{% trans "مستندات API" %}#}
-{#            </a>#}
-{#        </li>#}
-{#        {% endif %}#}
+        {#        {% if user.is_staff or user.is_superuser %}#}
+        {#        <li class="nav-item">#}
+        {#            <a href="{% url 'staff_api_documentation' %}" class="nav-link animate__animated animate__fadeInRight">#}
+        {#                <i class="fas fa-code"></i>{% trans "مستندات API" %}#}
+        {#            </a>#}
+        {#        </li>#}
+        {#        {% endif %}#}
     </ul>
 
     <!-- Beautiful Theme Selector in Sidebar -->
@@ -621,7 +645,7 @@
                 انتخاب تم رنگی
             </h6>
         </div>
-        
+
         <!-- Beautiful Theme Form -->
         <form method="post" action="{% url 'accounts:set_theme' %}" class="theme-form">
             {% csrf_token %}
@@ -630,29 +654,33 @@
                     {% if forloop.counter0|divisibleby:2 %}
                         <div class="theme-row">
                     {% endif %}
-                    
-                    <label class="sidebar-theme-option" data-theme="{{ theme_value }}">
-                        <input type="radio" name="theme" value="{{ theme_value }}" {% if user_theme == theme_value or forloop.first and not user_theme %}checked{% endif %}>
-                        <div class="theme-preview" style="background: {% if theme_value == 'custom' and custom_theme_data %}linear-gradient(135deg, {{ custom_theme_data.primary_color }} 0%, {{ custom_theme_data.secondary_color }} 50%, {{ custom_theme_data.background_color }} 100%){% else %}var(--gradient-primary){% endif %};"></div>
-                        <span class="theme-name">{{ theme_name }}</span>
-                    </label>
-                    
-                    {% if forloop.counter|divisibleby:2 or forloop.last %}
-                        </div>
-                    {% endif %}
+
+                <label class="sidebar-theme-option" data-theme="{{ theme_value }}">
+                    <input type="radio" name="theme" value="{{ theme_value }}"
+                           {% if user_theme == theme_value or forloop.first and not user_theme %}checked{% endif %}>
+                    <div class="theme-preview"
+                         style="background: {% if theme_value == 'custom' and custom_theme_data %}linear-gradient(135deg, {{ custom_theme_data.primary_color }} 0%, {{ custom_theme_data.secondary_color }} 50%, {{ custom_theme_data.background_color }} 100%){% else %}var(--gradient-primary){% endif %};"></div>
+                    <span class="theme-name">{{ theme_name }}</span>
+                </label>
+
+                {% if forloop.counter|divisibleby:2 or forloop.last %}
+                    </div>
+                {% endif %}
                 {% endfor %}
-                
+
                 {% if custom_theme_data %}
-                <div class="theme-row">
-                    <label class="sidebar-theme-option" data-theme="custom">
-                        <input type="radio" name="theme" value="custom" {% if user_theme == 'custom' %}checked{% endif %}>
-                        <div class="theme-preview" style="background: linear-gradient(135deg, {{ custom_theme_data.primary_color }} 0%, {{ custom_theme_data.secondary_color }} 50%, {{ custom_theme_data.background_color }} 100%);"></div>
-                        <span class="theme-name">سفارشی</span>
-                    </label>
-                </div>
+                    <div class="theme-row">
+                        <label class="sidebar-theme-option" data-theme="custom">
+                            <input type="radio" name="theme" value="custom"
+                                   {% if user_theme == 'custom' %}checked{% endif %}>
+                            <div class="theme-preview"
+                                 style="background: linear-gradient(135deg, {{ custom_theme_data.primary_color }} 0%, {{ custom_theme_data.secondary_color }} 50%, {{ custom_theme_data.background_color }} 100%);"></div>
+                            <span class="theme-name">سفارشی</span>
+                        </label>
+                    </div>
                 {% endif %}
             </div>
-            
+
             <div class="theme-form-actions mt-3">
                 <button type="submit" class="btn btn-primary btn-sm w-100">
                     <i class="fas fa-check me-1"></i>
@@ -664,9 +692,8 @@
 
     <div class="p-3 mt-auto">
         {% if user.is_authenticated %}
-            <p class="text-white text-center mb-2 animate__animated animate__fadeInUp">
-                <i class="fas fa-user me-2"></i>{{ user.first_name }} {{ user.last_name }}
-            </p>
+
+
             <form method="post" action="{% url 'accounts:set_theme' %}" class="mb-3">
                 {% csrf_token %}
                 <select name="theme" onchange="this.form.submit()" class="form-select bg-dark text-white border-0">
@@ -676,13 +703,23 @@
                     <option value="green" {% if user.profile.theme == 'green' %}selected{% endif %}>سبز</option>
                 </select>
             </form>
+
             <form method="post" action="{% url 'accounts:logout' %}">
                 {% csrf_token %}
                 <button type="submit"
                         class="btn btn-outline-light w-100 rounded-pill animate__animated animate__fadeInUp">
                     <i class="fas fa-sign-out-alt me-2"></i>{% trans "خروج" %}
+                    <p class="text-primary text-center mb-2 animate__animated animate__fadeInUp">
+                        <i class="fas fa-user me-2"></i>{{ user.first_name }} {{ user.last_name }}
+                    </p>
                 </button>
             </form>
+
+            <a href="{% url 'accounts:my_session_activity' %}"
+               class="btn btn-outline-light w-100 rounded-pill animate__animated animate__fadeInUp">
+                <i class="fas fa-list-check me-2"></i>{% trans "نشانی سیستم های متصل به کاربر" %}
+            </a>
+
         {% else %}
             <a href="{% url 'accounts:login' %}"
                class="btn btn-outline-light w-100 rounded-pill animate__animated animate__fadeInUp">
@@ -691,14 +728,43 @@
         {% endif %}
     </div>
 </div>
- 
-    <main class="content" id="mainContent">
-        <div class="container-fluid mt-5 pt-3">
-            {% block content %}{% endblock %}
-        </div>
-    </main>
-      
-<footer class="footer animate__animated animate__fadeInUp">
+
+<main class="content" id="mainContent">
+    <div class="container-fluid mt-5 pt-3">
+        {% block content %}{% endblock %}
+    </div>
+</main>
+
+<style>
+    /* نمایش/عدم نمایش برای چاپ */
+    .print-only {
+        display: none;
+    }
+
+    @media print {
+        .no-print {
+            display: none !important;
+        }
+
+        .print-only {
+            display: block !important;
+        }
+
+        body {
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        @page {
+            size: A4;
+            margin: 12mm;
+            landscape: true;
+        }
+    }
+</style>
+
+<footer class="footer animate__animated animate__fadeInUp print-only">
+
     <div class="container">
         <p>© 1404 {% trans "سیستم جامع بودجه بندی سازمانی و تنخواه‌گردانی" %}. {% trans "همه حقوق محفوظ است." %}</p>
     </div>
@@ -747,12 +813,20 @@
         jalaliDatepicker.startWatch();
 
         // تنظیم دیتاپیکر جلالی
+        // اطمینان از اینکه ورودی‌های دارای کلاس jalali-datepicker نیز ویژگی data-jdp دریافت کنند
+        if (typeof $ !== 'undefined') {
+            $('.jalali-datepicker').each(function () {
+                if (!$(this).is('[data-jdp]')) {
+                    $(this).attr('data-jdp', '');
+                }
+            });
+        }
         if (typeof $.fn.pDatepicker !== 'undefined') {
             $('[data-jdp]').pDatepicker({
-            format: 'YYYY/MM/DD',
-            autoClose: true,
-            initialValue: false,
-            persianDigit: true
+                format: 'YYYY/MM/DD',
+                autoClose: true,
+                initialValue: false,
+                persianDigit: true
             });
         } else {
             console.log('Persian datepicker not available');
@@ -809,22 +883,22 @@
                 const $badge = $('#notificationBadge');
                 const $bell = $('#notificationBell');
                 const previousCount = parseInt($badge.text()) || 0;
-                
+
                 if (count > 0) {
                     $badge.text(count).show();
-                    
+
                     // انیمیشن لرزش برای زنگوله
                     if (count > previousCount) {
                         $bell.addClass('shake');
                         $badge.addClass('animate');
-                        
+
                         // حذف کلاس‌های انیمیشن پس از اتمام
                         setTimeout(() => {
                             $bell.removeClass('shake');
                             $badge.removeClass('animate');
                         }, 500);
                     }
-                    
+
                     // انیمیشن pulse برای زنگوله
                     $bell.addClass('pulse');
                 } else {
@@ -870,17 +944,137 @@
 </script>
 <script>
     $(document).ready(function () {
+        if (typeof $ !== 'undefined') {
+            $('.jalali-datepicker').each(function () {
+                if (!$(this).is('[data-jdp]')) {
+                    $(this).attr('data-jdp', '');
+                }
+            });
+        }
         if (typeof $.fn.pDatepicker !== 'undefined') {
             $('[data-jdp]').pDatepicker({
-            format: 'YYYY/MM/DD',
-            autoClose: true,
-            initialValue: false,
-            persianDigit: true
+                format: 'YYYY/MM/DD',
+                autoClose: true,
+                initialValue: false,
+                persianDigit: true
             });
         } else {
             console.log('Persian datepicker not available');
         }
     });
+</script>
+<script>
+// Enforce single-tab usage when enabled in SystemSettings via server-provided flag
+(function(){
+    var enforceSingleTab = false;
+    try { enforceSingleTab = {{ settings_obj.enforce_single_tab|yesno:'true,false'|default:'false' }}; } catch(e) { enforceSingleTab = false; }
+    if (!enforceSingleTab) return;
+
+    var CHANNEL = 'RCMS_SINGLE_TAB_ENFORCER';
+    var TAB_ID = Date.now().toString(36) + Math.random().toString(36).slice(2);
+    var KEY_ACTIVE = 'RCMS_ACTIVE_TAB_ID';
+    var KEY_TS = 'RCMS_ACTIVE_TAB_TS';
+    var HEARTBEAT_MS = (function(){ try { return parseInt('{{ settings_obj.heartbeat_interval_ms|default:3000 }}', 10) || 3000; } catch(e){ return 3000; } })();
+    var STALE_MS = (function(){ try { return parseInt('{{ settings_obj.heartbeat_stale_ms|default:6000 }}', 10) || 6000; } catch(e){ return 6000; } })();
+
+    function nowTs(){ return String(Date.now()); }
+
+    function getActiveInfo(){
+        return { id: localStorage.getItem(KEY_ACTIVE), ts: parseInt(localStorage.getItem(KEY_TS) || '0', 10) };
+    }
+
+    function claimActive(){
+        localStorage.setItem(KEY_ACTIVE, TAB_ID);
+        localStorage.setItem(KEY_TS, nowTs());
+    }
+
+    function heartbeat(){
+        if (localStorage.getItem(KEY_ACTIVE) === TAB_ID) {
+            localStorage.setItem(KEY_TS, nowTs());
+        }
+    }
+
+    function blockThisTab(){
+        try {
+            var overlay = document.createElement('div');
+            overlay.style.position = 'fixed';
+            overlay.style.inset = '0';
+            overlay.style.background = 'rgba(0,0,0,0.6)';
+            overlay.style.zIndex = '99999';
+            overlay.style.color = '#fff';
+            overlay.style.display = 'flex';
+            overlay.style.flexDirection = 'column';
+            overlay.style.alignItems = 'center';
+            overlay.style.justifyContent = 'center';
+            overlay.innerHTML = '<div style="text-align:center;padding:24px;max-width:520px"><div style="font-size:18px;margin-bottom:8px">این سامانه فقط در یک تب فعال می‌شود.</div><div style="opacity:.85;margin-bottom:16px">برای ادامه، به تب فعال برگردید یا این تب را ببندید.</div><button id="rcmsTryClaim" class="btn btn-warning">تلاش برای گرفتن مالکیت</button></div>';
+            document.body.appendChild(overlay);
+            var btn = document.getElementById('rcmsTryClaim');
+            if (btn) btn.addEventListener('click', tryClaimIfStale);
+        } catch(e) {}
+    }
+
+    function tryClaimIfStale(){
+        var info = getActiveInfo();
+        if (!info.id || (Date.now() - info.ts) > STALE_MS) {
+            claimActive();
+            // remove overlay if any
+            var overlays = document.querySelectorAll('[id^="rcmsTryClaim"]');
+            heartbeat();
+            location.reload();
+        } else {
+            alert('تب دیگری هم‌اکنون فعال است.');
+        }
+    }
+
+    // Initial arbitration
+    (function init(){
+        var info = getActiveInfo();
+        if (!info.id) {
+            claimActive();
+        } else if (info.id !== TAB_ID) {
+            if ((Date.now() - info.ts) > STALE_MS) {
+                claimActive();
+            } else {
+                blockThisTab();
+            }
+        }
+        setInterval(heartbeat, HEARTBEAT_MS);
+    })();
+
+    // React to changes from other tabs
+    window.addEventListener('storage', function(ev){
+        if (ev.key === KEY_ACTIVE || ev.key === KEY_TS) {
+            var info = getActiveInfo();
+            if (info.id && info.id !== TAB_ID && (Date.now() - info.ts) <= STALE_MS) {
+                blockThisTab();
+            }
+        }
+    });
+
+    // Broadcast channel (optional)
+    if ('BroadcastChannel' in window) {
+        var bc = new BroadcastChannel(CHANNEL);
+        bc.onmessage = function(ev){
+            if (ev && ev.data === 'PING_ACTIVE') {
+                if (localStorage.getItem(KEY_ACTIVE) === TAB_ID) bc.postMessage('ACTIVE:' + TAB_ID);
+            }
+            if (typeof ev.data === 'string' && ev.data.startsWith('ACTIVE:')) {
+                var otherId = ev.data.split(':')[1];
+                if (otherId && otherId !== TAB_ID) blockThisTab();
+            }
+        };
+        bc.postMessage('PING_ACTIVE');
+        window.addEventListener('beforeunload', function(){ bc.close(); });
+    }
+
+    window.addEventListener('focus', claimActive);
+    window.addEventListener('beforeunload', function(){
+        if (localStorage.getItem(KEY_ACTIVE) === TAB_ID) {
+            localStorage.removeItem(KEY_ACTIVE);
+            localStorage.removeItem(KEY_TS);
+        }
+    });
+})();
 </script>
 <script>
     $(document).ready(function () {
@@ -913,10 +1107,10 @@
         // تنظیم دیتاپیکر جلالی
         if (typeof $.fn.pDatepicker !== 'undefined') {
             $('[data-jdp]').pDatepicker({
-            format: 'YYYY/MM/DD',
-            autoClose: true,
-            initialValue: false,
-            persianDigit: true
+                format: 'YYYY/MM/DD',
+                autoClose: true,
+                initialValue: false,
+                persianDigit: true
             });
         } else {
             console.log('Persian datepicker not available');
@@ -976,22 +1170,22 @@
                 const $badge = $('#notificationBadge');
                 const $bell = $('#notificationBell');
                 const previousCount = parseInt($badge.text()) || 0;
-                
+
                 if (count > 0) {
                     $badge.text(count).show();
-                    
+
                     // انیمیشن لرزش برای زنگوله
                     if (count > previousCount) {
                         $bell.addClass('shake');
                         $badge.addClass('animate');
-                        
+
                         // حذف کلاس‌های انیمیشن پس از اتمام
                         setTimeout(() => {
                             $bell.removeClass('shake');
                             $badge.removeClass('animate');
                         }, 500);
                     }
-                    
+
                     // انیمیشن pulse برای زنگوله
                     $bell.addClass('pulse');
                 } else {
@@ -1082,12 +1276,19 @@
 </script>
 <script>
     $(document).ready(function () {
+        if (typeof $ !== 'undefined') {
+            $('.jalali-datepicker').each(function () {
+                if (!$(this).is('[data-jdp]')) {
+                    $(this).attr('data-jdp', '');
+                }
+            });
+        }
         if (typeof $.fn.pDatepicker !== 'undefined') {
             $('[data-jdp]').pDatepicker({
-            format: 'YYYY/MM/DD',
-            autoClose: true,
-            initialValue: false,
-            persianDigit: true
+                format: 'YYYY/MM/DD',
+                autoClose: true,
+                initialValue: false,
+                persianDigit: true
             });
         } else {
             console.log('Persian datepicker not available');
@@ -1097,48 +1298,48 @@
 {% block extra_js %}{% endblock %}
 
 <script>
-// Simple Sidebar Theme Management
-document.addEventListener('DOMContentLoaded', function() {
-    // Theme toggle
-    document.getElementById('sidebarThemeToggle').addEventListener('click', function() {
-        var themeSelector = document.getElementById('sidebarThemeSelector');
-        if (themeSelector.style.display === 'none') {
-            themeSelector.style.display = 'block';
+    // Simple Sidebar Theme Management
+    document.addEventListener('DOMContentLoaded', function () {
+        // Theme toggle
+        document.getElementById('sidebarThemeToggle').addEventListener('click', function () {
+            var themeSelector = document.getElementById('sidebarThemeSelector');
+            if (themeSelector.style.display === 'none') {
+                themeSelector.style.display = 'block';
+            } else {
+                themeSelector.style.display = 'none';
+            }
+        });
+
+        // Auto-submit form when theme is selected
+        document.querySelectorAll('input[name="theme"]').forEach(function (radio) {
+            radio.addEventListener('change', function () {
+                // Auto-submit form after a short delay
+                setTimeout(function () {
+                    radio.closest('form').submit();
+                }, 300);
+            });
+        });
+
+        // Load theme from user profile
+        var currentTheme = '{{ user_theme|default:"default" }}';
+        var customThemeData = {{ custom_theme_data|default:"null"|safe }};
+
+        if (currentTheme === 'custom' && customThemeData) {
+            // Apply custom theme
+            document.documentElement.style.setProperty('--primary-color', customThemeData.primary_color);
+            document.documentElement.style.setProperty('--secondary-color', customThemeData.secondary_color);
+            document.documentElement.style.setProperty('--background-color', customThemeData.background_color);
+            document.documentElement.style.setProperty('--surface-color', customThemeData.surface_color);
+            document.documentElement.style.setProperty('--text-color', customThemeData.text_color);
+            document.documentElement.style.setProperty('--border-radius-md', customThemeData.border_radius + 'px');
+            document.documentElement.style.setProperty('--font-size-base', customThemeData.font_size + 'px');
+            document.documentElement.setAttribute('data-theme', 'custom');
+        } else if (currentTheme && currentTheme !== 'default') {
+            document.documentElement.setAttribute('data-theme', currentTheme);
         } else {
-            themeSelector.style.display = 'none';
+            document.documentElement.setAttribute('data-theme', 'default');
         }
     });
-    
-    // Auto-submit form when theme is selected
-    document.querySelectorAll('input[name="theme"]').forEach(function(radio) {
-        radio.addEventListener('change', function() {
-            // Auto-submit form after a short delay
-            setTimeout(function() {
-                radio.closest('form').submit();
-            }, 300);
-        });
-    });
-    
-    // Load theme from user profile
-    var currentTheme = '{{ user_theme|default:"default" }}';
-    var customThemeData = {{ custom_theme_data|default:"null"|safe }};
-    
-    if (currentTheme === 'custom' && customThemeData) {
-        // Apply custom theme
-        document.documentElement.style.setProperty('--primary-color', customThemeData.primary_color);
-        document.documentElement.style.setProperty('--secondary-color', customThemeData.secondary_color);
-        document.documentElement.style.setProperty('--background-color', customThemeData.background_color);
-        document.documentElement.style.setProperty('--surface-color', customThemeData.surface_color);
-        document.documentElement.style.setProperty('--text-color', customThemeData.text_color);
-        document.documentElement.style.setProperty('--border-radius-md', customThemeData.border_radius + 'px');
-        document.documentElement.style.setProperty('--font-size-base', customThemeData.font_size + 'px');
-        document.documentElement.setAttribute('data-theme', 'custom');
-    } else if (currentTheme && currentTheme !== 'default') {
-        document.documentElement.setAttribute('data-theme', currentTheme);
-    } else {
-        document.documentElement.setAttribute('data-theme', 'default');
-    }
-});
 </script>
 
 </body>

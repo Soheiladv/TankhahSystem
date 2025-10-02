@@ -234,9 +234,12 @@ TIME_ZONE = 'Asia/Tehran'
 USE_I18N = True
 USE_TZ = True
 
+# تنظیمات فایل‌های استاتیک - یکپارچه‌سازی شده
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
-STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),  # پوشه اصلی فایل‌های استاتیک توسعه
+]
+STATIC_ROOT = os.path.join(BASE_DIR, 'collected_static')  # پوشه جمع‌آوری شده برای production
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'

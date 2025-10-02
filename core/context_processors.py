@@ -1,3 +1,14 @@
+from .models import SystemSettings
+
+def system_settings(request):
+    try:
+        settings_obj = SystemSettings.get_solo()
+    except Exception:
+        settings_obj = None
+    return {
+        'settings_obj': settings_obj,
+    }
+
 # core/context_processors.py
 
 from version_tracker.models import AppVersion  # فرض می‌کنم مدلت اینه

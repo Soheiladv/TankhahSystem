@@ -299,56 +299,6 @@
 {% endblock %}
 
 {% block extra_js %}
-
-<style>
-    .card-header.bg-gradient-primary {
-        background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
-    }
-    
-    .section-title {
-        position: relative;
-        padding-bottom: 10px;
-    }
-    
-    .section-title:after {
-        content: "";
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        width: 50px;
-        height: 3px;
-        background: linear-gradient(90deg, #4e73df 0%, #224abe 100%);
-        border-radius: 3px;
-    }
-    
-    .org-row {
-        cursor: pointer;
-        transition: all 0.2s ease;
-    }
-    
-    .budget-items-container {
-        min-height: 100px;
-    }
-    
-    .collapse-row {
-        transition: all 0.3s ease;
-    }
-    
-    .financial-summary .card {
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-    
-    .financial-summary .card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1) !important;
-    }
-    
-    @media print {
-        .no-print {
-            display: none !important;
-        }
-    }
-</style>
  
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -444,38 +394,6 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <script>
-function loadBudgetItems(url, button, targetId) {
-    console.log(`Sending AJAX request to: ${url}`);
-    const target = document.querySelector(targetId);
-    if (target && !target.dataset.loaded) {
-        target.dataset.loading = 'true';
-        fetch(url, {
-            method: 'GET',
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRFToken': document.querySelector('input[name="csrfmiddlewaretoken"]').value
-            }
-        })
-        .then(response => {
-            console.log(`Received response with status: ${response.status}`);
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
-            return response.json();
-        })
-        .then(data => {
-            console.log('Response data:', data);
-            target.innerHTML = data.html_content || '<div class="alert alert-danger text-center">{% translate "خطا در بارگذاری داده‌ها." %}</div>';
-            target.dataset.loaded = 'true';
-            delete target.dataset.loading;
-        })
-        .catch(error => {
-            console.error('Error loading budget items:', error);
-            target.innerHTML = '<div class="alert alert-danger text-center">{% translate "خطا در ارتباط با سرور." %}</div>';
-            delete target.dataset.loading;
-        });
-    }
-}
-
-
 document.addEventListener('DOMContentLoaded', function() {
     // این تابع باید برای کلیه AJAX calls استفاده شود
     window.loadBudgetItems = function(url, button, targetId) {
@@ -517,56 +435,57 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 });
+</script>
+<script>
+// Define globally so onclick handlers can find it even when partial scripts don't execute
+window.loadTankhahs = function(url, button, targetId) {
+    try {
+        const $ = window.jQuery || window.$;
+        const target = $(targetId);
+        const btn = $(button);
 
-function loadTankhahs(url, button, targetId) {
-    const target = $(targetId);
-    const btn = $(button);
-    
-    if (!target.length || target.data('loaded')) return;
-    
-    // نمایش حالت بارگذاری
-    target.html(`
-        <div class="text-center py-4">
-            <i class="fas fa-spinner fa-spin fa-2x"></i>
-            <p>در حال بارگذاری تنخواه‌ها...</p>
-        </div>
-    `);
-    btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> در حال بارگذاری...');
-    
-    $.ajax({
-        url: url,
-        type: 'GET',
-        dataType: 'json',
-        headers: {
-            'X-CSRFToken': $('[name=csrfmiddlewaretoken]').val()
-        },
-        success: function(data) {
-            if (data.status === 'success') {
-                target.html(data.html_content).data('loaded', true);
-            } else {
-                target.html(`
-                    <div class="alert alert-warning">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        ${data.html_content || 'داده‌ای دریافت نشد'}
-                    </div>
-                `);
-            }
-        },
-        error: function(xhr) {
-            target.html(`
-                <div class="alert alert-danger">
-                    <i class="fas fa-times-circle"></i>
-                    خطا در ارتباط با سرور
-                </div>
-            `);
-            console.error('Error:', xhr.responseText);
-        },
-        complete: function() {
-            btn.prop('disabled', false).html('نمایش تنخواه‌ها');
+        if (!target.length) {
+            console.error('Tankhah target not found:', targetId);
+            return;
         }
-    });
-}
+        if (target.data('loaded')) {
+            console.log('Tankhahs already loaded for', targetId);
+            return;
+        }
 
+        target.html('<div class="text-center py-4"><i class="fas fa-spinner fa-spin fa-2x"></i><p>در حال بارگذاری تنخواه‌ها...</p></div>');
+        if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> در حال بارگذاری...'; }
 
+        $.ajax({
+            url: url,
+            type: 'GET',
+            dataType: 'json',
+            cache: false,
+            timeout: 15000,
+            headers: {
+                'X-CSRFToken': $('[name=csrfmiddlewaretoken]').val(),
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            success: function(data) {
+                if (data && (data.status === 'success' || data.html_content)) {
+                    target.html(data.html_content || '').data('loaded', true);
+                } else if (data && data.status === 'empty') {
+                    target.html('<div class="alert alert-info text-center mb-0 py-2">هیچ تنخواهی برای این تخصیص یافت نشد.</div>').data('loaded', true);
+                } else {
+                    target.html('<div class="alert alert-warning text-center">داده‌ای دریافت نشد</div>');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('Tankhahs AJAX error:', status, error, '→', xhr.responseText);
+                target.html('<div class="alert alert-danger text-center">خطا در ارتباط با سرور</div>');
+            },
+            complete: function() {
+                if (btn) { btn.disabled = false; btn.innerHTML = 'نمایش تنخواه‌ها'; }
+            }
+        });
+    } catch (e) {
+        console.error('loadTankhahs error:', e);
+    }
+};
 </script>
 {% endblock %}

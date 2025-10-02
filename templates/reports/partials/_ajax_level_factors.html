@@ -1,45 +1,88 @@
-{% load i18n humanize %}
+{% load i18n humanize jformat rcms_custom_filters %}
 
 <div class="table-responsive">
     <table class="table table-sm table-striped table-hover align-middle">
         <thead class="table-light">
             <tr>
-                <th scope="col" style="width:12%">{% translate "شماره" %}</th>
-                <th scope="col" style="width:12%">{% translate "شماره تنخواه" %}</th>
-                <th scope="col" style="width:15%" class="text-center">{% translate "مبلغ" %}</th>
-                <th scope="col" style="width:12%" class="text-center">{% translate "وضعیت" %}</th>
-                <th scope="col" style="width:15%" class="text-center">{% translate "تاریخ" %}</th>
-                <th scope="col" style="width:12%" class="text-center">{% translate "گروه" %}</th>
-                <th scope="col" style="width:12%" class="text-center">{% translate "تعداد اقلام" %}</th>
-                <th scope="col" style="width:22%" class="text-center">{% translate "عملیات" %}</th>
+                <th scope="col" style="width:10%">{% translate 'ردیف' %}</th>
+                <th scope="col" style="width:10%">{% translate "شماره فاکتور" %}</th>
+                <th scope="col" style="width:12%" class="text-center">{% translate "مبلغ" %}</th>
+                <th scope="col" style="width:10%" class="text-center">{% translate "وضعیت" %}</th>
+                <th scope="col" style="width:12%" class="text-center">{% translate "تاریخ" %}</th>
+                <th scope="col" style="width:12%" class="text-center">{% translate "دسته‌بندی" %}</th>
+                <th scope="col" style="width:12%" class="text-center">{% translate "صادرکننده" %}</th>
+                <th scope="col" style="width:8%" class="text-center">{% translate "اقلام" %}</th>
+                <th scope="col" style="width:8%" class="text-center">{% translate "اضطراری" %}</th>
+                <th scope="col" style="width:16%" class="text-center">{% translate "عملیات" %}</th>
             </tr>
         </thead>
         <tbody>
             {% for f in factors_list %}
                 <tr>
-                    <td class="fw-bold">{{forloop }}</td>
-                    <td class="text-center">{{ f.tankhah_number }}</td>
-                    <td class="text-center">{{ f.amount_formatted }} {% translate "ریال" %}</td>
-                    <td class="text-center"><span class="badge bg-secondary">{{ f.status_display }}</span></td>
-                    <td class="text-center">{{ f.date_jalali }}</td>
-                    <td class="text-center">{{ f.category_name }}</td>
-                    <td class="text-center">{{ f.items_count|default:0 }}</td>
+                    <td class="fw-bold">
+                        <i class="fas fa-list-numeric me-1 text-primary"></i>
+                        {{ forloop.counter | format_negative }}
+                    </td>
+
+                 <td class="fw-bold">
+                        <i class="fas fa-file-invoice me-1 text-primary"></i>
+                        {{ f.number|default:"-" }}
+                    </td>
+
                     <td class="text-center">
-                        <a href="{{ f.detail_url }}" class="btn btn-sm btn-outline-primary">
-                            <i class="fas fa-eye"></i> {% translate "جزئیات" %}
-                        </a>
+                        <span class="fw-bold text-success">{{ f.amount_formatted|to_persian_number }}</span>
+                        <small class="text-muted d-block">{% translate "ریال" %}</small>
+                    </td>
+                    <td class="text-center">
+                        <span class="badge rounded-pill bg-{% if f.status_display == 'تایید شده' %}success{% elif f.status_display == 'رد شده' %}danger{% elif f.status_display == 'در انتظار تایید' %}warning{% else %}secondary{% endif %}">
+                            {{ f.status_display }}
+                        </span>
+                    </td>
+                    <td class="text-center">{{ f.date_jalali|to_persian_number }}</td>
+                    <td class="text-center">
+                        <span class="badge bg-info">{{ f.category_name|default:"-" }}</span>
+                    </td>
+                    <td class="text-center">
+                        <small class="text-muted">{{ f.payee_name|default:"-" }}</small>
+                    </td>
+                    <td class="text-center">
+                        <span class="badge bg-primary">{{ f.items_count|default:0|to_persian_number }}</span>
+                    </td>
+                    <td class="text-center">
+                        {% if f.is_emergency %}
+                            <i class="fas fa-exclamation-triangle text-danger" title="{% translate 'اضطراری' %}"></i>
+                        {% else %}
+                            <i class="fas fa-check-circle text-success" title="{% translate 'عادی' %}"></i>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">
+                        <div class="btn-group btn-group-sm" role="group">
+                            <a href="{{ f.detail_url }}" class="btn btn-outline-primary" title="{% translate 'مشاهده جزئیات' %}">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            {% if f.description %}
+                                <button class="btn btn-outline-info" 
+                                        data-bs-toggle="tooltip" 
+                                        data-bs-placement="top" 
+                                        title="{{ f.description|truncatechars:100 }}">
+                                    <i class="fas fa-info-circle"></i>
+                                </button>
+                            {% endif %}
+                        </div>
                     </td>
                 </tr>
             {% empty %}
                 <tr>
-                    <td colspan="7" class="text-center py-3">{% translate "هیچ فاکتوری یافت نشد." %}</td>
+                    <td colspan="9" class="text-center py-3">
+                        <i class="fas fa-info-circle me-2"></i>
+                        {% translate "هیچ فاکتوری یافت نشد." %}
+                    </td>
                 </tr>
             {% endfor %}
         </tbody>
     </table>
 </div>
 
-{% load i18n jformat rcms_custom_filters %}
 
 <div class="factors-section">
     <h6 class="text-primary mb-3">
@@ -95,3 +138,13 @@
         </div>
     {% endif %}
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Bootstrap tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+});
+</script>

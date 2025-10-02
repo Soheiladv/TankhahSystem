@@ -497,7 +497,7 @@
             <div class="col-lg-3 col-md-6">
                 <div class="stats-card">
                     <div class="card-title">تعداد فاکتور</div>
-                    <div class="card-value">{{ factor_stats.total_count|format_negative }}</div>
+                    <div class="card-value">{{ factor_stats.total_count|default:"0" }}</div>
                 </div>
             </div>
             <div class="col-lg-3 col-md-6">
@@ -510,7 +510,6 @@
 
         <!-- Key Charts in Overview -->
         <div class="row mb-4">
-            {% if chart_data.org_budget and chart_data.org_budget|length %}
             <div class="col-lg-6 mb-4" data-aos="fade-right">
                 <div class="chart-container">
                     <h5>
@@ -522,22 +521,17 @@
                                 </div>
                             </div>
                                 </div>
-            {% endif %}
-            {% if chart_data.monthly_consumption and chart_data.monthly_consumption|length and advanced_comparatives and advanced_comparatives.rankings and advanced_comparatives.rankings.projects|length %}
             <div class="col-lg-6 mb-4" data-aos="fade-left">
                 <div class="chart-container">
                     <h5>
                         <i class="fas fa-chart-line me-2" style="color: #10b981;"></i>
                         روند مصرف بودجه (ماهانه)
                     </h5>
-                    {% if chart_data and chart_data.monthly_consumption|length %}
                     <div class="chart-wrapper">
                         <canvas id="monthlyConsumptionChart"></canvas>
-                    </div>
-                    {% endif %}
+                            </div>
                                 </div>
                             </div>
-            {% endif %}
                         </div>
                     </div>
 
@@ -622,9 +616,7 @@
         </div>
 
     <div class="row mb-4">
-        {% if advanced_budget and advanced_budget.concentration %}
-        {% if advanced_budget.concentration.organizations|length or advanced_budget.concentration.projects|length %}
-        <div class="col-lg-6 mb-4" data-aos="fade-up">
+            <div class="col-lg-6 mb-4" data-aos="fade-up">
             <div class="chart-container">
                 <h5>
                         <i class="fas fa-bullseye me-2" style="color:#f59e0b;"></i>
@@ -635,11 +627,7 @@
                 </div>
             </div>
         </div>
-        {% endif %}
-        {% endif %}
-        {% if advanced_budget and advanced_budget.aging %}
-        {% if advanced_budget.aging.d_0_30 or advanced_budget.aging.d_31_60 or advanced_budget.aging.d_61_90 or advanced_budget.aging.d_90_plus %}
-        <div class="col-lg-6 mb-4" data-aos="fade-up">
+            <div class="col-lg-6 mb-4" data-aos="fade-up">
             <div class="chart-container">
                 <h5>
                         <i class="fas fa-hourglass-half me-2" style="color:#8b5cf6;"></i>
@@ -650,14 +638,10 @@
                 </div>
             </div>
         </div>
-        {% endif %}
-        {% endif %}
     </div>
 
     <!-- Aging Heatmap (Matrix) -->
     <div class="row mb-4">
-        {% if advanced_budget and advanced_budget.aging %}
-        {% if advanced_budget.aging.d_0_30 or advanced_budget.aging.d_31_60 or advanced_budget.aging.d_61_90 or advanced_budget.aging.d_90_plus %}
         <div class="col-lg-12 mb-4" data-aos="fade-up">
             <div class="chart-container">
                 <h5><i class="fas fa-fire me-2"></i>Heatmap سن تخصیص/تسویه</h5>
@@ -675,13 +659,10 @@
                 </div>
             </div>
         </div>
-        {% endif %}
-        {% endif %}
     </div>
 
     <!-- Extra Advanced Visuals: Gauge + Radar -->
     <div class="row mb-4">
-        {% if advanced_budget and advanced_budget.absorption_rate %}
         <div class="col-lg-6 mb-4" data-aos="fade-right">
             <div class="chart-container">
                 <h5><i class="fas fa-gauge-high me-2"></i>نرخ جذب بودجه (Gauge)</h5>
@@ -699,9 +680,6 @@
                 </div>
             </div>
         </div>
-        {% endif %}
-        {% if advanced_comparatives and advanced_comparatives.rankings %}
-        {% if advanced_comparatives.rankings.organizations|length or advanced_comparatives.rankings.projects|length %}
         <div class="col-lg-6 mb-4" data-aos="fade-left">
             <div class="chart-container">
                 <h5><i class="fas fa-radar me-2"></i>رادار KPI سازمان/پروژه</h5>
@@ -718,8 +696,6 @@
                 </div>
             </div>
         </div>
-        {% endif %}
-        {% endif %}
     </div>
 
     <!-- Detailed Statistics Tables -->
@@ -830,11 +806,9 @@
                         <i class="fas fa-chart-bar me-2" style="color: #f59e0b;"></i>
                         وضعیت تنخواه‌ها
                     </h5>
-                    {% if chart_data and chart_data.tankhah_status|length %}
                     <div class="chart-wrapper">
                         <canvas id="tankhahStatusChart"></canvas>
                     </div>
-                    {% endif %}
                 </div>
             </div>
 
@@ -929,7 +903,6 @@
         </div>
 
         <div class="row mb-4">
-            {% if chart_data.factor_category and chart_data.factor_category|length %}
             <div class="col-lg-6 mb-4" data-aos="fade-right">
                 <div class="chart-container">
                     <h5><i class="fas fa-list me-2"></i>پراکندگی دسته‌بندی فاکتورها</h5>
@@ -938,7 +911,6 @@
                         </div>
                 </div>
             </div>
-            {% endif %}
             <div class="col-lg-6 mb-4" data-aos="fade-left">
                 <div class="chart-container">
                     <h5><i class="fas fa-bug me-2"></i>فاکتورهای پرریسک (Top مبلغ)</h5>
@@ -1099,7 +1071,6 @@
 
         <!-- Factor Category Treemap -->
         <div class="row mb-4">
-            {% if chart_data.factor_category and chart_data.factor_category|length %}
             <div class="col-lg-12 mb-4" data-aos="fade-up">
                 <div class="chart-container">
                     <h5><i class="fas fa-th-large me-2"></i>نقشه درختی دسته‌بندی فاکتورها (Treemap)</h5>
@@ -1115,13 +1086,10 @@
                     </div>
                 </div>
             </div>
-            {% endif %}
         </div>
 
         <!-- Funnel/Sankey (optional) for مسیر تخصیص→پروژه→مصرف -->
         <div class="row mb-4">
-            {% if advanced_comparatives and advanced_comparatives.rankings %}
-            {% if advanced_comparatives.rankings.organizations|length or advanced_comparatives.rankings.projects|length %}
             <div class="col-lg-12 mb-4" data-aos="fade-up">
                 <div class="chart-container">
                     <h5><i class="fas fa-diagram-project me-2"></i>قیف/سَِنکی مسیر بودجه</h5>
@@ -1139,8 +1107,6 @@
                     </div>
                 </div>
             </div>
-            {% endif %}
-            {% endif %}
         </div>
 
         <div class="row mb-4">
@@ -1152,7 +1118,6 @@
                         </div>
                 </div>
             </div>
-            {% if advanced_factor and advanced_factor.high_risk and advanced_factor.high_risk.outside_budget and advanced_factor.high_risk.outside_budget|length %}
             <div class="col-lg-6 mb-4" data-aos="fade-up">
                 <div class="chart-container">
                     <h5><i class="fas fa-triangle-exclamation me-2"></i>خارج از محدوده بودجه</h5>
@@ -1161,7 +1126,6 @@
                         </div>
                 </div>
             </div>
-            {% endif %}
         </div>
         <div class="mt-3">
             {% include 'reports/dashboard/dashboard_help.html' %}
@@ -1198,7 +1162,6 @@
         </div>
 
         <div class="row">
-            {% if chart_data.monthly_consumption and chart_data.monthly_consumption|length %}
             <div class="col-lg-6 mb-4" data-aos="fade-right">
                 <div class="chart-container">
                     <h5><i class="fas fa-arrow-trend-up me-2"></i>روند مصرف (ماهانه)</h5>
@@ -1207,8 +1170,6 @@
                         </div>
                 </div>
             </div>
-            {% endif %}
-            {% if return_stats and return_stats.monthly_returns and return_stats.monthly_returns|length %}
             <div class="col-lg-6 mb-4" data-aos="fade-left">
                 <div class="chart-container">
                     <h5><i class="fas fa-rotate-left me-2"></i>روند برگشت (ماهانه)</h5>
@@ -1217,7 +1178,6 @@
                         </div>
                 </div>
             </div>
-            {% endif %}
         </div>
 
         <div class="row mb-3">
@@ -1248,30 +1208,22 @@
         </div>
 
         <div class="row mb-4">
-            {% if advanced_comparatives and advanced_comparatives.monthly %}
-            {% if advanced_comparatives.monthly.consumption|length or advanced_comparatives.monthly.returns|length %}
             <div class="col-lg-6 mb-4" data-aos="fade-up">
                 <div class="chart-container">
                     <h5><i class="fas fa-building me-2"></i>رتبه‌بندی سازمان‌ها</h5>
-                        {% if advanced_comparatives and advanced_comparatives.rankings and advanced_comparatives.rankings.organizations|length %}
                         <div class="chart-wrapper">
                             <canvas id="rankOrganizations"></canvas>
                         </div>
-                        {% endif %}
                 </div>
             </div>
             <div class="col-lg-6 mb-4" data-aos="fade-up">
                 <div class="chart-container">
                     <h5><i class="fas fa-project-diagram me-2"></i>رتبه‌بندی پروژه‌ها</h5>
-                        {% if advanced_comparatives and advanced_comparatives.rankings and advanced_comparatives.rankings.projects|length %}
                         <div class="chart-wrapper">
                             <canvas id="rankProjects"></canvas>
                         </div>
-                        {% endif %}
                 </div>
             </div>
-            {% endif %}
-            {% endif %}
         </div>
         <div class="mt-3">
             {% include 'reports/dashboard/dashboard_help.html' %}
@@ -1782,10 +1734,11 @@ function initializeCharts() {
                     console.warn('radar init error', e);
                 }
     // Tankhah Status Chart
-        var tankhahCtx = document.getElementById('tankhahStatusChart');
-        if (!tankhahCtx) {
-            console.warn('Tankhah status chart canvas not present (disabled or no data)');
-        } else {
+    var tankhahCtx = document.getElementById('tankhahStatusChart');
+    if (!tankhahCtx) {
+        console.error('Tankhah status chart canvas not found');
+        return;
+    }
     
     var tankhahData = chartData.tankhah_status || [];
     console.log('Tankhah status data:', tankhahData);
@@ -1830,7 +1783,6 @@ function initializeCharts() {
 
         var mode3 = (typeSel && typeSel.value) || 'bar';
         ChartUtils.createAdaptiveChart('tankhahStatusChart', mode3, tankhahChartData, tankhahChartOptions, !!(enable3D && enable3D.checked));
-        }
 
     // Factor Category Chart
     var factorCtx = document.getElementById('factorCategoryChart');

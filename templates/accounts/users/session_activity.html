@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% load jalali_filters   rcms_custom_filters %}
+
+{% block content %}
+<div class="container my-3 my-md-4">
+    <h5 class="mb-3"><i class="fas fa-user-shield ms-2 text-primary"></i>فعالیت‌های اخیر سشن شما</h5>
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-sm mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>#</th>
+                            <th>تاریخ/زمان</th>
+                            <th>IP</th>
+                            <th>مرورگر/سیستم</th>
+                            <th>جزئیات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in logs %}
+                        <tr>
+                            <td>{{ forloop.counter |format_negative }}</td>
+                            <td>{{ log.timestamp|to_jalali:'%Y/%m/%d %H:%M:%S' |to_persian_number }}</td>
+                            <td>{{ log.ip_address|default:'-' }}</td>
+                            <td class="text-truncate" style="max-width:360px;" title="{{ log.browser }}">{{ log.browser|default:'-' }}</td>
+                            <td>{{ log.details|default:'-' }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-3">لاگی برای نمایش موجود نیست.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+

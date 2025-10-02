@@ -28,6 +28,10 @@ class SystemSettingsForm(forms.ModelForm):
             'enforce_strict_approval_order',
             'allow_bypass_org_chart',
             'allow_action_without_org_chart',
+            'enforce_single_browser_session',
+            'enforce_single_tab',
+            'heartbeat_interval_ms',
+            'heartbeat_stale_ms',
         ]
         widgets = {
             'budget_locked_percentage_default': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0', 'max': '100', 'placeholder': _('مثلاً 10') }),
@@ -41,10 +45,18 @@ class SystemSettingsForm(forms.ModelForm):
             'enforce_strict_approval_order': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'allow_bypass_org_chart': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'allow_action_without_org_chart': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'enforce_single_browser_session': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'enforce_single_tab': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'heartbeat_interval_ms': forms.NumberInput(attrs={'class': 'form-control', 'step': '100', 'min': '1000'}),
+            'heartbeat_stale_ms': forms.NumberInput(attrs={'class': 'form-control', 'step': '100', 'min': '2000'}),
         }
         labels = {
             'budget_locked_percentage_default': _('درصد قفل پیش‌فرض بودجه'),
             'budget_warning_threshold_default': _('آستانه اخطار بودجه'),
+            'enforce_single_browser_session': _('محدودیت به یک مرورگر (یک سشن)'),
+            'enforce_single_tab': _('محدودیت به یک تب مرورگر'),
+            'heartbeat_interval_ms': _('بازه ضربان تب (ms)'),
+            'heartbeat_stale_ms': _('مهلت منقضی شدن تب (ms)'),
         }
         help_texts = {
             'budget_locked_percentage_default': _('وقتی درصد باقیمانده بودجه کمتر از این مقدار شود قفل می‌شود.'),

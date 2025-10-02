@@ -40,6 +40,7 @@ class FinancialReport(models.Model):
             ('FinancialReport_add', 'افزودن گزارشات جامع مالی ♻️'),
             ('FinancialReport_update', 'ویرایش گزارشات جامع مالی ♻️'),
             ('FinancialReport_delet', 'حــذف گزارشات جامع مالی ♻️'),
+            ('view_comprehensive_budget_report', 'نمایش گزارش جامع بودجه'),
         ]
 
 ######## Setting permissions

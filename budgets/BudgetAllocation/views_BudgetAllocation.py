@@ -463,7 +463,7 @@ class BudgetAllocationCreateView(PermissionBaseView, CreateView):
                         recipients = CustomUser.objects.filter(is_active=True, userpost__post__organization=org).distinct()
                         if recipients.exists():
                             send_notification(
-                                actor=self.request.user,
+                                sender=self.request.user,
                                 users=list(recipients),
                                 posts=None,
                                 verb=_('تخصیص بودجه جدید'),

@@ -531,6 +531,15 @@ class FactorDetailView(PermissionBaseView, DetailView):
         context['factor_impact'] = self._compute_factor_impact(factor)
         context['is_payment_ready'] = factor.status.is_final_approve if factor.status else False
 
+        # محاسبه جمع اقلام برای نمایش در فوتر جدول
+        try:
+            items_qs = getattr(factor, 'items', None)
+            if items_qs is not None:
+                items_total = sum([(itm.amount or Decimal('0')) for itm in items_qs.all()])
+                context['items_total'] = items_total
+        except Exception:
+            context['items_total'] = Decimal('0')
+
         return context
 
     # -----------------------------------------------------------------

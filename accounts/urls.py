@@ -179,6 +179,8 @@ urlpatterns = [
 
                   ## AuditLog
                   path('audit-logs/', views.audit_log_list, name='audit_log_list'),
+  path('audit-logs/test/create/', views.create_test_audit_log, name='audit_log_test_create'),
+  path('my/session-activity/', views.my_session_activity, name='my_session_activity'),
                   # User Limitation
                   path('active-users/', ActiveUserListView.as_view(), name='active_user_list'),
                   path('active-users/create/', views.ActiveUserCreateView.as_view(), name='active_user_create'),

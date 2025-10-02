@@ -19,37 +19,29 @@ urlpatterns = [
                   path('backup-admin/', backup_admin.urls),
                   path('backup/', include('version_tracker.backup_urls')),
 
-                  path('', DashboardView.as_view(), name='index'),
-                  # path('dashboard/', BudgetDashboardView.as_view(), name='index'),
+                  # Specific patterns first
                   path('dashboard/', TabbedFinancialDashboardView.as_view(), name='index1'),
-                  #
                   path('accounts/', include('accounts.urls')),
-
                   path('', include('core.urls')),
                   # داشبورد گزارش‌ها: استفاده از روتر جدید اپ reports.dashboard
                   path('reports/dashboard/', include('reports.dashboard.urls')),
                   path('reports/', include('reports.urls')),  # اضافه کردن اپلیکیشن reports
-
                   path('tankhah/', include('tankhah.urls')),  # اضافه کردن اپلیکیشن tankhah
                   path('version_tracker/', include('version_tracker.urls')),  # اضافه کردن اپلیکیشن tankhah
                   path('budgets/', include('budgets.urls')),  # اضافه کردن اپلیکیشن بودجه
                   path('workflow/', TanbakhWorkflowView.as_view(), name='workflow'),  # help workflow
                   path('inbox/notifications/', include('notificationApp.urls', namespace='notifications')),
-
-                  #
                   path('about/', views.about, name='about'),
                   path("lock-status/", lock_status, name="lock_status"),
                   path('set-lock/', SetTimeLockView.as_view(), name='set_time_lock'),
                   path('view-locks/', TimeLockListView.as_view(), name='timelock_list'),
-                  path('lock-status/', LockStatusView.as_view(), name='lock_status'),
-
-
                   path('js-catalog', JavaScriptCatalog.as_view(), name='js-catalog'),
                   path('favicon.ico', RedirectView.as_view(url=staticfiles_storage.url('admin/img/favicon.ico')), name='favicon'),
-
                   path('guide/', GuideView.as_view(), name='guide'),
                   path('guide/soft_Help/', soft_Help , name='soft_help'),
 
+                  # Default pattern last
+                  path('', DashboardView.as_view(), name='index'),
                 #   path("select2/", include("django_select2.urls")),
 
 

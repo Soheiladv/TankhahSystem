@@ -173,11 +173,10 @@ class ool_FactorUpdateView(PermissionBaseView, UpdateView):
 
         # بررسی مرحله و وضعیت تنخواه
         try:
-            initial_stage = WorkflowStage.objects.order_by('order').first()
-            initial_stage_order = initial_stage.order if initial_stage else 0
-            if not tankhah.current_stage or tankhah.current_stage.order != initial_stage_order:
+            initial_status = Status.objects.filter(is_initial=True).first()
+            if initial_status and (not tankhah.current_stage or tankhah.current_stage_id != initial_status.id):
                 stage_name = tankhah.current_stage.name if tankhah.current_stage else _("نامشخص")
-                initial_name = initial_stage.name if initial_stage else _("تعریف نشده")
+                initial_name = initial_status.name
                 msg = _('فقط در مرحله اولیه ({}) می‌توانید فاکتور ویرایش کنید. مرحله فعلی تنخواه: {}').format(
                     initial_name, stage_name)
                 messages.error(self.request, msg)
@@ -560,7 +559,8 @@ class FactorUpdateView(PermissionBaseView, UpdateView):
 
     def get_object(self, queryset=None):
         factor = get_object_or_404(Factor, pk=self.kwargs['pk'])
-        initial_stage = WorkflowStage.objects.order_by('order').first()
+        # جایگزینی WorkflowStage با Status اولیه سیستم
+        initial_stage = Status.objects.filter(is_initial=True).first()
 
         # بررسی وضعیت فاکتور
         if factor.status not in ['DRAFT', 'PENDING']:
@@ -575,7 +575,7 @@ class FactorUpdateView(PermissionBaseView, UpdateView):
             return redirect(self.success_url)
 
         # اگر تنخواه رد شده، باید در مرحله اولیه باشد
-        if factor.tankhah.status == 'REJECTED' and factor.tankhah.current_stage != initial_stage:
+        if factor.tankhah.status == 'REJECTED' and (initial_stage and factor.tankhah.current_stage_id != initial_stage.id):
             messages.error(self.request, 'تنخواه رد شده فقط در مرحله اولیه قابل ویرایش است.')
             logger.warning(
                 f"تنخواه {factor.tankhah.number} رد شده اما در مرحله غیراولیه: {factor.tankhah.current_stage}")
@@ -661,10 +661,10 @@ class FactorUpdateView(PermissionBaseView, UpdateView):
 
         # بررسی مرحله اولیه تنخواه
         try:
-            initial_stage = WorkflowStage.objects.order_by('order').first()
-            if not tankhah.current_stage or tankhah.current_stage != initial_stage:
+            initial_stage = Status.objects.filter(is_initial=True).first()
+            if initial_stage and (not tankhah.current_stage or tankhah.current_stage_id != initial_stage.id):
                 stage_name = tankhah.current_stage.name if tankhah.current_stage else 'نامشخص'
-                initial_name = initial_stage.name if initial_stage else 'تعریف‌نشده'
+                initial_name = initial_stage.name
                 messages.error(self.request, f'فقط در مرحله اولیه ({initial_name}) می‌توانید فاکتور ویرایش کنید. مرحله فعلی: {stage_name}')
                 logger.warning(f"مرحله غیرمجاز برای تنخواه {tankhah.number}: {stage_name}")
                 return self.form_invalid(form)
