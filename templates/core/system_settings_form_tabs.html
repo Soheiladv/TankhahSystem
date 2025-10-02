@@ -100,6 +100,11 @@
                                     <i class="fas fa-project-diagram me-2"></i>{% trans "گردش کار" %}
                                 </button>
                             </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="fonts-tab" data-bs-toggle="tab" data-bs-target="#fonts" type="button" role="tab">
+                                    <i class="fas fa-font me-2"></i>{% trans "فونت‌ها" %}
+                                </button>
+                            </li>
                             
                         </ul>
 
@@ -327,6 +332,109 @@
                                 </div>
                             </div>
 
+                            <div class="tab-pane fade" id="fonts" role="tabpanel">
+                                <div class="row">
+                                    <div class="col-12">
+                                        <div class="d-flex justify-content-between align-items-center mb-4">
+                                            <div>
+                                                <h5 class="mb-1">
+                                                    <i class="fas fa-font me-2"></i>{% trans "مدیریت فونت‌های سیستم" %}
+                                                </h5>
+                                                <p class="text-muted mb-0">{% trans "فونت‌های مورد استفاده در رابط کاربری سیستم را مدیریت کنید" %}</p>
+                                            </div>
+                                            <a href="{% url 'font_settings_list' %}" class="btn btn-primary">
+                                                <i class="fas fa-cogs me-2"></i>{% trans "مدیریت فونت‌ها" %}
+                                            </a>
+                                        </div>
+                                        
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="card border-primary">
+                                                    <div class="card-header bg-primary text-white">
+                                                        <h6 class="card-title mb-0">
+                                                            <i class="fas fa-star me-2"></i>{% trans "فونت فعلی سیستم" %}
+                                                        </h6>
+                                                    </div>
+                                                    <div class="card-body">
+                                                        {% load core_extras %}
+                                                        {% get_default_font as default_font %}
+                                                        {% if default_font %}
+                                                            <div class="font-preview mb-3" style="font-family: '{{ default_font.family_name }}', 'Tahoma', sans-serif; font-weight: {{ default_font.font_weight }};">
+                                                                <div class="h5 mb-2">{{ default_font.name }}</div>
+                                                                <div class="mb-2">نمونه متن فارسی با این فونت</div>
+                                                                <div class="small text-muted">Sample English Text 123</div>
+                                                            </div>
+                                                            <div class="small text-muted">
+                                                                <div><strong>{% trans "خانواده:" %}</strong> {{ default_font.family_name }}</div>
+                                                                <div><strong>{% trans "وزن:" %}</strong> {{ default_font.get_font_weight_display }}</div>
+                                                                <div><strong>{% trans "فرمت:" %}</strong> {{ default_font.get_font_format_display }}</div>
+                                                                <div><strong>{% trans "حجم:" %}</strong> {{ default_font.file_size_formatted }}</div>
+                                                            </div>
+                                                        {% else %}
+                                                            <div class="text-center py-4">
+                                                                <i class="fas fa-font fa-3x text-muted mb-3"></i>
+                                                                <p class="text-muted">{% trans "هیچ فونت پیش‌فرضی تنظیم نشده است" %}</p>
+                                                                <a href="{% url 'font_settings_create' %}" class="btn btn-sm btn-primary">
+                                                                    {% trans "افزودن فونت" %}
+                                                                </a>
+                                                            </div>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="col-md-6">
+                                                <div class="card border-info">
+                                                    <div class="card-header bg-info text-white">
+                                                        <h6 class="card-title mb-0">
+                                                            <i class="fas fa-list me-2"></i>{% trans "آمار فونت‌ها" %}
+                                                        </h6>
+                                                    </div>
+                                                    <div class="card-body">
+                                                        {% load core_extras %}
+                                                        {% get_font_stats as font_stats %}
+                                                        <div class="row text-center">
+                                                            <div class="col-4">
+                                                                <div class="h4 text-primary mb-1">{{ font_stats.total }}</div>
+                                                                <div class="small text-muted">{% trans "کل فونت‌ها" %}</div>
+                                                            </div>
+                                                            <div class="col-4">
+                                                                <div class="h4 text-success mb-1">{{ font_stats.active }}</div>
+                                                                <div class="small text-muted">{% trans "فعال" %}</div>
+                                                            </div>
+                                                            <div class="col-4">
+                                                                <div class="h4 text-warning mb-1">{{ font_stats.inactive }}</div>
+                                                                <div class="small text-muted">{% trans "غیرفعال" %}</div>
+                                                            </div>
+                                                        </div>
+                                                        
+                                                        <hr class="my-3">
+                                                        
+                                                        <div class="d-grid gap-2">
+                                                            <a href="{% url 'font_settings_create' %}" class="btn btn-outline-primary btn-sm">
+                                                                <i class="fas fa-plus me-2"></i>{% trans "افزودن فونت جدید" %}
+                                                            </a>
+                                                            <a href="{% url 'font_settings_list' %}" class="btn btn-outline-secondary btn-sm">
+                                                                <i class="fas fa-list me-2"></i>{% trans "مشاهده همه فونت‌ها" %}
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="alert alert-info mt-4">
+                                            <h6><i class="fas fa-info-circle me-2"></i>{% trans "راهنما:" %}</h6>
+                                            <ul class="mb-0 small">
+                                                <li>{% trans "فونت پیش‌فرض در تمام صفحات سیستم اعمال می‌شود" %}</li>
+                                                <li>{% trans "فقط فونت‌های فعال قابل انتخاب به عنوان پیش‌فرض هستند" %}</li>
+                                                <li>{% trans "تغییر فونت ممکن است نیاز به بارگذاری مجدد صفحه داشته باشد" %}</li>
+                                                <li>{% trans "فرمت‌های پشتیبانی شده: TTF, WOFF, WOFF2, EOT, OTF" %}</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                             
                         </div>
 

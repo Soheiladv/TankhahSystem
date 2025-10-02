@@ -85,6 +85,13 @@ from BudgetsSystem.view.view_SystemSettings import (
     SystemSettingsPreviewView,
     OrgActionsReportView,
     ToggleDashboardWidgetView,
+    # Font Management Views
+    FontSettingsListView,
+    FontSettingsCreateView,
+    FontSettingsUpdateView,
+    FontSettingsDeleteView,
+    FontSettingsToggleView,
+    FontSettingsSetDefaultView,
 )
 urlpatterns = [
             # داشبوردها
@@ -262,6 +269,15 @@ urlpatterns += [
             path('system-settings/health/', SystemSettingsHealthView.as_view(), name='system_settings_health'),
             path('system-settings/preview/', SystemSettingsPreviewView.as_view(), name='system_settings_preview'),
             path('system-settings/toggle-widget/', ToggleDashboardWidgetView.as_view(), name='system_settings_toggle_widget'),
+            
+            # Font Management
+            path('system-settings/fonts/', FontSettingsListView.as_view(), name='font_settings_list'),
+            path('system-settings/fonts/create/', FontSettingsCreateView.as_view(), name='font_settings_create'),
+            path('system-settings/fonts/<int:pk>/edit/', FontSettingsUpdateView.as_view(), name='font_settings_update'),
+            path('system-settings/fonts/<int:pk>/delete/', FontSettingsDeleteView.as_view(), name='font_settings_delete'),
+            path('system-settings/fonts/<int:pk>/toggle/', FontSettingsToggleView.as_view(), name='font_settings_toggle'),
+            path('system-settings/fonts/<int:pk>/set-default/', FontSettingsSetDefaultView.as_view(), name='font_settings_set_default'),
+            path('system-settings/fonts/guide/', TemplateView.as_view(template_name='core/font_management_guide.html'), name='font_management_guide'),
             
             # گزارشات جامع
             path('comprehensive-budget-report/', ComprehensiveBudgetReportView.as_view(), name='comprehensive_budget_report'),

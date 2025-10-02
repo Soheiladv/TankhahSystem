@@ -847,6 +847,113 @@ class SystemSettings(models.Model):
     # def __str__(self):
     #     return "تنظیمات سیستم بودجه"
 ############################################################# End Off models
+
+class FontSettings(models.Model):
+    """مدل مدیریت فونت‌های سیستم"""
+    
+    FONT_FORMATS = [
+        ('ttf', 'TrueType Font (.ttf)'),
+        ('woff', 'Web Open Font Format (.woff)'),
+        ('woff2', 'Web Open Font Format 2 (.woff2)'),
+        ('eot', 'Embedded OpenType (.eot)'),
+        ('otf', 'OpenType Font (.otf)'),
+    ]
+    
+    FONT_WEIGHTS = [
+        (100, 'Thin'),
+        (200, 'Extra Light'),
+        (300, 'Light'),
+        (400, 'Regular'),
+        (500, 'Medium'),
+        (600, 'Semi Bold'),
+        (700, 'Bold'),
+        (800, 'Extra Bold'),
+        (900, 'Black'),
+    ]
+    
+    name = models.CharField(max_length=100, verbose_name=_("نام فونت"))
+    family_name = models.CharField(max_length=100, verbose_name=_("نام خانواده فونت"), 
+                                   help_text=_("نام CSS font-family"))
+    font_file = models.FileField(upload_to='fonts/', verbose_name=_("فایل فونت"))
+    font_format = models.CharField(max_length=10, choices=FONT_FORMATS, verbose_name=_("فرمت فونت"))
+    font_weight = models.IntegerField(choices=FONT_WEIGHTS, default=400, verbose_name=_("وزن فونت"))
+    is_active = models.BooleanField(default=True, verbose_name=_("فعال"))
+    is_default = models.BooleanField(default=False, verbose_name=_("فونت پیش‌فرض"))
+    is_rtl_support = models.BooleanField(default=True, verbose_name=_("پشتیبانی از راست به چپ"))
+    description = models.TextField(blank=True, null=True, verbose_name=_("توضیحات"))
+    
+    # اطلاعات اضافی
+    file_size = models.PositiveIntegerField(null=True, blank=True, verbose_name=_("حجم فایل (بایت)"))
+    upload_date = models.DateTimeField(auto_now_add=True, verbose_name=_("تاریخ آپلود"))
+    uploaded_by = models.ForeignKey('accounts.CustomUser', on_delete=models.SET_NULL, 
+                                   null=True, blank=True, verbose_name=_("آپلود شده توسط"))
+    
+    class Meta:
+        verbose_name = _("تنظیمات فونت")
+        verbose_name_plural = _("تنظیمات فونت‌ها")
+        ordering = ['-is_default', '-is_active', 'name']
+        
+    def __str__(self):
+        status = "فعال" if self.is_active else "غیرفعال"
+        default = " (پیش‌فرض)" if self.is_default else ""
+        return f"{self.name} - {self.get_font_weight_display()}{default} [{status}]"
+    
+    def save(self, *args, **kwargs):
+        # اگر این فونت به عنوان پیش‌فرض انتخاب شده، سایر فونت‌ها را غیرپیش‌فرض کن
+        if self.is_default:
+            FontSettings.objects.filter(is_default=True).update(is_default=False)
+        
+        # محاسبه حجم فایل
+        if self.font_file and hasattr(self.font_file, 'size'):
+            self.file_size = self.font_file.size
+            
+        super().save(*args, **kwargs)
+    
+    @property
+    def file_size_formatted(self):
+        """نمایش حجم فایل به صورت قابل خواندن"""
+        if not self.file_size:
+            return "نامشخص"
+        
+        if self.file_size < 1024:
+            return f"{self.file_size} بایت"
+        elif self.file_size < 1024 * 1024:
+            return f"{self.file_size / 1024:.1f} کیلوبایت"
+        else:
+            return f"{self.file_size / (1024 * 1024):.1f} مگابایت"
+    
+    @classmethod
+    def get_default_font(cls):
+        """دریافت فونت پیش‌فرض"""
+        return cls.objects.filter(is_default=True, is_active=True).first()
+    
+    @classmethod
+    def get_active_fonts(cls):
+        """دریافت تمام فونت‌های فعال"""
+        return cls.objects.filter(is_active=True).order_by('-is_default', 'name')
+    
+    def get_css_font_face(self):
+        """تولید CSS @font-face برای این فونت"""
+        if not self.font_file:
+            return ""
+        
+        format_map = {
+            'ttf': 'truetype',
+            'woff': 'woff',
+            'woff2': 'woff2',
+            'eot': 'embedded-opentype',
+            'otf': 'opentype',
+        }
+        
+        css_format = format_map.get(self.font_format, self.font_format)
+        
+        return f"""@font-face {{
+    font-family: '{self.family_name}';
+    src: url('{self.font_file.url}') format('{css_format}');
+    font-weight: {self.font_weight};
+    font-style: normal;
+    font-display: swap;
+}}"""
 class Dashboard_Core(models.Model):
     class Meta:
         default_permissions = ()

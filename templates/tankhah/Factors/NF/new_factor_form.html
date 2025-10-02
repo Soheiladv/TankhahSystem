@@ -1,8 +1,10 @@
 {% extends 'base.html' %}
 {% load i18n static rcms_custom_filters file_tags %}
- 
+
+{% block extra_css %}
     <!-- SweetAlert2 برای پیام‌های زیبا -->
     <link href="{% static 'admin/css/sweetalert2.min.css' %}" rel="stylesheet">
+{% endblock %}
  
 {% block content %}
     <div class="container my-4">

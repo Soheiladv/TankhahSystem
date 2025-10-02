@@ -9,7 +9,8 @@ from django.db import transaction
 from django.http import JsonResponse, HttpResponse, HttpResponseBadRequest
 import json
 
-from core.models import SystemSettings
+from core.models import SystemSettings, FontSettings
+from core.forms import FontSettingsForm
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
 from core.models import Action, Status
@@ -458,3 +459,142 @@ class ToggleDashboardWidgetView(PermissionBaseView, TemplateView):
         except Exception as e:
             logger.error(f"Error toggling widget: {e}")
             return JsonResponse({'ok': False, 'error': str(e)}, status=500)
+
+# =========================================================
+# Font Management Views
+# =========================================================
+
+class FontSettingsListView(PermissionBaseView, TemplateView):
+    """لیست فونت‌های سیستم"""
+    permission_codename = 'core.SystemSettings_access'
+    template_name = 'core/font_settings_list.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['fonts'] = FontSettings.objects.all().order_by('-is_default', '-is_active', 'name')
+        context['page_title'] = _("مدیریت فونت‌ها")
+        return context
+
+class FontSettingsCreateView(PermissionBaseView, CreateView):
+    """ایجاد فونت جدید"""
+    permission_codename = 'core.SystemSettings_access'
+    model = FontSettings
+    form_class = FontSettingsForm
+    template_name = 'core/font_settings_form.html'
+    success_url = reverse_lazy('font_settings_list')
+    
+    def form_valid(self, form):
+        form.instance.uploaded_by = self.request.user
+        response = super().form_valid(form)
+        messages.success(self.request, _("فونت با موفقیت اضافه شد."))
+        return response
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['page_title'] = _("افزودن فونت جدید")
+        context['form_title'] = _("افزودن فونت جدید")
+        context['submit_text'] = _("ذخیره فونت")
+        return context
+
+class FontSettingsUpdateView(PermissionBaseView, UpdateView):
+    """ویرایش فونت"""
+    permission_codename = 'core.SystemSettings_access'
+    model = FontSettings
+    form_class = FontSettingsForm
+    template_name = 'core/font_settings_form.html'
+    success_url = reverse_lazy('font_settings_list')
+    
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        messages.success(self.request, _("فونت با موفقیت به‌روزرسانی شد."))
+        return response
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['page_title'] = _("ویرایش فونت")
+        context['form_title'] = f"ویرایش فونت: {self.object.name}"
+        context['submit_text'] = _("به‌روزرسانی")
+        return context
+
+class FontSettingsDeleteView(PermissionBaseView, TemplateView):
+    """حذف فونت"""
+    permission_codename = 'core.SystemSettings_access'
+    
+    def post(self, request, pk):
+        try:
+            font = FontSettings.objects.get(pk=pk)
+            
+            # جلوگیری از حذف فونت پیش‌فرض
+            if font.is_default:
+                messages.error(request, _("نمی‌توان فونت پیش‌فرض را حذف کرد."))
+                return redirect('font_settings_list')
+            
+            font_name = font.name
+            
+            # حذف فایل فونت از دیسک
+            if font.font_file:
+                try:
+                    font.font_file.delete(save=False)
+                except:
+                    pass  # اگر فایل وجود نداشت، مشکلی نیست
+            
+            font.delete()
+            messages.success(request, _("فونت '{}' با موفقیت حذف شد.").format(font_name))
+            
+        except FontSettings.DoesNotExist:
+            messages.error(request, _("فونت مورد نظر یافت نشد."))
+        except Exception as e:
+            logger.error(f"Error deleting font: {e}")
+            messages.error(request, _("خطا در حذف فونت: {}").format(str(e)))
+        
+        return redirect('font_settings_list')
+
+class FontSettingsToggleView(PermissionBaseView, TemplateView):
+    """فعال/غیرفعال کردن فونت"""
+    permission_codename = 'core.SystemSettings_access'
+    
+    def post(self, request, pk):
+        try:
+            font = FontSettings.objects.get(pk=pk)
+            font.is_active = not font.is_active
+            font.save()
+            
+            status = "فعال" if font.is_active else "غیرفعال"
+            messages.success(request, _("فونت '{}' {} شد.").format(font.name, status))
+            
+        except FontSettings.DoesNotExist:
+            messages.error(request, _("فونت مورد نظر یافت نشد."))
+        except Exception as e:
+            logger.error(f"Error toggling font: {e}")
+            messages.error(request, _("خطا در تغییر وضعیت فونت: {}").format(str(e)))
+        
+        return redirect('font_settings_list')
+
+class FontSettingsSetDefaultView(PermissionBaseView, TemplateView):
+    """تنظیم فونت به عنوان پیش‌فرض"""
+    permission_codename = 'core.SystemSettings_access'
+    
+    def post(self, request, pk):
+        try:
+            font = FontSettings.objects.get(pk=pk)
+            
+            if not font.is_active:
+                messages.error(request, _("فونت غیرفعال نمی‌تواند به عنوان پیش‌فرض انتخاب شود."))
+                return redirect('font_settings_list')
+            
+            # تمام فونت‌ها را غیرپیش‌فرض کن
+            FontSettings.objects.update(is_default=False)
+            
+            # این فونت را پیش‌فرض کن
+            font.is_default = True
+            font.save()
+            
+            messages.success(request, _("فونت '{}' به عنوان فونت پیش‌فرض سیستم انتخاب شد.").format(font.name))
+            
+        except FontSettings.DoesNotExist:
+            messages.error(request, _("فونت مورد نظر یافت نشد."))
+        except Exception as e:
+            logger.error(f"Error setting default font: {e}")
+            messages.error(request, _("خطا در تنظیم فونت پیش‌فرض: {}").format(str(e)))
+        
+        return redirect('font_settings_list')

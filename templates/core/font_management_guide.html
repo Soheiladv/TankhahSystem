@@ -1,0 +1,430 @@
+{% extends 'base.html' %}
+{% load i18n static %}
+
+{% block page_title %}راهنمای مدیریت فونت‌ها{% endblock %}
+
+{% block extra_css %}
+<style>
+    .guide-section {
+        background: white;
+        border-radius: 10px;
+        padding: 25px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .guide-header {
+        color: #2563eb;
+        border-bottom: 2px solid #e5e7eb;
+        padding-bottom: 10px;
+        margin-bottom: 20px;
+    }
+    
+    .step-number {
+        background: linear-gradient(45deg, #3b82f6, #1d4ed8);
+        color: white;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        margin-left: 10px;
+    }
+    
+    .feature-box {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 15px;
+        margin: 10px 0;
+    }
+    
+    .feature-icon {
+        color: #059669;
+        margin-left: 8px;
+    }
+    
+    .warning-box {
+        background: #fef3cd;
+        border: 1px solid #fbbf24;
+        border-radius: 8px;
+        padding: 15px;
+        margin: 15px 0;
+    }
+    
+    .info-box {
+        background: #dbeafe;
+        border: 1px solid #3b82f6;
+        border-radius: 8px;
+        padding: 15px;
+        margin: 15px 0;
+    }
+    
+    .code-sample {
+        background: #1f2937;
+        color: #f9fafb;
+        padding: 15px;
+        border-radius: 6px;
+        font-family: 'Courier New', monospace;
+        overflow-x: auto;
+        margin: 10px 0;
+    }
+    
+    .screenshot-placeholder {
+        background: #f3f4f6;
+        border: 2px dashed #9ca3af;
+        border-radius: 8px;
+        padding: 40px;
+        text-align: center;
+        color: #6b7280;
+        margin: 15px 0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="page-header d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="header-icon bg-primary bg-opacity-10 rounded-circle p-3">
+                        <i class="fas fa-book text-primary fa-2x"></i>
+                    </div>
+                    <div>
+                        <h1 class="h3 mb-1">راهنمای کامل مدیریت فونت‌ها</h1>
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb mb-0">
+                                <li class="breadcrumb-item">
+                                    <a href="{% url 'system_settings_dashboard' %}">تنظیمات سیستم</a>
+                                </li>
+                                <li class="breadcrumb-item">
+                                    <a href="{% url 'font_settings_list' %}">مدیریت فونت‌ها</a>
+                                </li>
+                                <li class="breadcrumb-item active">راهنما</li>
+                            </ol>
+                        </nav>
+                    </div>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{% url 'font_settings_list' %}" class="btn btn-primary">
+                        <i class="fas fa-cogs me-2"></i>مدیریت فونت‌ها
+                    </a>
+                    <a href="{% url 'system_settings_dashboard' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-right me-2"></i>بازگشت
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- مقدمه -->
+    <div class="guide-section">
+        <h2 class="guide-header">
+            <i class="fas fa-info-circle me-2"></i>مقدمه
+        </h2>
+        <p class="lead">
+            سیستم مدیریت فونت‌ها به شما امکان کنترل کامل بر روی ظاهر متن‌های سیستم را می‌دهد. 
+            با این سیستم می‌توانید فونت‌های سفارشی آپلود کرده و آن‌ها را در کل سیستم اعمال کنید.
+        </p>
+        
+        <div class="info-box">
+            <h6><i class="fas fa-lightbulb me-2"></i>مزایای استفاده از سیستم فونت:</h6>
+            <ul class="mb-0">
+                <li>یکپارچگی ظاهری در تمام بخش‌های سیستم</li>
+                <li>پشتیبانی کامل از زبان فارسی</li>
+                <li>بهبود خوانایی و تجربه کاربری</li>
+                <li>قابلیت تغییر آسان فونت بدون نیاز به برنامه‌نویسی</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- مراحل افزودن فونت -->
+    <div class="guide-section">
+        <h2 class="guide-header">
+            <i class="fas fa-plus-circle me-2"></i>مراحل افزودن فونت جدید
+        </h2>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <h5><span class="step-number">1</span>ورود به بخش مدیریت فونت‌ها</h5>
+                <p>از منوی تنظیمات سیستم، روی "مدیریت فونت‌ها" کلیک کنید.</p>
+                
+                <h5><span class="step-number">2</span>کلیک روی "افزودن فونت جدید"</h5>
+                <p>در صفحه لیست فونت‌ها، دکمه آبی رنگ "افزودن فونت جدید" را کلیک کنید.</p>
+                
+                <h5><span class="step-number">3</span>تکمیل اطلاعات فونت</h5>
+                <ul>
+                    <li><strong>نام فونت:</strong> نام نمایشی فونت (مثل: وزیرمتن بولد)</li>
+                    <li><strong>نام خانواده:</strong> نام CSS فونت (مثل: Vazirmatn)</li>
+                    <li><strong>فایل فونت:</strong> فایل TTF, WOFF, WOFF2, EOT یا OTF</li>
+                    <li><strong>فرمت فونت:</strong> نوع فایل انتخاب شده</li>
+                    <li><strong>وزن فونت:</strong> از Thin تا Black</li>
+                </ul>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="screenshot-placeholder">
+                    <i class="fas fa-image fa-3x mb-3"></i>
+                    <p>تصویر صفحه افزودن فونت</p>
+                </div>
+            </div>
+        </div>
+        
+        <h5><span class="step-number">4</span>تنظیمات اضافی</h5>
+        <div class="feature-box">
+            <div class="form-check mb-2">
+                <i class="feature-icon fas fa-check-circle"></i>
+                <strong>فعال:</strong> فونت در سیستم قابل استفاده باشد
+            </div>
+            <div class="form-check mb-2">
+                <i class="feature-icon fas fa-star"></i>
+                <strong>فونت پیش‌فرض:</strong> به عنوان فونت اصلی سیستم استفاده شود
+            </div>
+            <div class="form-check">
+                <i class="feature-icon fas fa-align-right"></i>
+                <strong>پشتیبانی RTL:</strong> برای زبان‌های راست به چپ مناسب است
+            </div>
+        </div>
+        
+        <h5><span class="step-number">5</span>پیش‌نمایش و ذخیره</h5>
+        <p>قبل از ذخیره، حتماً از دکمه "نمایش پیش‌نمایش" استفاده کنید تا از صحت فونت اطمینان حاصل کنید.</p>
+    </div>
+
+    <!-- فرمت‌های پشتیبانی شده -->
+    <div class="guide-section">
+        <h2 class="guide-header">
+            <i class="fas fa-file-alt me-2"></i>فرمت‌های پشتیبانی شده
+        </h2>
+        
+        <div class="row">
+            <div class="col-md-4">
+                <div class="feature-box text-center">
+                    <i class="fas fa-font fa-2x text-primary mb-2"></i>
+                    <h6>TTF (TrueType)</h6>
+                    <p class="small">فرمت استاندارد و پرکاربرد</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-box text-center">
+                    <i class="fas fa-globe fa-2x text-success mb-2"></i>
+                    <h6>WOFF/WOFF2</h6>
+                    <p class="small">بهینه برای وب، حجم کمتر</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-box text-center">
+                    <i class="fas fa-desktop fa-2x text-info mb-2"></i>
+                    <h6>EOT/OTF</h6>
+                    <p class="small">سازگاری با مرورگرهای قدیمی</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="warning-box">
+            <h6><i class="fas fa-exclamation-triangle me-2"></i>محدودیت‌ها:</h6>
+            <ul class="mb-0">
+                <li>حداکثر حجم فایل: 10 مگابایت</li>
+                <li>فقط فرمت‌های ذکر شده پشتیبانی می‌شوند</li>
+                <li>نام خانواده فونت باید منحصر به فرد باشد</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- مدیریت فونت‌ها -->
+    <div class="guide-section">
+        <h2 class="guide-header">
+            <i class="fas fa-cogs me-2"></i>مدیریت فونت‌های موجود
+        </h2>
+        
+        <h5>عملیات قابل انجام:</h5>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="feature-box">
+                    <h6><i class="fas fa-edit feature-icon"></i>ویرایش فونت</h6>
+                    <p>تغییر نام، توضیحات و تنظیمات فونت</p>
+                </div>
+                
+                <div class="feature-box">
+                    <h6><i class="fas fa-star feature-icon"></i>تنظیم به عنوان پیش‌فرض</h6>
+                    <p>انتخاب فونت به عنوان فونت اصلی سیستم</p>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="feature-box">
+                    <h6><i class="fas fa-eye-slash feature-icon"></i>فعال/غیرفعال کردن</h6>
+                    <p>کنترل نمایش فونت در سیستم</p>
+                </div>
+                
+                <div class="feature-box">
+                    <h6><i class="fas fa-trash feature-icon text-danger"></i>حذف فونت</h6>
+                    <p>حذف کامل فونت از سیستم (غیرقابل بازگشت)</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- نکات مهم -->
+    <div class="guide-section">
+        <h2 class="guide-header">
+            <i class="fas fa-lightbulb me-2"></i>نکات مهم و بهترین روش‌ها
+        </h2>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <h6>✅ انجام دهید:</h6>
+                <ul>
+                    <li>قبل از آپلود، فونت را در محیط محلی تست کنید</li>
+                    <li>از فونت‌های با کیفیت و مجاز استفاده کنید</li>
+                    <li>نام‌های واضح و قابل فهم انتخاب کنید</li>
+                    <li>پیش از حذف، از وجود فونت جایگزین اطمینان حاصل کنید</li>
+                    <li>فونت‌های غیرضروری را حذف کنید</li>
+                </ul>
+            </div>
+            
+            <div class="col-md-6">
+                <h6>❌ انجام ندهید:</h6>
+                <ul>
+                    <li>فونت‌های بدون مجوز آپلود نکنید</li>
+                    <li>فونت پیش‌فرض را بدون جایگزین حذف نکنید</li>
+                    <li>فایل‌های خراب یا ناقص آپلود نکنید</li>
+                    <li>نام‌های تکراری برای فونت‌ها انتخاب نکنید</li>
+                    <li>بیش از حد فونت فعال نگه ندارید</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- عیب‌یابی -->
+    <div class="guide-section">
+        <h2 class="guide-header">
+            <i class="fas fa-tools me-2"></i>عیب‌یابی مشکلات رایج
+        </h2>
+        
+        <div class="accordion" id="troubleshootingAccordion">
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#problem1">
+                        فونت در صفحات نمایش داده نمی‌شود
+                    </button>
+                </h2>
+                <div id="problem1" class="accordion-collapse collapse" data-bs-parent="#troubleshootingAccordion">
+                    <div class="accordion-body">
+                        <strong>راه‌حل‌های احتمالی:</strong>
+                        <ul>
+                            <li>مطمئن شوید فونت فعال است</li>
+                            <li>صفحه را مجدداً بارگذاری کنید (Ctrl+F5)</li>
+                            <li>کش مرورگر را پاک کنید</li>
+                            <li>فرمت فونت را بررسی کنید</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#problem2">
+                        خطا در آپلود فایل فونت
+                    </button>
+                </h2>
+                <div id="problem2" class="accordion-collapse collapse" data-bs-parent="#troubleshootingAccordion">
+                    <div class="accordion-body">
+                        <strong>بررسی کنید:</strong>
+                        <ul>
+                            <li>حجم فایل کمتر از 10 مگابایت باشد</li>
+                            <li>فرمت فایل صحیح باشد</li>
+                            <li>فایل خراب نباشد</li>
+                            <li>اتصال اینترنت پایدار باشد</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#problem3">
+                        فونت فارسی به درستی نمایش داده نمی‌شود
+                    </button>
+                </h2>
+                <div id="problem3" class="accordion-collapse collapse" data-bs-parent="#troubleshootingAccordion">
+                    <div class="accordion-body">
+                        <strong>راه‌حل:</strong>
+                        <ul>
+                            <li>گزینه "پشتیبانی از راست به چپ" را فعال کنید</li>
+                            <li>از فونت‌های مخصوص فارسی استفاده کنید</li>
+                            <li>کدگذاری صفحه را بررسی کنید (UTF-8)</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- پیوندهای مفید -->
+    <div class="guide-section">
+        <h2 class="guide-header">
+            <i class="fas fa-link me-2"></i>پیوندهای مفید
+        </h2>
+        
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-list fa-2x text-primary mb-3"></i>
+                        <h6>مشاهده فونت‌ها</h6>
+                        <a href="{% url 'font_settings_list' %}" class="btn btn-sm btn-primary">
+                            مدیریت فونت‌ها
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-plus fa-2x text-success mb-3"></i>
+                        <h6>افزودن فونت</h6>
+                        <a href="{% url 'font_settings_create' %}" class="btn btn-sm btn-success">
+                            فونت جدید
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-cog fa-2x text-secondary mb-3"></i>
+                        <h6>تنظیمات سیستم</h6>
+                        <a href="{% url 'system_settings_dashboard' %}" class="btn btn-sm btn-secondary">
+                            تنظیمات
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// اضافه کردن انیمیشن به accordion
+document.addEventListener('DOMContentLoaded', function() {
+    const accordionButtons = document.querySelectorAll('.accordion-button');
+    
+    accordionButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            // اضافه کردن افکت صوتی یا انیمیشن
+            this.style.transform = 'scale(0.98)';
+            setTimeout(() => {
+                this.style.transform = 'scale(1)';
+            }, 100);
+        });
+    });
+});
+</script>
+{% endblock %}

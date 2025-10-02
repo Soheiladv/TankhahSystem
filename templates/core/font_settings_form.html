@@ -1,0 +1,473 @@
+{% extends 'base.html' %}
+{% load i18n static %}
+
+{% block page_title %}{{ page_title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .font-preview-container {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 20px;
+        margin-top: 15px;
+        display: none;
+    }
+    
+    .font-preview-text {
+        font-size: 18px;
+        line-height: 1.6;
+        margin-bottom: 15px;
+        padding: 15px;
+        background: white;
+        border-radius: 6px;
+        border: 1px solid #e9ecef;
+    }
+    
+    .file-info {
+        background: #e3f2fd;
+        border: 1px solid #bbdefb;
+        border-radius: 6px;
+        padding: 10px;
+        margin-top: 10px;
+        font-size: 14px;
+    }
+    
+    .form-section {
+        background: white;
+        border-radius: 10px;
+        padding: 25px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .section-title {
+        color: #495057;
+        font-weight: 600;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #e9ecef;
+    }
+    
+    .form-check-input:checked {
+        background-color: #007bff;
+        border-color: #007bff;
+    }
+    
+    .btn-preview {
+        background: linear-gradient(45deg, #28a745, #20c997);
+        border: none;
+        color: white;
+    }
+    
+    .btn-preview:hover {
+        background: linear-gradient(45deg, #218838, #1ea080);
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="page-header d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="header-icon bg-primary bg-opacity-10 rounded-circle p-3">
+                        <i class="fas fa-font text-primary fa-2x"></i>
+                    </div>
+                    <div>
+                        <h1 class="h3 mb-1">{{ form_title }}</h1>
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb mb-0">
+                                <li class="breadcrumb-item">
+                                    <a href="{% url 'system_settings_dashboard' %}">{% trans "تنظیمات سیستم" %}</a>
+                                </li>
+                                <li class="breadcrumb-item">
+                                    <a href="{% url 'font_settings_list' %}">{% trans "مدیریت فونت‌ها" %}</a>
+                                </li>
+                                <li class="breadcrumb-item active">{{ form_title }}</li>
+                            </ol>
+                        </nav>
+                    </div>
+                </div>
+                <a href="{% url 'font_settings_list' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-right me-2"></i>{% trans "بازگشت" %}
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" id="fontForm">
+        {% csrf_token %}
+        
+        <div class="row">
+            <div class="col-lg-8">
+                <!-- اطلاعات اصلی فونت -->
+                <div class="form-section">
+                    <h4 class="section-title">
+                        <i class="fas fa-info-circle me-2"></i>اطلاعات اصلی فونت
+                    </h4>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.name.id_for_label }}" class="form-label">
+                                {{ form.name.label }}
+                                <span class="text-danger">*</span>
+                            </label>
+                            {{ form.name }}
+                            {% if form.name.help_text %}
+                                <div class="form-text">{{ form.name.help_text }}</div>
+                            {% endif %}
+                            {% if form.name.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.name.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.family_name.id_for_label }}" class="form-label">
+                                {{ form.family_name.label }}
+                                <span class="text-danger">*</span>
+                            </label>
+                            {{ form.family_name }}
+                            {% if form.family_name.help_text %}
+                                <div class="form-text">{{ form.family_name.help_text }}</div>
+                            {% endif %}
+                            {% if form.family_name.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.family_name.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.font_format.id_for_label }}" class="form-label">
+                                {{ form.font_format.label }}
+                                <span class="text-danger">*</span>
+                            </label>
+                            {{ form.font_format }}
+                            {% if form.font_format.help_text %}
+                                <div class="form-text">{{ form.font_format.help_text }}</div>
+                            {% endif %}
+                            {% if form.font_format.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.font_format.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.font_weight.id_for_label }}" class="form-label">
+                                {{ form.font_weight.label }}
+                                <span class="text-danger">*</span>
+                            </label>
+                            {{ form.font_weight }}
+                            {% if form.font_weight.help_text %}
+                                <div class="form-text">{{ form.font_weight.help_text }}</div>
+                            {% endif %}
+                            {% if form.font_weight.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.font_weight.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.font_file.id_for_label }}" class="form-label">
+                            {{ form.font_file.label }}
+                            <span class="text-danger">*</span>
+                        </label>
+                        {{ form.font_file }}
+                        {% if form.font_file.help_text %}
+                            <div class="form-text">{{ form.font_file.help_text }}</div>
+                        {% endif %}
+                        {% if form.font_file.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.font_file.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                        
+                        <div id="fileInfo" class="file-info" style="display: none;">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <span id="fileDetails"></span>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.description.id_for_label }}" class="form-label">
+                            {{ form.description.label }}
+                        </label>
+                        {{ form.description }}
+                        {% if form.description.help_text %}
+                            <div class="form-text">{{ form.description.help_text }}</div>
+                        {% endif %}
+                        {% if form.description.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.description.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- پیش‌نمایش فونت -->
+                <div class="form-section">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h4 class="section-title mb-0">
+                            <i class="fas fa-eye me-2"></i>پیش‌نمایش فونت
+                        </h4>
+                        <button type="button" class="btn btn-preview btn-sm" id="previewBtn" disabled>
+                            <i class="fas fa-search me-2"></i>نمایش پیش‌نمایش
+                        </button>
+                    </div>
+                    
+                    <div id="fontPreview" class="font-preview-container">
+                        <div id="previewText" class="font-preview-text">
+                            <div class="mb-2">نمونه متن فارسی با این فونت زیبا</div>
+                            <div class="mb-2">Sample English Text with Numbers 1234567890</div>
+                            <div>!@#$%^&*()_+-=[]{}|;':\",./<>?</div>
+                        </div>
+                        <small class="text-muted">
+                            <i class="fas fa-info-circle me-1"></i>
+                            این پیش‌نمایش ممکن است با نمایش نهایی در سیستم متفاوت باشد.
+                        </small>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4">
+                <!-- تنظیمات فونت -->
+                <div class="form-section">
+                    <h4 class="section-title">
+                        <i class="fas fa-cogs me-2"></i>تنظیمات فونت
+                    </h4>
+                    
+                    <div class="mb-3">
+                        <div class="form-check">
+                            {{ form.is_active }}
+                            <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                                {{ form.is_active.label }}
+                            </label>
+                        </div>
+                        {% if form.is_active.help_text %}
+                            <div class="form-text">{{ form.is_active.help_text }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-check">
+                            {{ form.is_default }}
+                            <label class="form-check-label" for="{{ form.is_default.id_for_label }}">
+                                {{ form.is_default.label }}
+                            </label>
+                        </div>
+                        {% if form.is_default.help_text %}
+                            <div class="form-text">{{ form.is_default.help_text }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-check">
+                            {{ form.is_rtl_support }}
+                            <label class="form-check-label" for="{{ form.is_rtl_support.id_for_label }}">
+                                {{ form.is_rtl_support.label }}
+                            </label>
+                        </div>
+                        {% if form.is_rtl_support.help_text %}
+                            <div class="form-text">{{ form.is_rtl_support.help_text }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- راهنما -->
+                <div class="form-section">
+                    <h4 class="section-title">
+                        <i class="fas fa-question-circle me-2"></i>راهنما
+                    </h4>
+                    
+                    <div class="alert alert-info">
+                        <h6><i class="fas fa-lightbulb me-2"></i>نکات مهم:</h6>
+                        <ul class="mb-0 small">
+                            <li>حداکثر حجم فایل: 10 مگابایت</li>
+                            <li>فرمت‌های مجاز: TTF, WOFF, WOFF2, EOT, OTF</li>
+                            <li>نام خانواده فونت باید منحصر به فرد باشد</li>
+                            <li>فونت پیش‌فرض در کل سیستم اعمال می‌شود</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="alert alert-warning">
+                        <h6><i class="fas fa-exclamation-triangle me-2"></i>توجه:</h6>
+                        <p class="mb-0 small">
+                            تغییر فونت پیش‌فرض ممکن است نیاز به بارگذاری مجدد صفحات داشته باشد.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- دکمه‌های عملیات -->
+        <div class="row">
+            <div class="col-12">
+                <div class="form-section">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-save me-2"></i>{{ submit_text }}
+                            </button>
+                            <a href="{% url 'font_settings_list' %}" class="btn btn-outline-secondary btn-lg ms-2">
+                                <i class="fas fa-times me-2"></i>انصراف
+                            </a>
+                        </div>
+                        
+                        {% if object %}
+                        <div>
+                            <small class="text-muted">
+                                <i class="fas fa-calendar me-1"></i>
+                                آپلود شده: {{ object.upload_date|date:"Y/m/d H:i" }}
+                                {% if object.uploaded_by %}
+                                    توسط {{ object.uploaded_by.get_full_name|default:object.uploaded_by.username }}
+                                {% endif %}
+                            </small>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        {% if form.non_field_errors %}
+        <div class="alert alert-danger mt-3">
+            {% for error in form.non_field_errors %}
+                <div>{{ error }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const fileInput = document.getElementById('{{ form.font_file.id_for_label }}');
+    const fileInfo = document.getElementById('fileInfo');
+    const fileDetails = document.getElementById('fileDetails');
+    const previewBtn = document.getElementById('previewBtn');
+    const fontPreview = document.getElementById('fontPreview');
+    const previewText = document.getElementById('previewText');
+    const familyNameInput = document.getElementById('{{ form.family_name.id_for_label }}');
+    const fontWeightSelect = document.getElementById('{{ form.font_weight.id_for_label }}');
+    
+    let loadedFont = null;
+    
+    // نمایش اطلاعات فایل انتخاب شده
+    fileInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const size = file.size;
+            const sizeText = size < 1024 ? size + ' بایت' : 
+                           size < 1024 * 1024 ? (size / 1024).toFixed(1) + ' کیلوبایت' : 
+                           (size / (1024 * 1024)).toFixed(1) + ' مگابایت';
+            
+            fileDetails.innerHTML = `
+                <strong>نام فایل:</strong> ${file.name}<br>
+                <strong>حجم:</strong> ${sizeText}<br>
+                <strong>نوع:</strong> ${file.type || 'نامشخص'}
+            `;
+            fileInfo.style.display = 'block';
+            previewBtn.disabled = false;
+        } else {
+            fileInfo.style.display = 'none';
+            previewBtn.disabled = true;
+            fontPreview.style.display = 'none';
+        }
+    });
+    
+    // پیش‌نمایش فونت
+    previewBtn.addEventListener('click', function() {
+        const file = fileInput.files[0];
+        const familyName = familyNameInput.value.trim();
+        const fontWeight = fontWeightSelect.value;
+        
+        if (!file) {
+            alert('لطفاً ابتدا یک فایل فونت انتخاب کنید.');
+            return;
+        }
+        
+        if (!familyName) {
+            alert('لطفاً نام خانواده فونت را وارد کنید.');
+            familyNameInput.focus();
+            return;
+        }
+        
+        // حذف فونت قبلی
+        if (loadedFont) {
+            document.fonts.delete(loadedFont);
+        }
+        
+        // بارگذاری فونت جدید
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const fontData = e.target.result;
+            
+            try {
+                loadedFont = new FontFace(familyName, fontData, {
+                    weight: fontWeight,
+                    style: 'normal'
+                });
+                
+                loadedFont.load().then(function(font) {
+                    document.fonts.add(font);
+                    
+                    // اعمال فونت به پیش‌نمایش
+                    previewText.style.fontFamily = `'${familyName}', 'Tahoma', sans-serif`;
+                    previewText.style.fontWeight = fontWeight;
+                    
+                    fontPreview.style.display = 'block';
+                    
+                    // اسکرول به پیش‌نمایش
+                    fontPreview.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    
+                }).catch(function(error) {
+                    console.error('خطا در بارگذاری فونت:', error);
+                    alert('خطا در بارگذاری فونت. لطفاً فایل معتبری انتخاب کنید.');
+                });
+                
+            } catch (error) {
+                console.error('خطا در ایجاد FontFace:', error);
+                alert('فایل انتخاب شده معتبر نیست.');
+            }
+        };
+        
+        reader.onerror = function() {
+            alert('خطا در خواندن فایل.');
+        };
+        
+        reader.readAsArrayBuffer(file);
+    });
+    
+    // اگر در حالت ویرایش هستیم و فونت موجود است، پیش‌نمایش را نمایش دهیم
+    {% if object and object.font_file %}
+    const existingFont = new FontFace('{{ object.family_name }}', 'url({{ object.font_file.url }})', {
+        weight: '{{ object.font_weight }}',
+        style: 'normal'
+    });
+    
+    existingFont.load().then(function(font) {
+        document.fonts.add(font);
+        previewText.style.fontFamily = `'{{ object.family_name }}', 'Tahoma', sans-serif`;
+        previewText.style.fontWeight = '{{ object.font_weight }}';
+        fontPreview.style.display = 'block';
+        previewBtn.textContent = 'به‌روزرسانی پیش‌نمایش';
+        previewBtn.innerHTML = '<i class="fas fa-sync me-2"></i>به‌روزرسانی پیش‌نمایش';
+    }).catch(function(error) {
+        console.warn('خطا در بارگذاری فونت موجود:', error);
+    });
+    {% endif %}
+});
+</script>
+{% endblock %}

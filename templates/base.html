@@ -1,4 +1,4 @@
-{% load static i18n humanize jformat rcms_custom_filters jalali_tags %}
+{% load static i18n humanize jformat rcms_custom_filters jalali_tags core_extras %}
 
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
@@ -10,8 +10,10 @@
     <link rel="icon" href="{% static 'admin/img/favicon.ico' %}" type="image/x-icon">
     <!-- CSS های اصلی -->
     <link href="{% static 'admin/css/bootstrap.rtl.min.css' %}" rel="stylesheet">
-    <link href="{% static 'admin/css/all.min.css' %}" rel="stylesheet">
     <link href="{% static 'admin/css/animate.min.css' %}" rel="stylesheet">
+    <!-- Font Awesome CSS -->
+    <link href="{% static 'admin/css/all.min.css' %}" rel="stylesheet">
+
     <!-- CSS فارسی دیتاپیکر -->
     <link href="{% static 'admin/css/jalalidatepicker.min.css' %}" rel="stylesheet">
     <link href="{% static 'admin/css/custom.css' %}" rel="stylesheet">
@@ -24,15 +26,19 @@
 
     <!-- استایل‌های سفارشی -->
     <link rel="stylesheet" href="{% static 'admin/css/budgetsStyle.css' %}">
-    <link rel="stylesheet" href="{% static 'css/notification-animations.css' %}">
+{#    <link rel="stylesheet" href="{% static 'css/notification-animations.css' %}">#}
     <!-- Dashboard Reports CSS -->
     <link rel="stylesheet" href="{% static 'reports/css/dashboard.css' %}">
     <!-- Global Styles CSS -->
     <link rel="stylesheet" href="{% static 'css/global-styles.css' %}">
 
+    <!-- System Fonts CSS -->
+    {% include_system_fonts %}
+
     {% block extra_css %}{% endblock %}
 
     <style>
+        /* فونت‌های اصلی سیستم - بازگردانده شده */
         @font-face {
             font-family: 'Parastoo';
             src: url('{% static "admin/fonts/Parastoo.ttf" %}') format('truetype');
@@ -43,6 +49,7 @@
         body {
             font-family: 'Parastoo', 'Yekan', 'IRANSans', sans-serif;
         }
+
 
         /* Global Theme Variables */
         :root {

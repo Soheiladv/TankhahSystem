@@ -6,9 +6,49 @@
 {% block extra_css %}
 
 <style>
-/* همان استایل‌های قبلی بدون تغییر */
+/* استایل‌های فاکتور لیست */
+.stat-card {
+    transition: transform 0.2s, box-shadow 0.2s;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.stat-icon {
+    font-size: 2rem;
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--bs-primary);
+}
+
+.stat-label {
+    font-size: 0.875rem;
+    color: var(--bs-secondary);
+}
+
+.table {
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+.table thead th {
+    background-color: var(--bs-light);
+    border: none;
+    font-weight: 600;
+}
+
+.table tbody tr:hover {
+    background-color: rgba(0,123,255,0.05);
+}
 </style>
-{% endblock %}
+{% endblock %}  
 
 {% block content %}
 <div class="container-fluid main-content py-4">

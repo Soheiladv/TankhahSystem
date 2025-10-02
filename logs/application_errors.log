@@ -13105,3 +13105,2174 @@ ERROR 2025-10-01 20:57:55 check_user_access check_user_factor_access خطا در
 ERROR 2025-10-01 20:57:55 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
 ERROR 2025-10-01 20:57:55 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
 ERROR 2025-10-01 21:07:16 views_executive_dashboard get_context_data خطا در گزارشات تحلیلی: Expression contains mixed types: DecimalField, IntegerField. You must set output_field.
+ERROR 2025-10-02 15:29:17 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 15:29:17 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 15:29:17 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 15:29:17 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 15:29:17 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 15:29:17 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 15:29:17 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 15:29:17 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 15:29:17 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 15:29:17 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 15:29:17 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 15:29:17 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 15:29:17 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 15:29:17 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 15:29:17 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040605-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-02 15:29:17 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 15:29:17 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040604-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-02 15:29:17 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 15:29:17 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 15:29:17 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-02 15:29:17 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-02 18:09:42 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:09:42 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:09:42 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:09:42 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:09:42 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:09:42 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:09:42 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:09:42 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:09:42 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:09:42 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:09:42 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:09:42 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:09:42 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:09:42 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:09:42 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040605-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-02 18:09:42 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:09:42 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040604-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-02 18:09:42 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:09:42 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:09:42 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-02 18:09:42 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-02 18:09:45 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:09:45 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:09:45 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:09:45 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:09:45 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:09:45 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:09:45 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:09:45 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:09:45 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:09:45 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:09:45 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:09:45 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:09:45 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:09:45 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:09:45 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040605-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-02 18:09:45 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:09:45 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040604-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-02 18:09:45 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:09:45 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:09:46 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-02 18:09:46 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-02 18:09:46 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:09:46 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:10:01 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:10:01 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:10:01 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:10:01 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:10:01 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:10:01 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:10:01 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:10:01 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:10:01 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:10:01 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:10:01 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:10:01 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:10:01 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:10:01 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:10:01 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040605-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-02 18:10:01 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:10:01 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040604-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-02 18:10:01 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:10:01 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:10:01 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-02 18:10:01 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-02 18:10:08 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:10:08 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:10:08 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:10:08 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:10:08 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:10:08 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:10:08 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:10:08 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:10:08 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:10:08 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:10:08 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:10:08 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:10:08 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:10:08 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:10:08 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040605-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-02 18:10:08 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:10:08 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040604-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-02 18:10:08 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:10:09 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:10:09 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-02 18:10:09 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-02 18:10:12 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:10:12 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:10:14 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:10:14 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:10:14 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:10:14 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:10:14 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:10:14 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:10:14 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:10:14 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:10:14 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:10:14 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:10:14 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:10:14 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:10:14 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:10:14 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:10:14 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040605-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-02 18:10:14 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:10:14 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040604-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-02 18:10:14 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:10:14 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:10:14 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-02 18:10:14 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-02 18:10:19 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:10:19 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:10:19 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:10:19 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:10:19 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:10:19 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:10:19 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:10:19 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:10:19 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:10:19 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:10:19 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:10:19 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:10:19 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:10:19 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:10:19 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040605-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-02 18:10:19 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:10:19 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040604-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-02 18:10:19 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:10:19 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:10:19 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-02 18:10:19 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-02 18:11:24 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:24 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:24 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:24 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:24 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:24 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:24 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:24 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:24 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:24 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:24 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:24 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:24 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:24 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:24 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040605-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-02 18:11:24 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:24 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040604-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-02 18:11:24 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:24 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:24 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-02 18:11:24 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-02 18:11:26 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:26 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:27 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:27 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:27 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:27 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:27 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:28 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:28 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:28 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:28 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:28 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:28 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:28 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:28 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:28 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:28 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:28 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040605-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-02 18:11:28 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:28 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:28 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040604-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-02 18:11:28 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:28 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:28 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:28 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-02 18:11:28 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-02 18:11:29 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:29 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:29 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:29 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:29 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:29 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:29 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:29 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:29 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:29 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:29 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:29 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:29 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:29 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040605-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-02 18:11:29 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:29 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:29 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040604-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-02 18:11:30 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:30 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:30 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:30 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-02 18:11:30 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-02 18:11:30 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:30 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:30 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:30 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:30 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:30 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:30 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:31 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:31 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:31 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:31 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:31 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:31 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:31 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:31 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040605-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-02 18:11:31 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:31 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040604-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-02 18:11:31 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:31 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:31 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-02 18:11:31 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-02 18:11:33 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:33 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:34 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:35 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:35 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:35 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:35 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:35 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:35 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:35 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:35 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:35 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:35 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:35 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:35 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:35 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:35 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040605-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-02 18:11:35 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:35 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040604-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-02 18:11:35 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:35 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:35 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-02 18:11:35 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-02 18:11:36 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:36 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:36 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:36 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:36 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:36 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:36 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:36 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:36 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:36 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:36 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:36 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:36 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:36 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:36 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040605-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-02 18:11:36 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:36 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040604-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-02 18:11:36 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:36 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:37 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-02 18:11:37 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-02 18:11:38 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:38 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:39 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:39 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:39 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:39 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:39 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:39 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:39 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:39 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:39 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:39 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:39 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:39 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:39 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:39 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:39 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:39 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040605-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-02 18:11:39 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:39 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:39 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040604-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-02 18:11:39 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:39 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:39 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:39 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:40 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:40 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-02 18:11:40 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-02 18:11:40 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:40 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:40 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:40 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:40 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:40 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:40 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:40 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:40 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:40 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:40 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:40 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:40 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:40 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:40 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:40 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040605-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-02 18:11:40 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:40 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:40 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040604-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-02 18:11:40 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:40 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:40 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:40 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:40 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:40 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-02 18:11:40 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-02 18:11:40 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:40 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:40 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:40 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:40 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040605-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-02 18:11:41 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:41 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040604-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-02 18:11:41 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:41 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:11:41 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-02 18:11:41 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-02 18:12:22 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:22 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:22 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:22 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:22 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:22 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:22 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:22 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:22 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:22 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:22 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:22 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:22 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:22 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:22 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040605-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-02 18:12:22 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:22 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040604-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-02 18:12:22 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:22 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:22 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-02 18:12:22 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-02 18:12:26 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:26 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:27 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:28 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:28 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:28 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:28 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:28 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:28 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:28 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:28 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:28 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:28 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:28 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:28 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:28 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:28 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040605-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-02 18:12:28 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:28 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040604-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-02 18:12:28 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:28 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:28 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-02 18:12:28 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-02 18:12:29 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:29 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:29 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:29 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:29 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:30 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:30 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:30 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:30 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:30 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:30 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:30 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:30 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:30 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:30 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040605-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-02 18:12:30 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:30 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040604-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-02 18:12:30 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:30 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:30 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-02 18:12:30 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-02 18:12:49 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:49 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:49 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:49 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:49 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:49 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:49 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:49 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:49 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:49 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:49 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:50 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:50 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:50 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:50 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040605-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-02 18:12:50 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:50 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040604-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-02 18:12:50 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:50 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:50 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-02 18:12:50 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-02 18:12:51 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:51 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:51 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:51 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:51 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:51 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:51 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:51 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:51 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:51 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:51 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:51 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:51 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:51 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:51 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:51 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:51 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:51 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:51 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:51 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:51 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:51 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:51 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:51 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:51 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040605-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-02 18:12:51 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:51 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:51 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:51 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040604-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-02 18:12:51 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:51 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:51 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:51 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:51 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:51 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:51 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:52 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-02 18:12:52 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-02 18:12:52 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:52 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:52 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:52 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:52 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:52 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:52 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040605-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-02 18:12:52 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:52 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:52 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040604-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-02 18:12:52 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:52 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:52 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:52 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:52 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:52 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:52 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-02 18:12:52 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-02 18:12:52 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:52 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:52 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040605-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-02 18:12:52 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:52 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040604-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-02 18:12:52 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:52 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:52 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:52 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:52 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-02 18:12:52 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-02 18:12:52 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:52 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:53 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:53 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:53 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:53 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:53 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:53 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:53 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:53 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:53 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:53 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:53 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040605-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-02 18:12:53 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:53 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040604-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-02 18:12:53 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:53 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:12:53 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-02 18:12:53 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-02 18:13:45 views_enhanced get_context_data [WORKFLOW_PARTICIPANTS_ERROR] 'AuthorizedUser' object is not subscriptable
+ERROR 2025-10-02 18:14:55 views_enhanced get_context_data [WORKFLOW_PARTICIPANTS_ERROR] 'AuthorizedUser' object is not subscriptable
+ERROR 2025-10-02 18:14:56 views_enhanced get_context_data [WORKFLOW_PARTICIPANTS_ERROR] 'AuthorizedUser' object is not subscriptable
+ERROR 2025-10-02 18:15:07 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:15:07 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:15:07 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:15:07 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:15:07 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:15:07 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:15:07 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:15:07 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:15:07 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:15:07 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:15:07 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:15:07 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:15:07 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:15:07 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:15:07 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040605-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-02 18:15:07 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:15:07 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040604-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-02 18:15:07 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:15:07 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:15:07 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-02 18:15:07 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-02 18:17:54 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:17:54 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:17:54 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:17:54 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:17:54 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:17:54 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:17:54 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:17:54 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:17:54 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:17:54 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:17:54 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:17:54 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:17:54 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:17:54 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:17:54 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040605-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-02 18:17:54 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:17:54 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040604-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Python312\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python312\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-02 18:17:54 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:17:54 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:17:54 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-02 18:17:54 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-02 18:17:57 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:17:57 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:18:06 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:18:06 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:24:28 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:24:28 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:24:28 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:24:28 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:24:28 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:24:28 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:24:28 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:24:28 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:24:29 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:24:29 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:24:29 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:24:29 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:24:29 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:24:29 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:24:29 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040605-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-02 18:24:29 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:24:29 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040604-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-02 18:24:29 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:24:29 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:24:29 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-02 18:24:29 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-02 18:24:31 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:24:31 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:24:31 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:24:31 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:24:31 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:24:32 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:24:32 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:24:32 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:24:32 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:24:32 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:24:32 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:24:32 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:24:32 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:24:32 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:24:32 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040605-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-02 18:24:32 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:24:32 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040604-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-02 18:24:32 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:24:32 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:24:32 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-02 18:24:32 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-02 18:24:34 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:24:34 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:24:34 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:24:34 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:24:34 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:24:34 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:24:34 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:24:35 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:24:35 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:24:35 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:24:35 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:24:35 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:24:35 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:24:35 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:24:35 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:24:35 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:24:35 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040605-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-02 18:24:35 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:24:35 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040604-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-02 18:24:35 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:24:35 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:24:35 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-02 18:24:35 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-02 18:25:03 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:25:03 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:25:03 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:25:03 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:25:03 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:25:03 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:25:03 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:25:03 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:25:03 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:25:03 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:25:03 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:25:03 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:25:03 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:25:03 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:25:03 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040605-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-02 18:25:03 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:25:03 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040604-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-02 18:25:04 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:25:04 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:25:04 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-02 18:25:04 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-02 18:25:19 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:25:19 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:25:19 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:25:19 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:25:19 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:25:19 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:25:19 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:25:19 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:25:19 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:25:19 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:25:19 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:25:19 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:25:19 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:25:19 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:25:19 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040605-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-02 18:25:19 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:25:19 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040604-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-02 18:25:19 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:25:19 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:25:19 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-02 18:25:19 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-02 18:25:42 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:25:42 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:25:42 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:25:42 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:25:42 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:25:42 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:25:42 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:25:42 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:25:42 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:25:42 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:25:42 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:25:42 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:25:42 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:25:42 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:25:42 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040605-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-02 18:25:42 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:25:42 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040604-HSarein-0001: Payee matching query does not exist.
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'payee'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\View_Factor_list.py", line 249, in get_context_data
+    payee = getattr(factor, 'payee', None)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+budgets.models.Payee.DoesNotExist: Payee matching query does not exist.
+ERROR 2025-10-02 18:25:42 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:25:42 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-02 18:25:42 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-02 18:25:42 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'

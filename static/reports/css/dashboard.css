@@ -1,7 +1,4 @@
 /* Dashboard Custom Styles - Multi Theme Support */
-/* 
-// کامنت شده برای تست - استفاده از CSS اصلی
-/*
 
 /* Default Theme - Cream & Gray */
 :root {
@@ -990,11 +987,11 @@
 }
 
 /* Tab Content */
-.tab-content {
+.dash-tab-content {
     display: none;
 }
 
-.tab-content.active {
+.dash-tab-content.active {
     display: block;
     animation: fadeInUp 0.4s ease;
 }
@@ -1272,4 +1269,3 @@
         display: none;
     }
 }
-*/

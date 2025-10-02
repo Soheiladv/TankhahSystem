@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load i18n static rcms_custom_filters file_tags %}
 
-{% block extra_head %}
+{% block extra_css %}
     {# --- استایل‌های بهینه‌شده --- #}
     <style>
         /* بازنشانی استایل‌های پیش‌فرض */
@@ -167,7 +167,7 @@
             transform: scale(1.1);
         }
 
-        /* تب‌ها */
+        /* تب‌ها - ساده شده */
         .factor-tabs .nav-link {
             color: #495057;
             transition: all 0.2s ease;
@@ -176,23 +176,10 @@
         .factor-tabs .nav-link.active {
             color: var(--bs-primary);
             font-weight: 600;
-            position: relative;
         }
 
-        .factor-tabs .nav-link.active:after {
-            content: '';
-            position: absolute;
-            bottom: -3px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 20px;
-            height: 3px;
-            background: var(--bs-primary);
-            border-radius: 3px 3px 0 0;
-        }
-
-        /* انیمیشن‌ها */
-        @keyframes fadeIn {
+        /* انیمیشن‌های اضافی */
+        @keyframes slideInUp {
             from {
                 opacity: 0;
                 transform: translateY(-10px);

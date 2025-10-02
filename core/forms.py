@@ -2,7 +2,7 @@ import re
 
 from accounts.models import TimeLockModel, CustomUser
 from core.models import Project, Organization, UserPost, Post, PostHistory, SubProject, OrganizationType, \
-    SystemSettings, Branch, PostAction, Status
+    SystemSettings, Branch, PostAction, Status, FontSettings
 from django.core.exceptions import ValidationError
 from jdatetime import datetime as jdatetime
 from django.utils.translation import gettext_lazy as _
@@ -731,4 +731,99 @@ class OrganizationTypeForm(forms.ModelForm):
             'fname': _("مثلاً: مجتمع مسکونی، شعبه استانی، دفتر مرکزی."),
             'org_type': _("در صورت نیاز به یک نام یا کد دیگر برای این نوع سازمان استفاده شود."),
         }
+
+class FontSettingsForm(forms.ModelForm):
+    """فرم مدیریت فونت‌ها"""
+    
+    class Meta:
+        model = FontSettings
+        fields = [
+            'name',
+            'family_name', 
+            'font_file',
+            'font_format',
+            'font_weight',
+            'is_active',
+            'is_default',
+            'is_rtl_support',
+            'description'
+        ]
+        widgets = {
+            'name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': _('مثال: وزیرمتن بولد')
+            }),
+            'family_name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': _('مثال: Vazirmatn')
+            }),
+            'font_file': forms.FileInput(attrs={
+                'class': 'form-control',
+                'accept': '.ttf,.woff,.woff2,.eot,.otf'
+            }),
+            'font_format': forms.Select(attrs={'class': 'form-select'}),
+            'font_weight': forms.Select(attrs={'class': 'form-select'}),
+            'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'is_default': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'is_rtl_support': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'description': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': _('توضیحات اختیاری درباره فونت...')
+            })
+        }
+        labels = {
+            'name': _('نام فونت'),
+            'family_name': _('نام خانواده فونت'),
+            'font_file': _('فایل فونت'),
+            'font_format': _('فرمت فونت'),
+            'font_weight': _('وزن فونت'),
+            'is_active': _('فعال'),
+            'is_default': _('فونت پیش‌فرض سیستم'),
+            'is_rtl_support': _('پشتیبانی از راست به چپ'),
+            'description': _('توضیحات')
+        }
+        help_texts = {
+            'family_name': _('نام CSS که در font-family استفاده می‌شود'),
+            'font_file': _('فایل‌های مجاز: TTF, WOFF, WOFF2, EOT, OTF'),
+            'font_format': _('فرمت فایل آپلود شده'),
+            'font_weight': _('وزن فونت (ضخامت)'),
+            'is_default': _('در صورت انتخاب، این فونت به عنوان فونت اصلی سیستم استفاده می‌شود'),
+            'is_rtl_support': _('آیا این فونت از زبان‌های راست به چپ پشتیبانی می‌کند؟')
+        }
+    
+    def clean_font_file(self):
+        """اعتبارسنجی فایل فونت"""
+        font_file = self.cleaned_data.get('font_file')
+        
+        if font_file:
+            # بررسی حجم فایل (حداکثر 10 مگابایت)
+            if font_file.size > 10 * 1024 * 1024:
+                raise forms.ValidationError(_('حجم فایل نباید بیشتر از 10 مگابایت باشد.'))
+            
+            # بررسی پسوند فایل
+            allowed_extensions = ['.ttf', '.woff', '.woff2', '.eot', '.otf']
+            file_extension = font_file.name.lower().split('.')[-1]
+            if f'.{file_extension}' not in allowed_extensions:
+                raise forms.ValidationError(
+                    _('فرمت فایل مجاز نیست. فرمت‌های مجاز: {}').format(', '.join(allowed_extensions))
+                )
+        
+        return font_file
+    
+    def clean(self):
+        """اعتبارسنجی کلی فرم"""
+        cleaned_data = super().clean()
+        font_format = cleaned_data.get('font_format')
+        font_file = cleaned_data.get('font_file')
+        
+        # بررسی تطابق فرمت فایل با فرمت انتخاب شده
+        if font_file and font_format:
+            file_extension = font_file.name.lower().split('.')[-1]
+            if file_extension != font_format:
+                raise forms.ValidationError(
+                    _('فرمت انتخاب شده با پسوند فایل مطابقت ندارد.')
+                )
+        
+        return cleaned_data
 

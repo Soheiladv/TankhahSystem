@@ -9,13 +9,80 @@
 <!-- Chart Fixes CSS -->
 <link href="{% static 'admin/css/chart-fixes.css' %}" rel="stylesheet">
 <style>
+    /* Font Definitions */
+    @font-face {
+        font-family: 'Parastoo';
+        src: url('{% static "admin/fonts/Parastoo.ttf" %}') format('truetype');
+        font-weight: normal;
+        font-style: normal;
+    }
+
+    /* Vazirmatn Font Family */
+    @font-face {
+        font-family: 'Vazirmatn';
+        src: url('{% static "admin/fonts/Vazirmatn-Regular.woff2" %}') format('woff2'),
+             url('{% static "admin/fonts/Vazirmatn-Regular.ttf" %}') format('truetype');
+        font-weight: 400;
+        font-style: normal;
+        font-display: swap;
+    }
+
+    @font-face {
+        font-family: 'Vazirmatn';
+        src: url('{% static "admin/fonts/Vazirmatn-Light.woff2" %}') format('woff2'),
+             url('{% static "admin/fonts/Vazirmatn-Light.ttf" %}') format('truetype');
+        font-weight: 300;
+        font-style: normal;
+        font-display: swap;
+    }
+
+    @font-face {
+        font-family: 'Vazirmatn';
+        src: url('{% static "admin/fonts/Vazirmatn-Medium.woff2" %}') format('woff2'),
+             url('{% static "admin/fonts/Vazirmatn-Medium.ttf" %}') format('truetype');
+        font-weight: 500;
+        font-style: normal;
+        font-display: swap;
+    }
+
+    @font-face {
+        font-family: 'Vazirmatn';
+        src: url('{% static "admin/fonts/Vazirmatn-SemiBold.woff2" %}') format('woff2'),
+             url('{% static "admin/fonts/Vazirmatn-SemiBold.ttf" %}') format('truetype');
+        font-weight: 600;
+        font-style: normal;
+        font-display: swap;
+    }
+
+    @font-face {
+        font-family: 'Vazirmatn';
+        src: url('{% static "admin/fonts/Vazirmatn-Bold.woff2" %}') format('woff2'),
+             url('{% static "admin/fonts/Vazirmatn-Bold.ttf" %}') format('truetype');
+        font-weight: 700;
+        font-style: normal;
+        font-display: swap;
+    }
+
+    @font-face {
+        font-family: 'Vazirmatn';
+        src: url('{% static "admin/fonts/Vazirmatn-ExtraBold.woff2" %}') format('woff2'),
+             url('{% static "admin/fonts/Vazirmatn-ExtraBold.ttf" %}') format('truetype');
+        font-weight: 800;
+        font-style: normal;
+        font-display: swap;
+    }
+
+    /* Set default font family for the entire dashboard */
+    body, .dashboard-container {
+        font-family: 'Vazirmatn', 'Parastoo', 'Tahoma', sans-serif;
+    }
     /* Dashboard Color Scheme - Clean & Professional */
     .dashboard-container {
         background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
         min-height: 100vh;
         padding: 20px;
     }
-    
+
     .dashboard-header {
         background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
         color: white;
@@ -24,20 +91,20 @@
         margin-bottom: 30px;
         box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
     }
-    
+
     .dashboard-header h1 {
         font-size: 2.5rem;
         font-weight: 700;
         margin: 0;
         text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
-    
+
     .dashboard-header p {
         font-size: 1.1rem;
         margin: 10px 0 0 0;
         opacity: 0.9;
     }
-    
+
     /* Statistics Cards */
     .stats-card {
         background: white;
@@ -48,12 +115,12 @@
         border: 1px solid #e2e8f0;
         transition: all 0.3s ease;
     }
-    
+
     .stats-card:hover {
         transform: translateY(-5px);
         box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
     }
-    
+
     .stats-card .card-title {
         color: #64748b;
         font-size: 0.9rem;
@@ -62,14 +129,14 @@
         letter-spacing: 0.5px;
         margin-bottom: 10px;
     }
-    
+
     .stats-card .card-value {
         color: #1e293b;
         font-size: 2.5rem;
         font-weight: 700;
         margin: 0;
     }
-    
+
     .stats-card .card-icon {
         width: 60px;
         height: 60px;
@@ -81,7 +148,7 @@
         color: white;
         margin-bottom: 15px;
     }
-    
+
     /* Color variants for different stat types */
         .stats-card.budget .card-icon {
             background: linear-gradient(135deg, #3b82f6, #1d4ed8);
@@ -106,7 +173,7 @@
         .stats-card.return .card-icon {
             background: linear-gradient(135deg, #06b6d4, #0891b2);
         }
-    
+
     /* Chart Containers */
     .chart-container {
         background: white;
@@ -116,7 +183,7 @@
         box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
         border: 1px solid #e2e8f0;
     }
-    
+
     .chart-container h5 {
         color: #1e293b;
         font-weight: 600;
@@ -124,17 +191,17 @@
         padding-bottom: 10px;
         border-bottom: 2px solid #e2e8f0;
     }
-    
+
     .chart-wrapper {
         position: relative;
         height: 400px;
         margin: 20px 0;
     }
-    
+
     .chart-wrapper canvas {
         max-height: 400px !important;
     }
-    
+
     /* Loading state for charts */
     .chart-loading {
         display: flex;
@@ -144,20 +211,20 @@
         color: #64748b;
         font-size: 1.1rem;
     }
-    
+
     .chart-loading::before {
         content: '📊';
         margin-left: 8px;
         animation: pulse 2s infinite;
     }
-    
+
     /* Accent help style for table help blocks */
     .help-accent {
         color: #ef4444; /* bright accent */
         font-weight: 700;
         font-size: 1.25rem; /* ~3 steps larger than small */
     }
-    
+
     /* Tabs */
     .dash-tabs {
         display: flex;
@@ -171,7 +238,7 @@
         box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
         border: 1px solid #e2e8f0;
     }
-    
+
     .dash-tab {
         border: 1px solid #e2e8f0;
         background: #fff;
@@ -182,35 +249,35 @@
         transition: all 0.3s ease;
         font-weight: 600;
     }
-    
+
     .dash-tab:hover {
         background: #f1f5f9;
         border-color: #3b82f6;
     }
-    
+
     .dash-tab.active {
         background: #3b82f6;
         color: #fff;
         border-color: #3b82f6;
         box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
     }
-    
+
     .dash-pane {
         display: none;
         animation: fadeIn 0.5s ease-in-out;
     }
-    
+
     .dash-pane.active {
         display: block;
     }
-    
+
     .tab-toolbar {
         margin-inline-start: auto;
         display: flex;
         gap: 8px;
         align-items: center;
     }
-    
+
     .font-size-btn {
         border: 1px solid #e2e8f0;
         background: #fff;
@@ -219,58 +286,58 @@
         cursor: pointer;
         transition: all 0.2s ease;
     }
-    
+
     .font-size-btn:hover {
         background: #f1f5f9;
     }
-    
+
     .chart-mode-select {
         border: 1px solid #e2e8f0;
         border-radius: 8px;
         padding: 6px 10px;
         background: #fff;
     }
-    
+
     .chart-3d-toggle {
         display: flex;
         align-items: center;
         gap: 6px;
     }
-    
+
     /* Responsive design */
     @media (max-width: 768px) {
         .dashboard-container {
             padding: 10px;
         }
-        
+
         .dashboard-header {
             padding: 20px;
         }
-        
+
         .dashboard-header h1 {
             font-size: 2rem;
         }
-        
+
         .stats-card .card-value {
             font-size: 2rem;
         }
-        
+
         .chart-wrapper {
             height: 300px;
         }
-        
+
         .dash-tabs {
             flex-direction: column;
             align-items: stretch;
         }
-        
+
         .tab-toolbar {
             margin-inline-start: 0;
             justify-content: center;
             margin-top: 10px;
         }
     }
-    
+
     /* Animation keyframes */
     @keyframes pulse {
             0%, 100% {
@@ -280,7 +347,7 @@
                 opacity: 0.5;
             }
     }
-    
+
     @keyframes fadeIn {
             from {
                 opacity: 0;
@@ -311,7 +378,7 @@
             </div>
         </div>
     </div>
-{% comment %}   
+{% comment %}
 {% if dashboard_links %}
     <!-- Quick Links (Accordion + Search) -->
     <div class="card mb-3" data-aos="fade-up">
@@ -375,7 +442,7 @@
             {% if can_view_factors %}
                 <div class="dash-tab" data-tab="factors">فاکتورها</div>{% endif %}
         <div class="dash-tab" data-tab="risk">ریسک و تحلیل</div>
-        
+
         <div class="tab-toolbar">
             <select id="chartMode" class="chart-mode-select">
                 <option value="bar">ستونی</option>
@@ -497,7 +564,7 @@
             <div class="col-lg-3 col-md-6">
                 <div class="stats-card">
                     <div class="card-title">تعداد فاکتور</div>
-                    <div class="card-value">{{ factor_stats.total_count|default:"0" }}</div>
+                    <div class="card-value">{{ factor_stats.total_count|format_negative }}</div>
                 </div>
             </div>
             <div class="col-lg-3 col-md-6">
@@ -510,6 +577,7 @@
 
         <!-- Key Charts in Overview -->
         <div class="row mb-4">
+            {% if chart_data.org_budget and chart_data.org_budget|length %}
             <div class="col-lg-6 mb-4" data-aos="fade-right">
                 <div class="chart-container">
                     <h5>
@@ -521,17 +589,22 @@
                                 </div>
                             </div>
                                 </div>
+            {% endif %}
+            {% if chart_data.monthly_consumption and chart_data.monthly_consumption|length and advanced_comparatives and advanced_comparatives.rankings and advanced_comparatives.rankings.projects|length %}
             <div class="col-lg-6 mb-4" data-aos="fade-left">
                 <div class="chart-container">
                     <h5>
                         <i class="fas fa-chart-line me-2" style="color: #10b981;"></i>
                         روند مصرف بودجه (ماهانه)
                     </h5>
+                    {% if chart_data and chart_data.monthly_consumption|length %}
                     <div class="chart-wrapper">
                         <canvas id="monthlyConsumptionChart"></canvas>
-                            </div>
+                    </div>
+                    {% endif %}
                                 </div>
                             </div>
+            {% endif %}
                         </div>
                     </div>
 
@@ -616,7 +689,9 @@
         </div>
 
     <div class="row mb-4">
-            <div class="col-lg-6 mb-4" data-aos="fade-up">
+        {% if advanced_budget and advanced_budget.concentration %}
+        {% if advanced_budget.concentration.organizations|length or advanced_budget.concentration.projects|length %}
+        <div class="col-lg-6 mb-4" data-aos="fade-up">
             <div class="chart-container">
                 <h5>
                         <i class="fas fa-bullseye me-2" style="color:#f59e0b;"></i>
@@ -627,7 +702,11 @@
                 </div>
             </div>
         </div>
-            <div class="col-lg-6 mb-4" data-aos="fade-up">
+        {% endif %}
+        {% endif %}
+        {% if advanced_budget and advanced_budget.aging %}
+        {% if advanced_budget.aging.d_0_30 or advanced_budget.aging.d_31_60 or advanced_budget.aging.d_61_90 or advanced_budget.aging.d_90_plus %}
+        <div class="col-lg-6 mb-4" data-aos="fade-up">
             <div class="chart-container">
                 <h5>
                         <i class="fas fa-hourglass-half me-2" style="color:#8b5cf6;"></i>
@@ -638,10 +717,14 @@
                 </div>
             </div>
         </div>
+        {% endif %}
+        {% endif %}
     </div>
 
     <!-- Aging Heatmap (Matrix) -->
     <div class="row mb-4">
+        {% if advanced_budget and advanced_budget.aging %}
+        {% if advanced_budget.aging.d_0_30 or advanced_budget.aging.d_31_60 or advanced_budget.aging.d_61_90 or advanced_budget.aging.d_90_plus %}
         <div class="col-lg-12 mb-4" data-aos="fade-up">
             <div class="chart-container">
                 <h5><i class="fas fa-fire me-2"></i>Heatmap سن تخصیص/تسویه</h5>
@@ -659,10 +742,13 @@
                 </div>
             </div>
         </div>
+        {% endif %}
+        {% endif %}
     </div>
 
     <!-- Extra Advanced Visuals: Gauge + Radar -->
     <div class="row mb-4">
+        {% if advanced_budget and advanced_budget.absorption_rate %}
         <div class="col-lg-6 mb-4" data-aos="fade-right">
             <div class="chart-container">
                 <h5><i class="fas fa-gauge-high me-2"></i>نرخ جذب بودجه (Gauge)</h5>
@@ -680,6 +766,9 @@
                 </div>
             </div>
         </div>
+        {% endif %}
+        {% if advanced_comparatives and advanced_comparatives.rankings %}
+        {% if advanced_comparatives.rankings.organizations|length or advanced_comparatives.rankings.projects|length %}
         <div class="col-lg-6 mb-4" data-aos="fade-left">
             <div class="chart-container">
                 <h5><i class="fas fa-radar me-2"></i>رادار KPI سازمان/پروژه</h5>
@@ -696,6 +785,8 @@
                 </div>
             </div>
         </div>
+        {% endif %}
+        {% endif %}
     </div>
 
     <!-- Detailed Statistics Tables -->
@@ -806,9 +897,11 @@
                         <i class="fas fa-chart-bar me-2" style="color: #f59e0b;"></i>
                         وضعیت تنخواه‌ها
                     </h5>
+                    {% if chart_data and chart_data.tankhah_status|length %}
                     <div class="chart-wrapper">
                         <canvas id="tankhahStatusChart"></canvas>
                     </div>
+                    {% endif %}
                 </div>
             </div>
 
@@ -903,6 +996,7 @@
         </div>
 
         <div class="row mb-4">
+            {% if chart_data.factor_category and chart_data.factor_category|length %}
             <div class="col-lg-6 mb-4" data-aos="fade-right">
                 <div class="chart-container">
                     <h5><i class="fas fa-list me-2"></i>پراکندگی دسته‌بندی فاکتورها</h5>
@@ -911,6 +1005,7 @@
                         </div>
                 </div>
             </div>
+            {% endif %}
             <div class="col-lg-6 mb-4" data-aos="fade-left">
                 <div class="chart-container">
                     <h5><i class="fas fa-bug me-2"></i>فاکتورهای پرریسک (Top مبلغ)</h5>
@@ -1071,6 +1166,7 @@
 
         <!-- Factor Category Treemap -->
         <div class="row mb-4">
+            {% if chart_data.factor_category and chart_data.factor_category|length %}
             <div class="col-lg-12 mb-4" data-aos="fade-up">
                 <div class="chart-container">
                     <h5><i class="fas fa-th-large me-2"></i>نقشه درختی دسته‌بندی فاکتورها (Treemap)</h5>
@@ -1086,10 +1182,13 @@
                     </div>
                 </div>
             </div>
+            {% endif %}
         </div>
 
         <!-- Funnel/Sankey (optional) for مسیر تخصیص→پروژه→مصرف -->
         <div class="row mb-4">
+            {% if advanced_comparatives and advanced_comparatives.rankings %}
+            {% if advanced_comparatives.rankings.organizations|length or advanced_comparatives.rankings.projects|length %}
             <div class="col-lg-12 mb-4" data-aos="fade-up">
                 <div class="chart-container">
                     <h5><i class="fas fa-diagram-project me-2"></i>قیف/سَِنکی مسیر بودجه</h5>
@@ -1107,6 +1206,8 @@
                     </div>
                 </div>
             </div>
+            {% endif %}
+            {% endif %}
         </div>
 
         <div class="row mb-4">
@@ -1118,6 +1219,7 @@
                         </div>
                 </div>
             </div>
+            {% if advanced_factor and advanced_factor.high_risk and advanced_factor.high_risk.outside_budget and advanced_factor.high_risk.outside_budget|length %}
             <div class="col-lg-6 mb-4" data-aos="fade-up">
                 <div class="chart-container">
                     <h5><i class="fas fa-triangle-exclamation me-2"></i>خارج از محدوده بودجه</h5>
@@ -1126,6 +1228,7 @@
                         </div>
                 </div>
             </div>
+            {% endif %}
         </div>
         <div class="mt-3">
             {% include 'reports/dashboard/dashboard_help.html' %}
@@ -1162,6 +1265,7 @@
         </div>
 
         <div class="row">
+            {% if chart_data.monthly_consumption and chart_data.monthly_consumption|length %}
             <div class="col-lg-6 mb-4" data-aos="fade-right">
                 <div class="chart-container">
                     <h5><i class="fas fa-arrow-trend-up me-2"></i>روند مصرف (ماهانه)</h5>
@@ -1170,6 +1274,8 @@
                         </div>
                 </div>
             </div>
+            {% endif %}
+            {% if return_stats and return_stats.monthly_returns and return_stats.monthly_returns|length %}
             <div class="col-lg-6 mb-4" data-aos="fade-left">
                 <div class="chart-container">
                     <h5><i class="fas fa-rotate-left me-2"></i>روند برگشت (ماهانه)</h5>
@@ -1178,6 +1284,7 @@
                         </div>
                 </div>
             </div>
+            {% endif %}
         </div>
 
         <div class="row mb-3">
@@ -1208,22 +1315,30 @@
         </div>
 
         <div class="row mb-4">
+            {% if advanced_comparatives and advanced_comparatives.monthly %}
+            {% if advanced_comparatives.monthly.consumption|length or advanced_comparatives.monthly.returns|length %}
             <div class="col-lg-6 mb-4" data-aos="fade-up">
                 <div class="chart-container">
                     <h5><i class="fas fa-building me-2"></i>رتبه‌بندی سازمان‌ها</h5>
+                        {% if advanced_comparatives and advanced_comparatives.rankings and advanced_comparatives.rankings.organizations|length %}
                         <div class="chart-wrapper">
                             <canvas id="rankOrganizations"></canvas>
                         </div>
+                        {% endif %}
                 </div>
             </div>
             <div class="col-lg-6 mb-4" data-aos="fade-up">
                 <div class="chart-container">
                     <h5><i class="fas fa-project-diagram me-2"></i>رتبه‌بندی پروژه‌ها</h5>
+                        {% if advanced_comparatives and advanced_comparatives.rankings and advanced_comparatives.rankings.projects|length %}
                         <div class="chart-wrapper">
                             <canvas id="rankProjects"></canvas>
                         </div>
+                        {% endif %}
                 </div>
             </div>
+            {% endif %}
+            {% endif %}
         </div>
         <div class="mt-3">
             {% include 'reports/dashboard/dashboard_help.html' %}
@@ -1270,7 +1385,7 @@
  <script src="{% static 'admin/js/chartjs-chart-treemap.min.js' %}"></script>
  <script src="{% static 'admin/js/chartjs-chart-sankey.min.js' %}"></script>
  <script src="{% static 'admin/js/chartjs-chart-matrix.min.js' %}"></script>
- 
+
 <script>
 // Chart data from Django context
         var chartData = {{ chart_data_json|default:"{}"|safe }};
@@ -1360,37 +1475,37 @@ AOS.init({
     // Tab switching logic
     const tabs = document.querySelectorAll('.dash-tab');
     const panes = document.querySelectorAll('.dash-pane');
-    
+
     tabs.forEach(tab => {
                 tab.addEventListener('click', function () {
             const tabName = this.getAttribute('data-tab');
-            
+
             // Remove active class from all tabs and panes
             tabs.forEach(t => t.classList.remove('active'));
             panes.forEach(p => p.classList.remove('active'));
-            
+
             // Add active class to clicked tab and corresponding pane
             this.classList.add('active');
             document.getElementById(`pane-${tabName}`).classList.add('active');
-            
+
             // Reinitialize charts for the active tab
             setTimeout(initializeCharts, 100);
         });
     });
-    
+
     // Check if Chart.js is loaded
     if (typeof Chart === 'undefined') {
         console.error('Chart.js is not loaded!');
         return;
     }
-    
+
     // Debug: Check chart data
     console.log('Chart data from Django:', chartData);
     console.log('Chart data type:', typeof chartData);
-    
+
     // Load filter options
     loadFilterOptions();
-    
+
     // Write advanced KPIs
     try {
                 if (typeof advancedBudget === 'string') {
@@ -1450,7 +1565,7 @@ AOS.init({
             } catch (e) {
                 console.warn('advanced KPIs error', e);
             }
-    
+
     // Debounced initialize to prevent duplicate runs
     var __dashInitTimer;
 
@@ -1468,7 +1583,7 @@ AOS.init({
 
     // Kick off initialization
     initializeChartsDebounced(500);
-    
+
     // Animate counters
     animateCounters();
 });
@@ -1476,7 +1591,7 @@ AOS.init({
 // Initialize all charts
 function initializeCharts() {
     console.log('Starting chart initialization...');
-    
+
     try {
         // Check if Chart.js is loaded
         if (typeof Chart === 'undefined') {
@@ -1484,7 +1599,7 @@ function initializeCharts() {
             return;
         }
         console.log('Chart.js is available');
-        
+
         // Check if chart data is available
         if (!chartData || typeof chartData !== 'object') {
             console.error('Chart data is not available');
@@ -1544,23 +1659,23 @@ function initializeCharts() {
                 } catch (e) {
                     console.warn('treemap init error', e);
                 }
-        
+
         // Budget Distribution Chart
         var budgetCtx = document.getElementById('budgetDistributionChart');
         if (!budgetCtx) {
             console.error('Budget distribution chart canvas not found');
             return;
         }
-        
+
         var orgBudgetData = chartData.org_budget || [];
         console.log('Organization budget data:', orgBudgetData);
-        
+
         if (orgBudgetData.length === 0) {
             // Show empty state
             budgetCtx.parentElement.innerHTML = '<div class="text-center text-muted p-4">داده‌ای برای نمایش وجود ندارد</div>';
             return;
         }
-        
+
         const budgetChartData = {
                     labels: orgBudgetData.map(function (item) {
                         return item.organization__name || 'نامشخص';
@@ -1608,16 +1723,16 @@ function initializeCharts() {
         console.error('Monthly consumption chart canvas not found');
         return;
     }
-    
+
     var monthlyData = chartData.monthly_consumption || [];
     console.log('Monthly consumption data:', monthlyData);
-    
+
     if (monthlyData.length === 0) {
         // Show empty state
         consumptionCtx.parentElement.innerHTML = '<div class="text-center text-muted p-4">داده‌ای برای نمایش وجود ندارد</div>';
         return;
     }
-    
+
         const consumptionChartData = {
                     labels: monthlyData.map(function (item) {
                 var date = new Date(item.month);
@@ -1734,21 +1849,20 @@ function initializeCharts() {
                     console.warn('radar init error', e);
                 }
     // Tankhah Status Chart
-    var tankhahCtx = document.getElementById('tankhahStatusChart');
-    if (!tankhahCtx) {
-        console.error('Tankhah status chart canvas not found');
-        return;
-    }
-    
+        var tankhahCtx = document.getElementById('tankhahStatusChart');
+        if (!tankhahCtx) {
+            console.warn('Tankhah status chart canvas not present (disabled or no data)');
+        } else {
+
     var tankhahData = chartData.tankhah_status || [];
     console.log('Tankhah status data:', tankhahData);
-    
+
     if (tankhahData.length === 0) {
         // Show empty state
         tankhahCtx.parentElement.innerHTML = '<div class="text-center text-muted p-4">داده‌ای برای نمایش وجود ندارد</div>';
         return;
     }
-    
+
         const tankhahChartData = {
                     labels: tankhahData.map(function (item) {
                         return item.status__name || 'نامشخص';
@@ -1783,6 +1897,7 @@ function initializeCharts() {
 
         var mode3 = (typeSel && typeSel.value) || 'bar';
         ChartUtils.createAdaptiveChart('tankhahStatusChart', mode3, tankhahChartData, tankhahChartOptions, !!(enable3D && enable3D.checked));
+        }
 
     // Factor Category Chart
     var factorCtx = document.getElementById('factorCategoryChart');

@@ -39,6 +39,9 @@ urlpatterns = [
                   path('favicon.ico', RedirectView.as_view(url=staticfiles_storage.url('admin/img/favicon.ico')), name='favicon'),
                   path('guide/', GuideView.as_view(), name='guide'),
                   path('guide/soft_Help/', soft_Help , name='soft_help'),
+                  
+                  # Test URLs
+                  path('test/', include('test_urls')),
 
                   # Default pattern last
                   path('', DashboardView.as_view(), name='index'),

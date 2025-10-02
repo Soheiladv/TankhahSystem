@@ -1,0 +1,43 @@
+{% load static %}
+{% if fonts %}
+<style>
+{% for font in fonts %}
+{% if font.font_file %}
+@font-face {
+    font-family: '{{ font.family_name }}';
+    src: url('{{ font.font_file.url }}') format('{% if font.font_format == "ttf" %}truetype{% elif font.font_format == "woff" %}woff{% elif font.font_format == "woff2" %}woff2{% elif font.font_format == "eot" %}embedded-opentype{% elif font.font_format == "otf" %}opentype{% else %}{{ font.font_format }}{% endif %}');
+    font-weight: {{ font.font_weight }};
+    font-style: normal;
+    font-display: swap;
+}
+{% endif %}
+{% endfor %}
+
+{% if default_font %}
+/* اعمال فونت پیش‌فرض به کل سیستم */
+body, 
+.system-font,
+.navbar,
+.sidebar,
+.card,
+.btn,
+.form-control,
+.form-select,
+.form-label,
+.breadcrumb,
+.alert,
+.table,
+.modal,
+.dropdown-menu {
+    font-family: '{{ default_font.family_name }}', 'Tahoma', 'Arial', sans-serif !important;
+}
+
+/* حفظ فونت‌های خاص */
+.fa, .fas, .far, .fal, .fab,
+code, pre, .code,
+.font-monospace {
+    font-family: inherit !important;
+}
+{% endif %}
+</style>
+{% endif %}

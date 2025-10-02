@@ -1,0 +1,238 @@
+{% extends 'base.html' %}
+{% load i18n static %}
+
+{% block page_title %}{{ page_title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .font-preview {
+        padding: 15px;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        margin: 10px 0;
+        background: #f8f9fa;
+    }
+    
+    .font-sample {
+        font-size: 18px;
+        line-height: 1.6;
+        margin-bottom: 10px;
+    }
+    
+    .font-info {
+        font-size: 12px;
+        color: #6c757d;
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+    
+    .badge-default {
+        background: linear-gradient(45deg, #007bff, #0056b3);
+        color: white;
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+    
+    .font-actions {
+        display: flex;
+        gap: 5px;
+        flex-wrap: wrap;
+    }
+    
+    .btn-sm {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="page-header d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="header-icon bg-primary bg-opacity-10 rounded-circle p-3">
+                        <i class="fas fa-font text-primary fa-2x"></i>
+                    </div>
+                    <div>
+                        <h1 class="h3 mb-1">{{ page_title }}</h1>
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb mb-0">
+                                <li class="breadcrumb-item">
+                                    <a href="{% url 'system_settings_dashboard' %}">{% trans "تنظیمات سیستم" %}</a>
+                                </li>
+                                <li class="breadcrumb-item active">{% trans "مدیریت فونت‌ها" %}</li>
+                            </ol>
+                        </nav>
+                    </div>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{% url 'font_settings_create' %}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>{% trans "افزودن فونت جدید" %}
+                    </a>
+                    <a href="{% url 'font_management_guide' %}" class="btn btn-info">
+                        <i class="fas fa-book me-2"></i>{% trans "راهنما" %}
+                    </a>
+                    <a href="{% url 'system_settings_dashboard' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-right me-2"></i>{% trans "بازگشت" %}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if fonts %}
+    <div class="row">
+        {% for font in fonts %}
+        <div class="col-lg-6 col-xl-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        {{ font.name }}
+                        {% if font.is_default %}
+                            <span class="badge badge-default ms-2">
+                                <i class="fas fa-star me-1"></i>پیش‌فرض
+                            </span>
+                        {% endif %}
+                        {% if not font.is_active %}
+                            <span class="badge bg-secondary ms-2">غیرفعال</span>
+                        {% endif %}
+                    </h5>
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-ellipsis-v"></i>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a class="dropdown-item" href="{% url 'font_settings_update' font.pk %}">
+                                    <i class="fas fa-edit me-2"></i>ویرایش
+                                </a>
+                            </li>
+                            {% if not font.is_default %}
+                            <li>
+                                <form method="post" action="{% url 'font_settings_set_default' font.pk %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="dropdown-item" 
+                                            onclick="return confirm('آیا مطمئن هستید که می‌خواهید این فونت را به عنوان پیش‌فرض انتخاب کنید؟')">
+                                        <i class="fas fa-star me-2"></i>انتخاب به عنوان پیش‌فرض
+                                    </button>
+                                </form>
+                            </li>
+                            {% endif %}
+                            <li>
+                                <form method="post" action="{% url 'font_settings_toggle' font.pk %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="dropdown-item">
+                                        {% if font.is_active %}
+                                            <i class="fas fa-eye-slash me-2"></i>غیرفعال کردن
+                                        {% else %}
+                                            <i class="fas fa-eye me-2"></i>فعال کردن
+                                        {% endif %}
+                                    </button>
+                                </form>
+                            </li>
+                            {% if not font.is_default %}
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <form method="post" action="{% url 'font_settings_delete' font.pk %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="dropdown-item text-danger" 
+                                            onclick="return confirm('آیا مطمئن هستید که می‌خواهید این فونت را حذف کنید؟')">
+                                        <i class="fas fa-trash me-2"></i>حذف
+                                    </button>
+                                </form>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="font-preview">
+                        <div class="font-sample" style="font-family: '{{ font.family_name }}', 'Tahoma', sans-serif; font-weight: {{ font.font_weight }};">
+                            نمونه متن فارسی با این فونت<br>
+                            Sample English Text 123
+                        </div>
+                        <div class="font-info">
+                            <span><i class="fas fa-font me-1"></i>{{ font.family_name }}</span>
+                            <span><i class="fas fa-weight-hanging me-1"></i>{{ font.get_font_weight_display }}</span>
+                            <span><i class="fas fa-file me-1"></i>{{ font.get_font_format_display }}</span>
+                            <span><i class="fas fa-hdd me-1"></i>{{ font.file_size_formatted }}</span>
+                        </div>
+                    </div>
+                    
+                    {% if font.description %}
+                    <p class="text-muted small mt-2 mb-0">{{ font.description }}</p>
+                    {% endif %}
+                    
+                    <div class="mt-3 d-flex justify-content-between align-items-center">
+                        <small class="text-muted">
+                            <i class="fas fa-calendar me-1"></i>
+                            {{ font.upload_date|date:"Y/m/d" }}
+                            {% if font.uploaded_by %}
+                                توسط {{ font.uploaded_by.get_full_name|default:font.uploaded_by.username }}
+                            {% endif %}
+                        </small>
+                        <div class="d-flex gap-1">
+                            {% if font.is_rtl_support %}
+                                <span class="badge bg-success" title="پشتیبانی از راست به چپ">RTL</span>
+                            {% endif %}
+                            {% if font.is_active %}
+                                <span class="badge bg-success">فعال</span>
+                            {% else %}
+                                <span class="badge bg-secondary">غیرفعال</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-font fa-4x text-muted mb-3"></i>
+                    <h4 class="text-muted">هیچ فونتی یافت نشد</h4>
+                    <p class="text-muted">برای شروع، اولین فونت خود را اضافه کنید.</p>
+                    <a href="{% url 'font_settings_create' %}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>افزودن فونت جدید
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// پیش‌نمایش فونت‌ها
+document.addEventListener('DOMContentLoaded', function() {
+    // بارگذاری فونت‌ها برای پیش‌نمایش
+    {% for font in fonts %}
+    {% if font.font_file %}
+    const font{{ font.pk }} = new FontFace('{{ font.family_name }}', 'url({{ font.font_file.url }})', {
+        weight: '{{ font.font_weight }}',
+        style: 'normal'
+    });
+    
+    font{{ font.pk }}.load().then(function(loadedFont) {
+        document.fonts.add(loadedFont);
+    }).catch(function(error) {
+        console.warn('خطا در بارگذاری فونت {{ font.name }}:', error);
+    });
+    {% endif %}
+    {% endfor %}
+});
+</script>
+{% endblock %}

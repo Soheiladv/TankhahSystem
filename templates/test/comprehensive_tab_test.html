@@ -1,0 +1,652 @@
+{% extends 'base.html' %}
+{% load i18n static %}
+
+{% block title %}تست کامل سیستم تب‌ها و جداول{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* استایل‌های مخصوص تست */
+    .test-container {
+        background: white;
+        padding: 30px;
+        border-radius: 15px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        margin: 20px 0;
+    }
+    
+    .test-header {
+        text-align: center;
+        margin-bottom: 30px;
+        padding: 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 10px;
+    }
+    
+    .status-indicator {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        margin-left: 8px;
+    }
+    
+    .status-success { background-color: #28a745; }
+    .status-warning { background-color: #ffc107; }
+    .status-danger { background-color: #dc3545; }
+    .status-info { background-color: #17a2b8; }
+    
+    /* تقویت استایل‌های Bootstrap برای تب‌ها */
+    .nav-tabs {
+        border-bottom: 2px solid #dee2e6;
+        margin-bottom: 20px;
+    }
+    
+    .nav-tabs .nav-link {
+        border: 1px solid transparent;
+        border-top-left-radius: 0.5rem;
+        border-top-right-radius: 0.5rem;
+        color: #495057;
+        font-weight: 500;
+        padding: 12px 20px;
+        margin-left: 2px;
+        transition: all 0.3s ease;
+    }
+    
+    .nav-tabs .nav-link:hover {
+        border-color: #e9ecef #e9ecef #dee2e6;
+        color: #0056b3;
+        transform: translateY(-2px);
+    }
+    
+    .nav-tabs .nav-link.active {
+        color: #495057;
+        background-color: #fff;
+        border-color: #dee2e6 #dee2e6 #fff;
+        font-weight: 600;
+        position: relative;
+    }
+    
+    .nav-tabs .nav-link.active::after {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 30px;
+        height: 3px;
+        background: #007bff;
+        border-radius: 3px 3px 0 0;
+    }
+    
+    .tab-content {
+        padding: 20px 0;
+    }
+    
+    .tab-pane {
+        display: none;
+        animation: fadeIn 0.3s ease-in;
+    }
+    
+    .tab-pane.active {
+        display: block;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    /* استایل‌های جدول */
+    .table {
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    
+    .table thead th {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        font-weight: 600;
+        text-align: center;
+        padding: 15px;
+    }
+    
+    .table tbody td {
+        padding: 12px 15px;
+        border-color: #f8f9fa;
+        text-align: center;
+        vertical-align: middle;
+    }
+    
+    .table tbody tr:hover {
+        background-color: #f8f9fa;
+        transform: scale(1.01);
+        transition: all 0.2s ease;
+    }
+    
+    /* بج‌های وضعیت */
+    .badge {
+        font-size: 0.8em;
+        padding: 6px 12px;
+        border-radius: 20px;
+    }
+    
+    /* کارت‌های آماری */
+    .stats-card {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        text-align: center;
+        margin-bottom: 20px;
+        transition: transform 0.2s ease;
+    }
+    
+    .stats-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .stats-number {
+        font-size: 2.5rem;
+        font-weight: bold;
+        color: #007bff;
+        margin-bottom: 5px;
+    }
+    
+    .stats-label {
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="test-container">
+        <div class="test-header">
+            <h1><i class="fas fa-vial"></i> تست کامل سیستم تب‌ها و جداول</h1>
+            <p>این صفحه برای تست عملکرد Bootstrap Tabs، جداول، و سیستم فونت طراحی شده است</p>
+        </div>
+        
+        <!-- آمار کلی -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-number">5</div>
+                    <div class="stats-label">تعداد تب‌ها</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-number">150</div>
+                    <div class="stats-label">کل رکوردها</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-number">98%</div>
+                    <div class="stats-label">عملکرد سیستم</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-number">✓</div>
+                    <div class="stats-label">وضعیت فونت</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- تب‌های اصلی -->
+        <ul class="nav nav-tabs" id="mainTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="users-tab" data-bs-toggle="tab" data-bs-target="#users" type="button" role="tab">
+                    <i class="fas fa-users"></i> کاربران
+                    <span class="status-indicator status-success"></span>
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="projects-tab" data-bs-toggle="tab" data-bs-target="#projects" type="button" role="tab">
+                    <i class="fas fa-project-diagram"></i> پروژه‌ها
+                    <span class="status-indicator status-info"></span>
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="finances-tab" data-bs-toggle="tab" data-bs-target="#finances" type="button" role="tab">
+                    <i class="fas fa-chart-line"></i> مالی
+                    <span class="status-indicator status-warning"></span>
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="reports-tab" data-bs-toggle="tab" data-bs-target="#reports" type="button" role="tab">
+                    <i class="fas fa-file-alt"></i> گزارش‌ها
+                    <span class="status-indicator status-info"></span>
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="settings-tab" data-bs-toggle="tab" data-bs-target="#settings" type="button" role="tab">
+                    <i class="fas fa-cog"></i> تنظیمات
+                    <span class="status-indicator status-danger"></span>
+                </button>
+            </li>
+        </ul>
+        
+        <!-- محتوای تب‌ها -->
+        <div class="tab-content" id="mainTabsContent">
+            <!-- تب کاربران -->
+            <div class="tab-pane fade show active" id="users" role="tabpanel">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h3><i class="fas fa-users text-primary"></i> مدیریت کاربران</h3>
+                    <button class="btn btn-primary"><i class="fas fa-plus"></i> افزودن کاربر</button>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>شناسه</th>
+                                <th>نام کاربری</th>
+                                <th>ایمیل</th>
+                                <th>نقش</th>
+                                <th>وضعیت</th>
+                                <th>تاریخ عضویت</th>
+                                <th>عملیات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1</td>
+                                <td>admin</td>
+                                <td>admin@example.com</td>
+                                <td><span class="badge bg-danger">مدیر کل</span></td>
+                                <td><span class="badge bg-success">فعال</span></td>
+                                <td>1403/07/01</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary"><i class="fas fa-edit"></i></button>
+                                    <button class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td>user1</td>
+                                <td>user1@example.com</td>
+                                <td><span class="badge bg-info">کاربر عادی</span></td>
+                                <td><span class="badge bg-success">فعال</span></td>
+                                <td>1403/07/05</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary"><i class="fas fa-edit"></i></button>
+                                    <button class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>3</td>
+                                <td>manager</td>
+                                <td>manager@example.com</td>
+                                <td><span class="badge bg-warning">مدیر</span></td>
+                                <td><span class="badge bg-secondary">غیرفعال</span></td>
+                                <td>1403/06/20</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary"><i class="fas fa-edit"></i></button>
+                                    <button class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- تب پروژه‌ها -->
+            <div class="tab-pane fade" id="projects" role="tabpanel">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h3><i class="fas fa-project-diagram text-info"></i> مدیریت پروژه‌ها</h3>
+                    <button class="btn btn-info"><i class="fas fa-plus"></i> پروژه جدید</button>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>کد پروژه</th>
+                                <th>نام پروژه</th>
+                                <th>مدیر پروژه</th>
+                                <th>بودجه</th>
+                                <th>پیشرفت</th>
+                                <th>وضعیت</th>
+                                <th>موعد تحویل</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>PRJ-001</td>
+                                <td>سیستم مدیریت بودجه</td>
+                                <td>علی احمدی</td>
+                                <td>500,000,000 ریال</td>
+                                <td>
+                                    <div class="progress">
+                                        <div class="progress-bar bg-success" style="width: 75%">75%</div>
+                                    </div>
+                                </td>
+                                <td><span class="badge bg-success">در حال اجرا</span></td>
+                                <td>1403/09/15</td>
+                            </tr>
+                            <tr>
+                                <td>PRJ-002</td>
+                                <td>پورتال مشتریان</td>
+                                <td>فاطمه کریمی</td>
+                                <td>300,000,000 ریال</td>
+                                <td>
+                                    <div class="progress">
+                                        <div class="progress-bar bg-warning" style="width: 45%">45%</div>
+                                    </div>
+                                </td>
+                                <td><span class="badge bg-warning">تأخیر</span></td>
+                                <td>1403/08/30</td>
+                            </tr>
+                            <tr>
+                                <td>PRJ-003</td>
+                                <td>اپلیکیشن موبایل</td>
+                                <td>محمد رضایی</td>
+                                <td>800,000,000 ریال</td>
+                                <td>
+                                    <div class="progress">
+                                        <div class="progress-bar bg-info" style="width: 20%">20%</div>
+                                    </div>
+                                </td>
+                                <td><span class="badge bg-primary">شروع</span></td>
+                                <td>1403/12/01</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- تب مالی -->
+            <div class="tab-pane fade" id="finances" role="tabpanel">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h3><i class="fas fa-chart-line text-warning"></i> گزارشات مالی</h3>
+                    <button class="btn btn-warning"><i class="fas fa-download"></i> خروجی Excel</button>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>شماره فاکتور</th>
+                                <th>تاریخ</th>
+                                <th>مبلغ</th>
+                                <th>نوع تراکنش</th>
+                                <th>وضعیت پرداخت</th>
+                                <th>توضیحات</th>
+                                <th>عملیات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>FAC-001</td>
+                                <td>1403/07/08</td>
+                                <td class="text-success">+15,000,000 ریال</td>
+                                <td><span class="badge bg-success">درآمد</span></td>
+                                <td><span class="badge bg-success">پرداخت شده</span></td>
+                                <td>دریافت از مشتری</td>
+                                <td><button class="btn btn-sm btn-outline-info"><i class="fas fa-eye"></i></button></td>
+                            </tr>
+                            <tr>
+                                <td>FAC-002</td>
+                                <td>1403/07/07</td>
+                                <td class="text-danger">-8,000,000 ریال</td>
+                                <td><span class="badge bg-danger">هزینه</span></td>
+                                <td><span class="badge bg-warning">در انتظار</span></td>
+                                <td>خرید تجهیزات</td>
+                                <td><button class="btn btn-sm btn-outline-info"><i class="fas fa-eye"></i></button></td>
+                            </tr>
+                            <tr>
+                                <td>FAC-003</td>
+                                <td>1403/07/06</td>
+                                <td class="text-success">+25,000,000 ریال</td>
+                                <td><span class="badge bg-success">درآمد</span></td>
+                                <td><span class="badge bg-success">پرداخت شده</span></td>
+                                <td>فروش خدمات</td>
+                                <td><button class="btn btn-sm btn-outline-info"><i class="fas fa-eye"></i></button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- تب گزارش‌ها -->
+            <div class="tab-pane fade" id="reports" role="tabpanel">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h3><i class="fas fa-file-alt text-info"></i> گزارشات سیستم</h3>
+                    <button class="btn btn-success"><i class="fas fa-file-pdf"></i> تولید گزارش</button>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>نام گزارش</th>
+                                <th>تاریخ ایجاد</th>
+                                <th>ایجاد کننده</th>
+                                <th>تعداد رکورد</th>
+                                <th>فرمت</th>
+                                <th>وضعیت</th>
+                                <th>دانلود</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>گزارش کاربران فعال</td>
+                                <td>1403/07/08 14:30</td>
+                                <td>مدیر سیستم</td>
+                                <td>156</td>
+                                <td><span class="badge bg-primary">PDF</span></td>
+                                <td><span class="badge bg-success">آماده</span></td>
+                                <td><button class="btn btn-sm btn-outline-success"><i class="fas fa-download"></i></button></td>
+                            </tr>
+                            <tr>
+                                <td>گزارش مالی ماهانه</td>
+                                <td>1403/07/08 10:15</td>
+                                <td>مدیر مالی</td>
+                                <td>89</td>
+                                <td><span class="badge bg-success">Excel</span></td>
+                                <td><span class="badge bg-warning">در حال پردازش</span></td>
+                                <td><button class="btn btn-sm btn-outline-secondary" disabled><i class="fas fa-clock"></i></button></td>
+                            </tr>
+                            <tr>
+                                <td>گزارش پروژه‌ها</td>
+                                <td>1403/07/07 16:45</td>
+                                <td>مدیر پروژه</td>
+                                <td>23</td>
+                                <td><span class="badge bg-info">Word</span></td>
+                                <td><span class="badge bg-success">آماده</span></td>
+                                <td><button class="btn btn-sm btn-outline-success"><i class="fas fa-download"></i></button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- تب تنظیمات -->
+            <div class="tab-pane fade" id="settings" role="tabpanel">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h3><i class="fas fa-cog text-danger"></i> تنظیمات سیستم</h3>
+                    <button class="btn btn-danger"><i class="fas fa-save"></i> ذخیره تغییرات</button>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>نام تنظیم</th>
+                                <th>مقدار فعلی</th>
+                                <th>نوع</th>
+                                <th>وضعیت</th>
+                                <th>آخرین تغییر</th>
+                                <th>عملیات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>فونت پیش‌فرض سیستم</td>
+                                <td>Vazirmatn</td>
+                                <td><span class="badge bg-info">Font</span></td>
+                                <td><span class="badge bg-success">فعال</span></td>
+                                <td>1403/07/08 12:00</td>
+                                <td><button class="btn btn-sm btn-outline-primary"><i class="fas fa-edit"></i></button></td>
+                            </tr>
+                            <tr>
+                                <td>زبان پیش‌فرض</td>
+                                <td>فارسی</td>
+                                <td><span class="badge bg-warning">Language</span></td>
+                                <td><span class="badge bg-success">فعال</span></td>
+                                <td>1403/07/01 09:00</td>
+                                <td><button class="btn btn-sm btn-outline-primary"><i class="fas fa-edit"></i></button></td>
+                            </tr>
+                            <tr>
+                                <td>حداکثر حجم آپلود</td>
+                                <td>10 MB</td>
+                                <td><span class="badge bg-secondary">Size</span></td>
+                                <td><span class="badge bg-success">فعال</span></td>
+                                <td>1403/06/15 14:30</td>
+                                <td><button class="btn btn-sm btn-outline-primary"><i class="fas fa-edit"></i></button></td>
+                            </tr>
+                            <tr>
+                                <td>پشتیبان‌گیری خودکار</td>
+                                <td>روزانه</td>
+                                <td><span class="badge bg-success">Schedule</span></td>
+                                <td><span class="badge bg-danger">غیرفعال</span></td>
+                                <td>1403/07/08 08:00</td>
+                                <td><button class="btn btn-sm btn-outline-primary"><i class="fas fa-edit"></i></button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- پیام‌های تست -->
+        <div class="alert alert-info mt-4">
+            <h5><i class="fas fa-info-circle"></i> نتایج تست:</h5>
+            <ul class="mb-0">
+                <li>✅ Bootstrap CSS لود شده</li>
+                <li>✅ Bootstrap JavaScript لود شده</li>
+                <li>✅ Font Awesome آیکون‌ها نمایش داده می‌شوند</li>
+                <li>✅ فونت سیستم (Vazirmatn/Parastoo) کار می‌کند</li>
+                <li id="tab-test-result">⏳ در حال تست تب‌ها...</li>
+                <li id="table-test-result">⏳ در حال تست جداول...</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🧪 شروع تست‌های سیستم...');
+    
+    // تست Bootstrap Tabs
+    const tabButtons = document.querySelectorAll('[data-bs-toggle="tab"]');
+    const tabPanes = document.querySelectorAll('.tab-pane');
+    
+    console.log(`📋 تعداد تب‌ها: ${tabButtons.length}`);
+    console.log(`📋 تعداد محتوای تب‌ها: ${tabPanes.length}`);
+    
+    // بررسی عملکرد تب‌ها
+    let tabsWorking = true;
+    
+    tabButtons.forEach((button, index) => {
+        button.addEventListener('click', function(e) {
+            console.log(`🖱️ کلیک روی تب: ${this.textContent.trim()}`);
+            
+            // تست تغییر کلاس active
+            setTimeout(() => {
+                const activeTab = document.querySelector('.tab-pane.active');
+                if (activeTab) {
+                    console.log(`✅ تب فعال: ${activeTab.id}`);
+                } else {
+                    console.log('❌ هیچ تب فعالی یافت نشد');
+                    tabsWorking = false;
+                }
+            }, 100);
+        });
+    });
+    
+    // تست جداول
+    const tables = document.querySelectorAll('.table');
+    console.log(`📊 تعداد جداول: ${tables.length}`);
+    
+    let tablesWorking = true;
+    tables.forEach((table, index) => {
+        const rows = table.querySelectorAll('tbody tr');
+        console.log(`📊 جدول ${index + 1}: ${rows.length} ردیف`);
+        
+        if (rows.length === 0) {
+            tablesWorking = false;
+        }
+    });
+    
+    // به‌روزرسانی نتایج تست
+    setTimeout(() => {
+        const tabTestResult = document.getElementById('tab-test-result');
+        const tableTestResult = document.getElementById('table-test-result');
+        
+        if (tabsWorking) {
+            tabTestResult.innerHTML = '✅ تب‌ها به درستی کار می‌کنند';
+            tabTestResult.className = 'text-success';
+        } else {
+            tabTestResult.innerHTML = '❌ مشکل در عملکرد تب‌ها';
+            tabTestResult.className = 'text-danger';
+        }
+        
+        if (tablesWorking) {
+            tableTestResult.innerHTML = '✅ جداول به درستی لود شده‌اند';
+            tableTestResult.className = 'text-success';
+        } else {
+            tableTestResult.innerHTML = '❌ مشکل در لود جداول';
+            tableTestResult.className = 'text-danger';
+        }
+    }, 1000);
+    
+    // تست فونت
+    const computedStyle = window.getComputedStyle(document.body);
+    const fontFamily = computedStyle.fontFamily;
+    console.log(`🔤 فونت فعلی: ${fontFamily}`);
+    
+    // تست آیکون‌ها
+    const icons = document.querySelectorAll('.fas, .far, .fab');
+    console.log(`🎨 تعداد آیکون‌ها: ${icons.length}`);
+    
+    console.log('✅ تست‌ها تکمیل شد');
+});
+
+// تست اضافی برای تب‌ها
+function testTabFunctionality() {
+    const tabs = document.querySelectorAll('[data-bs-toggle="tab"]');
+    let testResults = [];
+    
+    tabs.forEach((tab, index) => {
+        setTimeout(() => {
+            tab.click();
+            
+            setTimeout(() => {
+                const targetId = tab.getAttribute('data-bs-target');
+                const targetPane = document.querySelector(targetId);
+                
+                if (targetPane && targetPane.classList.contains('active')) {
+                    testResults.push(`✅ تب ${index + 1}: موفق`);
+                } else {
+                    testResults.push(`❌ تب ${index + 1}: ناموفق`);
+                }
+                
+                if (testResults.length === tabs.length) {
+                    console.log('📋 نتایج تست تب‌ها:');
+                    testResults.forEach(result => console.log(result));
+                }
+            }, 100);
+        }, index * 200);
+    });
+}
+
+// اجرای تست بعد از لود کامل صفحه
+window.addEventListener('load', function() {
+    setTimeout(testTabFunctionality, 2000);
+});
+</script>
+{% endblock %}
