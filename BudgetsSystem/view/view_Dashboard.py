@@ -37,6 +37,8 @@ dashboard_links = {
             {'name': _('فهرست فاکتورها'), 'url': 'factor_list', 'permission': 'tankhah.view_factor', 'icon': 'fas fa-clipboard-list'},
             {'name': _('ایجاد فاکتور'), 'url': 'Nfactor_create', 'permission': 'tankhah.add_factor', 'icon': 'fas fa-file-invoice'},
             {'name': _('گردش کار فاکتور'), 'url': 'workflow_chart', 'permission': 'tankhah.view_factor', 'icon': 'fas fa-project-diagram'},
+            {'name': _('فهرست دستورپرداخت'), 'url': 'pr_list', 'permission': 'PurchaseRequest.purchase_request_view', 'icon': 'fas fa-project-diagram'},
+            {'name': _('ثبت دستورپرداخت'), 'url': 'pr_create', 'permission': 'PurchaseRequest.purchase_request_add', 'icon': 'fas fa-project-diagram'},
             # {'name': _('وضعیت فاکتورها'), 'url': 'factor_status_dashboard', 'permission': 'tankhah.view_factor', 'icon': 'fas fa-file-invoice'},
         ]
     },

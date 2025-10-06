@@ -267,11 +267,12 @@ class FactorForm(forms.ModelForm):
 
     class Meta:
         model = Factor
-        fields = ['tankhah', 'category', 'date', 'payee', 'amount', 'description']
+        fields = ['tankhah', 'category', 'date', 'payee', 'purchase_request', 'amount', 'description']
         widgets = {
             'tankhah': forms.Select(attrs={'class': 'form-select'}),
             'category': forms.Select(attrs={'class': 'form-select'}),
             'payee': forms.Select(attrs={'class': 'form-select'}),
+            'purchase_request': forms.Select(attrs={'class': 'form-select'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
             'amount': forms.NumberInput(attrs={'class': 'form-control form-control-sm text-end'}),
         }

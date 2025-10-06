@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block content %}
+<div class="container py-3">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h5>{% trans "لیست درخواست‌های کالا" %}</h5>
+    <a class="btn btn-primary btn-sm" href="{% url 'pr_create' %}">{% trans "ایجاد درخواست" %}</a>
+  </div>
+  <div class="card">
+    <div class="card-body p-0">
+      <table class="table table-sm mb-0">
+        <thead>
+          <tr>
+            <th>{% trans "شماره" %}</th>
+            <th>{% trans "سازمان" %}</th>
+            <th>{% trans "پروژه" %}</th>
+            <th>{% trans "تاریخ" %}</th>
+            <th>{% trans "مبلغ" %}</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for pr in requests %}
+          <tr>
+            <td>{{ pr.number }}</td>
+            <td>{{ pr.organization }}</td>
+            <td>{{ pr.project }}</td>
+            <td>{{ pr.date }}</td>
+            <td>{{ pr.total_amount|default:0 }}</td>
+            <td><a class="btn btn-outline-secondary btn-sm" href="{% url 'pr_detail' pr.pk %}">{% trans "جزئیات" %}</a></td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="6" class="text-center text-muted">{% trans "موردی یافت نشد" %}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+

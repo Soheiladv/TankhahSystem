@@ -103,6 +103,11 @@
                                     <li class="align-items-start"><span class="label">{% trans "مبلغ:" %}</span><span
                                             class="value fs-5 text-primary fw-bold">{{ factor.amount|to_persian_number }}<small
                                             class="text-muted ms-1">{% trans "ریال" %}</small></span></li>
+                                    {% if purchase_request %}
+                                    <li><span class="label">{% trans "شماره درخواست کالا:" %}</span>
+                                        <span class="value"><a href="{% url 'pr_detail' purchase_request.pk %}">{{ purchase_request.number }}</a></span>
+                                    </li>
+                                    {% endif %}
                                 </ul>
                             </div>
                             <div class="col-md-6">
@@ -155,6 +160,13 @@
                                     class="badge rounded-pill bg-light text-dark ms-1">{{ approval_logs.count|to_persian_number }}</span>
                             </button>
                         </li>
+                        {% if purchase_request %}
+                        <li class="nav-item">
+                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#variance-tab-content"><i
+                                    class="fas fa-balance-scale me-2"></i>{% trans "مغایرت با درخواست" %}
+                            </button>
+                        </li>
+                        {% endif %}
                     </ul>
                     <div class="tab-content">
                         <div class="tab-pane fade show active" id="items-tab-content"
@@ -165,6 +177,29 @@
                              role="tabpanel">{% include 'tankhah/Factors/Detials/_factor_approval_path_tab.html' %}</div>
                         <div class="tab-pane fade" id="history-tab-content"
                              role="tabpanel">{% include 'tankhah/Factors/Detials/_factor_history_tab.html' %}</div>
+                        {% if purchase_request %}
+                        <div class="tab-pane fade" id="variance-tab-content" role="tabpanel">
+                            <div class="p-3">
+                                <div class="alert alert-light border d-flex justify-content-between">
+                                    <div>
+                                        <strong>{% trans "جمع درخواست" %}:</strong>
+                                        <span>{{ purchase_request_total|floatformat:0|to_persian_number }}</span>
+                                    </div>
+                                    <div>
+                                        <strong>{% trans "جمع فاکتور" %}:</strong>
+                                        <span>{{ items_total|floatformat:0|to_persian_number }}</span>
+                                    </div>
+                                    <div>
+                                        <strong>{% trans "مغایرت" %}:</strong>
+                                        <span class="{% if variance_vs_request > 0 %}text-danger{% elif variance_vs_request < 0 %}text-warning{% else %}text-success{% endif %}">
+                                            {{ variance_vs_request|floatformat:0|to_persian_number }}
+                                        </span>
+                                    </div>
+                                </div>
+                                <p class="text-muted small">{% trans "در صورت وجود اختلاف، علت را بررسی کنید." %}</p>
+                            </div>
+                        </div>
+                        {% endif %}
                     </div>
                 </div>
 

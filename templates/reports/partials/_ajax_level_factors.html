@@ -40,6 +40,13 @@
                     </td>
                     <td class="text-center">{{ f.date_jalali|to_persian_number }}</td>
                     <td class="text-center">
+                        {% if f.purchase_request_number %}
+                            <a href="{% url 'pr_detail' f.purchase_request_id %}">{{ f.purchase_request_number }}</a>
+                        {% else %}
+                            —
+                        {% endif %}
+                    </td>
+                    <td class="text-center">
                         <span class="badge bg-info">{{ f.category_name|default:"-" }}</span>
                     </td>
                     <td class="text-center">

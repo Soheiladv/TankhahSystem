@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="mb-0">
+      <i class="fas fa-box-open me-2 text-primary"></i>
+      {% if object %}{% trans "ویرایش درخواست کالا" %}{% else %}{% trans "ایجاد درخواست کالا" %}{% endif %}
+    </h5>
+    <a href="{% url 'pr_list' %}" class="btn btn-outline-secondary btn-sm">
+      <i class="fas fa-arrow-right me-1"></i>{% trans "بازگشت" %}
+    </a>
+  </div>
+
+  {% if form.non_field_errors %}
+    <div class="alert alert-danger">
+      {% for err in form.non_field_errors %}
+        <div>{{ err }}</div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <form method="post" novalidate>
+        {% csrf_token %}
+        <div class="row g-3">
+          {% for field in form %}
+            <div class="col-md-6">
+              <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+              {{ field }}
+              {% if field.help_text %}
+                <div class="form-text">{{ field.help_text }}</div>
+              {% endif %}
+              {% if field.errors %}
+                <div class="invalid-feedback d-block">{{ field.errors|first }}</div>
+              {% endif %}
+            </div>
+          {% endfor %}
+        </div>
+
+        <div class="mt-4 d-flex justify-content-end gap-2">
+          <a href="{% url 'pr_list' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-times me-1"></i>{% trans "انصراف" %}
+          </a>
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-save me-1"></i>{% trans "ذخیره" %}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  try {
+    if (window.$ && $.fn.select2) {
+      const selIds = ['#id_organization', '#id_project', '#id_subproject'];
+      selIds.forEach(function (sid) {
+        const $el = $(sid);
+        if ($el.length) {
+          $el.select2({
+            placeholder: '',
+            allowClear: true,
+            width: '100%'
+          });
+        }
+      });
+
+      // وابستگی: تغییر سازمان -> بارگذاری پروژه/زیرپروژه
+      const $org = $('#id_organization');
+      const $proj = $('#id_project');
+      const $sub = $('#id_subproject');
+      function resetSelect($el){ $el.val(null).trigger('change'); }
+      function fillSelect2($el, items){
+        const current = $el.val();
+        $el.empty();
+        items.forEach(function(it){
+          const opt = new Option(it.text, it.id, false, false);
+          $el.append(opt);
+        });
+        $el.trigger('change');
+      }
+      $org.on('change', function(){
+        resetSelect($proj); resetSelect($sub);
+        const orgId = $(this).val();
+        if(!orgId){ return; }
+        $.get('{% url "pr_ajax_filter_projects" %}', {org_id: orgId})
+          .done(function(resp){
+            fillSelect2($proj, resp.results || []);
+          });
+      });
+      $proj.on('change', function(){
+        resetSelect($sub);
+        const pid = $(this).val();
+        if(!pid){ return; }
+        $.get('{% url "pr_ajax_filter_subprojects" %}', {project_id: pid})
+          .done(function(resp){ fillSelect2($sub, resp.results || []); });
+      });
+    }
+  } catch (e) { console.warn('Select2 init failed:', e); }
+
+  try {
+    if (window.jalaliDatepicker) {
+      jalaliDatepicker.startWatch({
+        selector: '[data-jdp]',
+        persianDigits: true,
+        autoHide: true,
+        format: 'YYYY/MM/DD'
+      });
+    }
+  } catch (e) { console.warn('Jalali datepicker init failed:', e); }
+});
+</script>
+{% endblock %}
+
+

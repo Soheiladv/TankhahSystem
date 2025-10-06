@@ -137,6 +137,7 @@
                                                                                         <th>{% trans "ردیف" %}</th>
                                                                                         <th>{% trans "شماره فاکتور" %}</th>
                                                                                         <th>{% trans "تاریخ" %}</th>
+                                                                                        <th>{% trans "درخواست کالا" %}</th>
                                                                                         <th>{% trans "مبلغ" %}</th>
                                                                                         <th>{% trans "وضعیت" %}</th>
                                                                                         <th>{% trans "تأییدکنندگان" %}</th>
@@ -150,6 +151,13 @@
                                                                                                 <td>{{ forloop.parentloop.counter|add:forloop.counter|to_persian_number }}</td>
                                                                                                 <td>{{ factor.number|to_persian_number }}</td>
                                                                                                 <td>{{ factor.date|jformat:"%Y/%m/%d"|to_persian_number }}</td>
+                                                                                                <td>
+                                                                                                    {% if factor.purchase_request %}
+                                                                                                        <a href="{% url 'pr_detail' factor.purchase_request.pk %}">{{ factor.purchase_request.number }}</a>
+                                                                                                    {% else %}
+                                                                                                        <span class="text-muted">—</span>
+                                                                                                    {% endif %}
+                                                                                                </td>
                                                                                                 <td>{{ factor.amount|floatformat:0|intcomma|to_persian_number }} {% trans "ریال" %}</td>
                                                                                                 <td>
                                                                                                     <span class="status-badge status-{{ factor.status|lower }}">{{ factor.get_status_display }}</span>

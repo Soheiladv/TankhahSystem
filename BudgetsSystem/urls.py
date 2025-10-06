@@ -29,6 +29,7 @@ urlpatterns = [
                   path('tankhah/', include('tankhah.urls')),  # اضافه کردن اپلیکیشن tankhah
                   path('version_tracker/', include('version_tracker.urls')),  # اضافه کردن اپلیکیشن tankhah
                   path('budgets/', include('budgets.urls')),  # اضافه کردن اپلیکیشن بودجه
+                  path('pr/', include('purchase_requests.urls')), # اضافه کردن اپلیکیشن درخواست کالا
                   path('workflow/', TanbakhWorkflowView.as_view(), name='workflow'),  # help workflow
                   path('inbox/notifications/', include('notificationApp.urls', namespace='notifications')),
                   path('about/', views.about, name='about'),

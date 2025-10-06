@@ -77,6 +77,16 @@ REPORT_ENABLED = os.getenv('REPORT_ENABLED', 'True') == 'True'
 REPORT_CACHE_TIMEOUT = int(os.getenv('REPORT_CACHE_TIMEOUT', '600'))
 REPORT_MAX_RECORDS = int(os.getenv('REPORT_MAX_RECORDS', '10000'))
 
+# تنظیمات اتصال به نرم‌افزارهای خارجی (API Integrations)
+EXTERNAL_INTEGRATIONS = {
+    # نمونه:
+    # 'wms': {
+    #     'BASE_URL': os.getenv('WMS_BASE_URL', ''),
+    #     'API_KEY': os.getenv('WMS_API_KEY', ''),
+    #     'TIMEOUT': int(os.getenv('WMS_TIMEOUT', '15')),
+    # }
+}
+
 # تنظیمات version tracking
 VERSION_TRACKING_ENABLED = os.getenv('VERSION_TRACKING_ENABLED', 'True') == 'True'
 VERSION_AUTO_BACKUP = os.getenv('VERSION_AUTO_BACKUP', 'True') == 'True'
@@ -105,6 +115,7 @@ INSTALLED_APPS = [
     'storages',
     'usb_key_validator.apps.UsbKeyValidatorConfig',
     'notificationApp.apps.NotificationappConfig',
+    'purchase_requests.apps.PurchaseRequestsConfig',
 ]
 
 MIDDLEWARE = [

@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block content %}
+<div class="container py-3">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h5>{% trans "جزئیات درخواست" %}: {{ request_obj.number }}</h5>
+    <div>
+      <a class="btn btn-outline-secondary btn-sm" href="{% url 'pr_list' %}">{% trans "بازگشت" %}</a>
+      <form method="post" action="{% url 'pr_approve' request_obj.pk %}" class="d-inline-block ms-2">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-success btn-sm">
+          <i class="fas fa-check me-1"></i>{% trans "تایید" %}
+        </button>
+      </form>
+    </div>
+  </div>
+  <div class="card mb-3">
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-3"><strong>{% trans "سازمان" %}</strong>: {{ request_obj.organization }}</div>
+        <div class="col-md-3"><strong>{% trans "پروژه" %}</strong>: {{ request_obj.project }}</div>
+        <div class="col-md-3"><strong>{% trans "تاریخ" %}</strong>: {{ request_obj.date }}</div>
+        <div class="col-md-3"><strong>{% trans "وضعیت" %}</strong>: {{ request_obj.status }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header">{% trans "اقلام" %}</div>
+    <div class="card-body p-0">
+      <table class="table table-sm mb-0">
+        <thead>
+        <tr>
+          <th>#</th>
+          <th>{% trans "شرح" %}</th>
+          <th>{% trans "تعداد" %}</th>
+          <th>{% trans "قیمت واحد" %}</th>
+          <th>{% trans "مبلغ" %}</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for it in request_obj.items.all %}
+        <tr>
+          <td>{{ forloop.counter }}</td>
+          <td>{{ it.description }}</td>
+          <td>{{ it.quantity }}</td>
+          <td>{{ it.unit_price }}</td>
+          <td>{{ it.amount }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="text-center text-muted">{% trans "بدون آیتم" %}</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+

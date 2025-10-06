@@ -1,4 +1,4 @@
-{% load static i18n humanize jformat %}
+{% load static i18n rcms_custom_filters jformat %}
 
 <tr class="factor-row">
     <td>
@@ -7,7 +7,15 @@
         <small class="text-muted">{{ factor.category.name|default:"-" }}</small>
     </td>
     <td>{{ factor.date|jformat:"%Y/%m/%d" }}</td>
-    <td>{{ factor.amount|intcomma }}</td>
+    <td>{{ factor.amount|format_negative }}</td>
+    <td>
+        {% if factor.purchase_request %}
+            <small class="text-muted">{% trans "درخواست" %}:</small>
+            <a href="{% url 'pr_detail' factor.purchase_request.pk %}">{{ factor.purchase_request.number }}</a>
+        {% else %}
+            <span class="text-muted">—</span>
+        {% endif %}
+    </td>
     <td>
         <span class="status-badge {{ status_class|default:'status-draft' }}">{{ factor.get_status_display }}</span>
     </td>

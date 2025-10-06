@@ -494,6 +494,8 @@ class Factor(models.Model):
                                          related_name='re_registered_factors', verbose_name=_("تنخواه جدید"))
 
     payee = models.ForeignKey('budgets.Payee'  , on_delete=models.PROTECT, verbose_name=_("صادرکننده فاکتور"))
+    # لینک اختیاری به درخواست کالا
+    purchase_request = models.ForeignKey('purchase_requests.PurchaseRequest', null=True, blank=True, on_delete=models.SET_NULL, related_name='factors', verbose_name=_('درخواست کالا'))
 
     is_archived = models.BooleanField(default=False, verbose_name=_("آرشیو شده"),
                                       help_text=_("آیا این فاکتور آرشیو شده است؟"))

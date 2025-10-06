@@ -19,6 +19,7 @@ from core.PermissionBase import PermissionBaseView
 from core.models import Transition, UserPost
 from django.db import models
 from tankhah.models import Factor, ApprovalLog, FactorDocument
+from purchase_requests.models import PurchaseRequest, PurchaseRequestItem
 
 
 from collections import defaultdict
@@ -539,6 +540,18 @@ class FactorDetailView(PermissionBaseView, DetailView):
                 context['items_total'] = items_total
         except Exception:
             context['items_total'] = Decimal('0')
+
+        # محاسبه مغایرت با درخواست کالا (در صورت وجود)
+        try:
+            pr = getattr(factor, 'purchase_request', None)
+            if pr:
+                pr_total = pr.items.aggregate(total=models.Sum('amount'))['total'] or Decimal('0')
+                variance_amount = (context.get('items_total') or Decimal('0')) - pr_total
+                context['purchase_request'] = pr
+                context['purchase_request_total'] = pr_total
+                context['variance_vs_request'] = variance_amount
+        except Exception:
+            pass
 
         return context
 
