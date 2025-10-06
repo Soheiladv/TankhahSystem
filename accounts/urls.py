@@ -1,6 +1,7 @@
 from .DashboardReset import DatabaseResetView, DatabaseManageView, DatabaseBackupRestoreView, DatabaseBackupView, \
     new_DatabaseBackupRestoreView, DatabaseModelGraphView
 from .Heartbeat import heartbeat_view
+
 app_name = 'accounts'  # این خط باید وجود داشته باشد
 from atexit import register
 from django.conf import settings
@@ -120,7 +121,7 @@ urlpatterns = [
 
                   # Profile URLs
                   # path('profile/update/', profile_update_view, name='profile_update'),
-                  path('profile/update/', ProfileUpdateView.as_view() , name='profile_update'),
+                  path('profile/update/', ProfileUpdateView.as_view(), name='profile_update'),
                   path('profile/update/success/', profile_update_success, name='profile_update_success'),
                   # path('profile/update/success/', profile_update_success_view, name='profile_update_success'),
                   # مسیر جدید
@@ -169,18 +170,17 @@ urlpatterns = [
 
                   # path('profile/<int:pk>/', views.ProfileView.as_view(), name='profile'),
                   path('profile/create/', views.ProfileCreateView.as_view(), name='profile_create'),
-                  path('profile/<int:user_id>/', views.ProfileUpdateView.as_view() , name='profile_update'),
+                  path('profile/<int:user_id>/', views.ProfileUpdateView.as_view(), name='profile_update'),
 
                   path('profile/<int:user_id>/', views.profile_detail, name='profile_detail'),
 
                   path('profile/delete/', views.profile_delete, name='profile_delete'),  # حذف پروفایل
                   path('advanced-search/', AdvancedProfileSearchView.as_view(), name='advanced_profile_search'),
 
-
                   ## AuditLog
                   path('audit-logs/', views.audit_log_list, name='audit_log_list'),
-  path('audit-logs/test/create/', views.create_test_audit_log, name='audit_log_test_create'),
-  path('my/session-activity/', views.my_session_activity, name='my_session_activity'),
+                  path('audit-logs/test/create/', views.create_test_audit_log, name='audit_log_test_create'),
+                  path('my/session-activity/', views.my_session_activity, name='my_session_activity'),
                   # User Limitation
                   path('active-users/', ActiveUserListView.as_view(), name='active_user_list'),
                   path('active-users/create/', views.ActiveUserCreateView.as_view(), name='active_user_create'),
@@ -191,14 +191,14 @@ urlpatterns = [
                   # Security lock Time
                   path('manage-timelock/', TimeLockCreateView.as_view(), name='manage_timelock'),
                   path('timelock-list/', TimeLockListView.as_view(), name='timelock_list'),
-                  #SetTimeLockView
+                  # SetTimeLockView
                   path('set_time_lock/', SetTimeLockView.as_view(), name='set_time_lock'),
-                  path('lock_status/',lock_status , name='lock_status'),
+                  path('lock_status/', lock_status, name='lock_status'),
 
                   # Heartbeat
                   path('heartbeat/', heartbeat_view, name='heartbeat'),
 
-                  path('set_theme/', set_theme, name='set_theme'),# User Color
+                  path('set_theme/', set_theme, name='set_theme'),  # User Color
                   path('custom-theme-designer/', custom_theme_designer, name='custom_theme_designer'),
                   path('apply-custom-theme/', apply_custom_theme, name='apply_custom_theme'),
 
@@ -206,19 +206,19 @@ urlpatterns = [
 
               ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
-urlpatterns+=[
-    path('terminate-session/<int:session_id>/',  terminate_session, name='terminate_session'),
-             ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-
-urlpatterns+=[
-    path('active-users/', active_users_view, name='active_users'),
-]#تعداد کاربر فعال سیستم
+urlpatterns += [
+                   path('terminate-session/<int:session_id>/', terminate_session, name='terminate_session'),
+               ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 urlpatterns += [
-    path('reset-database/', DatabaseResetView.as_view(), name='reset_database'),
-    path('database-manage/', DatabaseManageView.as_view(), name='database_manage'),
-    path('databasebackuprestore/', DatabaseBackupRestoreView.as_view(), name='databasebackuprestore'),
-    path('databasebackup/', DatabaseBackupView.as_view(), name='databasebackup'),
+    path('active-users/', active_users_view, name='active_users'),
+]  # تعداد کاربر فعال سیستم
+
+urlpatterns += [
+                   path('reset-database/', DatabaseResetView.as_view(), name='reset_database'),
+                   path('database-manage/', DatabaseManageView.as_view(), name='database_manage'),
+                   path('databasebackuprestore/', DatabaseBackupRestoreView.as_view(), name='databasebackuprestore'),
+                   path('databasebackup/', DatabaseBackupView.as_view(), name='databasebackup'),
                    path('new_databasebackup/', new_DatabaseBackupRestoreView.as_view(), name='new_databasebackup'),
 
                ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)  # Dashboard reset

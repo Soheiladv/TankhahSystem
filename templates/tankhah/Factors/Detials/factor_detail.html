@@ -7,25 +7,8 @@
     <div class="container-fluid py-4" id="page-content">
 
         <style>
-            /* نمایش/عدم نمایش برای چاپ */
-            .print-only {
-                display: none;
-            }
-
+            {# 🎨 استایل‌های پایه چاپ حالا در base.html قرار دارند #}
             @media print {
-                .no-print {
-                    display: none !important;
-                }
-
-                .print-only {
-                    display: block !important;
-                }
-
-                body {
-                    -webkit-print-color-adjust: exact;
-                    print-color-adjust: exact;
-                }
-
                 @page {
                     size: A4;
                     margin: 12mm;

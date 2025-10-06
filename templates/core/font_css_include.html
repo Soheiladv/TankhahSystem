@@ -32,11 +32,18 @@ body,
     font-family: '{{ default_font.family_name }}', 'Tahoma', 'Arial', sans-serif !important;
 }
 
-/* حفظ فونت‌های خاص */
-.fa, .fas, .far, .fal, .fab,
-code, pre, .code,
-.font-monospace {
-    font-family: inherit !important;
+/* حفظ فونت‌های خاص - Font Awesome */
+.fa, .fas, .far, .fal, .fab, .fad, .fat, .fass, .fasr, .fasl {
+    font-family: "Font Awesome 6 Free", "Font Awesome 6 Pro", "Font Awesome 5 Free", "Font Awesome 5 Pro" !important;
+    font-style: normal !important;
+    font-variant: normal !important;
+    text-rendering: auto !important;
+    line-height: 1 !important;
+}
+
+/* حفظ فونت‌های مونوسپیس */
+code, pre, .code, .font-monospace {
+    font-family: 'Courier New', Courier, monospace !important;
 }
 {% endif %}
 </style>

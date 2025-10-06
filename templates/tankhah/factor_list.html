@@ -4,49 +4,9 @@
 {% block title %}{% trans "مدیریت فاکتورها" %}{% endblock %}
 
 {% block extra_css %}
-
+{# 🎨 استایل‌ها حالا در فایل project-main.css قرار دارند #}
 <style>
-/* استایل‌های فاکتور لیست */
-.stat-card {
-    transition: transform 0.2s, box-shadow 0.2s;
-    border: none;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.stat-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-}
-
-.stat-icon {
-    font-size: 2rem;
-}
-
-.stat-value {
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: var(--bs-primary);
-}
-
-.stat-label {
-    font-size: 0.875rem;
-    color: var(--bs-secondary);
-}
-
-.table {
-    border-radius: 0.5rem;
-    overflow: hidden;
-}
-
-.table thead th {
-    background-color: var(--bs-light);
-    border: none;
-    font-weight: 600;
-}
-
-.table tbody tr:hover {
-    background-color: rgba(0,123,255,0.05);
-}
+/* Template-specific styles only */
 </style>
 {% endblock %}  
 
@@ -65,12 +25,12 @@
     <!-- Stat Cards -->
     <div class="row g-4 mb-4">
         <div class="col-md-4">
-            <div class="card stat-card h-100" style="--stat-color: var(--primary);">
+            <div class="stats-card h-100" style="--stat-color: var(--primary);">
                 <div class="card-body d-flex align-items-center">
                     <i class="fas fa-file-invoice stat-icon text-primary"></i>
                     <div class="ms-3">
-                        <div class="stat-value">{{ total_factors|default:0|to_persian_number }}</div>
-                        <div class="stat-label">{% trans "تعداد کل فاکتورها" %}</div>
+                        <div class="card-value">{{ total_factors|default:0|to_persian_number }}</div>
+                        <div class="card-text">{% trans "تعداد کل فاکتورها" %}</div>
                     </div>
                 </div>
             </div>
@@ -80,8 +40,8 @@
                 <div class="card-body d-flex align-items-center">
                     <i class="fas fa-money-bill-wave stat-icon text-success"></i>
                     <div class="ms-3">
-                        <div class="stat-value">{{ total_amount|floatformat:0|intcomma|to_persian_number }}</div>
-                        <div class="stat-label">{% trans "مبلغ کل فاکتورها (ریال)" %}</div>
+                        <div class="card-value">{{ total_amount|floatformat:0|intcomma|to_persian_number }}</div>
+                        <div class="card-text">{% trans "مبلغ کل فاکتورها (ریال)" %}</div>
                     </div>
                 </div>
             </div>
@@ -91,8 +51,8 @@
                 <div class="card-body d-flex align-items-center">
                     <i class="fas fa-building stat-icon text-info"></i>
                     <div class="ms-3">
-                        <div class="stat-value">{{ organizations_count|default:0|to_persian_number }}</div>
-                        <div class="stat-label">{% trans "سازمان‌های درگیر" %}</div>
+                        <div class="card-value">{{ organizations_count|default:0|to_persian_number }}</div>
+                        <div class="card-text">{% trans "سازمان‌های درگیر" %}</div>
                     </div>
                 </div>
             </div>
@@ -197,7 +157,7 @@
                                                                 </strong></small>
                                                         </p>
                                                         <div class="table-responsive">
-                                                            <table class="table table-hover align-middle mb-0 responsive-table">
+                                                            <table class="table table-enhanced table-hover align-middle mb-0 responsive-table">
                                                                 <thead>
                                                                     <tr>
                                                                         <th scope="col">{% trans "ردیف" %}</th>
@@ -338,7 +298,7 @@
                                             <small class="text-muted">({{ tankhah_data.total_factors|to_persian_number }} {% trans "فاکتور" %} - {% trans "مبلغ کل" %}: {{ tankhah_data.total_amount|floatformat:0|intcomma|to_persian_number }} {% trans "ریال" %})</small>
                                         </p>
                                         <div class="table-responsive">
-                                            <table class="table table-hover align-middle mb-0 responsive-table">
+                                            <table class="table table-enhanced table-hover align-middle mb-0 responsive-table">
                                                 <thead>
                                                     <tr>
                                                         <th scope="col">{% trans "ردیف" %}</th>

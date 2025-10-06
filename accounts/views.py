@@ -406,37 +406,6 @@ class RoleCreateView(PermissionBaseView,CreateView):
             tree[app_label].append(perm)
         return tree
 
-class __RoleUpdateView(PermissionBaseView,  UpdateView):
-    model = Role
-    form_class = RoleForm
-    template_name = 'accounts/role/role_form.html'
-    success_url = reverse_lazy('accounts:role_list')
-    permission_codename = 'modify_role'
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        permissions = Permission.objects.select_related('content_type').all()
-        tree = {}
-        for perm in permissions:
-            app_config = apps.get_app_config(perm.content_type.app_label)
-            if app_config.name not in EXCLUDED_APPS:  # همینجا هم اعمال کن
-                app_label_farsi = app_config.verbose_name
-                # print(f"App: {app_config.name}, Verbose: {app_label_farsi}")
-                tree.setdefault(app_label_farsi, []).append(perm)
-        context['permissions_tree'] = tree
-        print("Loaded apps:", [app.verbose_name for app in apps.get_app_configs()])
-        return context
-
-    def get_permissions_tree(self):
-        permissions = Permission.objects.select_related('content_type').all()
-        tree = {}
-        for perm in permissions:
-            app_config = apps.get_app_config(perm.content_type.app_label)
-            app_label_farsi = app_config.verbose_name  # اینجا هم فارسی رو بگیر
-            print(f"App: {app_config.name}, Verbose: {app_config.verbose_name}")  # برای دیباگ
-            tree.setdefault(app_label_farsi, []).append(perm)
-        print("permissions_tree keys:", list(tree.keys()))  # برای دیباگ
-        return tree
-
 # یک میکس‌این برای جلوگیری از تکرار کد
 class RoleFormMixin:
     model = Role
