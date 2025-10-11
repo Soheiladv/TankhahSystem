@@ -58,7 +58,7 @@ def analyze_new_factor_create_view():
     print(f"   مدل: {New_FactorCreateView.model}")
     print(f"   فرم: {New_FactorCreateView.form_class}")
     print(f"   تمپلیت: {New_FactorCreateView.template_name}")
-    print(f"   مجوزها: {New_FactorCreateView.permission_codenames}")
+    print(f"   مجوزها: {New_FactorCreateView.permission_codename}")
     print(f"   بررسی سازمان: {New_FactorCreateView.check_organization}")
     
     # 3. بررسی متدها

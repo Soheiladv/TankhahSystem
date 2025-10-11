@@ -10,7 +10,7 @@ import logging
 logger = logging.getLogger(' ProcessApprovedFactorsView ')
 
 class ProcessApprovedFactorsView(PermissionBaseView, View):
-    permission_codenames = ['tankhah.can_process_factors']
+    permission_codename = ['tankhah.can_process_factors']
 
     def post(self, request, pk):
         tankhah = get_object_or_404(Tankhah, pk=pk)

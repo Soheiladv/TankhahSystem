@@ -18,6 +18,19 @@ from .BudgetTransaction.view_budgetTransaction import *
 from .Budget_Items.views_Budget_item import *
 from .BudgetReturn.view_BudgetReturn import BudgetReturnView
 from .BudgetReturn.views_BudgetTransferView import BudgetTransferView
+from .views_guide import BudgetGuideView
+from .views_stats import BudgetStatsView
+from .views_guide_separated import BudgetUserGuideView, BudgetAdminGuideView
+
+# API های محاسباتی بودجه
+from .api_allocation_calculations import BudgetCalculationsOverviewAPI, AllocationCalculationsAPI
+from .api_organization_calculations import OrganizationCalculationsAPI
+from .api_project_calculations import ProjectCalculationsAPI
+from .api_subproject_calculations import SubProjectCalculationsAPI
+from .api_tankhah_calculations import TankhahCalculationsAPI
+from .api_factor_calculations import FactorCalculationsAPI
+from .api_utility_calculations import UtilityCalculationsAPI
+from .api_batch_calculations import BatchCalculationsAPI
 from .BudgetReturn.budget_Api_Return import ProjectAllocationFreeBudgetAPI, ProjectAllocationAPI
 from .Payee.view_Payee import *
 from .PaymentOrder.view_PaymentOrder import *
@@ -154,4 +167,21 @@ urlpatterns += [
     path('api/reportlab/pdf/', reportlab_pdf_api, name='reportlab_pdf_api'),
     path('api/reportlab/pdf/custom/', reportlab_pdf_custom_api, name='reportlab_pdf_custom_api'),
     path('api/reportlab/paymentorder/<int:pk>/detail/', reportlab_paymentorder_detail , name='reportlab_paymentorder_detail'),
+    
+    # راهنمای سیستم بودجه
+    path('guide/', BudgetGuideView.as_view(), name='budget_guide'),
+    path('user-guide/', BudgetUserGuideView.as_view(), name='budget_user_guide'),
+    path('admin-guide/', BudgetAdminGuideView.as_view(), name='budget_admin_guide'),
+    path('stats/', BudgetStatsView.as_view(), name='budget_stats'),
+    
+    # API های محاسباتی بودجه
+    path('api/calculations/', BudgetCalculationsOverviewAPI.as_view(), name='budget_calculations_overview'),
+    path('api/calculations/allocation/', AllocationCalculationsAPI.as_view(), name='budget_allocation_calculations'),
+    path('api/calculations/organization/', OrganizationCalculationsAPI.as_view(), name='budget_organization_calculations'),
+    path('api/calculations/project/', ProjectCalculationsAPI.as_view(), name='budget_project_calculations'),
+    path('api/calculations/subproject/', SubProjectCalculationsAPI.as_view(), name='budget_subproject_calculations'),
+    path('api/calculations/tankhah/', TankhahCalculationsAPI.as_view(), name='budget_tankhah_calculations'),
+    path('api/calculations/factor/', FactorCalculationsAPI.as_view(), name='budget_factor_calculations'),
+    path('api/calculations/utility/', UtilityCalculationsAPI.as_view(), name='budget_utility_calculations'),
+    path('api/calculations/batch/', BatchCalculationsAPI.as_view(), name='budget_batch_calculations'),
 ]

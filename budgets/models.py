@@ -365,9 +365,9 @@ class BudgetAllocation(models.Model):
             # اجازه می‌دهیم لایه فرم پیام مناسب را نشان دهد
             return
 
-        if self.budget_period_id and self.budget_item_id:
-            if self.budget_item and self.budget_item.budget_period_id != self.budget_period_id:
-                raise ValidationError(_("ردیف بودجه باید متعلق به دوره بودجه انتخاب‌شده باشد."))
+        # if self.budget_period_id and self.budget_item_id:
+        #     if self.budget_item and self.budget_item.budget_period_id != self.budget_period_id:
+        #         raise ValidationError(_("ردیف بودجه باید متعلق به دوره بودجه انتخاب‌شده باشد."))
 
         if self.budget_period_id and self.allocation_date:
             allocation_date = self.allocation_date
@@ -678,6 +678,13 @@ class BudgetTransaction(models.Model):
         return f"{self.get_transaction_type_display()} - {self.amount:,.0f} - {self.timestamp.strftime('%Y/%m/%d')}"
 # --------------------------------------
 """Payee (دریافت‌کننده):"""
+# ===== CONFIGURATION & CONSTANTS =====
+IBAN_PATTERN = r'^IR[0-9]{2}[0-9]{22}$'
+PHONE_PATTERN = r'^09[0-9]{9}$'
+NATIONAL_ID_INDIVIDUAL_PATTERN = r'^\d{10}$'
+NATIONAL_ID_LEGAL_PATTERN = r'^\d{11}$'
+ACCOUNT_NUMBER_PATTERN = r'^\d{5,20}$'
+
 class Payee(models.Model):
     ENTITY_TYPES = (
         ('INDIVIDUAL', _('شخص حقیقی')),
@@ -689,21 +696,12 @@ class Payee(models.Model):
         ('OTHER', _('سایر')),
     )
 
-    entity_type = models.CharField(max_length=30, choices=ENTITY_TYPES, verbose_name=_("ماهیت شخص"), default='INDIVIDUAL')
-    name = models.CharField(max_length=100, blank=True, null=True, verbose_name=_("نام"),
-                            help_text=_("برای اشخاص حقیقی"))
-    family = models.CharField(max_length=100, blank=True, null=True, verbose_name=_("نام خانوادگی"),
-                              help_text=_("برای اشخاص حقیقی"))
-    legal_name = models.CharField(max_length=200, blank=True, null=True, verbose_name=_("نام حقوقی"),
-                                  help_text=_("برای اشخاص حقوقی"))
-    brand_name = models.CharField(max_length=200, blank=True, null=True, verbose_name=_("نام تجاری"),
-                                  help_text=_("برای اشخاص حقوقی"))
-
-    national_id = models.CharField(
-        max_length=11,
-        blank=True,
-        null=True,
-        verbose_name=_("کد ملی/شناسه حقوقی"),
+    entity_type = models.CharField(max_length=30,choices=ENTITY_TYPES,verbose_name=_("ماهیت شخص"),default='INDIVIDUAL')
+    name = models.CharField(max_length=100, blank=True, null=True, verbose_name=_("نام"),help_text=_("برای اشخاص حقیقی"))
+    family = models.CharField(max_length=100, blank=True, null=True, verbose_name=_("نام خانوادگی"),help_text=_("برای اشخاص حقیقی"))
+    legal_name = models.CharField(max_length=200, blank=True, null=True, verbose_name=_("نام حقوقی"),help_text=_("برای اشخاص حقوقی"))
+    brand_name = models.CharField(max_length=200, blank=True, null=True, verbose_name=_("نام تجاری"),help_text=_("برای اشخاص حقوقی"))
+    national_id = models.CharField(max_length=11,blank=True,null=True,verbose_name=_("کد ملی/شناسه حقوقی"),
         validators=[
             RegexValidator(
                 regex=r'^\d{10,11}$',
@@ -712,47 +710,48 @@ class Payee(models.Model):
             )
         ]
     )
-
-
-    account_number = models.CharField(max_length=50, blank=True, null=True, verbose_name=_("شماره حساب"))
-    iban = models.CharField(max_length=34, blank=True, null=True, verbose_name=_("شبا"))
+    account_number = models.CharField(max_length=20,blank=True,null=True,verbose_name=_("شماره حساب"),
+        validators=[RegexValidator(regex=ACCOUNT_NUMBER_PATTERN, message=_("شماره حساب باید 5-20 رقم باشد."))]    )
+    iban = models.CharField(max_length=34,blank=True,null=True,verbose_name=_("شبا"),
+        validators=[RegexValidator(regex=IBAN_PATTERN, message=_("شبا باید IR + 24 رقم باشد."))]    )
     address = models.TextField(blank=True, null=True, verbose_name=_("آدرس"))
-    phone = models.CharField(max_length=20, blank=True, null=True, verbose_name=_("تلفن"))
+    phone = models.CharField(max_length=11,blank=True,null=True,verbose_name=_("تلفن"),
+        validators=[RegexValidator(regex=PHONE_PATTERN, message=_("تلفن باید 09xxxxxxxxx باشد."))]    )
     email = models.EmailField(blank=True, null=True, verbose_name=_("ایمیل"))
     tax_id = models.CharField(max_length=20, blank=True, null=True, verbose_name=_("شناسه مالیاتی"))
     payee_type = models.CharField(max_length=20, choices=PAYEE_TYPES, verbose_name=_("نوع دریافت‌کننده"))
-    created_by = models.ForeignKey(
-        'accounts.CustomUser',
-        on_delete=models.SET_NULL,
-        null=True,
-        related_name='payees_created',
-        verbose_name=_("ایجادکننده")
-    )
+    created_by = models.ForeignKey( CustomUser,on_delete=models.SET_NULL,null=True,related_name='payees_created',verbose_name=_("ایجادکننده")    )
     is_active = models.BooleanField(default=True, verbose_name=_("فعال"))
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("تاریخ ایجاد"))
+    updated_at = models.DateTimeField(auto_now=True, verbose_name=_("تاریخ بروزرسانی"))
 
     def clean(self):
-        """اعتبارسنجی فیلدها بر اساس نوع شخص"""
+        """اعتبارسنجی مدل بر اساس نوع شخص"""
+        super().clean()  # Call super for field-level validation
         if self.entity_type == 'INDIVIDUAL':
             if not (self.name and self.family):
                 raise ValidationError(_("نام و نام خانوادگی برای اشخاص حقیقی الزامی است."))
-            if self.national_id and len(self.national_id) != 10:
+            if self.national_id and len(self.national_id.replace(' ', '')) != 10:
                 raise ValidationError(_("کد ملی باید 10 رقم باشد."))
             self.legal_name = None
             self.brand_name = None
         else:  # LEGAL
             if not self.legal_name:
                 raise ValidationError(_("نام حقوقی برای اشخاص حقوقی الزامی است."))
-            if self.national_id and len(self.national_id) != 11:
+            if self.national_id and len(self.national_id.replace(' ', '')) != 11:
                 raise ValidationError(_("شناسه حقوقی باید 11 رقم باشد."))
             self.name = None
             self.family = None
 
         # اعتبارسنجی شبا
-        if self.iban and not re.match(r'^IR\d{24}$', self.iban):
-            raise ValidationError(_("شماره شبا باید با IR شروع شده و 26 کاراکتر باشد."))
+        if self.iban:
+            iban_clean = re.sub(r'\s+', '', self.iban).upper()
+            if not re.match(r'^IR[0-9]{24}$', iban_clean):
+                raise ValidationError(_("شماره شبا باید با IR شروع شده و 26 کاراکتر (IR + 24 رقم) باشد."))
+            self.iban = 'IR' + ' '.join([iban_clean[2+i:i+6] for i in range(0, 24, 4)])
 
     def save(self, *args, **kwargs):
-        self.full_clean()  # اجرای اعتبارسنجی
+        self.full_clean()  # Force validation
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -770,7 +769,7 @@ class Payee(models.Model):
             ('Payee_update', _('بروزرسانی دریافت‌کننده')),
             ('Payee_delete', _('حذف دریافت‌کننده')),
         ]
-        unique_together = [('entity_type', 'national_id')]  # جلوگیری از تکرار کد ملی/شناسه حقوقی
+        unique_together = [('entity_type', 'national_id')]
         indexes = [
             models.Index(fields=['national_id', 'entity_type']),
             models.Index(fields=['name', 'family']),

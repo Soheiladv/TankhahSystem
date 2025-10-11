@@ -98,7 +98,7 @@ urlpatterns += [
     path('factor/factor_status_dashboard/', FactorStatusDashboardView.as_view(), name='factor_status_dashboard'),
 
 ]
-
+# --- لیست دسته‌بندی‌ها ---
 urlpatterns += [
     path('categories/',  ItemCategoryListView.as_view(), name='itemcategory_list'),
     path('categories/add/', ItemCategoryCreateView.as_view(), name='itemcategory_create'),

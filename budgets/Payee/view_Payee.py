@@ -24,7 +24,7 @@ class PayeeListView(PermissionBaseView,ListView):
     template_name = 'budgets/payee/payee_list.html'
     context_object_name = 'payees'
     paginate_by = 15  # تعداد آیتم‌ها در هر صفحه
-    permission_codenames = ['budgets.Payee_view']
+    permission_codename = ['budgets.Payee_view']
     check_organization = True
     permission_denied_message = _('متاسفانه دسترسی مجاز ندارید')
 
@@ -33,7 +33,10 @@ class PayeeListView(PermissionBaseView,ListView):
         این متد برای افزودن منطق جستجو به کوئری اصلی بازنویسی شده است.
         """
         # شروع با کوئریست پایه و مرتب‌سازی بر اساس جدیدترین
-        queryset = super().get_queryset().order_by('-pk')
+        queryset = Payee.objects.all().order_by( '-pk')  # Fix: Direct from model, no super filter
+
+        # مرتب‌سازی بر اساس جدیدترین
+        queryset = queryset.order_by('-pk')
 
         # دریافت عبارت جستجو شده از پارامتر GET
         search_query = self.request.GET.get('q', '').strip()
@@ -63,94 +66,6 @@ class PayeeListView(PermissionBaseView,ListView):
         """
         context = super().get_context_data(**kwargs)
         context['search_query'] = self.request.GET.get('q', '')
-        return context
-
-class __PayeeListView(PermissionBaseView, ListView):
-    model = Payee
-    template_name = 'budgets/payee/payee_list.html'
-    context_object_name = 'payees'
-    paginate_by = 10
-    # permission_codenames = ['budgets.Payee_view']
-    # check_organization = True
-    permission_denied_message = _('متاسفانه دسترسی مجاز ندارید')
-
-    def get_queryset(self):
-        # return Payee.objects.all().order_by('legal_name', 'name', 'family')
-        queryset = super().get_queryset()
-        user = self.request.user
-
-        # بررسی دسترسی کامل کاربر
-        has_full_access = (
-            user.is_superuser or
-            user.has_perm('budgets.Payee_view') or
-            user.userpost_set.filter(
-                is_active=True,
-                post__organization__org_type__fname='HQ'
-            ).exists()
-        )
-
-        if not has_full_access:
-            # فقط داده‌های فعال برای کاربران محدود
-            queryset = queryset.filter(is_active=True)
-            logger.info(f"[PayeeListView] فیلتر is_active اعمال شد")
-        else:
-            logger.info(f"[PayeeListView] کاربر دسترسی کامل دارد - همه Payeeها نمایش داده می‌شوند")
-
-        # اعمال فیلتر جستجو
-        query = self.request.GET.get('q', '').strip()
-        payee_type = self.request.GET.get('payee_type', '').strip()
-        entity_type = self.request.GET.get('entity_type', '').strip()
-
-        if query:
-            queryset = queryset.filter(
-                Q(name__icontains=query) |
-                Q(family__icontains=query) |
-                Q(legal_name__icontains=query) |
-                Q(brand_name__icontains=query) |
-                Q(national_id__icontains=query) |
-                Q(iban__icontains=query) |
-                Q(account_number__icontains=query)
-            )
-            logger.info(f"[PayeeListView] جستجو: {query} - نتایج: {queryset.count()}")
-
-        if payee_type:
-            queryset = queryset.filter(payee_type=payee_type)
-            logger.info(f"[PayeeListView] فیلتر نوع دریافت‌کننده: {payee_type}")
-
-        if entity_type:
-            queryset = queryset.filter(entity_type=entity_type)
-            logger.info(f"[PayeeListView] فیلتر نوع شخص: {entity_type}")
-
-        # مرتب‌سازی امن
-        queryset = queryset.order_by(
-            models.Case(
-                models.When(legal_name__isnull=False, then=0),
-                default=1,
-                output_field=models.IntegerField()
-            ),
-            'legal_name', 'name', 'family'
-        )
-
-        logger.info(f"[PayeeListView] تعداد نهایی Payeeها: {queryset.count()}")
-        # logger.debug(f"[PayeeListView] SQL نهایی: {queryset.query}")
-        return queryset
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        qs = self.get_queryset()
-        total_count = qs.count()
-
-        context.update({
-            'query': self.request.GET.get('q', ''),
-            'payee_type': self.request.GET.get('payee_type', ''),
-            'entity_type': self.request.GET.get('entity_type', ''),
-            'payee_types': Payee.PAYEE_TYPES,
-            'entity_types': Payee.ENTITY_TYPES,
-            'total_count': total_count,
-            'has_results': total_count > 0,
-        })
-
-        logger.info(f"[PayeeListView] Context آماده شد - تعداد Payeeها: {total_count}")
         return context
 
 class PayeeDetailView(PermissionBaseView, DetailView):

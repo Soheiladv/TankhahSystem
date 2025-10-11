@@ -43,7 +43,7 @@ class FactorCreateView(PermissionBaseView, CreateView):
     template_name = 'tankhah/factor_form.html'
     success_url = reverse_lazy('factor_list')
     context_object_name = 'factor'
-    permission_codenames = ['tankhah.factor_add']
+    permission_codename = ['tankhah.factor_add']
     permission_denied_message = 'متاسفانه دسترسی مجاز ندارید'
     check_organization = True
 
@@ -254,7 +254,7 @@ class FactorCreateWizard(PermissionBaseView, SessionWizardView):
     ]
     # form_class =  forms_Factor.W_FactorForm
 
-    permission_codenames = ['tankhah.factor_add']
+    permission_codename = ['tankhah.factor_add']
     permission_denied_message = 'متاسفانه دسترسی مجاز ندارید'
     check_organization = True
     file_storage = FileSystemStorage(location=os.path.join(BASE_DIR, 'tmp'))  # ذخیره در پوشه tmp پروژه
@@ -462,7 +462,7 @@ class FactorCreateWizard(PermissionBaseView, SessionWizardView):
 
 class TankhahBudgetInfoAjaxView(PermissionBaseView, View):
     http_method_names = ['get']
-    permission_codenames = ['tankhah.a_factor_add'] # User needs factor add permission to see budget?
+    permission_codename = ['tankhah.a_factor_add'] # User needs factor add permission to see budget?
 
     def get(self, request, tankhah_id, *args, **kwargs):
         # Basic permission check first
@@ -594,7 +594,7 @@ class OK_NEW_FactorCreateWizardView(PermissionBaseView, SessionWizardView): # Re
     form_class = FactorForm
     success_url = reverse_lazy('factor_list')
     context_object_name = 'factor'
-    permission_codenames = ['tankhah.a_factor_add']
+    permission_codename = ['tankhah.a_factor_add']
     # permission_denied_message = 'متاسفانه دسترسی مجاز ندارید'
     check_organization = True
 
@@ -1047,7 +1047,7 @@ wizard_file_storage = FileSystemStorage(location=wizard_file_storage_location)
 
 # --- کلاس WizardView ---
 class FactorCreateWizardView(PermissionBaseView, SessionWizardView):
-    permission_codenames = ['tankhah.factor_add']
+    permission_codename = ['tankhah.factor_add']
     permission_denied_message = _('متاسفانه شما دسترسی لازم برای ایجاد فاکتور را ندارید.')
     check_organization = True # Ensure this works as expected in PermissionBaseView
     models = Factor

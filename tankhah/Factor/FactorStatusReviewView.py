@@ -25,7 +25,7 @@ class FactorStatusReviewView(PermissionBaseView, ListView):
     template_name = 'tankhah/Reports/factor_status_review_final.html'  # نام تمپلیت جدید
     context_object_name = 'factors_data'
     paginate_by = 10  # کاهش برای خوانایی بهتر با جزئیات بیشتر
-    permission_codenames = ['tankhah.factor_view']
+    permission_codename = ['tankhah.factor_view']
     check_organization = True
     permission_denied_message = _('متاسفانه دسترسی لازم برای مشاهده این گزارش را ندارید.')
 
@@ -191,7 +191,7 @@ class ComprehensiveFactorDetailView(PermissionBaseView, DetailView):
     template_name = 'tankhah/Reports/comprehensive_factor_detail.html'
     context_object_name = 'factor_data_package'
     pk_url_kwarg = 'factor_pk'
-    permission_codenames = ['tankhah.factor_view']
+    permission_codename = ['tankhah.factor_view']
     check_organization = True
 
     def get_object(self, queryset=None):
@@ -481,7 +481,7 @@ class UltimateFactorDetailView(PermissionBaseView, DetailView):
     template_name = 'tankhah/Reports/ultimate_factor_detail.html'  # یک تمپلیت جدید و جامع
     context_object_name = 'factor_package'  # نام context اصلی
     pk_url_kwarg = 'factor_pk'  # مطابق با URL شما
-    permission_codenames = ['tankhah.factor_view']  # یا مجوز دقیق‌تر
+    permission_codename = ['tankhah.factor_view']  # یا مجوز دقیق‌تر
     check_organization = True  # اجازه دهید PermissionBaseView دسترسی سازمانی را بررسی کند
 
     def get_object(self, queryset=None):
@@ -803,7 +803,7 @@ class AdvancedFactorStatusReviewView(PermissionBaseView, ListView):
     template_name = 'tankhah/Reports/factor_status_review_final_v2.html'
     context_object_name = 'factors_data_list'
     paginate_by = 10
-    permission_codenames = ['tankhah.factor_view']
+    permission_codename = ['tankhah.factor_view']
     check_organization = True
     permission_denied_message = _('متاسفانه دسترسی لازم برای مشاهده این گزارش را ندارید.')
 

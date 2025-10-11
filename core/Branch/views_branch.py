@@ -42,10 +42,10 @@ class BranchBaseMixin(PermissionBaseView): # از PermissionBaseView شما ار
 class BranchListView(BranchBaseMixin, ListView):
     template_name = 'core/branch/branch_list.html'
     context_object_name = 'branches'
-    # 💡 مجوزها: مطمئن شوید که permission_codenames به درستی ست شده است
-    # اگر در PermissionBaseView منطق لازم برای permission_codenames را دارید، نیازی به permission_required نیست
+    # 💡 مجوزها: مطمئن شوید که permission_codename به درستی ست شده است
+    # اگر در PermissionBaseView منطق لازم برای permission_codename را دارید، نیازی به permission_required نیست
     # در غیر این صورت، از permission_required = 'core.Branch_view' استفاده کنید.
-    permission_codenames = 'core.Branch_view'
+    permission_codename = 'core.Branch_view'
 
     def get_queryset(self):
         return Branch.objects.all().order_by('name')
@@ -59,7 +59,7 @@ class BranchListView(BranchBaseMixin, ListView):
 class BranchDetailView(BranchBaseMixin, DetailView):
     template_name = 'core/branch/branch_detail.html'
     context_object_name = 'branch'
-    permission_codenames = 'core.Branch_view'
+    permission_codename = 'core.Branch_view'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -71,7 +71,7 @@ class BranchCreateView(BranchBaseMixin, CreateView):
     template_name = 'core/branch/branch_form.html'
     # 💡 مشکل دوم حل شد: کلاس فرم را مستقیماً ارجاع می‌دهیم
     form_class = BranchForm
-    permission_codenames = 'core.Branch_add'
+    permission_codename = 'core.Branch_add'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -91,7 +91,7 @@ class BranchUpdateView(BranchBaseMixin, UpdateView):
     template_name = 'core/branch/branch_form.html'
     # 💡 مشکل دوم حل شد: کلاس فرم را مستقیماً ارجاع می‌دهیم
     form_class = BranchForm
-    permission_codenames = 'core.Branch_edit'
+    permission_codename = 'core.Branch_edit'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -110,7 +110,7 @@ class BranchUpdateView(BranchBaseMixin, UpdateView):
 class BranchDeleteView(BranchBaseMixin, DeleteView):
     template_name = 'core/branch/branch_confirm_delete.html'
     context_object_name = 'branch'
-    permission_codenames = 'core.Branch_delete'
+    permission_codename = 'core.Branch_delete'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

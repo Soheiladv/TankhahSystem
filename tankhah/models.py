@@ -152,145 +152,104 @@ class Tankhah(models.Model):
         subproject_str = f" ({self.subproject.name})" if self.subproject else ''
         return f"{self.number} - {project_str}{subproject_str} - {self.amount:,.0f} "
 
-    def get_remaining_budget(self):
-        remaining = Decimal('0')
-        from budgets.budget_calculations import get_subproject_remaining_budget, get_project_remaining_budget
-        if self.project_budget_allocation:
-            remaining = self.project_budget_allocation.get_remaining_amount()
-        elif self.subproject:
-            remaining = get_subproject_remaining_budget(self.subproject)
-        elif self.project:
-            remaining = get_project_remaining_budget(self.project)
-        else:
-            logger.warning(f"No budget source for Tankhah {self.number}")
-            return remaining
+    # def update_remaining_budget(self):
+    #     self.remaining_budget = self.get_remaining_budget()
 
-        from core.models import SystemSettings
-        settings = SystemSettings.objects.first()
-        if self.is_payment_ceiling_enabled and self.payment_ceiling is not None:
-            remaining = min(remaining, self.payment_ceiling)
-        elif settings and settings.tankhah_payment_ceiling_enabled_default and settings.tankhah_payment_ceiling_default is not None:
-            remaining = min(remaining, settings.tankhah_payment_ceiling_default)
+    # def clean(self):
+    #     super().clean()
+    #
+    #     if self.amount is None:
+    #         raise ValidationError({"amount": _("مبلغ تنخواه اجباری است.")})
+    #
+    #     if self.amount <= 0:
+    #         raise ValidationError({"amount": _("مبلغ تنخواه باید مثبت باشد.")})
+    #
+    #     if self.subproject and self.project and self.subproject.project != self.project:
+    #         raise ValidationError({"subproject": _("زیرپروژه باید متعلق به پروژه انتخاب‌شده باشد.")})
+    #
+    #     if self.project_budget_allocation and self.project and self.project_budget_allocation.project != self.project:
+    #         raise ValidationError({"project_budget_allocation": _("تخصیص بودجه باید متعلق به پروژه انتخاب‌شده باشد.")})
+    #
+    #     remaining = self.get_remaining_budget()
+    #
+    #     if not self.pk:
+    #         remaining_budget = self.get_remaining_budget()
+    #         if self.amount > remaining_budget:
+    #             raise ValidationError(
+    #                 _(f"مبلغ تنخواه ({self.amount:,.0f} ریال) بیشتر از بودجه باقی‌مانده ({remaining:,.0f} ریال) است.")
+    #             )
 
-        return remaining
-
-    def update_remaining_budget(self):
-        self.remaining_budget = self.get_remaining_budget()
-
-    def clean(self):
-        super().clean()
-
-        if self.amount is None:
-            raise ValidationError({"amount": _("مبلغ تنخواه اجباری است.")})
-
-        if self.amount <= 0:
-            raise ValidationError({"amount": _("مبلغ تنخواه باید مثبت باشد.")})
-
-        if self.subproject and self.project and self.subproject.project != self.project:
-            raise ValidationError({"subproject": _("زیرپروژه باید متعلق به پروژه انتخاب‌شده باشد.")})
-
-        if self.project_budget_allocation and self.project and self.project_budget_allocation.project != self.project:
-            raise ValidationError({"project_budget_allocation": _("تخصیص بودجه باید متعلق به پروژه انتخاب‌شده باشد.")})
-
-        remaining = self.get_remaining_budget()
-
-        if not self.pk:
-            remaining_budget = self.get_remaining_budget()
-            if self.amount > remaining_budget:
-                raise ValidationError(
-                    _(f"مبلغ تنخواه ({self.amount:,.0f} ریال) بیشتر از بودجه باقی‌مانده ({remaining:,.0f} ریال) است.")
-                )
-
-    def save(self, *args, **kwargs):
-        from budgets.budget_calculations import create_budget_transaction
-        from budgets.models import BudgetAllocation
-        with transaction.atomic():
-            if not self.number:
-                self.number = self.generate_number()
-
-            if self.project_budget_allocation:
-                try:
-                    allocation = BudgetAllocation.objects.get(id=self.project_budget_allocation.id, is_active=True)
-                except BudgetAllocation.DoesNotExist:
-                    raise ValidationError(_("تخصیص بودجه معتبر نیست یا غیرفعال است."))
-            else:
-                raise ValidationError(_("تخصیص بودجه پروژه اجباری است."))
-
-            self.update_remaining_budget()
-            self.clean()
-
-            if self.status in ['APPROVED', 'PAID'] and not self.is_locked:
-                if self.status == 'PAID':
-                    create_budget_transaction(
-                        allocation=self.project_budget_allocation,
-                        transaction_type='CONSUMPTION',
-                        amount=self.amount,
-                        related_obj=self,
-                        created_by=self.created_by,
-                        description=f"Tankhah {self.number} for project {self.project.id}",
-                        transaction_id=f"TX-TNK-CONS-{self.number}"
-                    )
-                    self.is_locked = True
-
-            if self.status == 'REJECTED':
-                from core.models import Status
-                initial_stage = Status.objects.filter(is_initial=True).first()
-                if self.current_stage == initial_stage:
-                    factors = Factor.objects.filter(tankhah=self, is_finalized=True)
-                    factors.update(is_finalized=False, locked=False)
-                    target_allocation = BudgetAllocation.objects.filter(organization__is_core=True).first()
-                    if target_allocation:
-                        create_budget_transaction(
-                            allocation=self.project_budget_allocation,
-                            transaction_type='TRANSFER',
-                            amount=self.amount,
-                            related_obj=self,
-                            created_by=self.created_by,
-                            description=f"انتقال بودجه به دلیل رد تنخواه {self.number}",
-                            transaction_id=f"TX-TNK-XFER-{self.number}",
-                            target_allocation=target_allocation
-                        )
-                    else:
-                        create_budget_transaction(
-                            allocation=self.project_budget_allocation,
-                            transaction_type='RETURN',
-                            amount=self.amount,
-                            related_obj=self,
-                            created_by=self.created_by,
-                            description=f"بازگشت بودجه به دلیل رد تنخواه {self.number}",
-                            transaction_id=f"TX-TNK-RET-{self.number}"
-                        )
-                    self.is_locked = False
-
-            is_active = False if (
-                    self.project_budget_allocation and (
-                    self.project_budget_allocation.is_locked or
-                    self.project_budget_allocation.budget_period.is_locked
-            )
-            ) else True
-            self.is_active = is_active
-
-            super().save(*args, **kwargs)
-            logger.info(f"Tankhah saved 👍with ID: {self.pk}")
-
-    def generate_number(self):
-        sep = NUMBER_SEPARATOR
-        import jdatetime
-        jalali_date = jdatetime.datetime.fromgregorian(datetime=self.date).strftime('%Y%m%d')
-        org_code = self.organization.code
-        project_code = self.project.code if self.project else 'NOPRJ'
-
-        with transaction.atomic():
-            max_serial = Tankhah.objects.filter(
-                organization=self.organization,
-                date__date=self.date.date()
-            ).aggregate(Max('number'))['number__max']
-            serial = 1 if not max_serial else int(max_serial.split(sep)[-1]) + 1
-            new_number = f"TNKH{sep}{jalali_date}{sep}{org_code}{sep}{project_code}{sep}{serial:03d}"
-            while Tankhah.objects.filter(number=new_number).exists():
-                serial += 1
-                new_number = f"TNKH{sep}{jalali_date}{sep}{org_code}{sep}{project_code}{sep}{serial:03d}"
-            return new_number
+    # def save(self, *args, **kwargs):
+    #     from budgets.budget_calculations import create_budget_transaction
+    #     from budgets.models import BudgetAllocation
+    #     with transaction.atomic():
+    #         if not self.number:
+    #             self.number = self.generate_number()
+    #
+    #         if self.project_budget_allocation:
+    #             try:
+    #                 allocation = BudgetAllocation.objects.get(id=self.project_budget_allocation.id, is_active=True)
+    #             except BudgetAllocation.DoesNotExist:
+    #                 raise ValidationError(_("تخصیص بودجه معتبر نیست یا غیرفعال است."))
+    #         else:
+    #             raise ValidationError(_("تخصیص بودجه پروژه اجباری است."))
+    #
+    #         self.update_remaining_budget()
+    #         self.clean()
+    #
+    #         if self.status in ['APPROVED', 'PAID'] and not self.is_locked:
+    #             if self.status == 'PAID':
+    #                 create_budget_transaction(
+    #                     allocation=self.project_budget_allocation,
+    #                     transaction_type='CONSUMPTION',
+    #                     amount=self.amount,
+    #                     related_obj=self,
+    #                     created_by=self.created_by,
+    #                     description=f"Tankhah {self.number} for project {self.project.id}",
+    #                     transaction_id=f"TX-TNK-CONS-{self.number}"
+    #                 )
+    #                 self.is_locked = True
+    #
+    #         if self.status == 'REJECTED':
+    #             from core.models import Status
+    #             initial_stage = Status.objects.filter(is_initial=True).first()
+    #             if self.current_stage == initial_stage:
+    #                 factors = Factor.objects.filter(tankhah=self, is_finalized=True)
+    #                 factors.update(is_finalized=False, locked=False)
+    #                 target_allocation = BudgetAllocation.objects.filter(organization__is_core=True).first()
+    #                 if target_allocation:
+    #                     create_budget_transaction(
+    #                         allocation=self.project_budget_allocation,
+    #                         transaction_type='TRANSFER',
+    #                         amount=self.amount,
+    #                         related_obj=self,
+    #                         created_by=self.created_by,
+    #                         description=f"انتقال بودجه به دلیل رد تنخواه {self.number}",
+    #                         transaction_id=f"TX-TNK-XFER-{self.number}",
+    #                         target_allocation=target_allocation
+    #                     )
+    #                 else:
+    #                     create_budget_transaction(
+    #                         allocation=self.project_budget_allocation,
+    #                         transaction_type='RETURN',
+    #                         amount=self.amount,
+    #                         related_obj=self,
+    #                         created_by=self.created_by,
+    #                         description=f"بازگشت بودجه به دلیل رد تنخواه {self.number}",
+    #                         transaction_id=f"TX-TNK-RET-{self.number}"
+    #                     )
+    #                 self.is_locked = False
+    #
+    #         is_active = False if (
+    #                 self.project_budget_allocation and (
+    #                 self.project_budget_allocation.is_locked or
+    #                 self.project_budget_allocation.budget_period.is_locked
+    #         )
+    #         ) else True
+    #         self.is_active = is_active
+    #
+    #         super().save(*args, **kwargs)
+    #         logger.info(f"Tankhah saved 👍with ID: {self.pk}")
 
     def process_approved_factors(self, user):
         processed_count = 0
@@ -378,8 +337,171 @@ class Tankhah(models.Model):
             next_posts = list(next_stage.posts.all())  # فرض بر این است که هر Stage دارای psts مرتبط است
 
         return next_posts
+# =========================================================================
 
+    # -------------------------------
+    # 🧮 بودجه و سقف پرداخت
+    # -------------------------------
+    def get_remaining_budget(self):
+        """محاسبه بودجه باقی‌مانده از منبع مربوطه"""
+        remaining = Decimal('0')
+        from budgets.budget_calculations import (
+            get_subproject_remaining_budget,
+            get_project_remaining_budget
+        )
 
+        if self.project_budget_allocation:
+            remaining = self.project_budget_allocation.get_remaining_amount()
+        elif self.subproject:
+            remaining = get_subproject_remaining_budget(self.subproject)
+        elif self.project:
+            remaining = get_project_remaining_budget(self.project)
+        else:
+            logger.warning(f"⚠️ Tankhah {self.number}: منبع بودجه یافت نشد.")
+            return remaining
+
+        from core.models import SystemSettings
+        settings = SystemSettings.objects.first()
+
+        if self.is_payment_ceiling_enabled and self.payment_ceiling is not None:
+            remaining = min(remaining, self.payment_ceiling)
+        elif settings and settings.tankhah_payment_ceiling_enabled_default and settings.tankhah_payment_ceiling_default:
+            remaining = min(remaining, settings.tankhah_payment_ceiling_default)
+
+        return remaining
+
+    def update_remaining_budget(self):
+        self.remaining_budget = self.get_remaining_budget()
+
+    # -------------------------------
+    # ✅ اعتبارسنجی امن
+    # -------------------------------
+    def clean(self):
+        super().clean()
+
+        # 🚫 رد اعتبارسنجی اگر سرویس علامت زده باشد
+        if getattr(self, "_skip_validation", False):
+            logger.debug(f"⏩ Skipping validation for Tankhah {self.number or 'NEW'}")
+            return
+
+        if self.amount is None:
+            raise ValidationError({"amount": _("مبلغ تنخواه اجباری است.")})
+
+        if self.amount <= 0:
+            raise ValidationError({"amount": _("مبلغ تنخواه باید مثبت باشد.")})
+
+        if self.subproject and self.project and self.subproject.project != self.project:
+            raise ValidationError({"subproject": _("زیرپروژه باید متعلق به پروژه انتخاب‌شده باشد.")})
+
+        if self.project_budget_allocation and self.project and \
+                self.project_budget_allocation.project != self.project:
+            raise ValidationError({"project_budget_allocation": _("تخصیص بودجه باید متعلق به پروژه انتخاب‌شده باشد.")})
+
+        # فقط در حالت ساخت جدید بررسی بودجه انجام شود
+        if not self.pk:
+            remaining = self.get_remaining_budget()
+            if self.amount > remaining:
+                raise ValidationError(
+                    _(f"مبلغ تنخواه ({self.amount:,.0f} ریال) بیشتر از بودجه باقی‌مانده ({remaining:,.0f} ریال) است.")
+                )
+
+    # -------------------------------
+    # 💾 ذخیره با کنترل بودجه و تراکنش
+    # -------------------------------
+    def save(self, *args, **kwargs):
+        from budgets.budget_calculations import create_budget_transaction
+        from budgets.models import BudgetAllocation
+
+        with transaction.atomic():
+            # شماره خودکار
+            if not self.number:
+                self.number = self.generate_number()
+
+            # بررسی تخصیص معتبر
+            if not self.project_budget_allocation:
+                raise ValidationError(_("تخصیص بودجه پروژه اجباری است."))
+
+            try:
+                allocation = BudgetAllocation.objects.get(
+                    id=self.project_budget_allocation.id,
+                    is_active=True
+                )
+            except BudgetAllocation.DoesNotExist:
+                raise ValidationError(_("تخصیص بودجه معتبر نیست یا غیرفعال است."))
+
+            # محاسبه بودجه فعلی
+            self.update_remaining_budget()
+
+            # اگر از سرویس آمد، اعتبارسنجی تکراری را رد کن
+            if not getattr(self, "_skip_validation", False):
+                self.clean()
+
+            # 🔹 ایجاد تراکنش در وضعیت پرداخت‌شده
+            if self.status and self.status.code == 'PAID' and not self.is_locked:
+                create_budget_transaction(
+                    allocation=self.project_budget_allocation,
+                    transaction_type='CONSUMPTION',
+                    amount=self.amount,
+                    related_obj=self,
+                    created_by=self.created_by,
+                    description=f"مصرف بودجه برای تنخواه {self.number}",
+                    transaction_id=f"TX-TNK-CONS-{self.number}"
+                )
+                self.is_locked = True
+
+            super().save(*args, **kwargs)
+            logger.info(f"✅ Tankhah {self.number} ذخیره شد (ID={self.pk})")
+
+    # -------------------------------
+    # 🔢 شماره‌گذاری خودکار
+    # -------------------------------
+    def generate_number(self):
+        sep = NUMBER_SEPARATOR
+        import jdatetime
+
+        sep = NUMBER_SEPARATOR
+        jalali_date = jdatetime.datetime.fromgregorian(datetime=self.date).strftime('%Y%m%d')
+        org_code = self.organization.code
+        project_code = self.project.code if self.project else 'NOPRJ'
+
+        with transaction.atomic():
+            max_serial = Tankhah.objects.filter(
+                organization=self.organization,
+                date__date=self.date.date()
+            ).aggregate(Max('number'))['number__max']
+
+            serial = 1 if not max_serial else int(max_serial.split(sep)[-1]) + 1
+            new_number = f"TNKH{sep}{jalali_date}{sep}{org_code}{sep}{project_code}{sep}{serial:03d}"
+
+            while Tankhah.objects.filter(number=new_number).exists():
+                serial += 1
+                new_number = f"TNKH{sep}{jalali_date}{sep}{org_code}{sep}{project_code}{sep}{serial:03d}"
+
+            return new_number
+
+    # def get_remaining_budget(self):
+
+    #     remaining = Decimal('0')
+    #     from budgets.budget_calculations import get_subproject_remaining_budget, get_project_remaining_budget
+    #     if self.project_budget_allocation:
+    #         remaining = self.project_budget_allocation.get_remaining_amount()
+    #     elif self.subproject:
+    #         remaining = get_subproject_remaining_budget(self.subproject)
+    #     elif self.project:
+    #         remaining = get_project_remaining_budget(self.project)
+    #     else:
+    #         logger.warning(f"No budget source for Tankhah {self.number}")
+    #         return remaining
+    #
+    #     from core.models import SystemSettings
+    #     settings = SystemSettings.objects.first()
+    #     if self.is_payment_ceiling_enabled and self.payment_ceiling is not None:
+    #         remaining = min(remaining, self.payment_ceiling)
+    #     elif settings and settings.tankhah_payment_ceiling_enabled_default and settings.tankhah_payment_ceiling_default is not None:
+    #         remaining = min(remaining, settings.tankhah_payment_ceiling_default)
+    #
+    #     return remaining
+# =========================================================================
 class TankhActionType(models.Model):
     action_type = models.CharField(max_length=25, verbose_name=_('انواع  اقدام'))
     code = models.CharField(max_length=50, unique=True, verbose_name=_('تایپ'))
@@ -399,7 +521,6 @@ class TankhActionType(models.Model):
 
     def __str__(self):
         return self.action_type
-
 class TankhahAction(models.Model):  # صدور دستور پرداخت
     tankhah = models.ForeignKey(Tankhah, on_delete=models.CASCADE, related_name='actions', verbose_name=_("تنخواه"))
     amount = models.DecimalField(max_digits=25, decimal_places=2, null=True, blank=True,
@@ -984,7 +1105,6 @@ class Factor(models.Model):
             ('factor_approval_path', _('بررسی مسیر تایید/رد فاکتور⛓️‍💥')),
         ]
 
-
 class FactorItem(models.Model):
     factor = models.ForeignKey(Factor, on_delete=models.CASCADE, related_name='items', verbose_name=_("فاکتور"))
     description = models.CharField(max_length=255, verbose_name=_("شرح ردیف"))
@@ -1256,6 +1376,7 @@ class ItemCategory(models.Model):
             ('ItemCategory_view', 'نمایش دسته بندی نوع هزینه کرد'),
             ('ItemCategory_delete', 'حــذف دسته بندی نوع هزینه کرد'),
         ]
+
 class Dashboard_Tankhah(models.Model):
     class Meta:
         default_permissions = ()

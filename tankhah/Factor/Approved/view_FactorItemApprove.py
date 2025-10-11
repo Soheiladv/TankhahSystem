@@ -61,7 +61,7 @@ class FactorApproveView(PermissionBaseView, UpdateView):
         form_class = FactorApprovalForm  # فرض بر وجود این فرم
         template_name = 'tankhah/factor_approval.html'
         success_url = reverse_lazy('factor_list')
-        permission_codenames = ['tankhah.factor_view', 'tankhah.factor_update']
+        permission_codename = ['tankhah.factor_view', 'tankhah.factor_update']
 
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
@@ -125,7 +125,7 @@ class FactorItemApproveViewOLD(PermissionBaseView, DetailView):
     model = Factor
     template_name = 'tankhah/Approved/factor_item_approve_final.html'
     context_object_name = 'factor'
-    permission_codenames = ['tankhah.factor_approve']
+    permission_codename = ['tankhah.factor_approve']
 
     # --------------------------------------------------------------------------
     # ۱. متدهای اصلی View
@@ -461,7 +461,7 @@ class FactorItemApproveViewdadsasdasdasdasdasd(PermissionBaseView, DetailView):
     model = Factor
     template_name = 'tankhah/Approved/factor_item_approve_final.html'
     context_object_name = 'factor'
-    permission_codenames = ['tankhah.factor_approve']
+    permission_codename = ['tankhah.factor_approve']
 
     def get_context_data(self, **kwargs):
         """
@@ -648,7 +648,7 @@ class FactorItemApproveView(PermissionBaseView, DetailView):
     model = Factor
     template_name = 'tankhah/Approved/factor_item_approve_final.html'
     context_object_name = 'factor'
-    permission_codenames = ['tankhah.factor_approve']
+    permission_codename = ['tankhah.factor_approve']
 
     # --------------------------------------------------------------------------
     # ۱. متدهای اصلی View

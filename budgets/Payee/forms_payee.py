@@ -98,24 +98,7 @@ class PayeeForm(forms.ModelForm):
             if field_name != 'is_active' and 'class' not in field.widget.attrs:
                 field.widget.attrs['class'] = 'form-control'
 
-    def clean_national_id(self):
-        national_id = self.cleaned_data.get('national_id', '')
-        entity_type = self.cleaned_data.get('entity_type')
-
-        if national_id:
-            national_id = ''.join(filter(str.isdigit, national_id))
-            if entity_type == 'INDIVIDUAL':
-                if len(national_id) != 10:
-                    raise forms.ValidationError(_("کد ملی باید دقیقاً 10 رقم باشد."))
-                if not self.validate_national_code(national_id):
-                    raise forms.ValidationError(_("کد ملی معتبر نیست."))
-            elif entity_type == 'LEGAL':
-                if len(national_id) != 11:
-                    raise forms.ValidationError(_("شناسه حقوقی باید دقیقاً 11 رقم باشد."))
-                if not self.validate_legal_code(national_id):
-                    raise forms.ValidationError(_("شناسه حقوقی معتبر نیست."))
-        return national_id
-
+    # ===== UTILITY FUNCTIONS (Validators) =====
     def validate_national_code(self, code):
         if len(code) != 10 or code == code[0] * 10:
             return False
@@ -134,16 +117,45 @@ class PayeeForm(forms.ModelForm):
             remainder = 0
         return remainder == int(code[10])
 
+    def validate_iranian_phone(self, phone):
+        pattern = r'^0(9[0-9]{9})$'
+        return re.match(pattern, phone) is not None
+
+    # ===== CORE BUSINESS LOGIC / SERVICES (Clean Methods) =====
+    def clean_national_id(self):
+        national_id = self.cleaned_data.get('national_id')
+        if national_id is None:
+            national_id = ''  # Handle None explicitly
+        national_id = ''.join(filter(str.isdigit, national_id.strip()))
+        entity_type = self.cleaned_data.get('entity_type')
+
+        if national_id:
+            if entity_type == 'INDIVIDUAL':
+                if len(national_id) != 10:
+                    raise forms.ValidationError(_("کد ملی باید دقیقاً 10 رقم باشد."))
+                if not self.validate_national_code(national_id):
+                    raise forms.ValidationError(_("کد ملی معتبر نیست."))
+            elif entity_type == 'LEGAL':
+                if len(national_id) != 11:
+                    raise forms.ValidationError(_("شناسه حقوقی باید دقیقاً 11 رقم باشد."))
+                if not self.validate_legal_code(national_id):
+                    raise forms.ValidationError(_("شناسه حقوقی معتبر نیست."))
+        return national_id
+
     def clean_account_number(self):
-        account_number = self.cleaned_data.get('account_number', '')
-        if account_number:
-            account_number = ''.join(filter(str.isdigit, account_number))
-            if len(account_number) < 5 or len(account_number) > 20:
-                raise forms.ValidationError(_("شماره حساب باید بین 5 تا 20 رقم باشد."))
+        account_number = self.cleaned_data.get('account_number')
+        if account_number is None:
+            account_number = ''
+        account_number = ''.join(filter(str.isdigit, account_number.strip()))
+        if account_number and (len(account_number) < 5 or len(account_number) > 20):
+            raise forms.ValidationError(_("شماره حساب باید بین 5 تا 20 رقم باشد."))
         return account_number
 
     def clean_iban(self):
-        iban = self.cleaned_data.get('iban', '').strip().upper()
+        iban = self.cleaned_data.get('iban')
+        if iban is None:
+            iban = ''  # Fix: Handle None explicitly
+        iban = iban.strip().upper()
         if iban:
             # حذف فاصله‌ها و کاراکترهای غیرمجاز
             iban = ''.join(filter(str.isdigit, iban))
@@ -155,9 +167,11 @@ class PayeeForm(forms.ModelForm):
         return iban
 
     def clean_phone(self):
-        phone = self.cleaned_data.get('phone', '')
+        phone = self.cleaned_data.get('phone')
+        if phone is None:
+            phone = ''
+        phone = ''.join(filter(str.isdigit, phone.strip()))
         if phone:
-            phone = ''.join(filter(str.isdigit, phone))
             if phone.startswith('98'):
                 phone = '0' + phone[2:]
             elif phone.startswith('+98'):
@@ -169,12 +183,8 @@ class PayeeForm(forms.ModelForm):
                 return formatted_phone
         return phone
 
-    def validate_iranian_phone(self, phone):
-        pattern = r'^0(9[0-9]{9})$'
-        return re.match(pattern, phone) is not None
-
     def clean(self):
-        cleaned_data = super().clean()
+        cleaned_data = super().clean()  # Fix: Call super to propagate errors
         entity_type = cleaned_data.get('entity_type')
         name = cleaned_data.get('name')
         family = cleaned_data.get('family')

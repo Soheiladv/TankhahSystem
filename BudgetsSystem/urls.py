@@ -56,28 +56,3 @@ urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 urlpatterns +=[
     path('usb-key-validator/', include('usb_key_validator.urls')),
 ]# validate_usb_key
-
-# path('tanbakhs/',  DashboardView.as_view(), name='dashboard'),
-# path('', Tanbakhsystem_DashboardView.as_view(), name='dashboard'),  # داشبورد به عنوان صفحه اصلی
-# path('', IndexView.as_view(), name='index'),
-# path('projects/', ProjectListView.as_view(), name='project_list'),
-# path('projects/<int:pk>/', ProjectDetailView.as_view(), name='project_detail'),
-# path('tanbakhs/<int:pk>/', TanbakhDetailView.as_view(), name='tanbakh_detail'),
-# path('login/', LoginView.as_view(template_name='registration/login.html'), name='login'),
-# path('logout/', LogoutView.as_view(next_page='login'), name='logout'),
-
-# path('all_links', AllLinksView.as_view(),name='all_links'),  # اضافه کردن اپلیکیشن tanbakh
-# path('dashboard/', DashboardView.as_view(), name='dashboard'),
-# path('', Tanbakhsystem_DashboardView.as_view(), name='dashboard'),
-# path('', DashboardView.as_view(), name='dashboard_flows'),
-#
-# urlpatterns += [
-
-    #     path('inbox/notifications/', include('notifications.urls', namespace='notifications')),
-#     path('notifications/inbox/', notifications_inbox, name='notifications_inbox'),
-#     path('notifications/delete/<int:notification_id>/', delete_notification, name='delete_notification'),
-#     path('notifications/unread/', unread_notifications, name='unread'),
-#     #
-#     path('notifications/get-notifications/', get_notifications, name='get_notifications'),
-#
- # ]

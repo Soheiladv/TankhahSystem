@@ -118,8 +118,8 @@ def dashboard_view(request):
             "title": "تنطیمات سامانه",
             "icon": "fas fa-user-tag",
             "items": [
-                {'name': '  نتنظیمات ساماه (SystemSettings)' , 'url': 'system_settings_dashboard',
-                 'icon': 'fas fa-sliders-h'},
+                {'label': '  نتنظیمات سامانه (SystemSettings)' , 'url': 'system_settings_dashboard',
+                 'icon': 'fas fa-sliders-h', "color": "secondary"},
             ],
         },
         {
@@ -890,7 +890,7 @@ def get_cities(request):
     return JsonResponse(list(cities), safe=False)
 
 class ProfileUpdateView(PermissionBaseView):
-    permission_codenames = ['users_update_userprofile']
+    permission_codename = ['users_update_userprofile']
     check_organization = False
     form_class = ProfileUpdateForm
     template_name = 'accounts/users/profile_update.html'

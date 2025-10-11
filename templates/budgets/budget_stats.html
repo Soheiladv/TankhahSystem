@@ -1,0 +1,324 @@
+{% extends "base.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "آمار سیستم بودجه" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stats-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    
+    .stats-header {
+        text-align: center;
+        margin-bottom: 30px;
+        padding: 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 10px;
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .stat-card {
+        background: white;
+        padding: 25px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        border-left: 4px solid #667eea;
+        transition: transform 0.3s ease;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .stat-card h3 {
+        color: #495057;
+        margin-bottom: 15px;
+        font-size: 1.3rem;
+    }
+    
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: bold;
+        color: #667eea;
+        margin-bottom: 10px;
+    }
+    
+    .stat-label {
+        color: #6c757d;
+        font-size: 0.9rem;
+        margin-bottom: 5px;
+    }
+    
+    .stat-change {
+        font-size: 0.8rem;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-weight: bold;
+    }
+    
+    .stat-change.positive {
+        background: #d4edda;
+        color: #155724;
+    }
+    
+    .stat-change.negative {
+        background: #f8d7da;
+        color: #721c24;
+    }
+    
+    .stat-change.neutral {
+        background: #e2e3e5;
+        color: #383d41;
+    }
+    
+    .amount-display {
+        font-family: 'Courier New', monospace;
+        font-size: 1.1rem;
+        color: #495057;
+    }
+    
+    .chart-container {
+        background: white;
+        padding: 25px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        margin-bottom: 30px;
+    }
+    
+    .chart-title {
+        color: #495057;
+        margin-bottom: 20px;
+        font-size: 1.4rem;
+        border-bottom: 2px solid #e9ecef;
+        padding-bottom: 10px;
+    }
+    
+    .progress-bar {
+        height: 20px;
+        background: #e9ecef;
+        border-radius: 10px;
+        overflow: hidden;
+        margin: 10px 0;
+    }
+    
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #667eea, #764ba2);
+        border-radius: 10px;
+        transition: width 0.3s ease;
+    }
+    
+    .legend {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 10px;
+        font-size: 0.9rem;
+        color: #6c757d;
+    }
+    
+    .refresh-btn {
+        background: #667eea;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background 0.3s ease;
+    }
+    
+    .refresh-btn:hover {
+        background: #5a6fd8;
+    }
+    
+    @media (max-width: 768px) {
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="stats-container">
+    <!-- Header -->
+    <div class="stats-header">
+        <h1>{% trans "آمار سیستم مدیریت بودجه" %}</h1>
+        <p>{% trans "آمار زنده و به‌روز از عملکرد سیستم" %}</p>
+        <button class="refresh-btn" onclick="location.reload()">
+            <i class="fas fa-sync-alt"></i> {% trans "به‌روزرسانی" %}
+        </button>
+    </div>
+
+    {% if stats %}
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+        <!-- Periods Stats -->
+        <div class="stat-card">
+            <h3><i class="fas fa-calendar-alt"></i> {% trans "دوره‌های بودجه" %}</h3>
+            <div class="stat-number">{{ stats.periods.total }}</div>
+            <div class="stat-label">{% trans "کل دوره‌ها" %}</div>
+            <div class="stat-change positive">+{{ stats.periods.active }} {% trans "فعال" %}</div>
+            <div class="stat-change neutral">{{ stats.periods.completed }} {% trans "تمام‌شده" %}</div>
+        </div>
+
+        <!-- Allocations Stats -->
+        <div class="stat-card">
+            <h3><i class="fas fa-list-ol"></i> {% trans "تخصیص‌های بودجه" %}</h3>
+            <div class="stat-number">{{ stats.allocations.total }}</div>
+            <div class="stat-label">{% trans "کل تخصیص‌ها" %}</div>
+            <div class="stat-change positive">+{{ stats.allocations.active }} {% trans "فعال" %}</div>
+            <div class="stat-change negative">{{ stats.allocations.locked }} {% trans "قفل‌شده" %}</div>
+        </div>
+
+        <!-- Transactions Stats -->
+        <div class="stat-card">
+            <h3><i class="fas fa-exchange-alt"></i> {% trans "تراکنش‌ها" %}</h3>
+            <div class="stat-number">{{ stats.transactions.total }}</div>
+            <div class="stat-label">{% trans "کل تراکنش‌ها" %}</div>
+            <div class="stat-change positive">+{{ stats.transactions.returns }} {% trans "برگشت" %}</div>
+            <div class="stat-change neutral">{{ stats.transactions.consumptions }} {% trans "مصرف" %}</div>
+        </div>
+
+        <!-- Amounts Stats -->
+        <div class="stat-card">
+            <h3><i class="fas fa-money-bill-wave"></i> {% trans "مبالغ مالی" %}</h3>
+            <div class="stat-number amount-display">{{ stats.amounts.total_allocated|floatformat:0 }}</div>
+            <div class="stat-label">{% trans "کل تخصیص‌ها (ریال)" %}</div>
+            <div class="stat-change positive">+{{ stats.amounts.total_returned|floatformat:0 }} {% trans "برگشتی" %}</div>
+            <div class="stat-change negative">-{{ stats.amounts.total_consumed|floatformat:0 }} {% trans "مصرف‌شده" %}</div>
+        </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="chart-container">
+        <h3 class="chart-title"><i class="fas fa-chart-pie"></i> {% trans "نسبت تخصیص‌ها" %}</h3>
+        
+        {% if stats.amounts.total_allocated > 0 %}
+        {% widthratio stats.amounts.total_consumed stats.amounts.total_allocated 100 as consumed_percent %}
+        {% widthratio stats.amounts.total_returned stats.amounts.total_allocated 100 as returned_percent %}
+        
+        <div class="progress-bar">
+            <div class="progress-fill" style="width: {{ consumed_percent }}%"></div>
+        </div>
+        <div class="legend">
+            <span>{% trans "مصرف‌شده" %}: {{ consumed_percent }}%</span>
+            <span>{% trans "باقی‌مانده" %}: {% widthratio stats.amounts.total_allocated|add:stats.amounts.total_returned|add:"-"|add:stats.amounts.total_consumed stats.amounts.total_allocated 100 %}%</span>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="chart-container">
+        <h3 class="chart-title"><i class="fas fa-chart-bar"></i> {% trans "وضعیت دوره‌های بودجه" %}</h3>
+        
+        {% if stats.periods.total > 0 %}
+        {% widthratio stats.periods.active stats.periods.total 100 as active_percent %}
+        {% widthratio stats.periods.completed stats.periods.total 100 as completed_percent %}
+        
+        <div class="progress-bar">
+            <div class="progress-fill" style="width: {{ active_percent }}%; background: linear-gradient(90deg, #28a745, #20c997);"></div>
+        </div>
+        <div class="legend">
+            <span>{% trans "فعال" %}: {{ active_percent }}%</span>
+            <span>{% trans "تمام‌شده" %}: {{ completed_percent }}%</span>
+        </div>
+        {% endif %}
+    </div>
+
+    {% else %}
+    <!-- No Stats Available -->
+    <div class="stat-card">
+        <h3><i class="fas fa-exclamation-triangle"></i> {% trans "آمار در دسترس نیست" %}</h3>
+        <p>{% trans "در حال حاضر امکان نمایش آمار وجود ندارد. لطفاً بعداً تلاش کنید." %}</p>
+    </div>
+    {% endif %}
+
+    <!-- Test Files Status -->
+    <div class="chart-container">
+        <h3 class="chart-title"><i class="fas fa-vial"></i> {% trans "وضعیت فایل‌های تست" %}</h3>
+        
+        {% for test_file in test_files %}
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #e9ecef;">
+            <div>
+                <strong>{{ test_file.name }}</strong>
+                <br>
+                <small class="text-muted">{{ test_file.description }}</small>
+            </div>
+            <div>
+                {% if test_file.status == 'success' %}
+                <span class="badge bg-success">{% trans "موفق" %}</span>
+                {% elif test_file.status == 'error' %}
+                <span class="badge bg-danger">{% trans "خطا" %}</span>
+                {% else %}
+                <span class="badge bg-warning">{% trans "نامشخص" %}</span>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- API Endpoints -->
+    <div class="chart-container">
+        <h3 class="chart-title"><i class="fas fa-code"></i> {% trans "API های موجود" %}</h3>
+        
+        {% for api in api_endpoints %}
+        <div style="padding: 15px; background: #f8f9fa; border-radius: 5px; margin: 10px 0;">
+            <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                {% if api.method == 'GET' %}
+                <span class="badge bg-success" style="margin-left: 10px;">{{ api.method }}</span>
+                {% elif api.method == 'POST' %}
+                <span class="badge bg-primary" style="margin-left: 10px;">{{ api.method }}</span>
+                {% elif api.method == 'PUT' %}
+                <span class="badge bg-warning" style="margin-left: 10px;">{{ api.method }}</span>
+                {% elif api.method == 'DELETE' %}
+                <span class="badge bg-danger" style="margin-left: 10px;">{{ api.method }}</span>
+                {% endif %}
+                <code style="background: #e9ecef; padding: 5px 10px; border-radius: 3px;">{{ api.url }}</code>
+            </div>
+            <p style="margin: 5px 0; color: #6c757d;">{{ api.description }}</p>
+            {% if api.parameters %}
+            <small style="color: #495057;">
+                <strong>{% trans "پارامترها:" %}</strong> {{ api.parameters|join:", " }}
+            </small>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+// Auto refresh every 30 seconds
+setInterval(function() {
+    // Only refresh if user is still on the page
+    if (document.visibilityState === 'visible') {
+        location.reload();
+    }
+}, 30000);
+
+// Add animation to progress bars
+document.addEventListener('DOMContentLoaded', function() {
+    const progressBars = document.querySelectorAll('.progress-fill');
+    progressBars.forEach(bar => {
+        const width = bar.style.width;
+        bar.style.width = '0%';
+        setTimeout(() => {
+            bar.style.width = width;
+        }, 500);
+    });
+});
+</script>
+{% endblock %}

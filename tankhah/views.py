@@ -305,7 +305,7 @@ class FactorDeleteView(PermissionRequiredMixin, DeleteView):
 #------------------------------------------------
 """تأیید آیتم‌های فاکتور"""
 class FactorItemRejectView(PermissionBaseView, View):
-    permission_codenames = ['tankhah.FactorItem_approve']
+    permission_codename = ['tankhah.FactorItem_approve']
     template_name = 'tankhah/factor_item_reject_confirm.html'
 
     def get(self, request, pk):
@@ -550,7 +550,7 @@ class ApprovalUpdateView(PermissionBaseView, UpdateView):
     form_class = 'tankhah.forms.ApprovalForm'
     template_name = 'tankhah/approval_form.html'
     success_url = reverse_lazy('approval_list')
-    permission_codenames = ['tankhah.Approval_update']
+    permission_codename = ['tankhah.Approval_update']
 
     def get_queryset(self):
         return ApprovalLog.objects.filter(user=self.request.user)
@@ -664,6 +664,11 @@ def itemcategory_delete(request, pk):
     return render(request, 'tankhah/itemcategory/confirm_delete.html', {'category': category})
 
 # --- لیست دسته‌بندی‌ها ---
+
+from django.views.generic import DetailView
+from django.contrib.auth.mixins import PermissionRequiredMixin
+from django.urls import reverse
+from .models import ItemCategory
 class ItemCategoryListView(PermissionBaseView, ListView):
     model = ItemCategory
     template_name = 'tankhah/itemcategory/list.html'
@@ -708,13 +713,6 @@ class ItemCategoryListView(PermissionBaseView, ListView):
         ]
 
         return context
-
-
-from django.views.generic import DetailView
-from django.contrib.auth.mixins import PermissionRequiredMixin
-from django.urls import reverse
-from .models import ItemCategory
-
 
 class ItemCategoryDetailView(PermissionRequiredMixin, DetailView):
     model = ItemCategory

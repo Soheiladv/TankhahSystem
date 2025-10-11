@@ -15,7 +15,7 @@ class SubmitFactorForApprovalView(PermissionBaseView, View):
     """
     این ویو مسئول شروع فرآیند گردش کار برای یک فاکتور پیش‌نویس است.
     """
-    permission_codenames = ['tankhah.factor_add']  # کاربری که می‌تواند فاکتور اضافه کند، می‌تواند آن را ارسال هم بکند.
+    permission_codename = ['tankhah.factor_add']  # کاربری که می‌تواند فاکتور اضافه کند، می‌تواند آن را ارسال هم بکند.
 
     def post(self, request, *args, **kwargs):
         logger.info(f"--- [SUBMIT FACTOR] User '{request.user.username}' is submitting Factor PK: {kwargs['pk']} ---")

@@ -709,7 +709,37 @@ def get_tankhah_budget_info(request):
         return JsonResponse({'error': str(e)}, status=500)
 
 def decimal_to_clean_str(value):
-    return str(value).replace(',', '')
+    """
+    تبدیل اعشار به رشته تمیز با فرمت مناسب
+    """
+    if value is None:
+        return '0'
+    
+    # تبدیل به رشته
+    str_value = str(value)
+    
+    # اگر شامل نقطه اعشار است
+    if '.' in str_value:
+        integer_part, decimal_part = str_value.split('.')
+    else:
+        integer_part = str_value
+        decimal_part = ''
+    
+    # اضافه کردن کاما به قسمت صحیح
+    if len(integer_part) > 3:
+        # از راست به چپ هر 3 رقم یک کاما اضافه کن
+        formatted_integer = ''
+        for i, digit in enumerate(reversed(integer_part)):
+            if i > 0 and i % 3 == 0:
+                formatted_integer = ',' + formatted_integer
+            formatted_integer = digit + formatted_integer
+        integer_part = formatted_integer
+    
+    # ترکیب قسمت صحیح و اعشاری
+    if decimal_part:
+        return f"{integer_part}.{decimal_part}"
+    else:
+        return integer_part
 
 """ محاسبه بودجه *واقعی* باقی‌مانده پروژه."""
 def get_actual_project_remaining_budget(project, filters=None):

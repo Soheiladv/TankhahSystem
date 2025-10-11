@@ -1,32 +1,29 @@
 
-from django.shortcuts import render
-from django.db.models.functions import Coalesce
-from notificationApp.models import NotificationRule, Notification
-from notificationApp.views import send_notification
-from tankhah.models import   ApprovalLog
-
-from version_tracker.models import FinalVersion
-from budgets.budget_calculations import get_project_total_budget, get_project_used_budget, get_project_remaining_budget, \
-    calculate_threshold_amount
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views import View
-from core.PermissionBase import PermissionBaseView
-from django.urls import reverse_lazy
-from django.utils import timezone
-from django.utils.translation import gettext_lazy as _
-from django.db.models import Sum, Q, Value, DecimalField, F, Case, When
-from django.db.models.functions import TruncMonth, TruncQuarter
-from decimal import Decimal
-import jdatetime
 import json
 import logging
 from datetime import timedelta
-from tankhah.models import Tankhah, Factor
+from decimal import Decimal
+
+import jdatetime
+from django.contrib.contenttypes.models import ContentType
+from django.db.models import Sum, Q, Value, DecimalField, F, Case, When
+from django.db.models.functions import Coalesce
+from django.shortcuts import render
+from django.urls import reverse, NoReverseMatch
+from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
+from django.views import View
+
+from budgets.budget_calculations import get_project_total_budget, get_project_used_budget, get_project_remaining_budget
 from budgets.models import BudgetPeriod, BudgetAllocation, BudgetTransaction
+from core.PermissionBase import PermissionBaseView
 from core.models import Project
 from core.models import SystemSettings
-from django.contrib.contenttypes.models import ContentType
-from django.urls import reverse, NoReverseMatch
+from notificationApp.models import Notification
+from tankhah.models import ApprovalLog
+from tankhah.models import Tankhah, Factor
+from version_tracker.models import FinalVersion
+
 logger = logging.getLogger('Main_Dashboard')
 # لینک‌های داشبورد - تمیز شده و بدون تکرار
 
@@ -34,20 +31,30 @@ dashboard_links = {
     'مدیریت فاکتورها': {
         'header': 'مدیریت و نظارت بر فاکتورها',
         'links': [
-            {'name': _('فهرست فاکتورها'), 'url': 'factor_list', 'permission': 'tankhah.view_factor', 'icon': 'fas fa-clipboard-list'},
-            {'name': _('ایجاد فاکتور'), 'url': 'Nfactor_create', 'permission': 'tankhah.add_factor', 'icon': 'fas fa-file-invoice'},
-            {'name': _('گردش کار فاکتور'), 'url': 'workflow_chart', 'permission': 'tankhah.view_factor', 'icon': 'fas fa-project-diagram'},
+            {'name': _('فهرست فاکتورها'), 'url': 'factor_list', 'permission': 'Tankhah.factor_view',
+             'icon': 'fas fa-clipboard-list'},
+            {'name': _('ایجاد فاکتور'), 'url': 'Nfactor_create', 'permission': 'Tankhah.factor_add',
+             'icon': 'fas fa-file-invoice'},
+            {'name': _('گردش کار فاکتور'), 'url': 'workflow_chart', 'permission': 'Tankhah.Factor_full_edit',
+             'icon': 'fas fa-project-diagram'},
             {'name': _('فهرست دستورپرداخت'), 'url': 'pr_list', 'permission': 'PurchaseRequest.purchase_request_view', 'icon': 'fas fa-project-diagram'},
             {'name': _('ثبت دستورپرداخت'), 'url': 'pr_create', 'permission': 'PurchaseRequest.purchase_request_add', 'icon': 'fas fa-project-diagram'},
+            {'name': _('طبقه بندی هزینه ها'), 'url': 'itemcategory_list', 'permission': 'tankhah.ItemCategory_view',
+             'icon': 'fas fa-file-invoice'},
+            {'name': _('صادرکننده فاکتور'), 'url': 'payee_list', 'permission': 'Budgets.Payee_view',
+             'icon': 'fas fa-file-invoice'},
             # {'name': _('وضعیت فاکتورها'), 'url': 'factor_status_dashboard', 'permission': 'tankhah.view_factor', 'icon': 'fas fa-file-invoice'},
         ]
     },
     'مدیریت تنخواه': {
         'header': 'مدیریت و نظارت بر تنخواه‌ها',
         'links': [
-            {'name': _('فهرست تنخواه'), 'url': 'tankhah_list', 'permission': 'tankhah.view_tankhah', 'icon': 'fas fa-list-alt'},
-            {'name': _('ایجاد تنخواه'), 'url': 'tankhah_create', 'permission': 'tankhah.add_tankhah', 'icon': 'fas fa-file-invoice-dollar'},
-            {'name': _('وضعیت تنخواه'), 'url': 'tankhah_status', 'permission': 'tankhah.view_tankhah', 'icon': 'fas fa-file-invoice-dollar'},
+            {'name': _('فهرست تنخواه'), 'url': 'tankhah_list', 'permission': 'tankhah.Tankhah_view',
+             'icon': 'fas fa-list-alt'},
+            {'name': _('ایجاد تنخواه'), 'url': 'tankhah_create', 'permission': 'tankhah.Tankhah_add',
+             'icon': 'fas fa-file-invoice-dollar'},
+            {'name': _('وضعیت تنخواه'), 'url': 'tankhah_status', 'permission': 'tankhah.Tankhah_view',
+             'icon': 'fas fa-file-invoice-dollar'},
         ]
     },
     'مدیریت بودجه': {
@@ -723,7 +730,7 @@ class ReportsDashboardMainView(PermissionBaseView, View):
     - خروجی: chartData یکپارچه + فلگ‌های دسترسی + آمار ساده
     """
     template_name = 'reports/dashboard/main_dashboard.html'
-    # permission_codename = 'reports.view_dashboard'
+    permission_codename = 'reports.view_dashboard'
 
     def get(self, request, *args, **kwargs):
         context = self._build_context(request)
@@ -953,9 +960,12 @@ class ReportsDashboardMainView(PermissionBaseView, View):
             return names[m-1] if 1 <= m <= 12 else str(month_number)
         except Exception:
             return str(month_number)
-class DashboardView(PermissionBaseView, View):
+
+
+class DashboardView(View):
     template_name = 'core/dashboard.html'
-    permission_codename = 'reports.view_dashboard'
+
+    # permission_codename = 'reports.view_dashboard'
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -1132,7 +1142,7 @@ class DashboardView(PermissionBaseView, View):
         current_jalali_month = j_now.month
 
         # اطلاعات پایه
-        context['title'] = _("داشبورد سیستم جامع نظارتی بر تنخواه و بودجه")
+        context['title'] = _("داشبورد سیستم جامع نظارتی بر هزینه")
         context['version'] = self.final_version
         
         # اضافه کردن لینک به داشبورد جدید
@@ -1441,10 +1451,12 @@ class DashboardView(PermissionBaseView, View):
         context = self.get_context_data(request)
         return render(request, self.template_name, context)
 
+    'این درسته'
     def _get_legacy_dashboard_links(self, request):
         """Return links in the legacy structure expected by templates/core/dashboard.html.
         Structure: { 'گروه': [ { name, icon, url?, url_kwargs?, direct_url? } ] }
         Only include links the user is allowed to see.
+        Fix: Only include groups with at least one permitted link.
         """
         legacy = {}
         for group_name, block in dashboard_links.items():
@@ -1482,5 +1494,53 @@ class DashboardView(PermissionBaseView, View):
                     'url_kwargs': url_kwargs if url_kwargs else None,
                     'direct_url': direct_url,
                 })
-            legacy[group_name] = items
+
+            # Fix: Only add group if it has at least one permitted link
+            if items:  # Check if len(items) > 0
+                legacy[group_name] = items
+
         return legacy
+
+    # def _get_legacy_dashboard_links(self, request):
+    #     """Return links in the legacy structure expected by templates/core/dashboard.html.
+    #     Structure: { 'گروه': [ { name, icon, url?, url_kwargs?, direct_url? } ] }
+    #     Only include links the user is allowed to see.
+    #     """
+    #     legacy = {}
+    #     for group_name, block in dashboard_links.items():
+    #         items = []
+    #         for link in block.get('links', []):
+    #             perm_code = link.get('permission')
+    #             # permission check
+    #             if perm_code in (None, ''):
+    #                 allowed = True
+    #             elif perm_code == 'is_staff':
+    #                 allowed = bool(request.user and (request.user.is_staff or request.user.is_superuser))
+    #             else:
+    #                 try:
+    #                     allowed = request.user.has_perm(perm_code)
+    #                 except Exception:
+    #                     allowed = False
+    #             if not allowed:
+    #                 continue
+    #
+    #             url_name = link.get('url')
+    #             url_kwargs = link.get('url_kwargs') or {}
+    #             direct_url = None
+    #             try:
+    #                 if url_kwargs:
+    #                     direct_url = reverse(url_name, kwargs=url_kwargs)
+    #                 else:
+    #                     direct_url = reverse(url_name)
+    #             except Exception:
+    #                 direct_url = None
+    #
+    #             items.append({
+    #                 'name': link.get('name'),
+    #                 'icon': link.get('icon') or 'fas fa-link',
+    #                 'url': url_name,
+    #                 'url_kwargs': url_kwargs if url_kwargs else None,
+    #                 'direct_url': direct_url,
+    #             })
+    #         legacy[group_name] = items
+    #     return legacy

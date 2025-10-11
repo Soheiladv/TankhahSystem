@@ -23,7 +23,7 @@ class ApproveRejectView(PermissionBaseView, View):
     برای تنخواه و بودجه به‌صورت جداگانه عمل می‌کند.
     وضعیت (status) و مرحله فعلی (current_stage) موجودیت را به‌روزرسانی می‌کند.
     """
-    permission_codenames = ['tankhah.Tankhah_approve', 'tankhah.Tankhah_reject', 'budgets.BudgetAllocation_approve',
+    permission_codename = ['tankhah.Tankhah_approve', 'tankhah.Tankhah_reject', 'budgets.BudgetAllocation_approve',
                             'budgets.BudgetAllocation_reject']
 
     def post(self, request, entity_type, entity_id, action):

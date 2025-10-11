@@ -15,7 +15,7 @@ from accounts.models import CustomUser
 logger = logging.getLogger(__name__)
 
 class OrganizationChartAPIView(PermissionBaseView, APIView):
-    permission_codenames = 'core.OrganizationChartAPIView_view'
+    permission_codename = 'core.OrganizationChartAPIView_view'
     check_organization = True
     def get(self, request):
         """
@@ -144,7 +144,7 @@ class OrganizationChartAPIView(PermissionBaseView, APIView):
 
 class OrganizationChartView(PermissionBaseView, LoginRequiredMixin, TemplateView):
     template_name = 'core/chart_API/organization_chart.html'
-    permission_codenames = 'core.OrganizationChartView_view'
+    permission_codename = 'core.OrganizationChartView_view'
     check_organization = True
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

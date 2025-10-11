@@ -64,7 +64,7 @@ from budgets.budget_calculations import (
 class TankhahFinancialReportView(PermissionBaseView, DetailView):
     model = Tankhah
     template_name = 'reports/financial_report.html'
-    permission_codenames = ['tankhah.Tankhah_view']
+    permission_codename = ['tankhah.Tankhah_view']
     check_organization = True
 
     def get_object(self, queryset=None):
@@ -119,7 +119,7 @@ def send_to_accounting(request, report_id):
 ######
 class TankhahDetailView(PermissionBaseView, TemplateView):
     template_name = 'Reports/tankhah_detail.html'
-    permission_codenames = ['tankhah.Tankhah_view']
+    permission_codename = ['tankhah.Tankhah_view']
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -803,7 +803,7 @@ class old__BudgetAllocationReportView(LoginRequiredMixin, DetailView): # یا Pe
     context_object_name = 'budget_allocation' # آبجکت BudgetAllocation اصلی
     # pk_url_kwarg = 'pk' # اگر نام پارامتر در URL 'pk' باشد، این خط لازم نیست
 
-    # permission_codenames = ['budgets.view_budgetallocation_report'] # یک پرمیشن جدید برای این گزارش
+    # permission_codename = ['budgets.view_budgetallocation_report'] # یک پرمیشن جدید برای این گزارش
     # check_organization = True # اگر لازم است دسترسی سازمانی چک شود
 
     def get_queryset(self):
@@ -938,7 +938,7 @@ class BudgetAllocationReportView(PermissionBaseView, DetailView):  # یا Permis
     pk_url_kwarg = 'pk'  # اگر نام پارامتر در URL 'pk' است
     permission_codename = 'BudgetAllocation.BudgetAllocation_reports'
     # اگر از PermissionBaseView استفاده می‌کنید، این خطوط را فعال کنید:
-    # permission_codenames = ['budgets.view_budget_allocation_report'] # پرمیشن مناسب
+    # permission_codename = ['budgets.view_budget_allocation_report'] # پرمیشن مناسب
     # check_organization = True # اگر لازم است دسترسی سازمانی چک شود
 
     def get_queryset(self):

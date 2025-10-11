@@ -892,7 +892,12 @@ class FontSettings(models.Model):
         verbose_name = _("تنظیمات فونت")
         verbose_name_plural = _("تنظیمات فونت‌ها")
         ordering = ['-is_default', '-is_active', 'name']
-        
+        permissions =[
+            ('FontSettingsـadd','افزودن تنظیمات فونت '),
+            ('FontSettingsـview','نمایش تنظیمات فونت '),
+            ('FontSettingsـupdate','بروزرسانی تنظیمات فونت '),
+            ('FontSettingsـdelete','حذف تنظیمات فونت '),
+        ]
     def __str__(self):
         status = "فعال" if self.is_active else "غیرفعال"
         default = " (پیش‌فرض)" if self.is_default else ""

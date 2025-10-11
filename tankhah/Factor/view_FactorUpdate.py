@@ -57,7 +57,7 @@ class ool_FactorUpdateView(PermissionBaseView, UpdateView):
     template_name = 'tankhah/Factors/edit_factor_form.html'  # مسیر قالب
     success_url = reverse_lazy('factor_list')  # URL مقصد پس از موفقیت
     context_object_name = 'factor'  # نام آبجکت در کنتکست
-    permission_codenames = ['tankhah.factor_update']  # پرمیشن مورد نیاز
+    permission_codename = ['tankhah.factor_update']  # پرمیشن مورد نیاز
     permission_denied_message = _('متاسفانه دسترسی لازم برای ویرایش فاکتور را ندارید.')  # پیام خطای عدم دسترسی
     check_organization = True  # بررسی سازمان در PermissionBaseView
 
@@ -553,7 +553,7 @@ class FactorUpdateView(PermissionBaseView, UpdateView):
     template_name = 'tankhah/Factors/edit_factor_form.html'
     success_url = reverse_lazy('factor_list')
     context_object_name = 'factor'
-    permission_codenames = ['tankhah.factor_update']
+    permission_codename = ['tankhah.factor_update']
     permission_denied_message = 'شما دسترسی لازم برای ویرایش فاکتور را ندارید.'
     check_organization = True
 

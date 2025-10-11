@@ -785,7 +785,7 @@ class  new__DashboardView_flows( TemplateView):
 class DashboardView_flows_1( TemplateView):
     template_name = 'core/dashboard1.html'
     extra_context = {'title': _('داشبورد مدیریت تنخواه')}
-    # permission_codenames = ['core.DashboardView_flows_view']  # تغییر به لیست
+    # permission_codename = ['core.DashboardView_flows_view']  # تغییر به لیست
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -969,7 +969,7 @@ class OrganizationListView(PermissionBaseView, ListView):
     context_object_name = 'organizations'
     from django.conf import settings
     paginate_by = getattr(settings, 'ORGANIZATIONS_PER_PAGE', 10)
-    permission_codenames = ['core.organization_view']  # اصلاح نام پرمیشن
+    permission_codename = ['core.organization_view']  # اصلاح نام پرمیشن
     check_organization = False  # هلدینگ به همه دسترسی دارد
     extra_context = {'title': _('لیست سازمان‌ها')}
 
@@ -1418,7 +1418,7 @@ class PostListView(PermissionBaseView, ListView):
     context_object_name = 'posts'
     paginate_by = 10  # Django handles pagination automatically with this setting
     extra_context = {'title': _('لیست پست‌های سازمانی')}
-    permission_codenames = ['core.Post_view']
+    permission_codename = ['core.Post_view']
 
     def get_queryset(self):
         qs = super().get_queryset()
@@ -1606,7 +1606,7 @@ class PostCreateView(PermissionBaseView, CreateView):
     form_class = PostForm
     template_name = 'core/post/post_form.html'
     success_url = reverse_lazy('post_list')
-    permission_codenames = ['Post_add']
+    permission_codename = ['Post_add']
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -1629,7 +1629,7 @@ class PostUpdateView(PermissionBaseView, UpdateView):
     form_class = PostForm
     template_name = 'core/post/post_form.html'
     success_url = reverse_lazy('post_list')
-    permission_codenames = ['Post_update']
+    permission_codename = ['Post_update']
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()

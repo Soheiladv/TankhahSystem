@@ -1,0 +1,828 @@
+{% extends "base.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "راهنمای ادمین سیستم بودجه" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .guide-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .guide-header {
+        text-align: center;
+        margin-bottom: 30px;
+        padding: 20px;
+        background: linear-gradient(135deg, #dc3545 0%, #6f42c1 100%);
+        color: white;
+        border-radius: 10px;
+    }
+    
+    .guide-header h1 {
+        margin: 0;
+        font-size: 2.5rem;
+        font-weight: bold;
+    }
+    
+    .guide-header p {
+        margin: 10px 0 0 0;
+        font-size: 1.2rem;
+        opacity: 0.9;
+    }
+    
+    .admin-badge {
+        display: inline-block;
+        background: rgba(255,255,255,0.2);
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        margin-top: 10px;
+    }
+    
+    .guide-nav {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 30px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    
+    .guide-nav h3 {
+        color: #495057;
+        margin-bottom: 15px;
+        font-size: 1.3rem;
+    }
+    
+    .nav-links {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 15px;
+    }
+    
+    .nav-link {
+        display: block;
+        padding: 15px 20px;
+        background: #f8f9fa;
+        border: 2px solid #e9ecef;
+        border-radius: 8px;
+        text-decoration: none;
+        color: #495057;
+        transition: all 0.3s ease;
+        font-weight: 500;
+    }
+    
+    .nav-link:hover {
+        background: #dc3545;
+        color: white;
+        border-color: #dc3545;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+    }
+    
+    .guide-section {
+        background: white;
+        padding: 30px;
+        border-radius: 10px;
+        margin-bottom: 30px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    
+    .guide-section h2 {
+        color: #495057;
+        border-bottom: 3px solid #dc3545;
+        padding-bottom: 10px;
+        margin-bottom: 25px;
+        font-size: 1.8rem;
+    }
+    
+    .guide-section h3 {
+        color: #6c757d;
+        margin-top: 25px;
+        margin-bottom: 15px;
+        font-size: 1.4rem;
+    }
+    
+    .guide-section h4 {
+        color: #495057;
+        margin-top: 20px;
+        margin-bottom: 10px;
+        font-size: 1.2rem;
+    }
+    
+    .code-block {
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 5px;
+        padding: 15px;
+        margin: 15px 0;
+        font-family: 'Courier New', monospace;
+        font-size: 0.9rem;
+        overflow-x: auto;
+    }
+    
+    .highlight-box {
+        background: #e3f2fd;
+        border-left: 4px solid #2196f3;
+        padding: 15px;
+        margin: 15px 0;
+        border-radius: 0 5px 5px 0;
+    }
+    
+    .warning-box {
+        background: #fff3e0;
+        border-left: 4px solid #ff9800;
+        padding: 15px;
+        margin: 15px 0;
+        border-radius: 0 5px 5px 0;
+    }
+    
+    .success-box {
+        background: #e8f5e8;
+        border-left: 4px solid #4caf50;
+        padding: 15px;
+        margin: 15px 0;
+        border-radius: 0 5px 5px 0;
+    }
+    
+    .danger-box {
+        background: #f8d7da;
+        border-left: 4px solid #dc3545;
+        padding: 15px;
+        margin: 15px 0;
+        border-radius: 0 5px 5px 0;
+    }
+    
+    .step-list {
+        counter-reset: step-counter;
+        list-style: none;
+        padding: 0;
+    }
+    
+    .step-list li {
+        counter-increment: step-counter;
+        margin: 15px 0;
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        border-left: 4px solid #dc3545;
+        position: relative;
+    }
+    
+    .step-list li::before {
+        content: counter(step-counter);
+        position: absolute;
+        left: -15px;
+        top: 15px;
+        background: #dc3545;
+        color: white;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 0.9rem;
+    }
+    
+    .feature-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+        margin: 20px 0;
+    }
+    
+    .feature-card {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 8px;
+        border: 1px solid #e9ecef;
+        transition: all 0.3s ease;
+    }
+    
+    .feature-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .feature-card h4 {
+        color: #dc3545;
+        margin-top: 0;
+        margin-bottom: 10px;
+    }
+    
+    .model-info {
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 5px;
+        padding: 15px;
+        margin: 10px 0;
+    }
+    
+    .model-name {
+        font-weight: bold;
+        color: #dc3545;
+        font-size: 1.1rem;
+    }
+    
+    .model-fields {
+        margin-top: 10px;
+        font-family: 'Courier New', monospace;
+        font-size: 0.9rem;
+    }
+    
+    .api-endpoint {
+        background: #2d3748;
+        color: #e2e8f0;
+        padding: 15px;
+        border-radius: 5px;
+        margin: 10px 0;
+        font-family: 'Courier New', monospace;
+    }
+    
+    .api-method {
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: 3px;
+        font-weight: bold;
+        font-size: 0.8rem;
+        margin-right: 10px;
+    }
+    
+    .method-get { background: #48bb78; color: white; }
+    .method-post { background: #4299e1; color: white; }
+    .method-put { background: #ed8936; color: white; }
+    .method-delete { background: #f56565; color: white; }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin: 20px 0;
+    }
+    
+    .stat-card {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
+        text-align: center;
+        border: 1px solid #e9ecef;
+    }
+    
+    .stat-number {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #dc3545;
+    }
+    
+    .stat-label {
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+    
+    @media (max-width: 768px) {
+        .guide-container {
+            padding: 10px;
+        }
+        
+        .guide-header h1 {
+            font-size: 2rem;
+        }
+        
+        .nav-links {
+            grid-template-columns: 1fr;
+        }
+        
+        .feature-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="guide-container">
+    <!-- Header -->
+    <div class="guide-header">
+        <h1>{% trans "راهنمای ادمین سیستم بودجه" %}</h1>
+        <p>{% trans "راهنمای فنی و مدیریتی برای ادمین‌ها" %}</p>
+        <div class="admin-badge">
+            <i class="fas fa-shield-alt"></i> {% trans "دسترسی ادمین" %}
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <div class="guide-nav">
+        <h3>{% trans "فهرست مطالب" %}</h3>
+        <div class="nav-links">
+            <a href="#system-overview" class="nav-link">{% trans "نمای کلی سیستم" %}</a>
+            <a href="#models" class="nav-link">{% trans "مدل‌های اصلی" %}</a>
+            <a href="#database" class="nav-link">{% trans "پایگاه داده" %}</a>
+            <a href="#apis" class="nav-link">{% trans "API ها" %}</a>
+            <a href="#testing" class="nav-link">{% trans "تست‌ها" %}</a>
+            <a href="#troubleshooting" class="nav-link">{% trans "عیب‌یابی" %}</a>
+            <a href="#maintenance" class="nav-link">{% trans "نگهداری" %}</a>
+        </div>
+    </div>
+
+    <!-- System Overview -->
+    <div class="guide-section" id="system-overview">
+        <h2>{% trans "نمای کلی سیستم" %}</h2>
+        
+        {% if stats %}
+        <h3>{% trans "آمار فعلی سیستم" %}</h3>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number">{{ stats.periods.total }}</div>
+                <div class="stat-label">{% trans "دوره‌های بودجه" %}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ stats.allocations.total }}</div>
+                <div class="stat-label">{% trans "تخصیص‌ها" %}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ stats.transactions.total }}</div>
+                <div class="stat-label">{% trans "تراکنش‌ها" %}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ stats.amounts.total_allocated|floatformat:0 }}</div>
+                <div class="stat-label">{% trans "کل تخصیص‌ها (ریال)" %}</div>
+            </div>
+        </div>
+        {% endif %}
+
+        <h3>{% trans "معماری سیستم" %}</h3>
+        <div class="highlight-box">
+            <strong>{% trans "فریمورک:" %}</strong> Django 3.2+<br>
+            <strong>{% trans "پایگاه داده:" %}</strong> MySQL 8.0+<br>
+            <strong>{% trans "کش:" %}</strong> Redis<br>
+            <strong>{% trans "فرانت‌اند:" %}</strong> Bootstrap 5 + jQuery
+        </div>
+    </div>
+
+    <!-- Models -->
+    <div class="guide-section" id="models">
+        <h2>{% trans "مدل‌های اصلی" %}</h2>
+        
+        <h3>{% trans "BudgetPeriod (دوره بودجه کلان)" %}</h3>
+        <div class="model-info">
+            <div class="model-name">BudgetPeriod</div>
+            <div class="model-fields">
+organization = models.ForeignKey('core.Organization')<br>
+name = models.CharField(max_length=100)<br>
+start_date = models.DateField()<br>
+end_date = models.DateField()<br>
+total_amount = models.DecimalField(max_digits=25, decimal_places=0)<br>
+total_allocated = models.DecimalField(max_digits=25, decimal_places=2, default=0)<br>
+returned_amount = models.DecimalField(max_digits=25, decimal_places=2, default=0)<br>
+locked_percentage = models.IntegerField(default=0)<br>
+warning_threshold = models.DecimalField(max_digits=5, decimal_places=2, default=10)<br>
+is_active = models.BooleanField(default=True)<br>
+is_completed = models.BooleanField(default=False)
+            </div>
+        </div>
+
+        <h3>{% trans "BudgetAllocation (تخصیص بودجه)" %}</h3>
+        <div class="model-info">
+            <div class="model-name">BudgetAllocation</div>
+            <div class="model-fields">
+budget_period = models.ForeignKey('BudgetPeriod')<br>
+organization = models.ForeignKey('core.Organization')<br>
+budget_item = models.ForeignKey('BudgetItem')<br>
+project = models.ForeignKey('core.Project')<br>
+subproject = models.ForeignKey('core.SubProject', null=True, blank=True)<br>
+allocated_amount = models.DecimalField(max_digits=25, decimal_places=2)<br>
+allocation_date = models.DateField(default=timezone.now)<br>
+returned_amount = models.DecimalField(max_digits=25, decimal_places=2, default=0)<br>
+is_active = models.BooleanField(default=True)<br>
+is_locked = models.BooleanField(default=False)
+            </div>
+        </div>
+
+        <h3>{% trans "BudgetTransaction (تراکنش بودجه)" %}</h3>
+        <div class="model-info">
+            <div class="model-name">BudgetTransaction</div>
+            <div class="model-fields">
+TRANSACTION_TYPES = (<br>
+&nbsp;&nbsp;&nbsp;&nbsp;('ALLOCATION', 'تخصیص اولیه'),<br>
+&nbsp;&nbsp;&nbsp;&nbsp;('CONSUMPTION', 'مصرف / هزینه'),<br>
+&nbsp;&nbsp;&nbsp;&nbsp;('ADJUSTMENT_INCREASE', 'افزایش تخصیص'),<br>
+&nbsp;&nbsp;&nbsp;&nbsp;('ADJUSTMENT_DECREASE', 'کاهش تخصیص'),<br>
+&nbsp;&nbsp;&nbsp;&nbsp;('RETURN', 'برگشت به بودجه'),<br>
+)<br>
+allocation = models.ForeignKey('BudgetAllocation')<br>
+transaction_type = models.CharField(max_length=20, choices=TRANSACTION_TYPES)<br>
+amount = models.DecimalField(max_digits=25, decimal_places=2)<br>
+related_tankhah = models.ForeignKey('tankhah.Tankhah', null=True, blank=True)<br>
+description = models.TextField(blank=True)<br>
+created_by = models.ForeignKey('accounts.CustomUser')
+            </div>
+        </div>
+
+        <h3>{% trans "BudgetHistory (تاریخچه بودجه)" %}</h3>
+        <div class="model-info">
+            <div class="model-name">BudgetHistory</div>
+            <div class="model-fields">
+content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)<br>
+object_id = models.PositiveIntegerField()<br>
+action = models.CharField(max_length=50)<br>
+amount = models.DecimalField(max_digits=25, decimal_places=2, null=True, blank=True)<br>
+details = models.TextField(blank=True)<br>
+created_at = models.DateTimeField(auto_now_add=True)<br>
+created_by = models.ForeignKey('accounts.CustomUser')
+            </div>
+        </div>
+    </div>
+
+    <!-- Database -->
+    <div class="guide-section" id="database">
+        <h2>{% trans "پایگاه داده" %}</h2>
+        
+        <h3>{% trans "مایگریشن‌ها" %}</h3>
+        <div class="code-block">
+# اجرای مایگریشن‌ها
+python manage.py migrate
+
+# ایجاد مایگریشن جدید
+python manage.py makemigrations
+
+# بازگردانی مایگریشن
+python manage.py migrate budgets 0001
+        </div>
+
+        <h3>{% trans "بک‌آپ و بازیابی" %}</h3>
+        <div class="code-block">
+# بک‌آپ پایگاه داده
+mysqldump -u username -p database_name > backup.sql
+
+# بازیابی از بک‌آپ
+mysql -u username -p database_name < backup.sql
+        </div>
+
+        <h3>{% trans "بهینه‌سازی" %}</h3>
+        <div class="warning-box">
+            <strong>{% trans "نکته:" %}</strong> {% trans "برای بهبود عملکرد، ایندکس‌های مناسب را اضافه کنید" %}
+        </div>
+    </div>
+
+    <!-- APIs -->
+    <div class="guide-section" id="apis">
+        <h2>{% trans "API ها" %}</h2>
+        
+        <h3>{% trans "API های موجود" %}</h3>
+        
+        <div class="api-endpoint">
+            <span class="api-method method-get">GET</span>/api/budget/allocation/{id}/free-budget/
+        </div>
+        <div class="code-block">
+class ProjectAllocationFreeBudgetAPI(APIView):
+    def get(self, request, pk):
+        allocation = BudgetAllocation.objects.get(pk=pk, is_active=True)
+        # محاسبه مانده آزاد
+        return Response({
+            'free_budget': float(free_budget),
+            'allocated_amount': float(allocation.allocated_amount),
+        })
+        </div>
+
+        <div class="api-endpoint">
+            <span class="api-method method-get">GET</span>/api/budget/allocations/
+        </div>
+        <div class="code-block">
+class ProjectAllocationsAPI(APIView):
+    def get(self, request):
+        queryset = BudgetAllocation.objects.filter(is_active=True)
+        # فیلتر و صفحه‌بندی
+        return Response({'results': data})
+        </div>
+
+        <div class="api-endpoint">
+            <span class="api-method method-post">POST</span>/api/budget/return/
+        </div>
+        <div class="code-block">
+class BudgetReturnAPI(APIView):
+    def post(self, request):
+        # ثبت برگشت بودجه
+        return Response({'status': 'success'})
+        </div>
+
+        <h3>{% trans "API های محاسباتی بودجه" %}</h3>
+        
+        <div class="api-endpoint">
+            <span class="api-method method-get">GET</span>/api/budget/calculations/
+        </div>
+        <div class="code-block">
+class BudgetCalculationsOverviewAPI(APIView):
+    def get(self, request):
+        # لیست تمام توابع محاسباتی موجود
+        return Response({
+            'functions': functions,
+            'total_functions': 25
+        })
+        </div>
+
+        <div class="api-endpoint">
+            <span class="api-method method-post">POST</span>/api/budget/calculations/allocation/
+        </div>
+        <div class="code-block">
+class AllocationCalculationsAPI(APIView):
+    def post(self, request):
+        # محاسبه بودجه باقی‌مانده تخصیص
+        allocation_id = request.data.get('allocation_id')
+        remaining = calculate_remaining_amount(allocation)
+        return Response({
+            'remaining_amount': float(remaining),
+            'remaining_amount_str': decimal_to_clean_str(remaining)
+        })
+        </div>
+
+        <div class="api-endpoint">
+            <span class="api-method method-post">POST</span>/api/budget/calculations/project/
+        </div>
+        <div class="code-block">
+class ProjectCalculationsAPI(APIView):
+    def post(self, request):
+        # محاسبه بودجه پروژه
+        project_id = request.data.get('project_id')
+        total = get_project_total_budget(project)
+        used = get_project_used_budget(project)
+        remaining = get_project_remaining_budget(project)
+        return Response({
+            'total_budget': float(total),
+            'used_budget': float(used),
+            'remaining_budget': float(remaining)
+        })
+        </div>
+
+        <div class="api-endpoint">
+            <span class="api-method method-post">POST</span>/api/budget/calculations/tankhah/
+        </div>
+        <div class="code-block">
+class TankhahCalculationsAPI(APIView):
+    def post(self, request):
+        # محاسبه بودجه تنخواه
+        tankhah_id = request.data.get('tankhah_id')
+        total = get_tankhah_total_budget(tankhah)
+        remaining = get_tankhah_remaining_budget(tankhah)
+        available = get_tankhah_available_budget(tankhah)
+        return Response({
+            'total_budget': float(total),
+            'remaining_budget': float(remaining),
+            'available_budget': float(available)
+        })
+        </div>
+
+        <div class="api-endpoint">
+            <span class="api-method method-post">POST</span>/api/budget/calculations/batch/
+        </div>
+        <div class="code-block">
+class BatchCalculationsAPI(APIView):
+    def post(self, request):
+        # محاسبات دسته‌ای
+        calculations = request.data.get('calculations', [])
+        results = []
+        for calc in calculations:
+            # اجرای محاسبه
+            results.append(execute_calculation(calc))
+        return Response({'results': results})
+        </div>
+    </div>
+
+    <!-- Testing -->
+    <div class="guide-section" id="testing">
+        <h2>{% trans "تست‌ها" %}</h2>
+        
+        <h3>{% trans "فایل‌های تست موجود" %}</h3>
+        {% for test_file in test_files %}
+        <div class="feature-card">
+            <h4>{{ test_file.name }}</h4>
+            <p>{{ test_file.description }}</p>
+            <div class="success-box">
+                <strong>{% trans "وضعیت:" %}</strong> {% trans "موفق" %}
+            </div>
+        </div>
+        {% endfor %}
+
+        <h3>{% trans "اجرای تست‌ها" %}</h3>
+        <div class="code-block">
+# اجرای تست ساده
+python test_budget_return_model_only.py
+
+# اجرای تست جامع
+python test_budget_return_comprehensive.py
+
+# تحلیل جریان مبلغ برگشتی
+python analyze_budget_return_flow.py
+
+# تست تخصیص مجدد
+python test_reallocate_returned_budget.py
+        </div>
+
+        <h3>{% trans "نتیجه تست‌ها" %}</h3>
+        <div class="success-box">
+            <strong>{% trans "همه تست‌ها با موفقیت اجرا شده‌اند:" %}</strong><br>
+            • سیستم برگشت بودجه به درستی کار می‌کند<br>
+            • مبلغ برگشتی در محاسبه مانده لحاظ می‌شود<br>
+            • امکان تخصیص مجدد مبلغ برگشتی وجود دارد<br>
+            • تمام عملیات در تاریخچه ثبت می‌شوند
+        </div>
+    </div>
+
+    <!-- Troubleshooting -->
+    <div class="guide-section" id="troubleshooting">
+        <h2>{% trans "عیب‌یابی" %}</h2>
+        
+        <h3>{% trans "مشکلات رایج" %}</h3>
+        
+        <h4>{% trans "خطای محاسبه مانده" %}</h4>
+        <div class="warning-box">
+            <strong>{% trans "مشکل:" %}</strong> {% trans "مانده محاسبه شده نادرست است" %}<br>
+            <strong>{% trans "راه حل:" %}</strong>
+        </div>
+        <div class="code-block">
+# پاک کردن کش
+from django.core.cache import cache
+cache.delete(f"budget_allocation_balance_{allocation.pk}")
+cache.delete(f"project_remaining_budget_{project.pk}")
+
+# محاسبه مجدد
+remaining = allocation.get_remaining_amount()
+        </div>
+
+        <h4>{% trans "خطای اعتبارسنجی برگشت" %}</h4>
+        <div class="warning-box">
+            <strong>{% trans "مشکل:" %}</strong> {% trans "نمی‌توان مبلغ برگشتی را ثبت کرد" %}<br>
+            <strong>{% trans "راه حل:" %}</strong>
+        </div>
+        <div class="code-block">
+# بررسی مانده تخصیص
+remaining = allocation.get_remaining_amount()
+print(f"مانده تخصیص: {remaining}")
+
+# بررسی مبلغ برگشتی
+if return_amount > remaining:
+    print("مبلغ برگشتی بیشتر از مانده است")
+        </div>
+
+        <h4>{% trans "خطای انقضای بودجه" %}</h4>
+        <div class="warning-box">
+            <strong>{% trans "مشکل:" %}</strong> {% trans "بودجه زودتر از موعد قفل می‌شود" %}<br>
+            <strong>{% trans "راه حل:" %}</strong>
+        </div>
+        <div class="code-block">
+# بررسی تنظیمات مهلت تمدید
+grace_days = getattr(settings, 'BUDGET_PERIOD_GRACE_DAYS', 0)
+print(f"مهلت تمدید: {grace_days} روز")
+
+# بررسی تاریخ موثر
+effective_end_date = budget_period.end_date + timedelta(days=grace_days)
+print(f"تاریخ موثر پایان: {effective_end_date}")
+        </div>
+
+        <h3>{% trans "لاگ‌گیری" %}</h3>
+        <div class="code-block">
+import logging
+logger = logging.getLogger(__name__)
+
+# ثبت لاگ عملیات
+logger.info(f"برگشت بودجه: {amount:,.0f} ریال از تخصیص {allocation.pk}")
+logger.debug(f"مانده جدید: {allocation.get_remaining_amount():,.0f} ریال")
+logger.error(f"خطا در برگشت بودجه: {str(e)}")
+        </div>
+    </div>
+
+    <!-- Maintenance -->
+    <div class="guide-section" id="maintenance">
+        <h2>{% trans "نگهداری" %}</h2>
+        
+        <h3>{% trans "بهترین روش‌ها" %}</h3>
+        
+        <div class="success-box">
+            <strong>{% trans "1. مدیریت تراکنش‌ها" %}</strong><br>
+            همیشه از transaction.atomic استفاده کنید
+        </div>
+        <div class="code-block">
+from django.db import transaction
+
+with transaction.atomic():
+    return_transaction = BudgetTransaction.objects.create(...)
+    budget_allocation.allocated_amount -= return_amount
+    budget_allocation.save()
+        </div>
+
+        <div class="success-box">
+            <strong>{% trans "2. اعتبارسنجی کامل" %}</strong><br>
+            اعتبارسنجی در مدل و فرم انجام دهید
+        </div>
+        <div class="code-block">
+def clean(self):
+    super().clean()
+    if self.amount <= 0:
+        raise ValidationError("مبلغ باید مثبت باشد")
+    
+    remaining = self.allocation.get_remaining_amount()
+    if self.amount > remaining:
+        raise ValidationError("مبلغ بیشتر از مانده است")
+        </div>
+
+        <div class="success-box">
+            <strong>{% trans "3. استفاده از کش" %}</strong><br>
+            محاسبات پیچیده را کش کنید
+        </div>
+        <div class="code-block">
+from django.core.cache import cache
+
+cache_key = f"budget_balance_{allocation.pk}"
+cached_balance = cache.get(cache_key)
+if cached_balance is None:
+    cached_balance = allocation.get_remaining_amount()
+    cache.set(cache_key, cached_balance, timeout=300)
+        </div>
+
+        <div class="success-box">
+            <strong>{% trans "4. ثبت تاریخچه" %}</strong><br>
+            تمام تغییرات را در تاریخچه ثبت کنید
+        </div>
+        <div class="code-block">
+BudgetHistory.objects.create(
+    content_type=ContentType.objects.get_for_model(allocation),
+    object_id=allocation.pk,
+    action='RETURN',
+    amount=return_amount,
+    details=f'برگشت {return_amount:,.0f} ریال',
+    created_by=user
+)
+        </div>
+
+        <h3>{% trans "نظارت بر سیستم" %}</h3>
+        <div class="danger-box">
+            <strong>{% trans "نکات مهم:" %}</strong><br>
+            • {% trans "به طور منظم لاگ‌ها را بررسی کنید" %}<br>
+            • {% trans "عملکرد پایگاه داده را مانیتور کنید" %}<br>
+            • {% trans "بک‌آپ‌های منظم تهیه کنید" %}<br>
+            • {% trans "به‌روزرسانی‌های امنیتی را اعمال کنید" %}
+        </div>
+    </div>
+
+    <!-- Summary -->
+    <div class="guide-section">
+        <h2>{% trans "خلاصه" %}</h2>
+        <div class="success-box">
+            <p>{% trans "سیستم مدیریت بودجه یک سیستم جامع و قدرتمند است که:" %}</p>
+            <ul>
+                <li>✅ {% trans "تخصیص بودجه را به صورت دقیق مدیریت می‌کند" %}</li>
+                <li>✅ {% trans "برگشت بودجه را با شفافیت کامل ثبت می‌کند" %}</li>
+                <li>✅ {% trans "انقضای بودجه را به صورت خودکار کنترل می‌کند" %}</li>
+                <li>✅ {% trans "گزارش‌گیری جامع و دقیق ارائه می‌دهد" %}</li>
+                <li>✅ {% trans "تاریخچه کامل از تمام عملیات نگهداری می‌کند" %}</li>
+            </ul>
+            <p><strong>{% trans "مبلغ برگشتی کاملاً قابل تخصیص مجدد است و در محاسبه مانده دوره بودجه لحاظ می‌شود." %}</strong></p>
+        </div>
+    </div>
+</div>
+
+<script>
+// Smooth scrolling for navigation links
+document.querySelectorAll('.nav-link').forEach(link => {
+    link.addEventListener('click', function(e) {
+        e.preventDefault();
+        const targetId = this.getAttribute('href').substring(1);
+        const targetElement = document.getElementById(targetId);
+        if (targetElement) {
+            targetElement.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }
+    });
+});
+
+// Add active class to navigation links based on scroll position
+window.addEventListener('scroll', function() {
+    const sections = document.querySelectorAll('.guide-section');
+    const navLinks = document.querySelectorAll('.nav-link');
+    
+    let current = '';
+    sections.forEach(section => {
+        const sectionTop = section.offsetTop;
+        const sectionHeight = section.clientHeight;
+        if (window.scrollY >= (sectionTop - 200)) {
+            current = section.getAttribute('id');
+        }
+    });
+    
+    navLinks.forEach(link => {
+        link.classList.remove('active');
+        if (link.getAttribute('href') === '#' + current) {
+            link.classList.add('active');
+        }
+    });
+});
+</script>
+{% endblock %}

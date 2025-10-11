@@ -312,7 +312,7 @@ class  old__ProjectBudgetAllocationDetailView(PermissionBaseView, DetailView): #
     context_object_name = 'allocation' # این 'allocation' همان BudgetAllocation است
     # pk_url_kwarg = 'pk' # اگر نام پارامتر در URL 'pk' باشد، این خط لازم نیست
 
-    # permission_codenames = ['budgets.view_BudgetAllocation'] # اگر از PermissionBaseView استفاده می‌کنید
+    # permission_codename = ['budgets.view_BudgetAllocation'] # اگر از PermissionBaseView استفاده می‌کنید
     # check_organization = True # اگر از PermissionBaseView استفاده می‌کنید
 
     def get_queryset(self):
@@ -751,7 +751,7 @@ class ProjectBudgetAllocationCreateView(PermissionBaseView, CreateView):
     model = BudgetAllocation
     form_class = ProjectBudgetAllocationForm
     template_name = 'budgets/budget/project_budget_allocation.html'
-    permission_codenames = ['budgets.BudgetAllocation_add']  # پرمیشن دقیق
+    permission_codename = ['budgets.BudgetAllocation_add']  # پرمیشن دقیق
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -978,7 +978,7 @@ class ProjectBudgetAllocationDeleteView(PermissionBaseView, DeleteView):
 # Reports
 class ProjectBudgetRealtimeReportView__(PermissionBaseView, TemplateView):
     template_name = 'reports/realtime_report.html'
-    permission_codenames= 'budgets.budgetallocation_view'
+    permission_codename= 'budgets.budgetallocation_view'
     pass
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -1040,7 +1040,7 @@ class ProjectBudgetRealtimeReportView__(PermissionBaseView, TemplateView):
 
 class ProjectBudgetRealtimeReportView(PermissionBaseView, TemplateView):
     template_name = 'reports/realtime_report.html'
-    permission_codenames = 'budgets.budgetallocation_view'
+    permission_codename = 'budgets.budgetallocation_view'
     paginate_by = 10  # تعداد تراکنش‌های نمایشی در هر پروژه
 
     def get_queryset(self):

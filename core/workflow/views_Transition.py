@@ -54,7 +54,7 @@ class TransitionUpdateView(PermissionBaseView, View):
     """
     form_class = TransitionForm
     template_name = 'core/workflow/Transition/transition_form.html'
-    permission_codenames = ['core.transition_change']
+    permission_codename = ['core.transition_change']
 
     def get_object(self, pk):
         """متد کمکی برای گرفتن شیء گذار قدیمی."""
@@ -141,7 +141,7 @@ class TransitionDeleteView(PermissionBaseView, DeleteView):
     model = Transition
     template_name = 'core/workflow/Transition/transition_confirm_delete.html'
     success_url = reverse_lazy('transition_list')  # پس از حذف موفق، به لیست گذارها برگرد
-    permission_codenames = ['core.transition_delete']
+    permission_codename = ['core.transition_delete']
     context_object_name = 'transition'  # نام شیء در تمپلیت
 
     def get_context_data(self, **kwargs):

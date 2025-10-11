@@ -329,7 +329,7 @@ class FactorCreateWizard(PermissionBaseView, SessionWizardView):
     ]
     form_class =  forms_Factor.W_FactorForm
 
-    permission_codenames = ['tankhah.a_factor_add']
+    permission_codename = ['tankhah.a_factor_add']
     permission_denied_message = 'متاسفانه دسترسی مجاز ندارید'
     check_organization = True
 
@@ -520,7 +520,7 @@ class FactorCreateWizard(PermissionBaseView, SessionWizardView):
 
 class TankhahBudgetInfoAjaxView(PermissionBaseView, View):
     http_method_names = ['get']
-    permission_codenames = ['tankhah.a_factor_add'] # User needs factor add permission to see budget?
+    permission_codename = ['tankhah.a_factor_add'] # User needs factor add permission to see budget?
 
     def get(self, request, tankhah_id, *args, **kwargs):
         # Basic permission check first
@@ -656,7 +656,7 @@ wizard_file_storage = FileSystemStorage(location=wizard_file_storage_location)
 
 class FactorWizardView(PermissionBaseView, SessionWizardView):
     # Permission settings remain the same
-    permission_codenames = ['tankhah.a_factor_add']
+    permission_codename = ['tankhah.a_factor_add']
     permission_denied_message = 'متاسفانه دسترسی مجاز ندارید'
     check_organization = True
 
@@ -850,7 +850,7 @@ class FactorWizardView(PermissionBaseView, SessionWizardView):
 
 class old__FactorWizardView(PermissionBaseView, SessionWizardView):
     # Permission settings
-    permission_codenames = ['tankhah.a_factor_add']
+    permission_codename = ['tankhah.a_factor_add']
     permission_denied_message = 'متاسفانه دسترسی مجاز ندارید'
     check_organization = True # Does your PermissionBaseView handle this?
 

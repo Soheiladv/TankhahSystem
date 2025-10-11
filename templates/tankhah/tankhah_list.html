@@ -14,6 +14,7 @@
     /* بهبود تراکم سطرها */
     .table-sm td, .table-sm th { padding-top: .4rem; padding-bottom: .4rem; }
 </style>
+    
 <div class="container-fluid py-5">
     <div class="card fade-in">
         <div class="card-body">
@@ -190,7 +191,8 @@
                                                                             {% endif %}
                                                                         </td>
                                                                         <td class="cell-nw">{{ tankhah.date|jformat:"%Y/%m/%d"|to_persian_number }}</td>
-                                                                        <td class="cell-nw" title="{{ tankhah.amount|floatformat:0|format_negative }}">{{ tankhah.amount|floatformat:0|to_persian_number }} {% trans "ریال" %}</td>
+                                                                        <td class="cell-nw" title="{{ tankhah.amount|floatformat:0|format_negative }}">
+                                                                            {{ tankhah.amount|floatformat:0|format_negative }} {% trans "ریال" %}</td>
                                                                         <td class="cell-nw" title="{{ tankhah.get_remaining_budget|floatformat:0|intcomma }}">{{ tankhah.get_remaining_budget|floatformat:0|intcomma|to_persian_number }} {% trans "ریال" %}</td>
                                                                         <td class="d-none d-sm-table-cell">
                                                                             <span class="status-badge 

@@ -58,7 +58,7 @@ class YourOrgPeriodAllocationsListView(PermissionBaseView, ListView):
     context_object_name = 'budget_allocations'
     paginate_by = 15
 
-    # permission_codenames = ['budgets.view_budgetallocation'] # یا پرمیشن مناسب
+    # permission_codename = ['budgets.view_budgetallocation'] # یا پرمیشن مناسب
 
     def get_queryset(self):
         period_pk = self.kwargs.get('period_pk')

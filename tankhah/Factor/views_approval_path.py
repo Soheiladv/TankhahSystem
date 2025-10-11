@@ -30,7 +30,7 @@ class FactorApprovalPathView(PermissionBaseView, DetailView):
     model = Factor
     template_name = 'tankhah/Factors/factor_approval_path.html'
     context_object_name = 'factor'
-    permission_codenames = ['tankhah.factor_view']  # مجوز لازم برای مشاهده فاکتور
+    permission_codename = ['tankhah.factor_view']  # مجوز لازم برای مشاهده فاکتور
     check_organization = True  # بررسی دسترسی سازمانی
     organization_filter_field = 'tankhah__organization'  # فیلد فیلتر سازمانی
 

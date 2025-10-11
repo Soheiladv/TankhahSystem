@@ -40,7 +40,7 @@ class AccessRuleListView(PermissionBaseView, ListView):
     template_name = 'core/accessrule/accessrule_list.html'
     context_object_name = 'access_rules'
     paginate_by = 10
-    permission_codenames = ['core.AccessRule_view']
+    permission_codename = ['core.AccessRule_view']
     check_organization = True
     extra_context = {
         'title': _('لیست قوانین دسترسی'),
@@ -100,7 +100,7 @@ class AccessRuleDetailView(PermissionBaseView, DetailView):
     model = Status
     template_name = 'core/accessrule/accessrule_detail.html'
     context_object_name = 'access_rule'
-    permission_codenames = ['core.AccessRule_view']
+    permission_codename = ['core.AccessRule_view']
     check_organization = True
 
     def get_context_data(self, **kwargs):
@@ -112,7 +112,7 @@ class AccessRuleCreateView(PermissionBaseView, CreateView):
     form_class = PostAccessRuleForm_new
     template_name = 'core/accessrule/accessrule_form.html'
     success_url = reverse_lazy('accessrule_list')
-    permission_codenames = ['core.AccessRule_add']
+    permission_codename = ['core.AccessRule_add']
     check_organization = True
     extra_context = {'title': _('ایجاد قانون دسترسی جدید')}
 
@@ -124,7 +124,7 @@ class AccessRuleUpdateView(PermissionBaseView, UpdateView):
     form_class = PostAccessRuleForm_new
     template_name = 'core/accessrule/accessrule_form.html'
     success_url = reverse_lazy('accessrule_list')
-    permission_codenames = ['core.AccessRule_update']
+    permission_codename = ['core.AccessRule_update']
     check_organization = True
     extra_context = {'title': _('ویرایش قانون دسترسی')}
 
@@ -135,7 +135,7 @@ class AccessRuleDeleteView(PermissionBaseView, DeleteView):
     model = Status
     template_name = 'core/accessrule/accessrule_confirm_delete.html'
     success_url = reverse_lazy('accessrule_list')
-    permission_codenames = ['core.AccessRule_delete']
+    permission_codename = ['core.AccessRule_delete']
     check_organization = True
     extra_context = {'title': _('حذف قانون دسترسی')}
 
@@ -148,7 +148,7 @@ class PostRuleReportView(PermissionBaseView, ListView):
     template_name = 'core/accessrule/post_rule_report.html'
     model = Post
     context_object_name = 'posts'
-    permission_codenames = ['core.AccessRule_view']
+    permission_codename = ['core.AccessRule_view']
     check_organization = False
     extra_context = {'title': _('گزارش قوانین دسترسی پست‌ها')}
 
@@ -161,7 +161,7 @@ class PostAccessRuleAssignView_old(PermissionBaseView, FormView):
     template_name = 'core/accessrule/post_access_rule_assign_hybrid.html'
     form_class = PostAccessRuleHybridForm
     success_url = reverse_lazy('accessrule_list')
-    permission_codenames = ['core.AccessRule_add', 'core.AccessRule_update']
+    permission_codename = ['core.AccessRule_add', 'core.AccessRule_update']
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -206,7 +206,7 @@ class PostAccessRuleAssignView_old(PermissionBaseView, FormView):
 class PostAccessRuleAssignView(PermissionBaseView, FormView):
     template_name = 'core/accessrule/post_access_rule_assign.html' # یک تمپلیت جدید و تمیز
     form_class = PostAccessRuleAssignForm
-    permission_codenames = ['core.AccessRule_add', 'core.AccessRule_update']
+    permission_codename = ['core.AccessRule_add', 'core.AccessRule_update']
 
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)
@@ -245,7 +245,7 @@ class PostAccessRuleAssignView(PermissionBaseView, FormView):
 #-------------------------------------------------------------------------------------------
 class SelectWorkflowView(PermissionBaseView, TemplateView):
     template_name = 'core/accessrule/workflow_select.html'
-    permission_codenames = ['core.AccessRule_add']
+    permission_codename = ['core.AccessRule_add']
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -264,7 +264,7 @@ class SelectWorkflowView(PermissionBaseView, TemplateView):
 class WorkflowBuilderView(PermissionBaseView, FormView):
     template_name = 'core/accessrule/unified_access_assign.html'
     form_class = UnifiedAccessForm
-    permission_codenames = ['core.AccessRule_add', 'core.AccessRule_update']
+    permission_codename = ['core.AccessRule_add', 'core.AccessRule_update']
     check_organization  = True
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)
@@ -318,7 +318,7 @@ class WorkflowBuilderView(PermissionBaseView, FormView):
 class WorkflowBuilderView____(PermissionBaseView, FormView):
     template_name = 'core/accessrule/workflow_builder.html'
     form_class = WorkflowForm
-    permission_codenames = ['core.AccessRule_add', 'core.AccessRule_update']
+    permission_codename = ['core.AccessRule_add', 'core.AccessRule_update']
 
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)

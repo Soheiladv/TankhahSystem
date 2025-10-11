@@ -123,7 +123,7 @@
                     {% if tankhah.due_date %}
                     <p><strong>{% translate "مهلت تسویه:" %}</strong> <span>{{ tankhah.due_date|to_jalali:"%Y/%m/%d"|to_persian_number }}</span></p>
                     {% endif %}
-                    <p><strong>{% translate "مبلغ کل تنخواه:" %}</strong> <span class="fw-bold text-primary-emphasis">{{ tankhah.amount|intcomma:False|to_persian_number }} {% translate "ریال" %}</span></p>
+                    <p><strong>{% translate "مبلغ کل تنخواه:" %}</strong> <span class="fw-bold text-primary-emphasis">{{ tankhah.amount| format_negative }} {% translate "ریال" %}</span></p>
                     {% if tankhah.letter_number %}
                     <p><strong>{% translate "شماره نامه:" %}</strong> <span>{{ tankhah.letter_number|to_persian_number }}</span></p>
                     {% endif %}
@@ -137,7 +137,7 @@
                     {% endif %}
                     {% if tankhah.description %}
                     <p class="mt-2"><strong>{% translate "توضیحات تنخواه:" %}</strong></p>
-                    <p class="text-muted" style="white-space: pre-wrap; border-bottom:none;">{{ tankhah.description|linebreaksbr }}</p>
+                    <p class="text-muted" style="white-space: pre-wrap; border-bottom:none;">{{ tankhah.description|linebreaksbr |to_persian_number}}</p>
                     {% endif %}
                 </div>
             </div>
@@ -172,16 +172,16 @@
                                 <tr>
                                     <td>{{ forloop.counter|to_persian_number }}</td>
                                     <td>
-{#                                        <a href="{% url 'advance_factor_detailA' pk=factor.pk %}">{{ factor.number|default_if_none:"-" }}</a>#}
+                                        <a href="{% url 'detail_factor' pk=factor.pk %}">{{ factor.number|default_if_none:"-" }}</a>
                                     </td>
                                     <td>{{ factor.jalali_date|to_persian_number|default:"-" }}</td>
                                     <td class="text-end fw-bold">{{ factor.amount|intcomma:False|to_persian_number }}</td>
                                     <td class="text-center"><span class="badge bg-{{ factor.status|lower }}_badge">{{ factor.get_status_display }}</span></td>
                                     <td>{{ factor.category.name|default:"-" }}</td>
                                     <td class="no-print">
-{#                                        <a href="{% url 'factor_detail' pk=factor.pk %}" class="btn btn-sm btn-outline-primary py-0 px-1" title="{% translate 'مشاهده جزئیات' %}">#}
-{#                                            <i class="fas fa-eye fa-xs"></i>#}
-{#                                        </a>#}
+                                        <a href="{% url 'detail_factor' pk=factor.pk %}" class="btn btn-sm btn-outline-primary py-0 px-1" title="{% translate 'مشاهده جزئیات' %}">
+                                            <i class="fas fa-eye fa-xs"></i>
+                                        </a>
                                         {% if not factor.is_locked and perms.tankhah.change_factor %} {# یا هر شرطی برای ویرایش #}
                                         <a href="{% url 'factor_edit' pk=factor.pk %}" class="btn btn-sm btn-outline-warning py-0 px-1 ms-1" title="{% translate 'ویرایش فاکتور' %}">
                                             <i class="fas fa-edit fa-xs"></i>
@@ -239,9 +239,9 @@
                      <i class="fas fa-coins"></i>{% translate "منبع تخصیص بودجه این تنخواه" %}
                 </div>
                 <div class="card-body info-grid small">
-                    <p><strong>{% translate "سرفصل بودجه:" %}</strong> <span>{{ tankhah.project_budget_allocation.budget_item.name|default:"-" }}</span></p>
-                    <p><strong>{% translate "دوره بودجه:" %}</strong> <span>{{ tankhah.project_budget_allocation.budget_period.name|default:"-" }}</span></p>
-                    <p><strong>{% translate "مبلغ کل سرفصل:" %}</strong> <span>{{ tankhah.project_budget_allocation.allocated_amount|intcomma:False|to_persian_number }}</span></p>
+                    <p><strong>{% translate "سرفصل بودجه:" %}</strong> <span>{{ tankhah.project_budget_allocation.budget_item.name|default:"-"|to_persian_number }}</span></p>
+                    <p><strong>{% translate "دوره بودجه:" %}</strong> <span>{{ tankhah.project_budget_allocation.budget_period.name|default:"-" |to_persian_number}}</span></p>
+                    <p><strong>{% translate "مبلغ کل سرفصل:" %}</strong> <span>{{ tankhah.project_budget_allocation.allocated_amount|intcomma:False|format_negative }}</span></p>
                     <p><strong>{% translate "مانده سرفصل:" %}</strong>
                         {% with ba_remaining=tankhah.project_budget_allocation.get_remaining_amount %}
                         <span class="fw-bold {% if ba_remaining < 0 %}text-danger{% else %}text-success{% endif %}">

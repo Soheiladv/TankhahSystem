@@ -84,7 +84,7 @@ class old_ComprehensiveBudgetReportView(LoginRequiredMixin, ListView):
 
     # paginate_by = 5 # اگر تعداد دوره‌های بودجه زیاد است، فعال کنید
 
-    # permission_codenames = ['reports.view_comprehensive_budget_report'] # اگر از PermissionBaseView استفاده می‌کنید
+    # permission_codename = ['reports.view_comprehensive_budget_report'] # اگر از PermissionBaseView استفاده می‌کنید
 
     def get_queryset(self):
         # انتخاب دوره‌های بودجه فعال و تکمیل نشده (یا بر اساس فیلترهای دیگر)
@@ -702,7 +702,7 @@ class YourOrgPeriodAllocationsListView(LoginRequiredMixin, ListView):
     context_object_name = 'budget_allocations'
     paginate_by = 15
 
-    # permission_codenames = ['budgets.view_budgetallocation'] # یا پرمیشن مناسب
+    # permission_codename = ['budgets.view_budgetallocation'] # یا پرمیشن مناسب
 
     def get_queryset(self):
         period_pk = self.kwargs.get('period_pk')

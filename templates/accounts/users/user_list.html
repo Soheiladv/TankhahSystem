@@ -12,6 +12,10 @@
                 <div class="input-group-append">
                     <button class="btn btn-primary" type="button" id="search-button"><i class="fas fa-search"></i> جستجو</button>
                 </div>
+               <div class="mb-1 text-center animate__animated animate__bounceIn">
+                    <a href="{% url 'accounts:admin_dashboard' %}" class="btn btn-block btn-lg">
+                        <i class="fas fa-users-line"></i>بازگشت</a>
+                </div>
             </div>
             <div class="form-check form-check-inline">
                 <input class="form-check-input" type="checkbox" id="active-users" name="active_users" value="active" {% if active_users == 'active' %}checked{% endif %}>
@@ -72,9 +76,9 @@
                             {% if user.is_superuser %}
                                 <i class="fas fa-crown text-warning"></i> مدیر
                             {% elif user.is_staff %}
-                                <i class="fas fa-user-tie text-info"></i> کارمند
+                                <i class="fas fa-user-tie text-info"></i> همکار
                             {% else %}
-                                <i class="fas fa-user text-secondary"></i> کاربر عادی
+                                <i class="fas fa-user text-secondary"></i> کاربر 
                             {% endif %}
                         </li>
 

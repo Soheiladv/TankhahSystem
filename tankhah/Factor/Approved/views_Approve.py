@@ -16,7 +16,7 @@ class FactorApproveView(PermissionBaseView, UpdateView):
     form_class = FactorApprovalForm
     template_name = 'tankhah/factor_approval.html'
     success_url = reverse_lazy('factor_list')
-    permission_codenames = ['tankhah.factor_view', 'tankhah.factor_update']
+    permission_codename = ['tankhah.factor_view', 'tankhah.factor_update']
 
     def form_valid(self, form):
         factor = self.object

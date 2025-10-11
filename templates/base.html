@@ -13,7 +13,7 @@
     <link href="{% static 'admin/css/animate.min.css' %}" rel="stylesheet">
     <!-- 🔤 System Fonts CSS - بالاترین اولویت -->
     {% include_system_fonts %}
-    
+
     <!-- Font Awesome CSS - اولویت بالا -->
     <link href="{% static 'admin/css/all.min.css' %}" rel="stylesheet" crossorigin="anonymous">
 
@@ -27,10 +27,10 @@
 
     <!-- 🎨 CSS مرکزی پروژه - تمام استایل‌ها -->
     <link rel="stylesheet" href="{% static 'css/project-main.css' %}">
-    
+
     <!-- استایل‌های سفارشی -->
     <link rel="stylesheet" href="{% static 'admin/css/budgetsStyle.css' %}">
-    
+
     <!-- 🎨 Dashboard Reports CSS -->
     <link rel="stylesheet" href="{% static 'reports/css/dashboard.css' %}">
 
@@ -461,6 +461,9 @@
     </style>
 </head>
 <body class="theme-{{ user.profile.theme|default:'light' }}">
+{% comment %}
+    اعلام خطاها در کل قالب
+    {% endcomment %}
 {% if messages %}
     {% for message in messages %}
         <div class="alert {% if message.tags %}alert-
@@ -473,6 +476,9 @@
         </div>
     {% endfor %}
 {% endif %}
+
+{% comment %}
+{% endcomment %}
 <nav class="navbar navbar-expand-md navbar-dark fixed-top">
     <div class="container-fluid">
         <a class="navbar-brand animate__animated animate__fadeInLeft" href="{% url 'index' %}">
@@ -539,6 +545,8 @@
         </div>
     </div>
 </nav>
+{% comment %}
+{% endcomment %}
 <button class="navbar-toggle animate__animated animate__fadeInRight" id="sidebarToggle">
     <i class="fas fa-bars"></i>
 </button>
@@ -716,13 +724,17 @@
         {% endif %}
     </div>
 </div>
-
+{% comment %}
+بدنه اصلی
+{% endcomment %}
 <main class="content" id="mainContent">
     <div class="container-fluid mt-5 pt-3">
         {% block content %}{% endblock %}
     </div>
 </main>
-
+{% comment %}
+    /* نمایش/عدم نمایش برای چاپ */
+{% endcomment %}
 <style>
     /* نمایش/عدم نمایش برای چاپ */
     .print-only {
@@ -750,13 +762,17 @@
         }
     }
 </style>
-
+{% comment %}
+{% endcomment %}
 <footer class="footer animate__animated animate__fadeInUp print-only">
 
     <div class="container">
         <p>© 1404 {% trans "سیستم جامع بودجه بندی سازمانی و تنخواه‌گردانی" %}. {% trans "همه حقوق محفوظ است." %}</p>
     </div>
 </footer>
+{% comment %}
+<!-- اسکریپت‌ها -->
+{% endcomment %}
 <!-- اسکریپت‌ها -->
 <script src="{% static 'admin/js/jquery-3.6.0.min.js' %}"></script>
 <script src="{% static 'admin/js/jquery-ui.min.js' %}"></script>
@@ -771,7 +787,6 @@
 <script src="{% static 'admin/js/lock_warning_badges.js' %}"></script>
 <!-- Dashboard Reports JavaScript -->
 <script src="{% static 'reports/js/dashboard.js' %}"></script>
-
 <script>
     $(document).ready(function () {
         // تنظیمات اولیه
@@ -1283,7 +1298,6 @@
         }
     });
 </script>
-{% block extra_js %}{% endblock %}
 
 <script>
     // Simple Sidebar Theme Management
@@ -1329,6 +1343,7 @@
         }
     });
 </script>
+{% block extra_js %} {% endblock %}
 
 </body>
 </html>

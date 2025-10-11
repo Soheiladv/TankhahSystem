@@ -181,7 +181,7 @@ class TankhahListView(PermissionBaseView, ListView):
     paginate_by = 10
     extra_context = {'title': _('لیست تنخواه‌ها')}
     check_organization = True
-    permission_codenames = ['tankhah.Tankhah_view']
+    permission_codename = ['tankhah.Tankhah_view']
 
     def get_queryset(self):
         user = self.request.user
@@ -508,7 +508,7 @@ class TankhahDetailView(PermissionBaseView, DetailView):
     model = Tankhah
     template_name = 'tankhah/tankhah_detail.html'
     context_object_name = 'tankhah'
-    permission_codenames = ['tankhah.Tankhah_detail']
+    permission_codename = ['tankhah.Tankhah_detail']
     permission_denied_message = _('متاسفانه دسترسی مجاز ندارید')
     check_organization = True
     def get_queryset(self):
@@ -628,7 +628,7 @@ class TankhahDeleteView(PermissionBaseView, DeleteView):
     model = Tankhah
     template_name = 'tankhah/Tankhah_confirm_delete.html'
     success_url = reverse_lazy('tankhah_list')
-    permission_codenames = ['tankhah.Tankhah_delete']
+    permission_codename = ['tankhah.Tankhah_delete']
 
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
@@ -642,7 +642,7 @@ class TankhahDeleteView(PermissionBaseView, DeleteView):
         return super().delete(request, *args, **kwargs)
 # ویو تأیید:
 class TankhahApproveView(PermissionBaseView, View):
-    permission_codenames = ['tankhah.Tankhah_approve']
+    permission_codename = ['tankhah.Tankhah_approve']
 
     def post(self, request, pk):
         tankhah = get_object_or_404( Tankhah, pk=pk)
@@ -712,7 +712,7 @@ class TankhahApproveView(PermissionBaseView, View):
         return redirect('dashboard_flows')
 # ویو رد:
 class TankhahRejectView(PermissionBaseView, View):
-    permission_codenames = ['tankhah.Tankhah_approve']
+    permission_codename = ['tankhah.Tankhah_approve']
     def get(self, request, pk):
         tankhah = Tankhah.objects.get(pk=pk)
         user_posts = request.user.userpost_set.all()

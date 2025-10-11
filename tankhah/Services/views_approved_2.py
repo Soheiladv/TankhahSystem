@@ -192,7 +192,8 @@ class FactorCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
 class FactorEditView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
     model = Factor
     form_class = FactorForm
-    template_name = 'tankhah/Factors/edit_factor_form.html'
+    # template_name = 'tankhah/Factors/edit_factor_form.html'
+    template_name = 'tankhah/Factors/NF/new_factor_form.html'
     success_url = reverse_lazy('factor_list')
     permission_required = 'tankhah.factor_update'
 

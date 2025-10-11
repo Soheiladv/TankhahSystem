@@ -93,30 +93,36 @@ VERSION_AUTO_BACKUP = os.getenv('VERSION_AUTO_BACKUP', 'True') == 'True'
 VERSION_RETENTION_COUNT = int(os.getenv('VERSION_RETENTION_COUNT', '10'))
 
 INSTALLED_APPS = [
+    # Django built-ins
     'django.contrib.humanize',
-    'rest_framework',
-    'channels',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'core.apps.CoreConfig',
-    'reports.apps.ReportsConfig',
+
+    # Third-party
+    'rest_framework',
+    'channels',
     'django_jalali',
     'jalali_date',
-    'version_tracker.apps.VersionTrackerConfig',
-    'tankhah.apps.TankhahConfig',
-    'accounts.apps.AccountsConfig',
-    'budgets.apps.BudgetsConfig',
     'formtools',
     'dbbackup',
     'storages',
+
+    # Your project apps (ترتیب مهم ↓)
+    'core.apps.CoreConfig',                   # ✅ باید قبل از اپ‌های وابسته بیاید
+    'accounts.apps.AccountsConfig',
+    'reports.apps.ReportsConfig',
+    'version_tracker.apps.VersionTrackerConfig',
     'usb_key_validator.apps.UsbKeyValidatorConfig',
     'notificationApp.apps.NotificationappConfig',
     'purchase_requests.apps.PurchaseRequestsConfig',
+    'tankhah.apps.TankhahConfig',
+    'budgets.apps.BudgetsConfig',             # ✅ بعد از core و tankhah و غیره
 ]
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

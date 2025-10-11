@@ -16,7 +16,7 @@ class FactorStatusDashboardView(PermissionBaseView, ListView):
     template_name = 'tankhah/Reports/factor_status_dashboard.html'
     context_object_name = 'factors_data'
     paginate_by = 10
-    permission_codenames = ['tankhah.factor_view']
+    permission_codename = ['tankhah.factor_view']
     check_organization = True
     permission_denied_message = _('متاسفانه دسترسی لازم برای مشاهده این گزارش را ندارید.')
 

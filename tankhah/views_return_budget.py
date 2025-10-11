@@ -26,7 +26,7 @@ class ReturnExpiredTankhahBudgetView(PermissionBaseView, TemplateView):
     ویو برای انتقال مانده بودجه تنخواه‌های منقضی به بودجه اصلی
     """
     template_name = 'tankhah/return_expired_budget.html'
-    permission_codenames = ['tankhah.Tankhah_delete']
+    permission_codename = ['tankhah.Tankhah_delete']
     check_organization = True
 
     def get_context_data(self, **kwargs):
@@ -419,7 +419,7 @@ class ReturnExpiredBudgetAPIView(PermissionBaseView, View):
     """
     API برای دریافت اطلاعات تنخواه‌های منقضی
     """
-    permission_codenames = ['tankhah.Tankhah_view']
+    permission_codename = ['tankhah.Tankhah_view']
     check_organization = True
 
     def get(self, request):

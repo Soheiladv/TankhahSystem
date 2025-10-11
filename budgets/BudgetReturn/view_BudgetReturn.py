@@ -45,7 +45,7 @@ class gemini_BudgetReturnView(PermissionBaseView, CreateView):
     form_class = BudgetReturnForm
     template_name = 'budgets/budget_return_form.html'
     # کد دسترسی مورد نیاز برای این عملیات
-    permission_codenames = ['budgets.BudgetTransaction_add']
+    permission_codename = ['budgets.BudgetTransaction_add']
     # بررسی می‌کند که آیا کاربر به سازمان مربوطه دسترسی دارد یا خیر
     check_organization = True
     # URL موفقیت‌آمیز پس از ثبت فرم (اینجا با استفاده از get_success_url تعیین می‌شود)
@@ -187,7 +187,7 @@ class gemini___BudgetReturnView(PermissionBaseView, CreateView):
     form_class = BudgetReturnForm
     template_name = 'budgets/budget_return_form.html'
     # کد دسترسی مورد نیاز برای این عملیات
-    permission_codenames = ['budgets.BudgetTransaction_add']
+    permission_codename = ['budgets.BudgetTransaction_add']
     # بررسی می‌کند که آیا کاربر به سازمان مربوطه دسترسی دارد یا خیر
     check_organization = True
     # URL موفقیت‌آمیز پس از ثبت فرم (اینجا با استفاده از get_success_url تعیین می‌شود)
@@ -324,7 +324,7 @@ class BudgetReturnView(PermissionBaseView, CreateView):
     model = BudgetTransaction
     form_class = BudgetReturnForm
     template_name = 'budgets/budget_return_form.html'
-    permission_codenames = ['budgets.BudgetTransaction_add']
+    permission_codename = ['budgets.BudgetTransaction_add']
     check_organization = True
     success_url = None
 

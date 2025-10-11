@@ -50,6 +50,8 @@
     .card-group-main:hover { border-color: var(--dash-success); }
     .card-group-payment:hover { border-color: var(--dash-warning); }
     .card-group-report:hover { border-color: var(--dash-info); }
+    .card-group-help:hover { border-color: var(--dash-primary); }
+    .card-group-admin:hover { border-color: #dc3545; }
 </style>
 {% endblock %}
 
@@ -241,6 +243,39 @@
                 </div>
             </div>
         </div>
+
+        <div class="col">
+            <div class="card shadow-sm dashboard-card card-group-help">
+                <div class="card-header bg-transparent d-flex align-items-center">
+                    <i class="fas fa-book text-primary card-header-icon"></i>
+                    <h5 class="card-title mb-0">{% trans "راهنمای کاربر" %}</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text text-muted small">راهنمای ساده و کاربردی برای استفاده از سیستم مدیریت بودجه.</p>
+                </div>
+                <div class="card-footer bg-light d-flex justify-content-between">
+                    <a href="{% url 'budget_user_guide' %}"><i class="fas fa-user me-1"></i>{% trans "راهنمای کاربر" %}</a>
+                    <a href="{% url 'budget_stats' %}"><i class="fas fa-chart-bar me-1"></i>{% trans "آمار سیستم" %}</a>
+                </div>
+            </div>
+        </div>
+
+        {% if user.is_staff or user.is_superuser %}
+        <div class="col">
+            <div class="card shadow-sm dashboard-card card-group-admin">
+                <div class="card-header bg-transparent d-flex align-items-center">
+                    <i class="fas fa-cogs text-danger card-header-icon"></i>
+                    <h5 class="card-title mb-0">{% trans "راهنمای ادمین" %}</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text text-muted small">راهنمای فنی و مدیریتی برای ادمین‌ها با اطلاعات نرم‌افزار و مدل‌ها.</p>
+                </div>
+                <div class="card-footer bg-light text-center">
+                    <a href="{% url 'budget_admin_guide' %}"><i class="fas fa-shield-alt me-1"></i>{% trans "راهنمای ادمین" %}</a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
 
     </div>
 </div>

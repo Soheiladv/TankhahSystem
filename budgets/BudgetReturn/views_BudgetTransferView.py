@@ -57,7 +57,7 @@ class BudgetTransferView(FormView):
 class BudgetReturnView(PermissionBaseView, FormView):
     form_class = BudgetReturnForm
     template_name = 'budgets/ReturnTransfer/budget_management.html'
-    permission_codenames = ['budgets.BudgetReturn']
+    permission_codename = ['budgets.BudgetReturn']
     check_organization = False
 
     def get_allocation(self):

@@ -1,0 +1,503 @@
+{% extends "base.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "راهنمای کاربر سیستم بودجه" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .guide-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .guide-header {
+        text-align: center;
+        margin-bottom: 30px;
+        padding: 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 10px;
+    }
+    
+    .guide-header h1 {
+        margin: 0;
+        font-size: 2.5rem;
+        font-weight: bold;
+    }
+    
+    .guide-header p {
+        margin: 10px 0 0 0;
+        font-size: 1.2rem;
+        opacity: 0.9;
+    }
+    
+    .guide-nav {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 30px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    
+    .guide-nav h3 {
+        color: #495057;
+        margin-bottom: 15px;
+        font-size: 1.3rem;
+    }
+    
+    .nav-links {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 15px;
+    }
+    
+    .nav-link {
+        display: block;
+        padding: 15px 20px;
+        background: #f8f9fa;
+        border: 2px solid #e9ecef;
+        border-radius: 8px;
+        text-decoration: none;
+        color: #495057;
+        transition: all 0.3s ease;
+        font-weight: 500;
+    }
+    
+    .nav-link:hover {
+        background: #667eea;
+        color: white;
+        border-color: #667eea;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    }
+    
+    .guide-section {
+        background: white;
+        padding: 30px;
+        border-radius: 10px;
+        margin-bottom: 30px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    
+    .guide-section h2 {
+        color: #495057;
+        border-bottom: 3px solid #667eea;
+        padding-bottom: 10px;
+        margin-bottom: 25px;
+        font-size: 1.8rem;
+    }
+    
+    .guide-section h3 {
+        color: #6c757d;
+        margin-top: 25px;
+        margin-bottom: 15px;
+        font-size: 1.4rem;
+    }
+    
+    .guide-section h4 {
+        color: #495057;
+        margin-top: 20px;
+        margin-bottom: 10px;
+        font-size: 1.2rem;
+    }
+    
+    .step-list {
+        counter-reset: step-counter;
+        list-style: none;
+        padding: 0;
+    }
+    
+    .step-list li {
+        counter-increment: step-counter;
+        margin: 15px 0;
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        border-left: 4px solid #667eea;
+        position: relative;
+    }
+    
+    .step-list li::before {
+        content: counter(step-counter);
+        position: absolute;
+        left: -15px;
+        top: 15px;
+        background: #667eea;
+        color: white;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 0.9rem;
+    }
+    
+    .feature-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+        margin: 20px 0;
+    }
+    
+    .feature-card {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 8px;
+        border: 1px solid #e9ecef;
+        transition: all 0.3s ease;
+    }
+    
+    .feature-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .feature-card h4 {
+        color: #667eea;
+        margin-top: 0;
+        margin-bottom: 10px;
+    }
+    
+    .highlight-box {
+        background: #e3f2fd;
+        border-left: 4px solid #2196f3;
+        padding: 15px;
+        margin: 15px 0;
+        border-radius: 0 5px 5px 0;
+    }
+    
+    .warning-box {
+        background: #fff3e0;
+        border-left: 4px solid #ff9800;
+        padding: 15px;
+        margin: 15px 0;
+        border-radius: 0 5px 5px 0;
+    }
+    
+    .success-box {
+        background: #e8f5e8;
+        border-left: 4px solid #4caf50;
+        padding: 15px;
+        margin: 15px 0;
+        border-radius: 0 5px 5px 0;
+    }
+    
+    .admin-only {
+        background: #f8d7da;
+        border-left: 4px solid #dc3545;
+        padding: 15px;
+        margin: 15px 0;
+        border-radius: 0 5px 5px 0;
+        text-align: center;
+    }
+    
+    .admin-only a {
+        color: #dc3545;
+        font-weight: bold;
+        text-decoration: none;
+    }
+    
+    .admin-only a:hover {
+        text-decoration: underline;
+    }
+    
+    @media (max-width: 768px) {
+        .guide-container {
+            padding: 10px;
+        }
+        
+        .guide-header h1 {
+            font-size: 2rem;
+        }
+        
+        .nav-links {
+            grid-template-columns: 1fr;
+        }
+        
+        .feature-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="guide-container">
+    <!-- Header -->
+    <div class="guide-header">
+        <h1>{% trans "راهنمای کاربر سیستم مدیریت بودجه" %}</h1>
+        <p>{% trans "راهنمای ساده و کاربردی برای استفاده از سیستم" %}</p>
+    </div>
+
+    <!-- Navigation -->
+    <div class="guide-nav">
+        <h3>{% trans "فهرست مطالب" %}</h3>
+        <div class="nav-links">
+            <a href="#introduction" class="nav-link">{% trans "معرفی سیستم" %}</a>
+            <a href="#basic-operations" class="nav-link">{% trans "عملیات پایه" %}</a>
+            <a href="#budget-allocation" class="nav-link">{% trans "تخصیص بودجه" %}</a>
+            <a href="#budget-return" class="nav-link">{% trans "برگشت بودجه" %}</a>
+            <a href="#reports" class="nav-link">{% trans "گزارش‌ها" %}</a>
+            <a href="#troubleshooting" class="nav-link">{% trans "راهنمای حل مشکل" %}</a>
+        </div>
+    </div>
+
+    <!-- Introduction -->
+    <div class="guide-section" id="introduction">
+        <h2>{% trans "معرفی سیستم" %}</h2>
+        <p>{% trans "سیستم مدیریت بودجه به شما کمک می‌کند تا بودجه‌های خود را به صورت منظم و دقیق مدیریت کنید." %}</p>
+        
+        <div class="feature-grid">
+            <div class="feature-card">
+                <h4>{% trans "مدیریت بودجه" %}</h4>
+                <p>{% trans "تخصیص و مدیریت بودجه به پروژه‌ها و بخش‌های مختلف" %}</p>
+            </div>
+            <div class="feature-card">
+                <h4>{% trans "برگشت بودجه" %}</h4>
+                <p>{% trans "امکان برگشت مبالغ غیرمصرف شده به بودجه اصلی" %}</p>
+            </div>
+            <div class="feature-card">
+                <h4>{% trans "گزارش‌گیری" %}</h4>
+                <p>{% trans "گزارش‌های تفصیلی از وضعیت بودجه و مصرف" %}</p>
+            </div>
+            <div class="feature-card">
+                <h4>{% trans "پیگیری آسان" %}</h4>
+                <p>{% trans "رصد آسان تمام عملیات و تغییرات بودجه" %}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Basic Operations -->
+    <div class="guide-section" id="basic-operations">
+        <h2>{% trans "عملیات پایه" %}</h2>
+        
+        <h3>{% trans "ورود به سیستم" %}</h3>
+        <ol class="step-list">
+            <li>
+                <h4>{% trans "ورود به داشبورد" %}</h4>
+                <p>{% trans "پس از ورود به سیستم، به داشبورد بودجه بروید" %}</p>
+            </li>
+            <li>
+                <h4>{% trans "انتخاب عملیات" %}</h4>
+                <p>{% trans "از منوی موجود، عملیات مورد نظر خود را انتخاب کنید" %}</p>
+            </li>
+            <li>
+                <h4>{% trans "تکمیل فرم" %}</h4>
+                <p>{% trans "اطلاعات مورد نیاز را در فرم مربوطه وارد کنید" %}</p>
+            </li>
+        </ol>
+
+        <h3>{% trans "نحوه جستجو" %}</h3>
+        <div class="highlight-box">
+            <strong>{% trans "نکته:" %}</strong> {% trans "برای جستجوی سریع، از فیلد جستجو در بالای صفحات استفاده کنید" %}
+        </div>
+    </div>
+
+    <!-- Budget Allocation -->
+    <div class="guide-section" id="budget-allocation">
+        <h2>{% trans "تخصیص بودجه" %}</h2>
+        
+        <h3>{% trans "مراحل تخصیص بودجه" %}</h3>
+        <ol class="step-list">
+            <li>
+                <h4>{% trans "انتخاب دوره بودجه" %}</h4>
+                <p>{% trans "دوره بودجه مورد نظر را انتخاب کنید" %}</p>
+            </li>
+            <li>
+                <h4>{% trans "انتخاب پروژه" %}</h4>
+                <p>{% trans "پروژه یا بخش مورد نظر را انتخاب کنید" %}</p>
+            </li>
+            <li>
+                <h4>{% trans "وارد کردن مبلغ" %}</h4>
+                <p>{% trans "مبلغ مورد نظر را وارد کنید" %}</p>
+            </li>
+            <li>
+                <h4>{% trans "تایید تخصیص" %}</h4>
+                <p>{% trans "اطلاعات را بررسی و تخصیص را تایید کنید" %}</p>
+            </li>
+        </ol>
+
+        <div class="success-box">
+            <strong>{% trans "نکته مهم:" %}</strong> {% trans "مبلغ تخصیص نمی‌تواند بیشتر از مانده بودجه باشد" %}
+        </div>
+    </div>
+
+    <!-- Budget Return -->
+    <div class="guide-section" id="budget-return">
+        <h2>{% trans "برگشت بودجه" %}</h2>
+        
+        <h3>{% trans "زمان برگشت بودجه" %}</h3>
+        <p>{% trans "زمانی که مبلغی از بودجه تخصیص‌یافته استفاده نشده باشد، می‌توانید آن را برگشت دهید" %}</p>
+        
+        <h3>{% trans "مراحل برگشت بودجه" %}</h3>
+        <ol class="step-list">
+            <li>
+                <h4>{% trans "انتخاب تخصیص" %}</h4>
+                <p>{% trans "تخصیص بودجه مورد نظر را انتخاب کنید" %}</p>
+            </li>
+            <li>
+                <h4>{% trans "وارد کردن مبلغ برگشت" %}</h4>
+                <p>{% trans "مبلغ مورد نظر برای برگشت را وارد کنید" %}</p>
+            </li>
+            <li>
+                <h4>{% trans "وارد کردن دلیل" %}</h4>
+                <p>{% trans "دلیل برگشت بودجه را توضیح دهید" %}</p>
+            </li>
+            <li>
+                <h4>{% trans "تایید برگشت" %}</h4>
+                <p>{% trans "اطلاعات را بررسی و برگشت را تایید کنید" %}</p>
+            </li>
+        </ol>
+
+        <div class="highlight-box">
+            <strong>{% trans "مهم:" %}</strong> {% trans "مبلغ برگشتی به بودجه اصلی اضافه می‌شود و قابل تخصیص مجدد است" %}
+        </div>
+    </div>
+
+    <!-- Reports -->
+    <div class="guide-section" id="reports">
+        <h2>{% trans "گزارش‌ها" %}</h2>
+        
+        <h3>{% trans "انواع گزارش‌ها" %}</h3>
+        <div class="feature-grid">
+            <div class="feature-card">
+                <h4>{% trans "گزارش مانده بودجه" %}</h4>
+                <p>{% trans "نمایش مانده بودجه برای هر پروژه یا بخش" %}</p>
+            </div>
+            <div class="feature-card">
+                <h4>{% trans "گزارش مصرف" %}</h4>
+                <p>{% trans "گزارش مبالغ مصرف شده از بودجه" %}</p>
+            </div>
+            <div class="feature-card">
+                <h4>{% trans "گزارش برگشت‌ها" %}</h4>
+                <p>{% trans "گزارش مبالغ برگشتی به بودجه" %}</p>
+            </div>
+            <div class="feature-card">
+                <h4>{% trans "گزارش جامع" %}</h4>
+                <p>{% trans "گزارش کامل وضعیت بودجه" %}</p>
+            </div>
+        </div>
+
+        <h3>{% trans "نحوه مشاهده گزارش" %}</h3>
+        <ol class="step-list">
+            <li>
+                <h4>{% trans "انتخاب نوع گزارش" %}</h4>
+                <p>{% trans "از منوی گزارش‌ها، نوع گزارش مورد نظر را انتخاب کنید" %}</p>
+            </li>
+            <li>
+                <h4>{% trans "تنظیم فیلترها" %}</h4>
+                <p>{% trans "فیلترهای مورد نظر (تاریخ، پروژه، و...) را تنظیم کنید" %}</p>
+            </li>
+            <li>
+                <h4>{% trans "مشاهده گزارش" %}</h4>
+                <p>{% trans "گزارش را مشاهده و در صورت نیاز چاپ کنید" %}</p>
+            </li>
+        </ol>
+    </div>
+
+    <!-- Troubleshooting -->
+    <div class="guide-section" id="troubleshooting">
+        <h2>{% trans "راهنمای حل مشکل" %}</h2>
+        
+        <h3>{% trans "مشکلات رایج" %}</h3>
+        
+        <h4>{% trans "نمی‌توانم بودجه تخصیص دهم" %}</h4>
+        <div class="warning-box">
+            <strong>{% trans "علت احتمالی:" %}</strong> {% trans "مانده بودجه کافی نیست یا دوره بودجه قفل شده است" %}<br>
+            <strong>{% trans "راه حل:" %}</strong> {% trans "مانده بودجه را بررسی کنید یا با مدیر سیستم تماس بگیرید" %}
+        </div>
+
+        <h4>{% trans "نمی‌توانم بودجه برگشت دهم" %}</h4>
+        <div class="warning-box">
+            <strong>{% trans "علت احتمالی:" %}</strong> {% trans "مبلغ برگشت بیشتر از مبلغ تخصیص‌یافته است" %}<br>
+            <strong>{% trans "راه حل:" %}</strong> {% trans "مبلغ صحیح را وارد کنید" %}
+        </div>
+
+        <h4>{% trans "گزارش نمایش داده نمی‌شود" %}</h4>
+        <div class="warning-box">
+            <strong>{% trans "علت احتمالی:" %}</strong> {% trans "فیلترهای انتخابی صحیح نیست" %}<br>
+            <strong>{% trans "راه حل:" %}</strong> {% trans "فیلترها را پاک کرده و مجدداً تنظیم کنید" %}
+        </div>
+
+        <h3>{% trans "تماس با پشتیبانی" %}</h3>
+        <div class="success-box">
+            <strong>{% trans "در صورت بروز مشکل:" %}</strong><br>
+            • {% trans "با مدیر سیستم تماس بگیرید" %}<br>
+            • {% trans "مشکل را به صورت دقیق توضیح دهید" %}<br>
+            • {% trans "عکس از صفحه خطا ارسال کنید" %}
+        </div>
+    </div>
+
+    <!-- Admin Section -->
+    {% if user.is_staff or user.is_superuser %}
+    <div class="guide-section">
+        <h2>{% trans "بخش ادمین" %}</h2>
+        <div class="admin-only">
+            <h4>{% trans "اطلاعات فنی و مدیریتی" %}</h4>
+            <p>{% trans "برای دسترسی به اطلاعات فنی، مدل‌ها و تنظیمات پیشرفته:" %}</p>
+            <a href="{% url 'budget_admin_guide' %}">{% trans "راهنمای ادمین" %}</a>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Summary -->
+    <div class="guide-section">
+        <h2>{% trans "خلاصه" %}</h2>
+        <div class="success-box">
+            <p>{% trans "سیستم مدیریت بودجه به شما کمک می‌کند تا:" %}</p>
+            <ul>
+                <li>✅ {% trans "بودجه‌های خود را به صورت منظم مدیریت کنید" %}</li>
+                <li>✅ {% trans "مبالغ غیرمصرف شده را برگشت دهید" %}</li>
+                <li>✅ {% trans "گزارش‌های دقیق از وضعیت بودجه دریافت کنید" %}</li>
+                <li>✅ {% trans "تمام عملیات را پیگیری کنید" %}</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<script>
+// Smooth scrolling for navigation links
+document.querySelectorAll('.nav-link').forEach(link => {
+    link.addEventListener('click', function(e) {
+        e.preventDefault();
+        const targetId = this.getAttribute('href').substring(1);
+        const targetElement = document.getElementById(targetId);
+        if (targetElement) {
+            targetElement.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }
+    });
+});
+
+// Add active class to navigation links based on scroll position
+window.addEventListener('scroll', function() {
+    const sections = document.querySelectorAll('.guide-section');
+    const navLinks = document.querySelectorAll('.nav-link');
+    
+    let current = '';
+    sections.forEach(section => {
+        const sectionTop = section.offsetTop;
+        const sectionHeight = section.clientHeight;
+        if (window.scrollY >= (sectionTop - 200)) {
+            current = section.getAttribute('id');
+        }
+    });
+    
+    navLinks.forEach(link => {
+        link.classList.remove('active');
+        if (link.getAttribute('href') === '#' + current) {
+            link.classList.add('active');
+        }
+    });
+});
+</script>
+{% endblock %}
