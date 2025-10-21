@@ -48,32 +48,43 @@ class W_FactorForm(forms.ModelForm):
         initial_stage_order = WorkflowStage.objects.order_by('order').first().order if WorkflowStage.objects.exists() else None
 
         if self.user:
-            user_orgs = self.user.organizations.all()
-            if not user_orgs:
-                self.fields['tankhah'].queryset = Tankhah.objects.filter(
-                    status__code=['DRAFT', 'PENDING'],
-                    current_stage__order=initial_stage_order
-                )
-            else:
-                projects = Project.objects.filter(organizations__in=user_orgs)
-                subprojects = SubProject.objects.filter(project__in=projects)
-                queryset = Tankhah.objects.filter(
-                    status__code=['DRAFT', 'PENDING'],
-                    current_stage__order=initial_stage_order,
-                    is_archived=False,
-                    canceled=False,
-                    is_locked=False
-                ).filter(
-                    Q(organization__in=user_orgs) |
-                    Q(project__in=projects) |
-                    Q(subproject__in=subprojects)
-                ).filter(
-                    Q(due_date__isnull=True) | Q(due_date__date__gte=timezone.now().date())
-                ).filter(
-                    remaining_budget__gt=0
-                ).distinct()
-                self.fields['tankhah'].queryset = queryset
-                logger.info(f"Tankhah queryset: {list(queryset.values('number', 'project__name', 'subproject__name'))}")
+            # تعیین دسترسی کاربر: HQ یا شعبه
+            from accounts.models import UserPost
+            is_hq = getattr(self.user, 'is_superuser', False) or self.user.has_perm('tankhah.Tankhah_view_all')
+            accessible_org_ids = list(UserPost.objects.filter(user=self.user, is_active=True, post__organization__isnull=False).values_list('post__organization_id', flat=True))
+            # بارگذاری تنظیمات سیستم برای کنترل سقف/قفل‌ها
+            from core.models import SystemSettings
+            sys = SystemSettings.get_solo()
+
+            base_qs = Tankhah.objects.filter(
+                is_archived=False,
+                canceled=False,
+                is_locked=False
+            )
+            # حذف محدودیت مرحله اولیه که باعث خالی شدن لیست می‌شد
+            # همچنین وضعیت را به وضعیت‌های قابل استفاده برای ثبت فاکتور محدود نکنیم مگر در آینده از تنظیمات بخوانیم
+
+            # محدودیت زمان انقضا تنخواه (در صورت سیاست: فقط هنگام ثبت سخت‌گیری شود)
+            if not (is_hq or self.user.has_perm('budgets.allow_factor_after_period_end') or sys.lock_period_after_expiry_enforce_on_write_only):
+                base_qs = base_qs.filter(Q(due_date__isnull=True) | Q(due_date__date__gte=timezone.now().date()))
+
+            # فقط تنخواه‌هایی که مانده مثبت دارند، مگر سقف‌ها فعال باشند که نمایش را محدود می‌کند
+            if hasattr(Tankhah, 'remaining_budget'):
+                if not (sys.tankhah_payment_ceiling_enabled_default or sys.factor_payment_ceiling_enabled_default):
+                    base_qs = base_qs.filter(remaining_budget__gt=0)
+
+            if not is_hq:
+                if accessible_org_ids:
+                    base_qs = base_qs.filter(
+                        Q(organization_id__in=accessible_org_ids) |
+                        Q(project__organizations__id__in=accessible_org_ids)
+                    )
+                else:
+                    base_qs = Tankhah.objects.none()
+
+            queryset = base_qs.select_related('organization', 'project').distinct().order_by('-created_at')
+            self.fields['tankhah'].queryset = queryset
+            logger.info(f"Tankhah queryset (user={self.user.username}): {list(queryset.values('id','number','organization__name','project__name'))[:20]}")
 
         if self.tankhah:
             self.fields['tankhah'].initial = self.tankhah
@@ -428,8 +439,42 @@ class FactorForm(forms.ModelForm):
 
         tankhah = cleaned_data.get('tankhah')
         if tankhah and amount:
+            # اگر دوره بودجه منقضی شده ولی تنظیم سیستم می‌گوید فقط هنگام ثبت قفل شود، اجازه ادامه بده
+            try:
+                period = getattr(getattr(tankhah.project_budget_allocation, 'budget_period', None), 'id', None)
+                if period:
+                    bp = tankhah.project_budget_allocation.budget_period
+                    from core.models import SystemSettings
+                    sys_settings = SystemSettings.get_solo()
+                    is_locked, _msg = bp.is_locked
+                    if is_locked and getattr(sys_settings, 'lock_period_after_expiry_enforce_on_write_only', True):
+                        # در سطح فرم، اجازه می‌دهیم و فقط هشدار لاگ می‌کنیم
+                        logger.warning("BudgetPeriod is locked by date, but write-only lock policy allows form to proceed.")
+            except Exception:
+                pass
+            # کنترل سقف پرداخت (Ceiling) - ابتدا سطح تنخواه، سپس سطح تنظیمات سیستم (ترجیحاً فاکتور)
+            from core.models import SystemSettings
+            sys_settings = SystemSettings.get_solo()
+            ceiling = None
+            if getattr(tankhah, 'is_payment_ceiling_enabled', False) and getattr(tankhah, 'payment_ceiling', None):
+                ceiling = tankhah.payment_ceiling
+            else:
+                # ابتدا تلاش برای خواندن سقف ویژه فاکتور، سپس سقف پیش‌فرض تنخواه
+                factor_ceiling_enabled = getattr(sys_settings, 'factor_payment_ceiling_enabled_default', False)
+                factor_ceiling_value = getattr(sys_settings, 'factor_payment_ceiling_default', None)
+                if factor_ceiling_enabled and factor_ceiling_value is not None:
+                    ceiling = factor_ceiling_value
+                elif getattr(sys_settings, 'tankhah_payment_ceiling_enabled_default', False) and getattr(sys_settings, 'tankhah_payment_ceiling_default', None):
+                    ceiling = sys_settings.tankhah_payment_ceiling_default
+            if ceiling is not None and amount > ceiling:
+                raise forms.ValidationError(
+                    _("مبلغ فاکتور (%(amount)s) بیشتر از سقف مجاز تنخواه (%(ceiling)s) است."),
+                    params={'amount': amount, 'ceiling': ceiling}
+                )
             remaining_budget = get_tankhah_remaining_budget(tankhah)
-            if amount > remaining_budget:
+            # احترام به تنظیمات سیستم برای اجازه تجاوز از بودجه: ابتدا پرچم ویژه فاکتور، سپس پرچم عمومی تنخواه
+            allow_overrun = getattr(sys_settings, 'allow_factor_budget_overrun', False)
+            if amount > remaining_budget and not allow_overrun:
                 raise forms.ValidationError(
                     _("مبلغ فاکتور (%(amount)s) بیشتر از بودجه باقی‌مانده تنخواه (%(remaining)s) است."),
                     params={'amount': amount, 'remaining': remaining_budget}

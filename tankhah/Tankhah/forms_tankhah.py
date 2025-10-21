@@ -257,9 +257,13 @@ class TankhahForm_(forms.ModelForm):
             if remaining_budget is None or remaining_budget <= 0:
                 self.add_error('amount', _('هیچ بودجه‌ای باقی نمانده است.'))
             elif amount > remaining_budget:
-                self.add_error('amount', _(
-                    f"مبلغ ({amount:,.0f} ریال) بیشتر از بودجه باقی‌مانده ({remaining_budget:,.0f} ریال) است."
-                ))
+                # احترام به تنظیمات سیستم برای اجازه تجاوز از تنخواه
+                from core.models import SystemSettings
+                sys_settings = SystemSettings.get_solo()
+                if not getattr(sys_settings, 'allow_tankhah_budget_overrun', False):
+                    self.add_error('amount', _(
+                        f"مبلغ ({amount:,.0f} ریال) بیشتر از بودجه باقی‌مانده ({remaining_budget:,.0f} ریال) است."
+                    ))
 
         return cleaned_data
 # -------------------------------------------------
@@ -378,7 +382,25 @@ class TankhahForm(forms.ModelForm):
                 from budgets.budget_calculations import calculate_balance_from_transactions
                 remaining = calculate_balance_from_transactions(allocation)
                 logger.info(f'calculate_balance_from_transactions(allocation) {remaining} - amount {amount}')
-                if amount > remaining:
+                # کنترل سقف پرداخت تنخواه (Ceiling) پیش از بررسی مانده
+                try:
+                    # اگر فرم روی یک تنخواه موجود یا تنظیمات پیش‌فرض سقف فعال باشد
+                    from core.models import SystemSettings
+                    sys_settings = SystemSettings.get_solo()
+                    ceiling = None
+                    # برای ثبت خود تنخواه، فقط سقف پیش‌فرض سیستمِ تنخواه لحاظ می‌شود
+                    if getattr(sys_settings, 'tankhah_payment_ceiling_enabled_default', False) and getattr(sys_settings, 'tankhah_payment_ceiling_default', None):
+                        ceiling = sys_settings.tankhah_payment_ceiling_default
+                    if ceiling is not None and amount > ceiling:
+                        self.add_error('amount', _('مبلغ درخواستی از سقف مجاز تنخواه بیشتر است.'))
+                except Exception:
+                    pass
+                # احترام به تنظیمات سیستم برای اجازه تجاوز از تنخواه
+                from core.models import SystemSettings
+                sys_settings = SystemSettings.get_solo()
+                # پرچم اجازه تجاوز از بودجه برای «ثبت تنخواه» از تنظیم عمومی تنخواه خوانده می‌شود
+                allow_overrun = getattr(sys_settings, 'allow_tankhah_budget_overrun', False)
+                if amount > remaining and not allow_overrun:
                     self.add_error('amount', _('مبلغ درخواستی بیشتر از بودجه باقیمانده تخصیص است.'))
 
         return cleaned_data

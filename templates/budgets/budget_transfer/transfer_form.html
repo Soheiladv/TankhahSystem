@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static i18n rcms_custom_filters %}
 
 {% block content %}
 <div class="container py-4">
@@ -12,7 +12,7 @@
         </div>
         <div class="card-body">
           <div class="mb-3 small text-muted d-flex flex-wrap gap-3">
-            <div><strong>تاریخ انتقال:</strong> {{ jalali_now }}</div>
+            <div><strong>تاریخ انتقال:</strong> {{ jalali_now |to_persian_number}}</div>
             <div><strong>کاربر:</strong> {{ request.user.get_full_name|default:request.user.username }}</div>
           </div>
           <div class="alert alert-info" role="alert">

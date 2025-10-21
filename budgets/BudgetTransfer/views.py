@@ -3,12 +3,16 @@ from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.views import View
 from django.db import transaction
+from django.core.paginator import Paginator
+from django.db.models import Q
 import socket
 import jdatetime
 
 from budgets.models import BudgetTransaction, BudgetAllocation, BudgetHistory
 from budgets.budget_calculations import create_budget_transaction
 from core.PermissionBase import PermissionBaseView
+from BudgetsSystem.utils import parse_jalali_date, to_english_digits, convert_jalali_to_gregorian
+from datetime import datetime, time
 
 from .forms import BudgetTransferForm
 
@@ -18,8 +22,51 @@ class BudgetTransferListView(PermissionBaseView, View):
     permission_codename = 'budgets.BudgetTransaction_view'
 
     def get(self, request):
-        transfers = BudgetTransaction.objects.filter(transaction_type__in=['INCREASE', 'DECREASE']).order_by('-timestamp')[:200]
-        return render(request, self.template_name, {'transfers': transfers})
+        qs = BudgetTransaction.objects.filter(transaction_type__in=['INCREASE', 'DECREASE']).select_related('allocation').order_by('-timestamp')
+
+        query = (request.GET.get('q') or '').strip()
+        tx_type = (request.GET.get('type') or '').strip().upper()
+        date_from = (request.GET.get('date_from') or '').strip()
+        date_to = (request.GET.get('date_to') or '').strip()
+
+        if query:
+            qs = qs.filter(
+                Q(description__icontains=query) |
+                Q(allocation__organization__name__icontains=query) |
+                Q(allocation__budget_item__name__icontains=query) |
+                Q(allocation__project__name__icontains=query)
+            )
+
+        if tx_type in ('INCREASE', 'DECREASE'):
+            qs = qs.filter(transaction_type=tx_type)
+
+        # تاریخ‌های جلالی: انتظار ورودی مانند 1403/07/15
+        if date_from:
+            try:
+                d_from = convert_jalali_to_gregorian(to_english_digits(date_from))
+                qs = qs.filter(timestamp__date__gte=d_from)
+            except Exception:
+                pass
+        if date_to:
+            try:
+                d_to = convert_jalali_to_gregorian(to_english_digits(date_to))
+                qs = qs.filter(timestamp__date__lte=d_to)
+            except Exception:
+                pass
+
+        paginator = Paginator(qs, 20)
+        page_number = request.GET.get('page')
+        transfers = paginator.get_page(page_number)
+
+        # حفظ پارامترها برای صفحه‌بندی
+        context = {
+            'transfers': transfers,
+            'q': query,
+            'type': tx_type,
+            'date_from': date_from,
+            'date_to': date_to,
+        }
+        return render(request, self.template_name, context)
 
 
 def _build_allocation_meta(qs):

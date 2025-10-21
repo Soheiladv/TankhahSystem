@@ -744,6 +744,27 @@ class SystemSettings(models.Model):
                                                           verbose_name=_("سقف پرداخت پیش‌فرض تنخواه"))
     tankhah_payment_ceiling_enabled_default = models.BooleanField(default=False,
                                                                   verbose_name=_("فعال بودن پیش‌فرض سقف پرداخت تنخواه"))
+    # تنظیمات مستقل فاکتور
+    factor_payment_ceiling_default = models.DecimalField(max_digits=25, decimal_places=2, null=True, blank=True,
+                                                         verbose_name=_("سقف پرداخت پیش‌فرض فاکتور"))
+    factor_payment_ceiling_enabled_default = models.BooleanField(default=False,
+                                                                 verbose_name=_("فعال بودن پیش‌فرض سقف پرداخت فاکتور"))
+    # --- New flags ---
+    allow_tankhah_budget_overrun = models.BooleanField(
+        default=False,
+        verbose_name=_("اجازه ثبت بیش از بودجه تنخواه"),
+        help_text=_("اگر فعال باشد، در هنگام ثبت تنخواه/فاکتور، امکان ثبت مبلغ بیش از مانده تنخواه مجاز است.")
+    )
+    allow_factor_budget_overrun = models.BooleanField(
+        default=False,
+        verbose_name=_("اجازه ثبت بیش از بودجه فاکتور"),
+        help_text=_("اگر فعال باشد، امکان ثبت مبلغ فاکتور بیش از مانده تنخواه مجاز است (مستقل از تنخواه).")
+    )
+    lock_period_after_expiry_enforce_on_write_only = models.BooleanField(
+        default=True,
+        verbose_name=_("قفل دوره پس از انقضا فقط حین ثبت"),
+        help_text=_("اگر فعال باشد، انقضای دوره باعث قفل سراسری نمی‌شود و فقط هنگام اقداماتی مثل ثبت تنخواه/تخصیص اعمال می‌گردد.")
+    )
     # Workflow/hierarchy enforcement settings
     enforce_strict_approval_order = models.BooleanField(
         default=True,

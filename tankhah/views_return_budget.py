@@ -26,7 +26,7 @@ class ReturnExpiredTankhahBudgetView(PermissionBaseView, TemplateView):
     ویو برای انتقال مانده بودجه تنخواه‌های منقضی به بودجه اصلی
     """
     template_name = 'tankhah/return_expired_budget.html'
-    permission_codename = ['tankhah.Tankhah_delete']
+    permission_codename = ['tankhah.Tankhah_update']
     check_organization = True
 
     def get_context_data(self, **kwargs):
@@ -35,13 +35,27 @@ class ReturnExpiredTankhahBudgetView(PermissionBaseView, TemplateView):
         
         # وضعیت نمایش: فقط منقضی‌ها یا همه (پیش‌فرض: فقط منقضی)
         expired_only = self.request.GET.get('expired_only', '1') == '1'
+        # نمایش منقضی‌ها حتی با مانده صفر
+        include_zero = self.request.GET.get('include_zero', '0') == '1'
+        # فیلتر سازمان انتخاب‌شده (اختیاری)
+        selected_org_id = self.request.GET.get('org_id')
+        # فیلتر پروژه (اختیاری)
+        selected_project_id = self.request.GET.get('project_id')
+        try:
+            selected_org_id = int(selected_org_id) if selected_org_id else None
+        except Exception:
+            selected_org_id = None
+        try:
+            selected_project_id = int(selected_project_id) if selected_project_id else None
+        except Exception:
+            selected_project_id = None
         
         # پیدا کردن تنخواه‌ها
         current_date = timezone.now().date()
         if expired_only:
-            candidate_tankhahs = self._get_expired_tankhahs(user, current_date)
+            candidate_tankhahs = self._get_expired_tankhahs(user, current_date, selected_org_id=selected_org_id, selected_project_id=selected_project_id)
         else:
-            candidate_tankhahs = self._get_all_tankhahs_with_remaining(user)
+            candidate_tankhahs = self._get_all_tankhahs_with_remaining(user, selected_org_id=selected_org_id, selected_project_id=selected_project_id)
 
         # غنی سازی برای UI: هدف بازگشت و وضعیت دوره
         enriched = []
@@ -52,7 +66,8 @@ class ReturnExpiredTankhahBudgetView(PermissionBaseView, TemplateView):
             bp = t.project_budget_allocation.budget_period if (t.project_budget_allocation and t.project_budget_allocation.budget_period) else None
             is_period_expired = False
             if bp:
-                is_period_expired = (bp.end_date < current_date) or bool(bp.is_completed)
+                # دوره‌های با تاریخ پایان امروز نیز منقضی محسوب شوند
+                is_period_expired = (bp.end_date <= current_date) or bool(bp.is_completed)
             return_target = 'org' if is_period_expired else 'project'
             enriched.append({
                 'obj': t,
@@ -60,15 +75,123 @@ class ReturnExpiredTankhahBudgetView(PermissionBaseView, TemplateView):
                 'budget_period': bp,
                 'is_period_expired': is_period_expired,
                 'return_target': return_target,
+                'reason': None,
             })
+
+        # حالت توضیحی: نمایش منقضی‌ها حتی با مانده صفر و موارد کنارگذاشته‌شده با دلیل
+        items_to_show = enriched
+        if include_zero and expired_only:
+            verbose_list = []
+            # دامنه دسترسی کاربر مانند قبل
+            user_posts = user.userpost_set.filter(is_active=True).select_related('post__organization', 'post__organization__org_type')
+            user_org_pks = [up.post.organization.pk for up in user_posts if up.post and up.post.organization]
+            is_hq_user = (
+                user.is_superuser or
+                user.has_perm('tankhah.Tankhah_view_all') or
+                any(up.post.organization.org_type and up.post.organization.org_type.org_type == 'HQ' for up in user_posts if up.post and up.post.organization)
+            )
+            base_qs = Tankhah.objects.all() if is_hq_user else Tankhah.objects.filter(organization__pk__in=user_org_pks)
+            if selected_org_id:
+                if is_hq_user or selected_org_id in user_org_pks:
+                    base_qs = base_qs.filter(organization_id=selected_org_id)
+            if selected_project_id:
+                base_qs = base_qs.filter(project_id=selected_project_id)
+
+            for t in base_qs.select_related('project_budget_allocation__budget_period', 'organization', 'project'):
+                bp = t.project_budget_allocation.budget_period if (t.project_budget_allocation and t.project_budget_allocation.budget_period) else None
+                if not bp:
+                    continue
+                is_period_expired = (bp.end_date <= current_date) or bool(bp.is_completed)
+                if not is_period_expired:
+                    continue
+                remaining = t.get_remaining_budget() or Decimal('0')
+                reason = None
+                if t.is_archived:
+                    reason = _('آرشیو شده')
+                elif not t.project_budget_allocation:
+                    reason = _('بدون تخصیص بودجه')
+                elif remaining <= 0:
+                    reason = _('مانده صفر')
+                return_target = 'org' if is_period_expired else 'project'
+                verbose_list.append({
+                    'obj': t,
+                    'remaining': remaining,
+                    'budget_period': bp,
+                    'is_period_expired': is_period_expired,
+                    'return_target': return_target,
+                    'reason': reason,
+                })
+            items_to_show = verbose_list
+
+        # تخصیص‌های منقضی با مانده بلااستفاده (برای بازگشت مستقیم قبل از تنخواه)
+        expired_allocations_verbose = []
+        try:
+            from tankhah.models import Tankhah as _Tankhah
+            alloc_qs = BudgetAllocation.objects.select_related('budget_period', 'organization', 'project').filter(
+                budget_period__isnull=False,
+                budget_period__end_date__lte=current_date,
+                is_active=True
+            ) | BudgetAllocation.objects.select_related('budget_period', 'organization', 'project').filter(
+                budget_period__isnull=False,
+                budget_period__is_completed=True,
+                is_active=True
+            )
+            if selected_org_id:
+                alloc_qs = alloc_qs.filter(organization_id=selected_org_id)
+            if selected_project_id:
+                alloc_qs = alloc_qs.filter(project_id=selected_project_id)
+
+            for alloc in alloc_qs:
+                # محاسبه مانده واقعی تخصیص
+                tx_sum = alloc.transactions.aggregate(
+                    consumption=Sum('amount', filter=Q(transaction_type='CONSUMPTION')),
+                    returns=Sum('amount', filter=Q(transaction_type='RETURN')),
+                    adj_inc=Sum('amount', filter=Q(transaction_type='ADJUSTMENT_INCREASE')),
+                    adj_dec=Sum('amount', filter=Q(transaction_type='ADJUSTMENT_DECREASE')),
+                )
+                from decimal import Decimal as _D
+                # برای جلوگیری از بازگشت دوباره: بازگشت‌ها را در مانده لحاظ نکنیم
+                gross_spent = (tx_sum['consumption'] or _D('0')) + (tx_sum['adj_dec'] or _D('0'))
+                remaining_alloc = alloc.allocated_amount - gross_spent
+                if remaining_alloc <= 0:
+                    continue
+                # آیا تنخواهی به این تخصیص وصل شده است؟
+                has_tankhah = _Tankhah.objects.filter(project_budget_allocation=alloc).exists()
+                expired_allocations_verbose.append({
+                    'allocation': alloc,
+                    'remaining': remaining_alloc,
+                    'has_tankhah': has_tankhah,
+                    'budget_period': alloc.budget_period,
+                    'organization': alloc.organization,
+                    'project': alloc.project,
+                })
+        except Exception as e:
+            logger.error(f"Error preparing expired allocations list: {e}")
+
+        # گزینه‌های سازمان برای فیلتر (HQ: همه سازمان‌ها؛ شعبه: فقط سازمان‌های خودش)
+        user_posts = user.userpost_set.filter(is_active=True).select_related('post__organization', 'post__organization__org_type')
+        user_orgs = [up.post.organization for up in user_posts if up.post and up.post.organization]
+        is_hq_user = (
+            user.is_superuser or
+            user.has_perm('tankhah.Tankhah_view_all') or
+            any(up.post.organization.org_type and up.post.organization.org_type.org_type == 'HQ' for up in user_posts if up.post and up.post.organization)
+        )
+        org_options = Organization.objects.all().order_by('name') if is_hq_user else Organization.objects.filter(pk__in=[o.pk for o in user_orgs]).order_by('name')
 
         context.update({
             'expired_tankhahs': candidate_tankhahs,
             'expired_tankhahs_enriched': enriched,
+            'items_to_show': items_to_show,
+            'expired_allocations': expired_allocations_verbose,
             'total_remaining': total_remaining,
             'current_date': current_date,
             'title': _('انتقال مانده بودجه تنخواه‌های منقضی'),
             'expired_only': expired_only,
+            'include_zero': include_zero,
+            'org_options': org_options,
+            'selected_org_id': selected_org_id,
+            'selected_project_id': selected_project_id,
+            'is_hq_user': is_hq_user,
         })
         # recent RETURNs for selective rollback UI
         try:
@@ -86,14 +209,13 @@ class ReturnExpiredTankhahBudgetView(PermissionBaseView, TemplateView):
         
         return context
 
-    def _get_expired_tankhahs(self, user, current_date):
+    def _get_expired_tankhahs(self, user, current_date, selected_org_id=None, selected_project_id=None):
         """
         پیدا کردن تنخواه‌های منقضی بر اساس دسترسی کاربر
         """
         # تعیین دسترسی کاربر
         user_posts = user.userpost_set.filter(
-            is_active=True, 
-            end_date__isnull=True
+            is_active=True
         ).select_related('post__organization')
         
         user_org_pks = [up.post.organization.pk for up in user_posts if up.post and up.post.organization]
@@ -111,6 +233,13 @@ class ReturnExpiredTankhahBudgetView(PermissionBaseView, TemplateView):
             queryset = Tankhah.objects.filter(organization__pk__in=user_org_pks)
         else:
             queryset = Tankhah.objects.none()
+
+        if selected_org_id:
+            # HQ نامحدود؛ کاربران شعبه فقط اگر سازمان در لیست دسترسی‌شان باشد
+            if is_hq_user or selected_org_id in user_org_pks:
+                queryset = queryset.filter(organization_id=selected_org_id)
+        if selected_project_id:
+            queryset = queryset.filter(project_id=selected_project_id)
         
         # فیلتر تنخواه‌های منقضی
         expired_tankhahs = []
@@ -126,7 +255,7 @@ class ReturnExpiredTankhahBudgetView(PermissionBaseView, TemplateView):
                 tankhah.project_budget_allocation.budget_period):
                 
                 budget_period = tankhah.project_budget_allocation.budget_period
-                if (budget_period.end_date < current_date or 
+                if (budget_period.end_date <= current_date or 
                     budget_period.is_completed):
                     
                     remaining = tankhah.get_remaining_budget() or Decimal('0')
@@ -135,13 +264,12 @@ class ReturnExpiredTankhahBudgetView(PermissionBaseView, TemplateView):
         
         return expired_tankhahs
 
-    def _get_all_tankhahs_with_remaining(self, user):
+    def _get_all_tankhahs_with_remaining(self, user, selected_org_id=None, selected_project_id=None):
         """
         تمام تنخواه‌های دارای مانده (صرف‌نظر از انقضا) بر اساس دسترسی کاربر
         """
         user_posts = user.userpost_set.filter(
-            is_active=True,
-            end_date__isnull=True
+            is_active=True
         ).select_related('post__organization')
 
         user_org_pks = [up.post.organization.pk for up in user_posts if up.post and up.post.organization]
@@ -158,6 +286,12 @@ class ReturnExpiredTankhahBudgetView(PermissionBaseView, TemplateView):
             queryset = Tankhah.objects.filter(organization__pk__in=user_org_pks)
         else:
             queryset = Tankhah.objects.none()
+
+        if selected_org_id:
+            if is_hq_user or selected_org_id in user_org_pks:
+                queryset = queryset.filter(organization_id=selected_org_id)
+        if selected_project_id:
+            queryset = queryset.filter(project_id=selected_project_id)
 
         result = []
         for tankhah in queryset.filter(
@@ -182,6 +316,56 @@ class ReturnExpiredTankhahBudgetView(PermissionBaseView, TemplateView):
             return redirect('login')
         
         try:
+            # بازگشت مستقیم مانده تخصیص‌های منقضی قبل از تنخواه
+            if request.POST.get('action') == 'return_allocations':
+                from decimal import Decimal as _D
+                ids = request.POST.getlist('allocation_ids')
+                if not ids:
+                    messages.warning(request, _('هیچ تخصیصی انتخاب نشد.'))
+                    return redirect('return_expired_budget')
+                with transaction.atomic():
+                    selected = BudgetAllocation.objects.filter(id__in=ids).select_related('budget_period', 'organization')
+                    total = _D('0')
+                    success = 0
+                    failed = 0
+                    for alloc in selected:
+                        try:
+                            # بازمحاسبه مانده
+                            s = alloc.transactions.aggregate(
+                                consumption=Sum('amount', filter=Q(transaction_type='CONSUMPTION')),
+                                returns=Sum('amount', filter=Q(transaction_type='RETURN')),
+                                adj_inc=Sum('amount', filter=Q(transaction_type='ADJUSTMENT_INCREASE')),
+                                adj_dec=Sum('amount', filter=Q(transaction_type='ADJUSTMENT_DECREASE')),
+                            )
+                            # مصرف خالص بدون لحاظ بازگشت‌ها/افزایش‌ها
+                            gross_spent = (s['consumption'] or _D('0')) + (s['adj_dec'] or _D('0'))
+                            remaining_alloc = alloc.allocated_amount - gross_spent
+                            if remaining_alloc <= 0:
+                                continue
+                            # ثبت RETURN با مقصد بودجه کلان سازمان (بدون تنخواه مرتبط)
+                            BudgetTransaction.objects.create(
+                                allocation=alloc,
+                                transaction_type='RETURN',
+                                amount=remaining_alloc,
+                                created_by=request.user,
+                                description=_('بازگشت مستقیم مانده تخصیص منقضی به بودجه کلان (بدون تنخواه)'),
+                            )
+                            total += remaining_alloc
+                            success += 1
+                        except Exception as e:
+                            logger.error(f"Direct return failed for allocation {alloc.id}: {e}")
+                            failed += 1
+                    if success:
+                        base_msg = _('{} تخصیص بازگشت خورد. جمع: {} ریال').format(success, f"{total:,.0f}")
+                        if failed:
+                            base_msg += _(' | {} مورد ناموفق').format(failed)
+                        messages.success(request, base_msg)
+                    else:
+                        if failed:
+                            messages.error(request, _('هیچ تخصیصی بازگشت نخورد و برخی با خطا مواجه شدند.'))
+                        else:
+                            messages.info(request, _('تخصیص واجد شرایطی برای بازگشت یافت نشد.'))
+                return redirect('return_expired_budget')
             # عملیات بازگردانی (لغو تراکنش‌های RETURN اخیر برای تست مجدد)
             action = request.POST.get('action')
             if action == 'rollback_returns':
@@ -298,10 +482,14 @@ class ReturnExpiredTankhahBudgetView(PermissionBaseView, TemplateView):
                             continue
                         
                         # تعیین مقصد بازگشت بر اساس وضعیت دوره بودجه
-                        bp = tankhah.project_budget_allocation.budget_period if (tankhah.project_budget_allocation and tankhah.project_budget_allocation.budget_period) else None
+                        bp = (
+                            tankhah.project_budget_allocation.budget_period
+                            if (tankhah.project_budget_allocation and tankhah.project_budget_allocation.budget_period)
+                            else None
+                        )
                         is_period_expired = False
                         if bp:
-                            is_period_expired = (bp.end_date < current_date) or bool(bp.is_completed)
+                            is_period_expired = (bp.end_date <= current_date) or bool(bp.is_completed)
                         # فقط تنخواه‌های منقضی را بازگردان
                         if not is_period_expired:
                             logger.info(f"Skip non-expired tankhah {tankhah.number} in return process")

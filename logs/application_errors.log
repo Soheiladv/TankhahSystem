@@ -1523,3 +1523,153 @@ ERROR 2025-10-11 21:10:28 get_budget_details get_budget_details Error in get_bud
 ERROR 2025-10-11 21:10:28 views_BudgetPeriod check_budget_status ImportError: check_budget_status not found for BudgetPeriod 29
 ERROR 2025-10-11 21:28:58 api_tankhah_calculations get Error getting tankhahs: Cannot resolve keyword 'name' into field. Choices are: actions, amount, approval_logs, approved_by, archived_at, budgettransaction, canceled, created_at, created_by, created_by_id, current_stage, current_stage_id, date, description, documents, due_date, factors, financialreport, id, is_archived, is_emergency, is_locked, is_payment_ceiling_enabled, last_stopped_post, last_stopped_post_id, letter_number, number, organization, organization_id, payment_ceiling, payment_number, payment_orders, payment_orders_tankhah, project, project_budget_allocation, project_budget_allocation_id, project_id, re_registered_factors, remaining_budget, request_date, status, status_id, subproject, subproject_id
 ERROR 2025-10-11 21:28:58 api_factor_calculations get Error getting factors: Cannot resolve keyword 'name' into field. Choices are: amount, approval_logs, archived_at, archived_by, archived_by_id, budget, category, category_id, created_at, created_by, created_by_id, date, deleted_at, deleted_by, deleted_by_id, description, documents, history, id, is_archived, is_deleted, is_emergency, is_locked, items, locked_by_stage, locked_by_stage_id, number, payee, payee_id, payment_orders, purchase_request, purchase_request_id, re_registered_in, re_registered_in_id, rejected_reason, remaining_budget, status, status_id, tankhah, tankhah_id
+ERROR 2025-10-12 07:27:51 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-12 07:28:16 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-12 07:30:02 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-12 07:51:03 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-12 07:54:41 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-12 07:54:56 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-13 10:09:22 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-13 12:55:31 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-13 12:59:44 models check_budget_status_no_save Error in check_budget_status_no_save for BudgetPeriod 1: can only concatenate str (not "datetime.timedelta") to str
+ERROR 2025-10-13 12:59:44 models is_locked Error checking lock status for BudgetPeriod 1: can only concatenate str (not "datetime.timedelta") to str
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\models.py", line 109, in is_locked
+    effective_end_date = self.end_date + timedelta(days=int(grace_days))
+                         ~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+TypeError: can only concatenate str (not "datetime.timedelta") to str
+ERROR 2025-10-13 12:59:45 models check_budget_status_no_save Error in check_budget_status_no_save for BudgetPeriod 1: can only concatenate str (not "datetime.timedelta") to str
+ERROR 2025-10-13 12:59:45 models is_locked Error checking lock status for BudgetPeriod 1: can only concatenate str (not "datetime.timedelta") to str
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\models.py", line 109, in is_locked
+    effective_end_date = self.end_date + timedelta(days=int(grace_days))
+                         ~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+TypeError: can only concatenate str (not "datetime.timedelta") to str
+ERROR 2025-10-13 13:00:22 models check_budget_status_no_save Error in check_budget_status_no_save for BudgetPeriod 1: can only concatenate str (not "datetime.timedelta") to str
+ERROR 2025-10-13 13:00:22 models is_locked Error checking lock status for BudgetPeriod 1: can only concatenate str (not "datetime.timedelta") to str
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\models.py", line 109, in is_locked
+    effective_end_date = self.end_date + timedelta(days=int(grace_days))
+                         ~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+TypeError: can only concatenate str (not "datetime.timedelta") to str
+ERROR 2025-10-13 13:00:51 models check_budget_status_no_save Error in check_budget_status_no_save for BudgetPeriod 1: can only concatenate str (not "datetime.timedelta") to str
+ERROR 2025-10-13 13:00:51 models is_locked Error checking lock status for BudgetPeriod 1: can only concatenate str (not "datetime.timedelta") to str
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\models.py", line 109, in is_locked
+    effective_end_date = self.end_date + timedelta(days=int(grace_days))
+                         ~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+TypeError: can only concatenate str (not "datetime.timedelta") to str
+ERROR 2025-10-13 13:00:51 models check_budget_status_no_save Error in check_budget_status_no_save for BudgetPeriod 1: can only concatenate str (not "datetime.timedelta") to str
+ERROR 2025-10-13 13:00:51 models is_locked Error checking lock status for BudgetPeriod 1: can only concatenate str (not "datetime.timedelta") to str
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\models.py", line 109, in is_locked
+    effective_end_date = self.end_date + timedelta(days=int(grace_days))
+                         ~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+TypeError: can only concatenate str (not "datetime.timedelta") to str
+ERROR 2025-10-13 13:00:51 models is_locked Error checking lock status for BudgetPeriod 1: can only concatenate str (not "datetime.timedelta") to str
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\models.py", line 109, in is_locked
+    effective_end_date = self.end_date + timedelta(days=int(grace_days))
+                         ~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+TypeError: can only concatenate str (not "datetime.timedelta") to str
+ERROR 2025-10-13 13:07:30 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-13 13:12:43 budget_calculations check_tankhah_lock_status خطا در بررسی وضعیت قفل تنخواه TNKH-14040701-HSarein-HSAR-Flor3-001: '__proxy__' object is not callable
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 1099, in check_tankhah_lock_status
+    return False, _("تنخواه فعال است.")
+                  ~^^^^^^^^^^^^^^^^^^^^
+TypeError: '__proxy__' object is not callable
+ERROR 2025-10-13 13:12:43 rcms_custom_filters format_negative Error formatting number 179,380,000.00: could not convert string to float: '179,380,000.00'
+ERROR 2025-10-13 13:14:01 budget_calculations check_tankhah_lock_status خطا در بررسی وضعیت قفل تنخواه TNKH-14040701-HSarein-HSAR-Flor3-002: '__proxy__' object is not callable
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 1099, in check_tankhah_lock_status
+    return False, _("تنخواه فعال است.")
+                  ~^^^^^^^^^^^^^^^^^^^^
+TypeError: '__proxy__' object is not callable
+ERROR 2025-10-13 13:14:01 rcms_custom_filters format_negative Error formatting number 179,380,000.00: could not convert string to float: '179,380,000.00'
+ERROR 2025-10-13 18:58:20 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-13 19:22:30 budget_calculations check_tankhah_lock_status خطا در بررسی وضعیت قفل تنخواه TNKH-14040701-HSarein-HSAR-Flor3-003: '__proxy__' object is not callable
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 1099, in check_tankhah_lock_status
+    return False, _("تنخواه فعال است.")
+                  ~^^^^^^^^^^^^^^^^^^^^
+TypeError: '__proxy__' object is not callable
+ERROR 2025-10-13 19:22:31 rcms_custom_filters format_negative Error formatting number 179,380,000.00: could not convert string to float: '179,380,000.00'
+ERROR 2025-10-13 20:16:06 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-13 20:30:18 budget_calculations check_tankhah_lock_status خطا در بررسی وضعیت قفل تنخواه TNKH-14040701-HSarein-HSAR-Flor3-003: '__proxy__' object is not callable
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 1099, in check_tankhah_lock_status
+    return False, _("تنخواه فعال است.")
+                  ~^^^^^^^^^^^^^^^^^^^^
+TypeError: '__proxy__' object is not callable
+ERROR 2025-10-13 20:30:18 rcms_custom_filters format_negative Error formatting number 179,380,000.00: could not convert string to float: '179,380,000.00'
+ERROR 2025-10-13 20:30:48 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-15 06:23:22 PermissionBase dispatch [PERM_CHECK] Permission denied for user test_factor_user_debug to /tankhah/factors/
+ERROR 2025-10-15 06:23:23 PermissionBase dispatch [PERM_CHECK] Permission denied for user test_factor_user_debug to /tankhah/tankhah/
+ERROR 2025-10-15 06:25:06 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر test_factor_user_debug: name 'AccessRule' is not defined
+ERROR 2025-10-15 06:25:06 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-15 06:27:28 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-15 06:27:28 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-15 06:27:28 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-15 06:27:28 rcms_custom_filters format_negative Error formatting number بدون کد ملی: could not convert string to float: 'بدون کد ملی'
+ERROR 2025-10-15 06:28:34 budget_calculations check_tankhah_lock_status خطا در بررسی وضعیت قفل تنخواه TNKH-14040701-HSarein-HSAR-Flor3-003: '__proxy__' object is not callable
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 1099, in check_tankhah_lock_status
+    return False, _("تنخواه فعال است.")
+                  ~^^^^^^^^^^^^^^^^^^^^
+TypeError: '__proxy__' object is not callable
+ERROR 2025-10-15 06:28:35 rcms_custom_filters format_negative Error formatting number 179,380,000.00: could not convert string to float: '179,380,000.00'
+ERROR 2025-10-15 06:34:44 budget_calculations check_tankhah_lock_status خطا در بررسی وضعیت قفل تنخواه TNKH-14040701-HSarein-HSAR-Flor3-001: '__proxy__' object is not callable
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 1099, in check_tankhah_lock_status
+    return False, _("تنخواه فعال است.")
+                  ~^^^^^^^^^^^^^^^^^^^^
+TypeError: '__proxy__' object is not callable
+ERROR 2025-10-15 06:34:45 rcms_custom_filters format_negative Error formatting number 179,380,000.00: could not convert string to float: '179,380,000.00'
+ERROR 2025-10-15 06:52:11 PermissionBase dispatch [PERM_CHECK] Permission denied for user snejate to /tankhah/tankhah/
+ERROR 2025-10-16 20:29:16 PermissionBase dispatch [PERM_CHECK] Permission denied for user snejate to /tankhah/tankhah/28/
+ERROR 2025-10-16 20:29:30 budget_calculations check_tankhah_lock_status خطا در بررسی وضعیت قفل تنخواه TNKH-14040701-HSarein-HSAR-Flor3-001: '__proxy__' object is not callable
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 1099, in check_tankhah_lock_status
+    return False, _("تنخواه فعال است.")
+                  ~^^^^^^^^^^^^^^^^^^^^
+TypeError: '__proxy__' object is not callable
+ERROR 2025-10-16 20:29:30 rcms_custom_filters format_negative Error formatting number 179,380,000.00: could not convert string to float: '179,380,000.00'
+ERROR 2025-10-16 20:52:25 budget_calculations check_tankhah_lock_status خطا در بررسی وضعیت قفل تنخواه TNKH-14040701-HSarein-HSAR-Flor3-001: '__proxy__' object is not callable
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 1099, in check_tankhah_lock_status
+    return False, _("تنخواه فعال است.")
+                  ~^^^^^^^^^^^^^^^^^^^^
+TypeError: '__proxy__' object is not callable
+ERROR 2025-10-16 20:52:25 rcms_custom_filters format_negative Error formatting number 179,380,000.00: could not convert string to float: '179,380,000.00'
+ERROR 2025-10-16 21:50:56 get_budget_details get_budget_details Error in get_budget_details for entity تست دوره ۱ روزه (HQ_ITDC): Entity must be Organization or Project, got <class 'budgets.models.BudgetPeriod'>
+ERROR 2025-10-16 21:50:56 views_BudgetPeriod check_budget_status ImportError: check_budget_status not found for BudgetPeriod 30
+ERROR 2025-10-16 21:51:10 get_budget_details get_budget_details Error in get_budget_details for entity تست دوره ۱ روزه (HQ_ITDC): Entity must be Organization or Project, got <class 'budgets.models.BudgetPeriod'>
+ERROR 2025-10-16 21:51:10 views_BudgetPeriod check_budget_status ImportError: check_budget_status not found for BudgetPeriod 30
+ERROR 2025-10-16 21:59:31 get_budget_details get_budget_details Error in get_budget_details for entity تست دوره ۱ روزه (HQ_ITDC): Entity must be Organization or Project, got <class 'budgets.models.BudgetPeriod'>
+ERROR 2025-10-16 21:59:31 views_BudgetPeriod check_budget_status ImportError: check_budget_status not found for BudgetPeriod 30
+ERROR 2025-10-16 22:00:59 models validate_return Return amount 57,000 exceeds allocated_amount 0 for allocation ID: 95
+ERROR 2025-10-16 22:00:59 models save Error saving BudgetTransaction: ['مبلغ بازگشت (57,000 ریال) نمی\u200cتواند بیشتر از مبلغ تخصیص\u200cیافته (0 ریال) باشد.']
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\models.py", line 659, in save
+    self.clean()
+    ~~~~~~~~~~^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\models.py", line 640, in clean
+    raise ValidationError(error_message)
+django.core.exceptions.ValidationError: ['مبلغ بازگشت (57,000 ریال) نمی\u200cتواند بیشتر از مبلغ تخصیص\u200cیافته (0 ریال) باشد.']
+ERROR 2025-10-16 22:00:59 views_return_budget post خطای کلی در بازگشت بودجه: ['مبلغ بازگشت (57,000 ریال) نمی\u200cتواند بیشتر از مبلغ تخصیص\u200cیافته (0 ریال) باشد.']
+ERROR 2025-10-16 22:11:01 models validate_return Return amount 57,000 exceeds allocated_amount 0 for allocation ID: 95
+ERROR 2025-10-16 22:11:01 models save Error saving BudgetTransaction: ['مبلغ بازگشت (57,000 ریال) نمی\u200cتواند بیشتر از مبلغ تخصیص\u200cیافته (0 ریال) باشد.']
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\models.py", line 659, in save
+    self.clean()
+    ~~~~~~~~~~^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\models.py", line 640, in clean
+    raise ValidationError(error_message)
+django.core.exceptions.ValidationError: ['مبلغ بازگشت (57,000 ریال) نمی\u200cتواند بیشتر از مبلغ تخصیص\u200cیافته (0 ریال) باشد.']
+ERROR 2025-10-16 22:11:01 views_return_budget post Direct return failed for allocation 95: ['مبلغ بازگشت (57,000 ریال) نمی\u200cتواند بیشتر از مبلغ تخصیص\u200cیافته (0 ریال) باشد.']
+ERROR 2025-10-16 22:13:27 get_budget_details get_budget_details Error in get_budget_details for entity تست دوره ۱ روزه (HQ_ITDC): Entity must be Organization or Project, got <class 'budgets.models.BudgetPeriod'>
+ERROR 2025-10-16 22:13:27 views_BudgetPeriod check_budget_status ImportError: check_budget_status not found for BudgetPeriod 30
+ERROR 2025-10-16 22:13:57 get_budget_details get_budget_details Error in get_budget_details for entity تست دوره ۱ روزه (HQ_ITDC): Entity must be Organization or Project, got <class 'budgets.models.BudgetPeriod'>
+ERROR 2025-10-16 22:13:57 views_BudgetPeriod check_budget_status ImportError: check_budget_status not found for BudgetPeriod 30
+ERROR 2025-10-17 20:40:11 PermissionBase dispatch [PERM_CHECK] Permission denied for user branch_user to /tankhah/factor/create/new/

@@ -193,7 +193,7 @@
                                                                         <td class="cell-nw">{{ tankhah.date|jformat:"%Y/%m/%d"|to_persian_number }}</td>
                                                                         <td class="cell-nw" title="{{ tankhah.amount|floatformat:0|format_negative }}">
                                                                             {{ tankhah.amount|floatformat:0|format_negative }} {% trans "ریال" %}</td>
-                                                                        <td class="cell-nw" title="{{ tankhah.get_remaining_budget|floatformat:0|intcomma }}">{{ tankhah.get_remaining_budget|floatformat:0|intcomma|to_persian_number }} {% trans "ریال" %}</td>
+                                                                        <td class="cell-nw" title="{{ tankhah.remaining_display|default:tankhah.get_remaining_budget|floatformat:0|intcomma }}">{{ tankhah.remaining_display|default:tankhah.get_remaining_budget|floatformat:0|intcomma|to_persian_number }} {% trans "ریال" %}</td>
                                                                         <td class="d-none d-sm-table-cell">
                                                                             <span class="status-badge 
                                                                                 {% if tankhah.status %}

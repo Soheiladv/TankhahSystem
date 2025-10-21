@@ -14,12 +14,8 @@
 
 {% block extrastyle %}
     {{ block.super }}
-{#    <link href="{% static 'admin/css/custom.css' %}" rel="stylesheet">#}
     <link rel="stylesheet" href="{% static 'admin/css/admin_custom.css' %}">
-
-
     {% if LANGUAGE_BIDI %}
-{#        <link rel="stylesheet" href="{% static 'admin/css/rtl.css' %}">#}
     {% endif %}
 {% endblock %}
 
@@ -30,12 +26,14 @@
         <a href="{% url 'admin:index' %}">
             <i class="fas fa-tachometer-alt"></i> {% trans 'پنل مدیریت تنخواه' %}
         </a>
+        <small class="admin-note" style="display:block; font-size:0.9rem; margin-top:.25rem;">
+            {% trans 'تو باهوشی' %}
+        </small>
     </div>
 {% endblock %}
 
 {% block userlinks %}
     {{ block.super }}
-{#    {% include "admin/color_theme_toggle.html" %}#}
 {% endblock %}
 
 {% block footer %}
@@ -48,4 +46,3 @@
 {% endblock %}
 
 {% block bodyclass %}theme-auto{% endblock %}
-

@@ -285,15 +285,60 @@
         </div>
     </div>
 
-    <!-- فیلتر نمایش: فقط منقضی‌ها -->
-    <form method="get" class="mb-3">
-        <div class="form-check form-switch">
-            <input class="form-check-input" type="checkbox" id="expiredOnlySwitch" name="expired_only" value="1" {% if expired_only %}checked{% endif %} onchange="this.form.submit()">
-            <label class="form-check-label" for="expiredOnlySwitch">
-                {% trans "نمایش فقط تنخواه‌های منقضی" %}
-            </label>
+    <!-- فیلتر نمایش: سازمان/پروژه و فقط منقضی‌ها -->
+    <form method="get" class="row g-3 mb-3 align-items-end">
+        <div class="col-md-6">
+            <label class="form-label">{% trans "سازمان" %}</label>
+            <select name="org_id" class="form-select" {% if not is_hq_user and org_options|length <= 1 %}disabled{% endif %}>
+                <option value="">{% trans "همه سازمان‌ها" %}</option>
+                {% for org in org_options %}
+                    <option value="{{ org.id }}" {% if selected_org_id and selected_org_id == org.id %}selected{% endif %}>{{ org.name }}</option>
+                {% endfor %}
+            </select>
+            {% if not is_hq_user and org_options|length > 1 %}
+            <div class="form-text">{% trans "فقط سازمان‌های شما قابل انتخاب هستند." %}</div>
+            {% endif %}
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">{% trans "پروژه (اختیاری)" %}</label>
+            <input type="number" class="form-control" name="project_id" value="{{ selected_project_id|default:'' }}" placeholder="ID پروژه">
+        </div>
+        <div class="col-md-3">
+            <div class="form-check form-switch mt-4">
+                <input class="form-check-input" type="checkbox" id="expiredOnlySwitch" name="expired_only" value="1" {% if expired_only %}checked{% endif %}>
+                <label class="form-check-label" for="expiredOnlySwitch">
+                    {% trans "نمایش فقط تنخواه‌های منقضی" %}
+                </label>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="form-check form-switch mt-4">
+                <input class="form-check-input" type="checkbox" id="includeZeroSwitch" name="include_zero" value="1" {% if include_zero %}checked{% endif %}>
+                <label class="form-check-label" for="includeZeroSwitch">
+                    {% trans "نمایش منقضی‌ها حتی با مانده صفر (به‌همراه دلیل)" %}
+                </label>
+            </div>
+        </div>
+        <div class="col-md-3 text-end">
+            <button class="btn btn-primary">{% trans "اعمال فیلتر" %}</button>
         </div>
     </form>
+
+    <!-- راهنمای استفاده -->
+    <div class="alert alert-info glass-card border-0 mb-4">
+        <div class="d-flex align-items-start">
+            <i class="fas fa-info-circle me-3 mt-1 text-primary"></i>
+            <div>
+                <h6 class="alert-heading mb-2">راهنما</h6>
+                <ul class="mb-0">
+                    <li>به‌صورت پیش‌فرض فقط «تنخواه‌های منقضی» نمایش داده می‌شوند. برای نمایش همه تنخواه‌های دارای مانده، تیک «نمایش فقط تنخواه‌های منقضی» را بردارید.</li>
+                    <li>فیلتر «سازمان»: کاربران شعبه فقط سازمان‌های متعلق به خود را می‌بینند و می‌توانند همان‌ها را انتخاب کنند. کاربران دفتر مرکزی (HQ) به همه سازمان‌ها دسترسی دارند و می‌توانند همه را فیلتر کنند.</li>
+                    <li>دسترسی‌ها: مشاهده این صفحه نیاز به مجوز «tankhah.Tankhah_delete» دارد. دسترسی کامل دفتر مرکزی با «tankhah.Tankhah_view_all» فراهم است.</li>
+                    <li>عملیات «بازگرداندن بودجه» مانده تنخواه‌های منقضی را به بودجه اصلی (برحسب وضعیت دوره) برمی‌گرداند. در صورت نیاز می‌توانید برای مبالغ بازگشتی «ردیف بودجه کلان» نیز ایجاد کنید.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
 
     <!-- نمایش پیام‌ها -->
     {% if messages %}
@@ -310,7 +355,7 @@
         </div>
     {% endif %}
 
-    {% if expired_tankhahs %}
+    {% if items_to_show %}
         <!-- خلاصه بودجه -->
         <div class="budget-summary fade-in-up stagger-2">
             <div class="row align-items-center position-relative">
@@ -437,7 +482,7 @@
         </div>
 
         <div class="row">
-            {% for item in expired_tankhahs_enriched %}
+            {% for item in items_to_show %}
                 {% with tankhah=item.obj remaining=item.remaining target=item.return_target is_exp=item.is_period_expired %}
                 <div class="col-md-6 col-lg-4 mb-4 fade-in-up stagger-{{ forloop.counter|add:4 }}">
                     <div class="expired-tankhah-card" style="{% if target == 'org' %}border-left-color:#dc3545;{% else %}border-left-color:#ffc107;{% endif %}">
@@ -511,6 +556,19 @@
                                 </div>
                             </div>
                         </div>
+
+                        {% if item.reason %}
+                        <div class="alert alert-secondary py-2">
+                            <i class="fas fa-info-circle me-1"></i>
+                            {% trans "دلیل عدم امکان بازگشت فوری:" %}
+                            <strong>{{ item.reason }}</strong>
+                            {% if item.reason == 'بدون تخصیص بودجه' %}
+                                <div class="small mt-1 text-muted">
+                                    {% trans "اگر تنخواه به تخصیص بودجه متصل نیست، بازگشت باید به بودجه کلان سازمان ثبت شود یا ابتدا تخصیص مرتبط ایجاد گردد." %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        {% endif %}
                         
                         <div class="mb-3">
                             <div class="d-flex align-items-center">
@@ -560,6 +618,82 @@
             </a>
         </div>
     {% endif %}
+
+    <!-- تخصیص‌های منقضی با مانده (بازگشت مستقیم قبل از تنخواه) -->
+    <div class="glass-card fade-in-up mt-4">
+        <div class="p-4">
+            <div class="d-flex align-items-center mb-3">
+                <div class="me-3">
+                    <div class="bg-secondary rounded-circle p-3">
+                        <i class="fas fa-box-open text-white fs-4"></i>
+                    </div>
+                </div>
+                <div>
+                    <h4 class="mb-1 fw-bold">{% trans "تخصیص‌های منقضی با مانده (بدون تنخواه)" %}</h4>
+                    <small class="text-muted">{% trans "در صورت عدم وجود تنخواه، می‌توانید مانده تخصیص را به بودجه کلان سازمان بازگردانید." %}</small>
+                </div>
+            </div>
+
+            {% if expired_allocations %}
+            <form method="post" class="table-responsive">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="return_allocations">
+                <div class="table-responsive">
+                    <table class="table align-middle table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 2rem;">
+                                    <input type="checkbox" onclick="document.querySelectorAll('input[name=allocation_ids]').forEach(cb=>cb.checked=this.checked)">
+                                </th>
+                                <th>{% trans "دوره بودجه" %}</th>
+                                <th>{% trans "سازمان" %}</th>
+                                <th>{% trans "پروژه" %}</th>
+                                <th>{% trans "مبلغ تخصیص" %}</th>
+                                <th>{% trans "مانده" %}</th>
+                                <th>{% trans "تنخواه دارد؟" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in expired_allocations %}
+                            <tr>
+                                <td>
+                                    <input type="checkbox" name="allocation_ids" value="{{ row.allocation.id }}">
+                                </td>
+                                <td>
+                                    <span class="font-monospace">{{ row.budget_period.name|to_persian_number }}</span>
+                                </td>
+                                <td>{{ row.organization.name }}</td>
+                                <td>{{ row.project.name|default:"-" }}</td>
+                                <td>
+                                    <span class="text-primary fw-bold">{{ row.allocation.allocated_amount|floatformat:0|to_persian_number }}</span>
+                                </td>
+                                <td>
+                                    <span class="text-success fw-bold">{{ row.remaining|floatformat:0|to_persian_number }}</span>
+                                </td>
+                                <td>
+                                    {% if row.has_tankhah %}
+                                        <span class="badge bg-success">{% trans "بله" %}</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{% trans "خیر" %}</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="d-flex justify-content-end">
+                    <button class="btn btn-outline-secondary">
+                        <i class="fas fa-undo me-1"></i>
+                        {% trans "بازگشت مستقیم به بودجه کلان" %}
+                    </button>
+                </div>
+            </form>
+            {% else %}
+                <div class="alert alert-info mb-0">{% trans "تخصیص منقضیِ دارای مانده‌ای یافت نشد." %}</div>
+            {% endif %}
+        </div>
+    </div>
 
     <!-- رول‌بک انتخابی تراکنش‌های RETURN اخیر: همیشه نمایش داده شود -->
     <div class="glass-card fade-in-up stagger-5 mt-4">

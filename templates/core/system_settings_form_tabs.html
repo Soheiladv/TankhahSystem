@@ -96,6 +96,11 @@
                                 </button>
                             </li>
                             <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="factor-tab" data-bs-toggle="tab" data-bs-target="#factor" type="button" role="tab">
+                                    <i class="fas fa-file-invoice me-2"></i>{% trans "فاکتور" %}
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
                                 <button class="nav-link" id="workflow-tab" data-bs-toggle="tab" data-bs-target="#workflow" type="button" role="tab">
                                     <i class="fas fa-project-diagram me-2"></i>{% trans "گردش کار" %}
                                 </button>
@@ -168,10 +173,9 @@
                                             {{ form.tankhah_payment_ceiling_default }}
                                             <span class="input-group-text">{% trans "ریال" %}</span>
                                         </div>
-                                        <div class="form-text">{% trans "حداکثر مبلغ قابل پرداخت در هر تراکنش" %}</div>
+                                        <div class="form-text">{% trans "حداکثر مبلغ قابل پرداخت در هر تراکنش تنخواه" %}</div>
                                         {{ form.tankhah_payment_ceiling_default.errors }}
                                     </div>
-
                                     <div class="col-md-6">
                                         <label class="form-label fw-semibold d-block">{% trans "فعال بودن سقف پرداخت" %}</label>
                                         <div class="form-check form-switch form-check-lg">
@@ -182,48 +186,50 @@
                                         </div>
                                         {{ form.tankhah_payment_ceiling_enabled_default.errors }}
                                     </div>
-
-                                    <div class="col-12">
-                                        <label class="form-label fw-semibold d-block">
-                                            {% trans "اقدامات گردش کار (نمایش فقط)" %}
-                                        </label>
-                                        <div class="list-group mb-3">
-                                            {% if workflow_actions %}
-                                                {% for a in workflow_actions %}
-                                                    <div class="list-group-item d-flex justify-content-between align-items-center">
-                                                        <span><i class="fas fa-bolt me-2 text-warning"></i>{{ a.name }} <small class="text-muted">({{ a.code }})</small></span>
-                                                        {% if a.is_active %}<span class="badge bg-success">{% trans "فعال" %}</span>{% else %}<span class="badge bg-secondary">{% trans "غیرفعال" %}</span>{% endif %}
-                                                    </div>
-                                                {% endfor %}
-                                            {% else %}
-                                                <div class="list-group-item text-muted">{% trans "اقدامی یافت نشد." %}</div>
-                                            {% endif %}
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold d-block">{% trans "اجازه تجاوز از مانده (تنخواه)" %}</label>
+                                        <div class="form-check form-switch">
+                                            {{ form.allow_tankhah_budget_overrun }}
                                         </div>
-                                        <div class="form-text">{% trans "برای ویرایش اقدامات به بخش مدیریت گردش کار مراجعه کنید." %}</div>
+                                        <div class="form-text">{% trans "اگر فعال باشد، ثبت تنخواه بیش از مانده تخصیص مجاز است." %}</div>
                                     </div>
-
-                                    <div class="col-12">
-                                        <label class="form-label fw-semibold d-block">
-                                            {% trans "وضعیت‌های گردش کار (نمایش فقط)" %}
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="factor" role="tabpanel">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label for="{{ form.factor_payment_ceiling_default.id_for_label }}" class="form-label fw-semibold">
+                                            {% trans "سقف پرداخت پیش‌فرض فاکتور" %}
                                         </label>
-                                        <div class="list-group">
-                                            {% if workflow_statuses %}
-                                                {% for s in workflow_statuses %}
-                                                    <div class="list-group-item d-flex justify-content-between align-items-center">
-                                                        <span><i class="fas fa-flag me-2 text-info"></i>{{ s.name }} <small class="text-muted">({{ s.code }})</small></span>
-                                                        <span>
-                                                            {% if s.is_initial %}<span class="badge bg-primary me-1">{% trans "ابتدایی" %}</span>{% endif %}
-                                                            {% if s.is_final_approve %}<span class="badge bg-success me-1">{% trans "تایید نهایی" %}</span>{% endif %}
-                                                            {% if s.is_final_reject %}<span class="badge bg-danger me-1">{% trans "رد نهایی" %}</span>{% endif %}
-                                                            {% if s.is_active %}<span class="badge bg-success">{% trans "فعال" %}</span>{% else %}<span class="badge bg-secondary">{% trans "غیرفعال" %}</span>{% endif %}
-                                                        </span>
-                                                    </div>
-                                                {% endfor %}
-                                            {% else %}
-                                                <div class="list-group-item text-muted">{% trans "وضعیتی یافت نشد." %}</div>
-                                            {% endif %}
+                                        <div class="input-group">
+                                            {{ form.factor_payment_ceiling_default }}
+                                            <span class="input-group-text">{% trans "ریال" %}</span>
                                         </div>
-                                        <div class="form-text">{% trans "برای ویرایش وضعیت‌ها به بخش مدیریت گردش کار مراجعه کنید." %}</div>
+                                        <div class="form-text">{% trans "اگر فعال باشد، سقف فاکتور اعمال می‌شود؛ در غیر اینصورت در صورت فعال بودن سقف تنخواه، از آن استفاده می‌شود." %}</div>
+                                        {{ form.factor_payment_ceiling_default.errors }}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold d-block">{% trans "فعال بودن سقف فاکتور" %}</label>
+                                        <div class="form-check form-switch form-check-lg">
+                                            {{ form.factor_payment_ceiling_enabled_default }}
+                                            <label class="form-check-label" for="{{ form.factor_payment_ceiling_enabled_default.id_for_label }}">
+                                                {% trans "فعال" %}
+                                        </label>
+                                        </div>
+                                        {{ form.factor_payment_ceiling_enabled_default.errors }}
+                                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold d-block">{% trans "اجازه تجاوز از مانده (فاکتور)" %}</label>
+                                        <div class="form-check form-switch">
+                                            {{ form.allow_factor_budget_overrun }}
+                                        </div>
+                                        <div class="form-text">{% trans "اگر فعال باشد، ثبت فاکتور بیش از مانده تنخواه مجاز است (مستقل از تنظیم تنخواه)." %}</div>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="alert alert-info small">
+                                            <i class="fas fa-info-circle me-1"></i>
+                                            {% trans "راهنما: برای اعمال هر سقف، تیک فعال را روشن و عدد سقف را وارد کنید. تجاوز از مانده در فاکتور و تنخواه مستقل تنظیم می‌شود." %}
+                                        </div>
                                     </div>
                                 </div>
                             </div>

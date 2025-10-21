@@ -25,6 +25,8 @@ class SystemSettingsForm(forms.ModelForm):
             'tankhah_accessible_organizations',
             'tankhah_payment_ceiling_default',
             'tankhah_payment_ceiling_enabled_default',
+            'factor_payment_ceiling_default',
+            'factor_payment_ceiling_enabled_default',
             'enforce_strict_approval_order',
             'allow_bypass_org_chart',
             'allow_action_without_org_chart',
@@ -32,6 +34,9 @@ class SystemSettingsForm(forms.ModelForm):
             'enforce_single_tab',
             'heartbeat_interval_ms',
             'heartbeat_stale_ms',
+            'allow_tankhah_budget_overrun',
+            'allow_factor_budget_overrun',
+            'lock_period_after_expiry_enforce_on_write_only',
         ]
         widgets = {
             'budget_locked_percentage_default': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0', 'max': '100', 'placeholder': _('مثلاً 10') }),
@@ -42,6 +47,8 @@ class SystemSettingsForm(forms.ModelForm):
             'tankhah_accessible_organizations': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': _('[1,2,3]') }),
             'tankhah_payment_ceiling_default': forms.NumberInput(attrs={'class': 'form-control', 'step': '1', 'min': '0'}),
             'tankhah_payment_ceiling_enabled_default': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'factor_payment_ceiling_default': forms.NumberInput(attrs={'class': 'form-control', 'step': '1', 'min': '0'}),
+            'factor_payment_ceiling_enabled_default': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'enforce_strict_approval_order': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'allow_bypass_org_chart': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'allow_action_without_org_chart': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
@@ -49,6 +56,9 @@ class SystemSettingsForm(forms.ModelForm):
             'enforce_single_tab': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'heartbeat_interval_ms': forms.NumberInput(attrs={'class': 'form-control', 'step': '100', 'min': '1000'}),
             'heartbeat_stale_ms': forms.NumberInput(attrs={'class': 'form-control', 'step': '100', 'min': '2000'}),
+            'allow_tankhah_budget_overrun': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'allow_factor_budget_overrun': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'lock_period_after_expiry_enforce_on_write_only': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
         labels = {
             'budget_locked_percentage_default': _('درصد قفل پیش‌فرض بودجه'),
@@ -57,6 +67,11 @@ class SystemSettingsForm(forms.ModelForm):
             'enforce_single_tab': _('محدودیت به یک تب مرورگر'),
             'heartbeat_interval_ms': _('بازه ضربان تب (ms)'),
             'heartbeat_stale_ms': _('مهلت منقضی شدن تب (ms)'),
+            'allow_tankhah_budget_overrun': _('اجازه ثبت بیش از بودجه تنخواه'),
+            'allow_factor_budget_overrun': _('اجازه ثبت بیش از بودجه فاکتور'),
+            'lock_period_after_expiry_enforce_on_write_only': _('قفل دوره پس از انقضا فقط حین ثبت'),
+            'factor_payment_ceiling_default': _('سقف پرداخت پیش‌فرض فاکتور'),
+            'factor_payment_ceiling_enabled_default': _('فعال بودن سقف پرداخت فاکتور'),
         }
         help_texts = {
             'budget_locked_percentage_default': _('وقتی درصد باقیمانده بودجه کمتر از این مقدار شود قفل می‌شود.'),
@@ -64,11 +79,16 @@ class SystemSettingsForm(forms.ModelForm):
             'allocation_locked_percentage_default': _('حداقل درصد باقیمانده تخصیص برای قفل شدن تخصیص‌ها.'),
             'tankhah_payment_ceiling_default': _('حداکثر مبلغ مجاز هر پرداخت تنخواه (ریال).'),
             'tankhah_payment_ceiling_enabled_default': _('در صورت فعال بودن، سقف پرداخت تنخواه اعمال می‌شود.'),
+            'factor_payment_ceiling_default': _('حداکثر مبلغ مجاز هر فاکتور (ریال). در صورت فعال بودن سقف فاکتور اعمال می‌شود.'),
+            'factor_payment_ceiling_enabled_default': _('در صورت فعال بودن، سقف پرداخت فاکتور اعمال می‌شود.'),
             'tankhah_accessible_organizations': _('لیست ID سازمان‌های مجاز به‌صورت JSON مانند [1,2,3].'),
             'tankhah_used_statuses': _('لیست کد وضعیت‌های مصرف‌شده به‌صورت JSON مانند ["PAID","APPROVED"].'),
             'enforce_strict_approval_order': _('الزام رعایت ترتیب سلسله‌مراتب تأیید.'),
             'allow_bypass_org_chart': _('اجازه رد شدن از سلسله‌مراتب در شرایط خاص.'),
             'allow_action_without_org_chart': _('اجازه اقدام بدون داشتن پست سازمانی.'),
+            'allow_tankhah_budget_overrun': _('در صورت فعال بودن، مجاز است مبلغ فاکتور/تنخواه بیش از مانده تنخواه ثبت شود.'),
+            'allow_factor_budget_overrun': _('اگر فعال باشد، ثبت فاکتور بیش از مانده تنخواه مجاز است (مستقل از تنخواه).'),
+            'lock_period_after_expiry_enforce_on_write_only': _('در صورت فعال بودن، انقضای دوره فقط موقع عملیات نوشتنی اعمال می‌شود.'),
         }
 
     def clean_tankhah_used_statuses(self):

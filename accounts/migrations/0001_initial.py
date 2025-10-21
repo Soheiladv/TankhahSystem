@@ -230,7 +230,18 @@ class Migration(migrations.Migration):
                 'permissions': [('activeuser_view', 'نمایش تعداد کاربر دارای مجوز برای کار در سیستم'), ('activeuser_add', 'افزودن تعداد کاربر دارای مجوز برای کار در سیستم'), ('activeuser_update', 'آپدیت تعداد کاربر دارای مجوز برای کار در سیستم'), ('activeuser_delete', 'حذف تعداد کاربر دارای مجوز برای کار در سیستم')],
                 'default_permissions': [],
                 'indexes': [models.Index(fields=['user'], name='idx_user'), models.Index(fields=['last_activity'], name='idx_last_activity')],
-                'constraints': [models.UniqueConstraint(fields=('user',), name='unique_user_session', violation_error_message='هر کاربر تنها می\u200cتواند یک سشن فعال داشته باشد.'), models.CheckConstraint(condition=models.Q(('login_time__lte', models.F('last_activity'))), name='check_login_before_activity', violation_error_message='هر کاربر تنها می\u200cتواند یک سشن فعال داشته باشد.')],
+                'constraints': [
+                    models.UniqueConstraint(
+                        fields=('user',),
+                        name='unique_user_session',
+                        violation_error_message='هر کاربر تنها می\u200cتواند یک سشن فعال داشته باشد.'
+                    ),
+                    models.CheckConstraint(
+                        check=models.Q(('login_time__lte', models.F('last_activity'))),
+                        name='check_login_before_activity',
+                        violation_error_message='هر کاربر تنها می\u200cتواند یک سشن فعال داشته باشد.'
+                    )
+                ],
             },
         ),
         migrations.AlterUniqueTogether(

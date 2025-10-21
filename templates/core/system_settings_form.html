@@ -1,4 +1,4 @@
-<form id="settings-form" method="post" novalidate class="row g-3">{% extends "base.html" %}
+{% extends "base.html" %}
 {% load i18n static %}
 
 {% block page_title %}
@@ -176,39 +176,119 @@
                 </div>
             </div>
 
-            <!-- کارت بودجه و تنخواه -->
+            <!-- کارت بودجه، تنخواه و فاکتور -->
             <div class="col-12 col-xl-6">
                 <div class="card setting-card shadow-sm h-100">
                     <div class="card-header bg-light d-flex align-items-center justify-content-between py-3">
                         <h5 class="card-title mb-0 fw-bold">
                             <i class="fas fa-wallet text-success me-2"></i>
-                            {% translate "تنظیمات بودجه و تنخواه" %}
+                            {% translate "تنظیمات بودجه، تنخواه و فاکتور" %}
                         </h5>
-                        <span class="badge bg-success badge-pill">5 {% translate "تنظیم" %}</span>
+                        <span class="badge bg-success badge-pill">{% translate "بخش‌های تفکیک‌شده" %}</span>
                     </div>
                     <div class="card-body">
-                        <!-- سقف تنخواه -->
-                        <div class="setting-item mb-4">
-                            <div class="d-flex align-items-center justify-content-between mb-2">
-                                <label class="form-label fw-semibold mb-0" for="id_tankhah_payment_ceiling_default">
-                                    {% translate "سقف پیش‌فرض تنخواه" %}
-                                </label>
-                                <div class="form-check form-switch">
-                                    {{ form.tankhah_payment_ceiling_enabled_default }}
-                                    <label class="form-check-label small" for="id_tankhah_payment_ceiling_enabled_default">
-                                        {% translate "فعال" %}
-                                    </label>
+                        <!-- تب a0ها: تنخواه / فاکتور -->
+                        <ul class="nav nav-tabs" id="ceilingTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="tankhah-tab" data-bs-toggle="tab" data-bs-target="#tankhah-pane" type="button" role="tab" aria-controls="tankhah-pane" aria-selected="true">
+                                    {% translate "تنخواه" %}
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="factor-tab" data-bs-toggle="tab" data-bs-target="#factor-pane" type="button" role="tab" aria-controls="factor-pane" aria-selected="false">
+                                    {% translate "فاکتور" %}
+                                </button>
+                            </li>
+                        </ul>
+                        <div class="tab-content border border-top-0 rounded-bottom p-3" id="ceilingTabsContent">
+                            <!-- پنل تنخواه -->
+                            <div class="tab-pane fade show active" id="tankhah-pane" role="tabpanel" aria-labelledby="tankhah-tab">
+                                <div class="setting-item mb-4">
+                                    <div class="d-flex align-items-center justify-content-between mb-2">
+                                        <label class="form-label fw-semibold mb-0" for="id_tankhah_payment_ceiling_default">
+                                            {% translate "سقف پیش‌فرض تنخواه" %}
+                                        </label>
+                                        <div class="form-check form-switch">
+                                            {{ form.tankhah_payment_ceiling_enabled_default }}
+                                            <label class="form-check-label small" for="id_tankhah_payment_ceiling_enabled_default">
+                                                {% translate "فعال" %}
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="input-group">
+                                        {{ form.tankhah_payment_ceiling_default }}
+                                        <span class="input-group-text">ریال</span>
+                                    </div>
+                                    <small class="help-text">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        {% translate "حداکثر مبلغ قابل پرداخت در هر تراکنش تنخواه" %}
+                                    </small>
+                                    {{ form.tankhah_payment_ceiling_default.errors }}
+                                </div>
+                                <div class="setting-item p-3 border rounded">
+                                    <div class="d-flex align-items-center justify-content-between mb-2">
+                                        <label class="form-check-label fw-semibold" for="id_allow_tankhah_budget_overrun">
+                                            {% translate "اجازه تجاوز از مانده (تنخواه)" %}
+                                        </label>
+                                        <div class="form-check form-switch m-0">
+                                            {{ form.allow_tankhah_budget_overrun }}
+                                        </div>
+                                    </div>
+                                    <small class="help-text d-block">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        {% translate "اگر فعال باشد، ثبت تنخواه بیش از مانده تخصیص مجاز است." %}
+                                    </small>
                                 </div>
                             </div>
-                            <div class="input-group">
-                                {{ form.tankhah_payment_ceiling_default }}
-                                <span class="input-group-text">ریال</span>
+                            <!-- پنل فاکتور -->
+                            <div class="tab-pane fade" id="factor-pane" role="tabpanel" aria-labelledby="factor-tab">
+                                <div class="setting-item mb-4">
+                                    <div class="d-flex align-items-center justify-content-between mb-2">
+                                        <label class="form-label fw-semibold mb-0" for="id_factor_payment_ceiling_default">
+                                            {% translate "سقف پیش‌فرض فاکتور" %}
+                                        </label>
+                                        <div class="form-check form-switch">
+                                            {{ form.factor_payment_ceiling_enabled_default }}
+                                            <label class="form-check-label small" for="id_factor_payment_ceiling_enabled_default">
+                                                {% translate "فعال" %}
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="input-group">
+                                        {{ form.factor_payment_ceiling_default }}
+                                        <span class="input-group-text">ریال</span>
+                                    </div>
+                                    <small class="help-text">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        {% translate "اگر فعال باشد، سقف فاکتور اعمال می‌شود؛ در غیر اینصورت در صورت فعال بودن سقف تنخواه، از آن استفاده می‌شود." %}
+                                    </small>
+                                    {{ form.factor_payment_ceiling_default.errors }}
+                                </div>
+                                <div class="setting-item p-3 border rounded">
+                                    <div class="d-flex align-items-center justify-content-between mb-2">
+                                        <label class="form-check-label fw-semibold" for="id_allow_factor_budget_overrun">
+                                            {% translate "اجازه تجاوز از مانده (فاکتور)" %}
+                                        </label>
+                                        <div class="form-check form-switch m-0">
+                                            {{ form.allow_factor_budget_overrun }}
+                                        </div>
+                                    </div>
+                                    <small class="help-text d-block">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        {% translate "اگر فعال باشد، ثبت فاکتور بیش از مانده تنخواه مجاز است (مستقل از تنظیم تنخواه)." %}
+                                    </small>
+                                </div>
                             </div>
-                            <small class="help-text">
-                                <i class="fas fa-info-circle me-1"></i>
-                                {% translate "حداکثر مبلغ قابل پرداخت در هر تراکنش تنخواه" %}
-                            </small>
-                            {{ form.tankhah_payment_ceiling_default.errors }}
+                        </div>
+
+                        <!-- راهنمای سریع -->
+                        <div class="alert alert-info mt-3">
+                            <div class="fw-semibold mb-1">{% translate "راهنمای سریع" %}</div>
+                            <ul class="mb-0 small">
+                                <li>{% translate "برای اعمال هر سقف، تیک فعال را روشن و عدد سقف را وارد کنید." %}</li>
+                                <li>{% translate "در فاکتور، اگر سقف فاکتور فعال نباشد ولی سقف تنخواه فعال باشد، از سقف تنخواه استفاده می‌شود." %}</li>
+                                <li>{% translate "تجاوز از مانده برای تنخواه و فاکتور به‌صورت مستقل تنظیم می‌شود." %}</li>
+                            </ul>
                         </div>
 
                         <!-- تنظیمات بودجه -->
@@ -356,6 +436,18 @@ $(document).ready(function() {
     // مدیریت فعال/غیرفعال کردن سقف تنخواه
     $('#id_tankhah_payment_ceiling_enabled_default').on('change', function() {
         const ceilingInput = $('#id_tankhah_payment_ceiling_default');
+        if ($(this).is(':checked')) {
+            ceilingInput.prop('disabled', false);
+            ceilingInput.closest('.setting-item').removeClass('text-muted');
+        } else {
+            ceilingInput.prop('disabled', true);
+            ceilingInput.closest('.setting-item').addClass('text-muted');
+        }
+    }).trigger('change');
+
+    // مدیریت فعال/غیرفعال کردن سقف فاکتور
+    $('#id_factor_payment_ceiling_enabled_default').on('change', function() {
+        const ceilingInput = $('#id_factor_payment_ceiling_default');
         if ($(this).is(':checked')) {
             ceilingInput.prop('disabled', false);
             ceilingInput.closest('.setting-item').removeClass('text-muted');

@@ -64,7 +64,7 @@ class  FactorListView(PermissionBaseView, ListView):
                 queryset=ApprovalLog.objects.select_related('user', 'post').order_by('-timestamp'),
                 to_attr='all_logs'
             )
-        )
+        ).filter(is_deleted=False, is_archived=False)
 
         initial_count = qs.count()
         logger.info(f"[FACTOR_LIST] تعداد اولیه فاکتورها: {initial_count}")
@@ -101,6 +101,16 @@ class  FactorListView(PermissionBaseView, ListView):
             except (ValueError, TypeError) as e:
                 logger.error(f"[FACTOR_LIST] خطا در پردازش تاریخ '{date_query}': {e}", exc_info=True)
                 messages.warning(self.request, _("فرمت تاریخ نامعتبر است. لطفاً از فرمت 1403/05/15 استفاده کنید."))
+
+        # فیلتر بر اساس تنخواه خاص (برای لینک از لیست تنخواه)
+        tankhah_id = self.request.GET.get('tankhah') or self.request.GET.get('tankhah_id')
+        if tankhah_id:
+            try:
+                tankhah_id = int(tankhah_id)
+                filter_conditions &= Q(tankhah_id=tankhah_id)
+                logger.info(f"[FACTOR_LIST] فیلتر تنخواه اعمال شد: tankhah_id={tankhah_id}")
+            except ValueError:
+                logger.warning(f"[FACTOR_LIST] tankhah_id نامعتبر: {tankhah_id}")
 
         if filter_conditions:
             qs = qs.filter(filter_conditions)

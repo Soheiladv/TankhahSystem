@@ -188,7 +188,7 @@ class TankhahListView(PermissionBaseView, ListView):
         logger.info(f"[TankhahListView] User: {user}, is_superuser: {user.is_superuser}")
 
         user_posts = UserPost.objects.filter(
-            user=user, is_active=True, end_date__isnull=True
+            user=user, is_active=True
         ).select_related('post__organization', 'post__organization__org_type')
         user_org_pks = [up.post.organization.pk for up in user_posts if up.post and up.post.organization]
         is_hq_user = (
@@ -354,8 +354,8 @@ class TankhahListView(PermissionBaseView, ListView):
         ).prefetch_related(
             Prefetch(
                 'factors',
-                queryset=Factor.objects.filter(status__code=['APPROVED', 'PAID']),
-                to_attr='paid_and_approved_factors'
+                queryset=Factor.objects.all(),
+                to_attr='prefetched_factors'
             )
         ).order_by('organization__name', 'project__name', '-date')
 
@@ -368,7 +368,7 @@ class TankhahListView(PermissionBaseView, ListView):
         logger.info(f"[TankhahListView] ایجاد کنتکست برای کاربر: {user}")
 
         user_posts = UserPost.objects.filter(
-            user=user, is_active=True, end_date__isnull=True
+            user=user, is_active=True
         ).select_related('post__organization', 'post__organization__org_type')
         user_orgs = [up.post.organization for up in user_posts if up.post and up.post.organization]
         user_org_pks = [org.pk for org in user_orgs]
@@ -450,8 +450,10 @@ class TankhahListView(PermissionBaseView, ListView):
                         'total_remaining': Decimal('0')
                     }
 
+                from budgets.budget_calculations import get_tankhah_remaining_budget
                 tankhah_amount = tankhah.amount or Decimal('0')
-                tankhah_remaining = tankhah.get_remaining_budget() or Decimal('0')
+                # نمایش مانده تنخواه بر اساس محاسبه نهایی (sum of paid/approved factors)
+                tankhah_remaining = get_tankhah_remaining_budget(tankhah) or Decimal('0')
                 grouped_by_org[org_key]['projects'][project_key]['tankhahs'].append(tankhah)
                 grouped_by_org[org_key]['projects'][project_key]['total_amount'] += tankhah_amount
                 grouped_by_org[org_key]['projects'][project_key]['total_remaining'] += tankhah_remaining

@@ -102,10 +102,17 @@ class BudgetPeriod(models.Model):
                 return True, _("دوره بودجه غیرفعال است.")
             if self.is_completed:
                 return True, _("دوره بودجه تمام‌شده است.")
-            # مهلت تمدید پس از تاریخ پایان
+            # رفتار قفل پس از انقضا مطابق SystemSettings: فقط حین عملیات ثبت اعمال شود
+            from core.models import SystemSettings
+            sys_settings = SystemSettings.get_solo()
             grace_days = getattr(settings, 'BUDGET_PERIOD_GRACE_DAYS', 0) or 0
             effective_end_date = self.end_date + timedelta(days=int(grace_days))
-            if self.lock_condition == 'AFTER_DATE' and effective_end_date < timezone.now().date():
+            if (
+                self.lock_condition == 'AFTER_DATE'
+                and effective_end_date < timezone.now().date()
+                and not getattr(sys_settings, 'lock_period_after_expiry_enforce_on_write_only', True) is True
+            ):
+                # اگر تنظیمات اجازه می‌دهد که فقط حین ثبت قفل شود، اینجا قفل سراسری اعمال نشود
                 return True, _("دوره بودجه به دلیل پایان تاریخ قفل شده است.")
             remaining = self.get_remaining_amount()
             locked_amount = (self.total_amount * self.locked_percentage) / Decimal('100')

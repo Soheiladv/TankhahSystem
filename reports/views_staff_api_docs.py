@@ -574,7 +574,143 @@ class StaffAPIDocumentationView(StaffRequiredMixin, TemplateView):
                 ]
             }
         }
-        
+
+        # افزودن API های محاسباتی بودجه (جدید)
+        apis.update({
+            'budget_calculation_apis': {
+                'title': 'API های محاسباتی بودجه (جدید)',
+                'description': 'Endpoint های ماژولار برای دسترسی REST به توابع محاسباتی بودجه',
+                'apis': [
+                    {
+                        'name': 'BudgetCalculationsOverviewAPI',
+                        'class_name': 'BudgetCalculationsOverviewAPI',
+                        'url': '/budgets/api/calculations/',
+                        'method': 'GET',
+                        'description': 'نمای کلی توابع محاسباتی موجود',
+                        'permissions': 'APIView (DRF)',
+                        'features': [
+                            'فهرست توابع محاسباتی',
+                            'راهنمای پارامترها',
+                            'خروجی JSON'
+                        ],
+                        'usage': 'برای کشف قابلیت‌های محاسباتی بودجه'
+                    },
+                    {
+                        'name': 'AllocationCalculationsAPI',
+                        'class_name': 'AllocationCalculationsAPI',
+                        'url': '/budgets/api/calculations/allocation/',
+                        'method': 'GET',
+                        'description': 'محاسبات مربوط به تخصیص بودجه',
+                        'permissions': 'APIView (DRF)',
+                        'features': [
+                            'محاسبه درصد/آستانه',
+                            'بودجه باقی‌مانده تخصیص',
+                            'خروجی JSON'
+                        ],
+                        'usage': 'برای محاسبات مرتبط با یک تخصیص خاص'
+                    },
+                    {
+                        'name': 'OrganizationCalculationsAPI',
+                        'class_name': 'OrganizationCalculationsAPI',
+                        'url': '/budgets/api/calculations/organization/',
+                        'method': 'GET',
+                        'description': 'محاسبات سطح سازمان',
+                        'permissions': 'APIView (DRF)',
+                        'features': [
+                            'بودجه کل/مصرف/باقی‌مانده',
+                            'تجمیع داده‌ها',
+                            'خروجی JSON'
+                        ],
+                        'usage': 'برای گزارش‌گیری و داشبوردهای سازمانی'
+                    },
+                    {
+                        'name': 'ProjectCalculationsAPI',
+                        'class_name': 'ProjectCalculationsAPI',
+                        'url': '/budgets/api/calculations/project/',
+                        'method': 'GET',
+                        'description': 'محاسبات بودجه پروژه',
+                        'permissions': 'APIView (DRF)',
+                        'features': [
+                            'بودجه کل/مصرف/بازگشتی',
+                            'باقی‌مانده واقعی',
+                            'خروجی JSON'
+                        ],
+                        'usage': 'برای تحلیل بودجه پروژه‌ها'
+                    },
+                    {
+                        'name': 'SubProjectCalculationsAPI',
+                        'class_name': 'SubProjectCalculationsAPI',
+                        'url': '/budgets/api/calculations/subproject/',
+                        'method': 'GET',
+                        'description': 'محاسبات بودجه زیرپروژه',
+                        'permissions': 'APIView (DRF)',
+                        'features': [
+                            'تجزیه سطح زیرپروژه',
+                            'مصرف و تعهدات',
+                            'خروجی JSON'
+                        ],
+                        'usage': 'برای ریزدانه‌سازی تحلیل بودجه'
+                    },
+                    {
+                        'name': 'TankhahCalculationsAPI',
+                        'class_name': 'TankhahCalculationsAPI',
+                        'url': '/budgets/api/calculations/tankhah/',
+                        'method': 'GET',
+                        'description': 'محاسبات مربوط به تنخواه و مانده آن',
+                        'permissions': 'APIView (DRF)',
+                        'features': [
+                            'بودجه و مانده تنخواه',
+                            'فاکتورهای مرتبط',
+                            'خروجی JSON'
+                        ],
+                        'usage': 'برای نمایش/کنترل مانده تنخواه در فرم‌ها'
+                    },
+                    {
+                        'name': 'FactorCalculationsAPI',
+                        'class_name': 'FactorCalculationsAPI',
+                        'url': '/budgets/api/calculations/factor/',
+                        'method': 'GET',
+                        'description': 'محاسبات مرتبط با فاکتور',
+                        'permissions': 'APIView (DRF)',
+                        'features': [
+                            'بودجه مصرفی فاکتور',
+                            'وضعیت و قفل‌ها',
+                            'خروجی JSON'
+                        ],
+                        'usage': 'برای نمایش جزئیات فاکتور در صفحات'
+                    },
+                    {
+                        'name': 'UtilityCalculationsAPI',
+                        'class_name': 'UtilityCalculationsAPI',
+                        'url': '/budgets/api/calculations/utility/',
+                        'method': 'GET',
+                        'description': 'توابع کمکی قالب‌بندی و تبدیل',
+                        'permissions': 'APIView (DRF)',
+                        'features': [
+                            'تبدیل اعداد/رشته‌ها',
+                            'قالب‌بندی مقادیر',
+                            'خروجی JSON'
+                        ],
+                        'usage': 'برای یکسان‌سازی نمایش مقادیر بودجه‌ای'
+                    },
+                    {
+                        'name': 'BatchCalculationsAPI',
+                        'class_name': 'BatchCalculationsAPI',
+                        'url': '/budgets/api/calculations/batch/',
+                        'method': 'GET',
+                        'description': 'اجرای چند محاسبه در یک درخواست',
+                        'permissions': 'APIView (DRF)',
+                        'features': [
+                            'بهینه در تعداد درخواست‌ها',
+                            'ایده‌آل برای داشبورد',
+                            'خروجی JSON'
+                        ],
+                        'usage': 'برای کاهش رفت‌وبرگشت شبکه در صفحات پیچیده'
+                    }
+                ]
+            }
+        })
+
         # محاسبه آمار کلی
         total_apis = sum(len(category['apis']) for category in apis.values())
         total_categories = len(apis)
