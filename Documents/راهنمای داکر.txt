@@ -1,0 +1,108 @@
+I'll prepare the project for Dockerization with security best practices and create the necessary Docker files and documentation.
+
+
+[20 tools called]
+
+## 🐳 پروژه برای Docker آماده شد!
+
+### 📁 فایل‌های ایجاد شده:
+
+1. **`Dockerfile`** - تصویر اصلی Django
+2. **`docker-compose.yml`** - تنظیمات توسعه
+3. **`docker-compose.prod.yml`** - تنظیمات تولید
+4. **`env.example`** - الگوی متغیرهای محیطی
+5. **`.dockerignore`** - فایل‌های حذف شده از Docker
+6. **`requirements.txt`** - وابستگی‌های Python
+7. **`nginx/`** - تنظیمات Nginx
+8. **`docker/scripts/`** - اسکریپت‌های کمکی
+9. **`DOCKER_SECURITY.md`** - راهنمای امنیت
+10. **`DOCKER_DEPLOYMENT.md`** - راهنمای استقرار
+
+### 🔐 نکات امنیتی مهم:
+
+#### 1. **متغیرهای محیطی (.env)**
+```bash
+# کپی کردن فایل نمونه
+copy env.example .env
+
+# تغییر این مقادیر حتماً:
+SECRET_KEY=your-super-secret-key-here
+DB_PASSWORD=your-strong-database-password
+REDIS_PASSWORD=your-strong-redis-password
+```
+
+#### 2. **امنیت کانتینرها**
+- ✅ اجرا با کاربر غیر root (`django`)
+- ✅ تصویر minimal (`python:3.12-slim`)
+- ✅ شبکه داخلی برای ارتباطات
+- ✅ محدودیت منابع
+
+#### 3. **امنیت شبکه**
+- ✅ HTTPS اجباری
+- ✅ Rate limiting
+- ✅ Security headers
+- ✅ SSL/TLS با cipher های قوی
+
+#### 4. **امنیت داده‌ها**
+- ✅ رمزگذاری volume ها
+- ✅ پشتیبان‌گیری رمزگذاری شده
+- ✅ عدم ذخیره secrets در تصاویر
+
+### 🚀 راه‌اندازی سریع:
+
+```bash
+# 1. کپی فایل محیطی
+copy env.example .env
+
+# 2. ویرایش تنظیمات
+notepad .env
+
+# 3. اجرای setup
+docker/scripts/setup.sh
+
+# 4. دسترسی به برنامه
+# http://localhost (HTTP)
+# https://localhost (HTTPS)
+```
+
+### 📍 مکان فایل .env:
+فایل `.env` باید در **ریشه پروژه** (همان سطح `manage.py`) قرار بگیرد:
+
+```
+BudgetsSystem/
+├── .env              ← اینجا
+├── manage.py
+├── docker-compose.yml
+└── ...
+```
+
+### 🔒 تنظیمات امنیتی ضروری:
+
+1. **تغییر رمزهای عبور** در `.env`
+2. **تولید SECRET_KEY جدید**
+3. **تنظیم ALLOWED_HOSTS** برای دامنه شما
+4. **نصب SSL certificate** معتبر برای تولید
+5. **فعال‌سازی monitoring** و logging
+
+### 📊 نظارت و پشتیبان‌گیری:
+
+```bash
+# مشاهده لاگ‌ها
+docker-compose logs -f
+
+# پشتیبان‌گیری
+docker/scripts/backup.sh
+
+# بازیابی
+docker/scripts/restore.sh backup_file.sql.gz
+```
+
+### ⚠️ نکات مهم:
+
+1. **هرگز `.env` را commit نکنید**
+2. **رمزهای قوی استفاده کنید** (حداقل 16 کاراکتر)
+3. **SSL certificate معتبر** برای تولید
+4. **بروزرسانی منظم** تصاویر و وابستگی‌ها
+5. **نظارت مداوم** بر لاگ‌ها و عملکرد
+
+پروژه شما حالا کاملاً برای Docker آماده است و تمام نکات امنیتی رعایت شده! 🎉
