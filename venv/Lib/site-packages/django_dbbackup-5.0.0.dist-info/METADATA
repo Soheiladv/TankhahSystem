@@ -1,0 +1,63 @@
+Metadata-Version: 2.4
+Name: django-dbbackup
+Version: 5.0.0
+Summary: Management commands to help backup and restore a project database and media.
+Project-URL: Changelog, https://archmonger.github.io/django-dbbackup /latest/changelog/
+Project-URL: Documentation, https://archmonger.github.io/django-dbbackup
+Project-URL: Source, https://github.com/Archmonger/django-dbbackup
+Author-email: Mark Bakhit <archiethemonger@gmail.com>
+License-Expression: BSD-3-Clause
+License-File: LICENSE.md
+Keywords: amazon,backup,database,django,dropbox,media,s3,sqlite
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Environment :: Console
+Classifier: Environment :: Web Environment
+Classifier: Framework :: Django :: 4.2
+Classifier: Framework :: Django :: 5.0
+Classifier: Framework :: Django :: 5.1
+Classifier: Framework :: Django :: 5.2
+Classifier: Intended Audience :: Developers
+Classifier: Intended Audience :: System Administrators
+Classifier: License :: OSI Approved :: BSD License
+Classifier: Natural Language :: English
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Programming Language :: Python :: 3.13
+Classifier: Topic :: Database
+Classifier: Topic :: System :: Archiving
+Classifier: Topic :: System :: Archiving :: Backup
+Classifier: Topic :: System :: Archiving :: Compression
+Requires-Python: >=3.9
+Requires-Dist: django>=4.2
+Description-Content-Type: text/markdown
+
+# Django DBBackup
+
+[![Build Status](https://github.com/Archmonger/django-dbbackup/actions/workflows/ci.yml/badge.svg)](https://github.com/Archmonger/django-dbbackup/actions)
+
+This Django application provides management commands to help backup and restore your project database and media files with various storages such as Amazon S3, Dropbox, local file storage, or any Django-supported storage.
+
+## Features
+
+-   Secure your backup with GPG signature and encryption.
+-   Archive with compression.
+-   Easily manage remote archiving.
+-   Keep your development database up to date.
+-   Set up automated backups with Crontab or Celery.
+-   Manually backup and restore via Django management commands.
+
+## Documentation
+
+For more details, see the [official documentation](https://archmonger.github.io/django-dbbackup/).
+
+## Why use DBBackup?
+
+DBBackup gives you a simple yet robust interface to backup, encrypt, transmit, and restore your database and media.
+
+In a few words, it is a pipe between your Django project and your backups. It is written to be far more efficient than Django's [backup](https://docs.djangoproject.com/en/stable/ref/django-admin/)/[restore](https://docs.djangoproject.com/en/5.2/ref/django-admin/#loaddata) commands by using your database's native/standard/best procedure(s) or tool(s) to perform backups.
+
+Ultimately, this helps simplify the task of "creating a backup" by removing the need for writing relational query commands, using complex tools, or creating scripts. Optionally, DBBackup can apply compression and/or encryption before transferring the data to nearly any storage system.

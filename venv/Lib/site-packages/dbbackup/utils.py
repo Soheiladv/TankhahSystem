@@ -12,7 +12,6 @@ import traceback
 from datetime import datetime
 from functools import wraps
 from getpass import getpass
-from shlex import quote
 from shutil import copyfileobj
 
 from django.core.mail import EmailMultiAlternatives
@@ -20,7 +19,7 @@ from django.db import connection
 from django.http import HttpRequest
 from django.utils import timezone
 
-from . import settings
+from dbbackup import settings
 
 FAKE_HTTP_REQUEST = HttpRequest()
 FAKE_HTTP_REQUEST.META["SERVER_NAME"] = ""
@@ -48,7 +47,7 @@ class DecryptionError(Exception):
     pass
 
 
-def bytes_to_str(byteVal, decimals=1):
+def bytes_to_str(byte_val, decimals=1):
     """
     Convert bytes to a human readable string.
 
@@ -62,11 +61,11 @@ def bytes_to_str(byteVal, decimals=1):
     :rtype: str
     """
     for unit, byte in BYTES:
-        if byteVal >= byte:
+        if byte_val >= byte:
             if decimals == 0:
-                return f"{int(round(byteVal / byte, 0))} {unit}"
-            return f"{round(byteVal / byte, decimals)} {unit}"
-    return f"{byteVal} B"
+                return f"{int(round(byte_val / byte, 0))} {unit}"
+            return f"{round(byte_val / byte, decimals)} {unit}"
+    return f"{byte_val} B"
 
 
 def handle_size(filehandle):
@@ -86,9 +85,7 @@ def handle_size(filehandle):
     return bytes_to_str(filehandle.tell())
 
 
-def mail_admins(
-    subject, message, fail_silently=False, connection=None, html_message=None
-):
+def mail_admins(subject, message, fail_silently=False, connection=None, html_message=None):
     """Sends a message to the admins, as defined by the DBBACKUP_ADMINS setting."""
     if not settings.ADMINS:
         return
@@ -122,7 +119,7 @@ def email_uncaught_exception(func):
             exc_type, exc_value, tb = sys.exc_info()
             tb_str = "".join(traceback.format_tb(tb))
             msg = f"{exc_type.__name__}: {exc_value}\n{tb_str}"
-            logger.error(msg)
+            logger.exception(msg)
             raise
         finally:
             connection.close()
@@ -144,11 +141,9 @@ def create_spooled_temporary_file(filepath=None, fileobj=None):
     :returns: Spooled temporary file
     :rtype: :class:`tempfile.SpooledTemporaryFile`
     """
-    spooled_file = tempfile.SpooledTemporaryFile(
-        max_size=settings.TMP_FILE_MAX_SIZE, dir=settings.TMP_DIR
-    )
+    spooled_file = tempfile.SpooledTemporaryFile(max_size=settings.TMP_FILE_MAX_SIZE, dir=settings.TMP_DIR)
     if filepath:
-        fileobj = open(filepath, "r+b")
+        fileobj = open(filepath, "r+b")  # noqa: SIM115
     if fileobj is not None:
         fileobj.seek(0)
         copyfileobj(fileobj, spooled_file, settings.TMP_FILE_READ_SIZE)
@@ -174,6 +169,9 @@ def encrypt_file(inputfile, filename):
     try:
         filename = f"{filename}.gpg"
         filepath = os.path.join(tempdir, filename)
+        if "b" not in inputfile.mode:
+            msg = "Input file must be opened in binary mode."
+            raise ValueError(msg)
         try:
             inputfile.seek(0)
             always_trust = settings.GPG_ALWAYS_TRUST
@@ -232,7 +230,8 @@ def unencrypt_file(inputfile, filename, passphrase=None):
                 output=temp_filename,
             )
             if not result:
-                raise DecryptionError("Decryption failed; status: %s" % result.status)
+                msg = f"Decryption failed; status: {result.status}"
+                raise DecryptionError(msg)
             outputfile = create_spooled_temporary_file(temp_filename)
         finally:
             if os.path.exists(temp_filename):
@@ -368,6 +367,7 @@ def filename_to_datestring(filename, datefmt=None):
     search = regex.search(filename)
     if search:
         return search.groups()[0]
+    return None
 
 
 def filename_to_date(filename, datefmt=None):
@@ -385,11 +385,10 @@ def filename_to_date(filename, datefmt=None):
     datestring = filename_to_datestring(filename, datefmt)
     if datestring is not None:
         return datetime.strptime(datestring, datefmt)
+    return None
 
 
-def filename_generate(
-    extension, database_name="", servername=None, content_type="db", wildcard=None
-):
+def filename_generate(extension, database_name="", servername=None, content_type="db", wildcard=None):
     """
     Create a new backup filename.
 
@@ -436,7 +435,3 @@ def filename_generate(
         filename = REG_FILENAME_CLEAN.sub("-", filename)
         filename = filename[1:] if filename.startswith("-") else filename
     return filename
-
-
-def get_escaped_command_arg(arg):
-    return quote(arg)

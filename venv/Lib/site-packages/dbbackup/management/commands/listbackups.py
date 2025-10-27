@@ -2,9 +2,9 @@
 List backups.
 """
 
-from ... import utils
-from ...storage import get_storage
-from ._base import BaseDbBackupCommand, make_option
+from dbbackup import utils
+from dbbackup.management.commands._base import BaseDbBackupCommand, make_option
+from dbbackup.storage import get_storage
 
 ROW_TEMPLATE = "{name:40} {datetime:20}"
 FILTER_KEYS = ("encrypted", "compressed", "content_type", "database")
@@ -45,9 +45,7 @@ class Command(BaseDbBackupCommand):
             default=None,
             dest="encrypted",
         ),
-        make_option(
-            "-c", "--content-type", help="Filter by content type 'db' or 'media'"
-        ),
+        make_option("-c", "--content-type", help="Filter by content type 'db' or 'media'"),
     )
 
     def handle(self, **options):

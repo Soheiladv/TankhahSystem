@@ -153,6 +153,10 @@ class Template:
         self.source = str(template_string)  # May be lazy.
         self.nodelist = self.compile_nodelist()
 
+    def __iter__(self):
+        for node in self.nodelist:
+            yield from node
+
     def __repr__(self):
         return '<%s template_string="%s...">' % (
             self.__class__.__qualname__,
@@ -193,9 +197,7 @@ class Template:
         )
 
         try:
-            nodelist = parser.parse()
-            self.extra_data = parser.extra_data
-            return nodelist
+            return parser.parse()
         except Exception as e:
             if self.engine.debug:
                 e.template_debug = self.get_exception_info(e, e.token)
@@ -309,8 +311,7 @@ class Token:
             The line number the token appears on in the template source.
             This is used for traceback information and gettext files.
         """
-        self.token_type = token_type
-        self.contents = contents
+        self.token_type, self.contents = token_type, contents
         self.lineno = lineno
         self.position = position
 
@@ -440,12 +441,6 @@ class Parser:
         self.tags = {}
         self.filters = {}
         self.command_stack = []
-
-        # Custom template tags may store additional data on the parser that
-        # will be made available on the template instance. Library authors
-        # should use a key to namespace any added data. The 'django' namespace
-        # is reserved for internal use.
-        self.extra_data = {}
 
         if libraries is None:
             libraries = {}
@@ -640,7 +635,7 @@ filter_raw_string = r"""
          )?
  )""" % {
     "constant": constant_string,
-    "num": r"[-+.]?\d[\d.e]*",
+    "num": r"[-+\.]?\d[\d\.e]*",
     "var_chars": r"\w\.",
     "filter_sep": re.escape(FILTER_SEPARATOR),
     "arg_sep": re.escape(FILTER_ARGUMENT_SEPARATOR),
@@ -680,12 +675,13 @@ class FilterExpression:
                     "%s|%s|%s" % (token[:upto], token[upto:start], token[start:])
                 )
             if var_obj is None:
-                if constant := match["constant"]:
+                var, constant = match["var"], match["constant"]
+                if constant:
                     try:
                         var_obj = Variable(constant).resolve({})
                     except VariableDoesNotExist:
                         var_obj = None
-                elif (var := match["var"]) is None:
+                elif var is None:
                     raise TemplateSyntaxError(
                         "Could not find variable at start of %s." % token
                     )
@@ -694,9 +690,10 @@ class FilterExpression:
             else:
                 filter_name = match["filter_name"]
                 args = []
-                if constant_arg := match["constant_arg"]:
+                constant_arg, var_arg = match["constant_arg"], match["var_arg"]
+                if constant_arg:
                     args.append((False, Variable(constant_arg).resolve({})))
-                elif var_arg := match["var_arg"]:
+                elif var_arg:
                     args.append((True, Variable(var_arg)))
                 filter_func = parser.find_filter(filter_name)
                 self.args_check(filter_name, filter_func, args)

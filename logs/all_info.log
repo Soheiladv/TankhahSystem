@@ -90785,3 +90785,264 @@ INFO 2025-10-21 22:31:54 models create_code_changes 1 code changes recorded for 
 INFO 2025-10-21 22:31:54 models update_version_file Updated version.py for version_tracker
 INFO 2025-10-21 22:31:54 update_versions handle Versions updated: {'core': '3.2.0.58', 'accounts': '1.4.0.69', 'version_tracker': '1.2.0.402'}
 INFO 2025-10-21 22:31:54 update_versions handle Final version updated successfully!
+ERROR 2025-10-26 14:18:54 apps ready {'trace_id': 'dbbackup-prod-211cb032a50', 'error': "module 'dbbackup.log' has no attribute 'load'"}
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\dbbackup\apps.py", line 49, in ready
+    dbbackup_log.load()
+    ^^^^^^^^^^^^^^^^^
+AttributeError: module 'dbbackup.log' has no attribute 'load'
+INFO 2025-10-27 11:04:24 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-10-27 11:04:24 middleware __call__ درخواست به: /, کاربر: AnonymousUser
+INFO 2025-10-27 11:04:24 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-10-27 11:04:25 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-10-27 11:04:25 middleware __call__ درخواست به: /accounts/login/, کاربر: AnonymousUser
+INFO 2025-10-27 11:04:25 middleware __call__ پاسخ برای /accounts/login/ - کد وضعیت: 200
+INFO 2025-10-27 11:04:27 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-10-27 11:04:27 middleware __call__ درخواست به: /accounts/login/, کاربر: AnonymousUser
+INFO 2025-10-27 11:04:28 signals enforce_single_session_on_login Single-session enforced for user=admin, session=dj1dg4md683x2r1mj8hh7g1duf78rxul
+INFO 2025-10-27 11:04:28 middleware __call__ پاسخ برای /accounts/login/ - کد وضعیت: 302
+INFO 2025-10-27 11:04:28 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-10-27 11:04:28 middleware __call__ درخواست به: /, کاربر: admin
+INFO 2025-10-27 11:04:28 views get_chart_data [CHART_DATA] شروع get_chart_data - start_date: None, end_date: None, org: None, project: None
+INFO 2025-10-27 11:04:28 views get_chart_data [CHART_DATA] تعداد تخصیص‌های اولیه: 6
+INFO 2025-10-27 11:04:28 views get_chart_data [CHART_DATA] org_budget query - تعداد: 3
+INFO 2025-10-27 11:04:28 views get_chart_data [CHART_DATA] org_budget - هتل لاله سرعین: 419380000.00
+INFO 2025-10-27 11:04:28 views get_chart_data [CHART_DATA] org_budget - دفتر مرکزی شرکت توسعه گردشگری ایران: 20000000.00
+INFO 2025-10-27 11:04:28 views get_chart_data [CHART_DATA] org_budget - Test Org Factor: 500000.00
+INFO 2025-10-27 11:04:28 middleware __call__ پاسخ برای / - کد وضعیت: 200
+INFO 2025-10-27 11:04:29 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-10-27 11:04:29 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-10-27 11:04:29 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-10-27 11:04:44 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-10-27 11:04:44 middleware __call__ درخواست به: /accounts/admin_dashboard/, کاربر: admin
+INFO 2025-10-27 11:04:45 middleware __call__ پاسخ برای /accounts/admin_dashboard/ - کد وضعیت: 200
+INFO 2025-10-27 11:04:45 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-10-27 11:04:45 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-10-27 11:04:45 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-10-27 11:04:48 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-10-27 11:04:48 middleware __call__ درخواست به: /system-settings/, کاربر: admin
+INFO 2025-10-27 11:04:48 PermissionBase has_required_permissions [PERM_CHECK] User admin is superuser → full access granted.
+INFO 2025-10-27 11:04:48 PermissionBase dispatch [PERM_CHECK] User admin passed base permission check for /system-settings/
+INFO 2025-10-27 11:04:48 middleware __call__ پاسخ برای /system-settings/ - کد وضعیت: 200
+INFO 2025-10-27 11:04:48 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-10-27 11:04:48 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-10-27 11:04:48 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-10-27 11:04:51 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-10-27 11:04:51 middleware __call__ درخواست به: /system-settings/2/edit/, کاربر: admin
+INFO 2025-10-27 11:04:51 PermissionBase has_required_permissions [PERM_CHECK] User admin is superuser → full access granted.
+INFO 2025-10-27 11:04:51 PermissionBase dispatch [PERM_CHECK] User admin passed base permission check for /system-settings/2/edit/
+INFO 2025-10-27 11:04:51 middleware __call__ پاسخ برای /system-settings/2/edit/ - کد وضعیت: 200
+INFO 2025-10-27 11:04:51 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-10-27 11:04:51 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-10-27 11:04:51 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-10-27 11:05:02 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-10-27 11:05:02 middleware __call__ درخواست به: /system-settings/2/edit/, کاربر: admin
+INFO 2025-10-27 11:05:02 PermissionBase has_required_permissions [PERM_CHECK] User admin is superuser → full access granted.
+INFO 2025-10-27 11:05:02 PermissionBase dispatch [PERM_CHECK] User admin passed base permission check for /system-settings/2/edit/
+INFO 2025-10-27 11:05:02 middleware __call__ پاسخ برای /system-settings/2/edit/ - کد وضعیت: 302
+INFO 2025-10-27 11:05:02 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-10-27 11:05:02 middleware __call__ درخواست به: /system-settings/, کاربر: admin
+INFO 2025-10-27 11:05:02 PermissionBase has_required_permissions [PERM_CHECK] User admin is superuser → full access granted.
+INFO 2025-10-27 11:05:02 PermissionBase dispatch [PERM_CHECK] User admin passed base permission check for /system-settings/
+INFO 2025-10-27 11:05:02 middleware __call__ پاسخ برای /system-settings/ - کد وضعیت: 200
+INFO 2025-10-27 11:05:02 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-10-27 11:05:02 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-10-27 11:05:02 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-10-27 11:05:04 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-10-27 11:05:04 middleware __call__ درخواست به: /, کاربر: admin
+INFO 2025-10-27 11:05:04 views get_chart_data [CHART_DATA] شروع get_chart_data - start_date: None, end_date: None, org: None, project: None
+INFO 2025-10-27 11:05:04 views get_chart_data [CHART_DATA] تعداد تخصیص‌های اولیه: 6
+INFO 2025-10-27 11:05:04 views get_chart_data [CHART_DATA] org_budget query - تعداد: 3
+INFO 2025-10-27 11:05:04 views get_chart_data [CHART_DATA] org_budget - هتل لاله سرعین: 419380000.00
+INFO 2025-10-27 11:05:04 views get_chart_data [CHART_DATA] org_budget - دفتر مرکزی شرکت توسعه گردشگری ایران: 20000000.00
+INFO 2025-10-27 11:05:04 views get_chart_data [CHART_DATA] org_budget - Test Org Factor: 500000.00
+INFO 2025-10-27 11:05:04 middleware __call__ پاسخ برای / - کد وضعیت: 200
+INFO 2025-10-27 11:05:04 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-10-27 11:05:04 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-10-27 11:05:04 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-10-27 11:05:34 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-10-27 11:05:34 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-10-27 11:05:34 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-10-27 11:06:04 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-10-27 11:06:04 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-10-27 11:06:04 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-10-27 11:06:34 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-10-27 11:06:34 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-10-27 11:06:34 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-10-27 11:07:04 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-10-27 11:07:04 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-10-27 11:07:04 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-10-27 11:07:34 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-10-27 11:07:34 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-10-27 11:07:34 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-10-27 11:08:04 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-10-27 11:08:04 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-10-27 11:08:04 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-10-27 11:08:34 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-10-27 11:08:34 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-10-27 11:08:34 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-10-27 11:09:04 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-10-27 11:09:04 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-10-27 11:09:04 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-10-27 11:09:34 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-10-27 11:09:34 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-10-27 11:09:34 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-10-27 11:10:04 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-10-27 11:10:04 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-10-27 11:10:04 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-10-27 11:10:34 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-10-27 11:10:34 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-10-27 11:10:34 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-10-27 11:11:04 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-10-27 11:11:04 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-10-27 11:11:04 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-10-27 11:11:34 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-10-27 11:11:34 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-10-27 11:11:34 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-10-27 11:12:04 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-10-27 11:12:04 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-10-27 11:12:04 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-10-27 11:12:34 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-10-27 11:12:34 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-10-27 11:12:34 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-10-27 11:12:54 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-10-27 11:12:54 middleware __call__ درخواست به: /reports/budget/warnings/, کاربر: admin
+INFO 2025-10-27 11:12:54 PermissionBase has_required_permissions [PERM_CHECK] User admin is superuser → full access granted.
+INFO 2025-10-27 11:12:54 PermissionBase dispatch [PERM_CHECK] User admin passed base permission check for /reports/budget/warnings/
+INFO 2025-10-27 11:12:54 PermissionBase get_queryset [PERM_CHECK] User admin is superuser → full queryset access.
+INFO 2025-10-27 11:12:55 middleware __call__ پاسخ برای /reports/budget/warnings/ - کد وضعیت: 200
+INFO 2025-10-27 11:12:55 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-10-27 11:12:55 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-10-27 11:12:55 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-10-27 11:13:04 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-10-27 11:13:04 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-10-27 11:13:04 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-10-27 11:13:21 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-10-27 11:13:21 middleware __call__ درخواست به: /budgets/payee/, کاربر: admin
+INFO 2025-10-27 11:13:21 PermissionBase has_required_permissions [PERM_CHECK] User admin is superuser → full access granted.
+INFO 2025-10-27 11:13:21 PermissionBase dispatch [PERM_CHECK] User admin passed base permission check for /budgets/payee/
+INFO 2025-10-27 11:13:21 PermissionBase dispatch [PERM_ORG] User admin has access to organizations [1, 2, 3, 4, 5, 6, 7, 8, 9]
+INFO 2025-10-27 11:13:21 middleware __call__ پاسخ برای /budgets/payee/ - کد وضعیت: 200
+INFO 2025-10-27 11:13:21 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-10-27 11:13:21 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-10-27 11:13:21 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-10-27 11:13:34 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-10-27 11:13:34 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-10-27 11:13:34 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-10-27 11:14:04 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-10-27 11:14:04 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-10-27 11:14:04 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-10-27 11:14:34 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-10-27 11:14:34 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-10-27 11:14:34 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-10-27 11:15:04 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-10-27 11:15:04 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-10-27 11:15:05 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-10-27 11:15:34 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-10-27 11:15:34 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-10-27 11:15:34 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-10-27 11:16:04 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-10-27 11:16:04 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-10-27 11:16:04 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-10-27 11:16:34 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-10-27 11:16:34 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-10-27 11:16:34 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-10-27 11:17:04 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-10-27 11:17:04 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-10-27 11:17:04 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-10-27 11:17:34 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-10-27 11:17:34 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-10-27 11:17:34 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-10-27 11:18:04 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-10-27 11:18:04 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-10-27 11:18:04 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-10-27 11:18:34 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-10-27 11:18:34 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-10-27 11:18:34 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-10-27 11:19:04 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-10-27 11:19:04 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-10-27 11:19:04 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-10-27 11:19:34 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-10-27 11:19:34 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-10-27 11:19:34 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-10-27 11:20:04 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-10-27 11:20:04 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-10-27 11:20:04 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-10-27 11:20:34 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-10-27 11:20:34 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-10-27 11:20:34 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-10-27 11:21:04 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-10-27 11:21:04 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-10-27 11:21:04 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-10-27 11:21:34 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-10-27 11:21:34 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-10-27 11:21:34 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-10-27 11:22:04 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-10-27 11:22:04 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-10-27 11:22:04 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-10-27 11:22:34 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-10-27 11:22:34 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-10-27 11:22:34 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-10-27 11:23:04 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-10-27 11:23:04 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-10-27 11:23:04 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-10-27 11:23:34 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-10-27 11:23:34 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-10-27 11:23:34 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-10-27 11:24:04 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-10-27 11:24:04 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-10-27 11:24:04 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-10-27 11:24:34 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-10-27 11:24:34 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-10-27 11:24:34 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-10-27 11:25:04 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-10-27 11:25:04 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-10-27 11:25:04 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-10-27 11:25:34 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-10-27 11:25:34 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-10-27 11:25:34 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-10-27 11:26:04 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-10-27 11:26:04 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-10-27 11:26:04 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-10-27 11:26:34 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-10-27 11:26:34 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-10-27 11:26:34 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-10-27 11:27:04 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-10-27 11:27:04 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-10-27 11:27:04 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-10-27 11:27:34 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-10-27 11:27:34 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-10-27 11:27:34 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-10-27 11:28:04 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-10-27 11:28:04 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-10-27 11:28:04 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-10-27 11:28:34 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-10-27 11:28:34 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-10-27 11:28:34 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-10-27 11:29:04 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-10-27 11:29:04 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-10-27 11:29:04 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-10-27 11:29:34 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-10-27 11:29:34 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-10-27 11:29:34 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-10-27 11:30:04 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-10-27 11:30:04 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-10-27 11:30:04 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-10-27 11:31:05 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-10-27 11:31:05 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-10-27 11:31:05 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-10-27 11:31:34 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-10-27 11:31:34 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-10-27 11:31:34 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-10-27 11:32:04 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-10-27 11:32:04 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-10-27 11:32:04 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-10-27 11:33:05 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-10-27 11:33:05 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-10-27 11:33:05 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-10-27 11:33:34 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-10-27 11:33:34 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-10-27 11:33:35 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-10-27 11:34:04 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-10-27 11:34:04 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-10-27 11:34:04 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200

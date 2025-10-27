@@ -1673,3 +1673,9 @@ ERROR 2025-10-16 22:13:27 views_BudgetPeriod check_budget_status ImportError: ch
 ERROR 2025-10-16 22:13:57 get_budget_details get_budget_details Error in get_budget_details for entity تست دوره ۱ روزه (HQ_ITDC): Entity must be Organization or Project, got <class 'budgets.models.BudgetPeriod'>
 ERROR 2025-10-16 22:13:57 views_BudgetPeriod check_budget_status ImportError: check_budget_status not found for BudgetPeriod 30
 ERROR 2025-10-17 20:40:11 PermissionBase dispatch [PERM_CHECK] Permission denied for user branch_user to /tankhah/factor/create/new/
+ERROR 2025-10-26 14:18:54 apps ready {'trace_id': 'dbbackup-prod-211cb032a50', 'error': "module 'dbbackup.log' has no attribute 'load'"}
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\dbbackup\apps.py", line 49, in ready
+    dbbackup_log.load()
+    ^^^^^^^^^^^^^^^^^
+AttributeError: module 'dbbackup.log' has no attribute 'load'

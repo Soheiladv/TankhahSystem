@@ -4,13 +4,11 @@ Abstract Command.
 
 import logging
 import sys
-from optparse import make_option as optparse_make_option
 from shutil import copyfileobj
 
-import django
 from django.core.management.base import BaseCommand, CommandError
 
-from ...storage import StorageError
+from dbbackup.storage import StorageError
 
 USELESS_ARGS = ("callback", "callback_args", "callback_kwargs", "metavar")
 TYPES = {
@@ -22,7 +20,7 @@ TYPES = {
     "choice": list,
 }
 LOGGING_VERBOSITY = {
-    0: logging.WARN,
+    0: logging.WARNING,
     1: logging.INFO,
     2: logging.DEBUG,
     3: logging.DEBUG,
@@ -62,22 +60,11 @@ class BaseDbBackupCommand(BaseCommand):
 
     def __init__(self, *args, **kwargs):
         self.option_list = self.base_option_list + self.option_list
-        if django.VERSION < (1, 10):
-            options = tuple(
-                optparse_make_option(*_args, **_kwargs)
-                for _args, _kwargs in self.option_list
-            )
-
-            self.option_list = options + BaseCommand.option_list
         super().__init__(*args, **kwargs)
 
     def add_arguments(self, parser):
         for args, kwargs in self.option_list:
-            kwargs = {
-                k: v
-                for k, v in kwargs.items()
-                if not k.startswith("_") and k not in USELESS_ARGS
-            }
+            kwargs = {k: v for k, v in kwargs.items() if not k.startswith("_") and k not in USELESS_ARGS}
             parser.add_argument(*args, **kwargs)
 
     def _set_logger_level(self):
@@ -99,7 +86,7 @@ class BaseDbBackupCommand(BaseCommand):
 
     def read_local_file(self, path):
         """Open file in read mode on local filesystem."""
-        return open(path, "rb")
+        return open(path, "rb")  # noqa: SIM115
 
     def write_local_file(self, outputfile, path):
         """Write file to the desired path."""

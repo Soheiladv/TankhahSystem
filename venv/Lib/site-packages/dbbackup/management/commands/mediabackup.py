@@ -7,9 +7,10 @@ import tarfile
 
 from django.core.management.base import CommandError
 
-from ... import utils
-from ...storage import StorageError, get_storage, get_storage_class
-from ._base import BaseDbBackupCommand, make_option
+from dbbackup import utils
+from dbbackup.management.commands._base import BaseDbBackupCommand, make_option
+from dbbackup.signals import post_media_backup, pre_media_backup
+from dbbackup.storage import StorageError, get_storage, get_storage_class
 
 
 class Command(BaseDbBackupCommand):
@@ -17,41 +18,18 @@ class Command(BaseDbBackupCommand):
     compress."""
     content_type = "media"
 
-    option_list = BaseDbBackupCommand.option_list + (
-        make_option(
-            "-c",
-            "--clean",
-            help="Clean up old backup files",
-            action="store_true",
-            default=False,
-        ),
-        make_option(
-            "-s",
-            "--servername",
-            help="Specify server name to include in backup filename",
-        ),
-        make_option(
-            "-z",
-            "--compress",
-            help="Compress the archive",
-            action="store_true",
-            default=False,
-        ),
-        make_option(
-            "-e",
-            "--encrypt",
-            help="Encrypt the backup files",
-            action="store_true",
-            default=False,
-        ),
-        make_option(
-            "-o", "--output-filename", default=None, help="Specify filename on storage"
-        ),
+    option_list = (
+        *BaseDbBackupCommand.option_list,
+        make_option("-c", "--clean", help="Clean up old backup files", action="store_true", default=False),
+        make_option("-s", "--servername", help="Specify server name to include in backup filename"),
+        make_option("-z", "--compress", help="Compress the archive", action="store_true", default=False),
+        make_option("-e", "--encrypt", help="Encrypt the backup files", action="store_true", default=False),
+        make_option("-o", "--output-filename", default=None, help="Specify filename on storage"),
         make_option(
             "-O",
             "--output-path",
             default=None,
-            help="Specify where to store on local filesystem",
+            help="Specify where to store backup (local filesystem path or S3 URI like s3://bucket/path/)",
         ),
     )
 
@@ -106,14 +84,19 @@ class Command(BaseDbBackupCommand):
         """
         Create backup file and write it to storage.
         """
+        # Send pre_media_backup signal
+        pre_media_backup.send(
+            sender=self.__class__,
+            servername=self.servername,
+            storage=self.storage,
+        )
+
         # Check for filename option
         if self.filename:
             filename = self.filename
         else:
             extension = f"tar{'.gz' if self.compress else ''}"
-            filename = utils.filename_generate(
-                extension, servername=self.servername, content_type=self.content_type
-            )
+            filename = utils.filename_generate(extension, servername=self.servername, content_type=self.content_type)
 
         tarball = self._create_tar(filename)
         # Apply trans
@@ -126,5 +109,16 @@ class Command(BaseDbBackupCommand):
         tarball.seek(0)
         if self.path is None:
             self.write_to_storage(tarball, filename)
+        elif self.path.startswith("s3://"):
+            # Handle S3 URIs through storage backend
+            self.write_to_storage(tarball, self.path)
         else:
             self.write_local_file(tarball, self.path)
+
+        # Send post_media_backup signal
+        post_media_backup.send(
+            sender=self.__class__,
+            filename=filename,
+            servername=self.servername,
+            storage=self.storage,
+        )

@@ -4,9 +4,10 @@ Restore media files.
 
 import tarfile
 
-from ... import utils
-from ...storage import get_storage, get_storage_class
-from ._base import BaseDbBackupCommand, make_option
+from dbbackup import utils
+from dbbackup.management.commands._base import BaseDbBackupCommand, make_option
+from dbbackup.signals import post_media_restore, pre_media_restore
+from dbbackup.storage import get_storage, get_storage_class
 
 
 class Command(BaseDbBackupCommand):
@@ -21,14 +22,11 @@ class Command(BaseDbBackupCommand):
             action="store",
             help="Specify filename to backup from",
         ),
-        make_option(
-            "-I", "--input-path", help="Specify path on local filesystem to backup from"
-        ),
+        make_option("-I", "--input-path", help="Specify path on local filesystem to backup from"),
         make_option(
             "-s",
             "--servername",
-            help="If backup file is not specified, filter the existing ones with the "
-            "given servername",
+            help="If backup file is not specified, filter the existing ones with the given servername",
         ),
         make_option(
             "-e",
@@ -37,18 +35,14 @@ class Command(BaseDbBackupCommand):
             action="store_true",
             help="Decrypt data before restoring",
         ),
-        make_option(
-            "-p", "--passphrase", default=None, help="Passphrase for decrypt file"
-        ),
+        make_option("-p", "--passphrase", default=None, help="Passphrase for decrypt file"),
         make_option(
             "-z",
             "--uncompress",
             action="store_true",
             help="Uncompress gzip data before restoring",
         ),
-        make_option(
-            "-r", "--replace", help="Replace existing files", action="store_true"
-        ),
+        make_option("-r", "--replace", help="Replace existing files", action="store_true"),
     )
 
     def handle(self, *args, **options):
@@ -86,10 +80,16 @@ class Command(BaseDbBackupCommand):
         input_filename, input_file = self._get_backup_file(servername=self.servername)
         self.logger.info("Restoring: %s", input_filename)
 
+        # Send pre_media_restore signal
+        pre_media_restore.send(
+            sender=self.__class__,
+            filename=input_filename,
+            servername=self.servername,
+            storage=self.storage,
+        )
+
         if self.decrypt:
-            unencrypted_file, input_filename = utils.unencrypt_file(
-                input_file, input_filename, self.passphrase
-            )
+            unencrypted_file, input_filename = utils.unencrypt_file(input_file, input_filename, self.passphrase)
             input_file.close()
             input_file = unencrypted_file
 
@@ -110,5 +110,13 @@ class Command(BaseDbBackupCommand):
             media_file = tar_file.extractfile(media_file_info)
             if media_file is None:
                 continue  # Skip directories
-            name = media_file_info.path.replace("media/", "")
+            name = media_file_info.path
             self._upload_file(name, media_file)
+
+        # Send post_media_restore signal
+        post_media_restore.send(
+            sender=self.__class__,
+            filename=input_filename,
+            servername=self.servername,
+            storage=self.storage,
+        )

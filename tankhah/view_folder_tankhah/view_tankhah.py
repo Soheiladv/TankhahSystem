@@ -24,7 +24,7 @@ from decimal import Decimal
 # tankhah/views.py
 from core.views import PermissionBaseView
 from django.utils.translation import gettext_lazy as _
-from jdatetime import date as jdate
+from jalali_date import date2jalali
 # -------
 """به‌روزرسانی پروژه‌ها بر اساس سازمان"""
 from django.views.decorators.http import require_GET

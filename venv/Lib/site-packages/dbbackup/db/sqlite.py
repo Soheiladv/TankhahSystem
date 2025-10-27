@@ -1,11 +1,14 @@
+import contextlib
+import os
+import sqlite3
 import warnings
 from io import BytesIO
 from shutil import copyfileobj
-from tempfile import SpooledTemporaryFile
+from tempfile import NamedTemporaryFile, SpooledTemporaryFile
 
 from django.db import IntegrityError, OperationalError
 
-from .base import BaseDBConnector
+from dbbackup.db.base import BaseDBConnector
 
 DUMP_TABLES = """
 SELECT "name", "type", "sql"
@@ -40,23 +43,26 @@ class SqliteConnector(BaseDBConnector):
             fileobj.write(f"{sql};\n".encode())
 
             table_name_ident = table_name.replace('"', '""')
-            res = cursor.execute(f'PRAGMA table_info("{table_name_ident}")')
-            column_names = [str(table_info[1]) for table_info in res.fetchall()]
-            q = """SELECT 'INSERT INTO "{0}" VALUES({1})' FROM "{0}";\n""".format(
+            cursor.execute(f'PRAGMA table_info("{table_name_ident}")')
+            column_names = [str(table_info[1]) for table_info in cursor.fetchall()]
+            q = """SELECT 'INSERT OR REPLACE INTO "{0}" VALUES({1})' FROM "{0}";\n""".format(
                 table_name_ident,
-                ",".join(
-                    """'||quote("{}")||'""".format(col.replace('"', '""'))
-                    for col in column_names
-                ),
+                ",".join(f"""'||quote("{col.replace('"', '""')}")||'""" for col in column_names),
             )
-            query_res = cursor.execute(q)
-            for row in query_res:
+            cursor.execute(q)
+            for row in cursor:
                 fileobj.write(f"{row[0]};\n".encode())
-            schema_res = cursor.execute(DUMP_ETC)
-            for name, _, sql in schema_res.fetchall():
-                if sql.startswith("CREATE INDEX"):
-                    sql = sql.replace("CREATE INDEX", "CREATE INDEX IF NOT EXISTS")
-                fileobj.write(f"{sql};\n".encode())
+
+        # Dump indexes, triggers, and views after all tables are created
+        cursor.execute(DUMP_ETC)
+        for _name, _, sql in cursor.fetchall():
+            if sql.startswith("CREATE INDEX"):
+                sql = sql.replace("CREATE INDEX", "CREATE INDEX IF NOT EXISTS", 1)
+            elif sql.startswith("CREATE TRIGGER"):
+                sql = sql.replace("CREATE TRIGGER", "CREATE TRIGGER IF NOT EXISTS", 1)
+            elif sql.startswith("CREATE VIEW"):
+                sql = sql.replace("CREATE VIEW", "CREATE VIEW IF NOT EXISTS", 1)
+            fileobj.write(f"{sql};\n".encode())
         cursor.close()
 
     def create_dump(self):
@@ -66,6 +72,34 @@ class SqliteConnector(BaseDBConnector):
         self._write_dump(dump_file)
         dump_file.seek(0)
         return dump_file
+
+    def _is_sql_command_complete(self, sql_command_bytes):
+        """
+        Check if an SQL command is complete by ensuring that any closing ");\n"
+        is not within a quoted string literal.
+        """
+        sql_str = sql_command_bytes.decode("UTF-8")
+        if not sql_str.endswith(");\n"):
+            return False
+
+        # Parse the SQL to check if we're inside a quoted string at the end
+        in_quotes = False
+        i = 0
+        while i < len(sql_str) - 3:  # -3 to avoid checking the final ");\n"
+            char = sql_str[i]
+            if char == "'":
+                if i + 1 < len(sql_str) and sql_str[i + 1] == "'":
+                    # Escaped single quote (''), skip both
+                    i += 2
+                else:
+                    # Toggle quote state
+                    in_quotes = not in_quotes
+                    i += 1
+            else:
+                i += 1
+
+        # The command is complete if we're not inside quotes when we reach ");\n"
+        return not in_quotes
 
     def restore_dump(self, dump):
         if not self.connection.is_usable():
@@ -79,15 +113,23 @@ class SqliteConnector(BaseDBConnector):
             if line_str.startswith("INSERT") and not line_str.endswith(");\n"):
                 sql_is_complete = False
                 continue
-            if not sql_is_complete and line_str.endswith(");\n"):
-                sql_is_complete = True
+            if not sql_is_complete:
+                # Check if the accumulated command is now complete
+                sql_is_complete = self._is_sql_command_complete(sql_command)
 
             if sql_is_complete:
                 try:
                     cursor.execute(sql_command.decode("UTF-8"))
                 except (OperationalError, IntegrityError) as err:
-                    warnings.warn(f"Error in db restore: {err}")
+                    err_str = str(err)
+                    if not self._should_suppress_error(err_str):
+                        warnings.warn(f"Error in db restore: {err}")
+
                 sql_command = b""
+
+    @staticmethod
+    def _should_suppress_error(msg: str):
+        return (msg.startswith(("index", "trigger", "view"))) and msg.endswith("already exists")
 
 
 class SqliteCPConnector(BaseDBConnector):
@@ -103,6 +145,51 @@ class SqliteCPConnector(BaseDBConnector):
             copyfileobj(db_file, dump)
         dump.seek(0)
         return dump
+
+    def restore_dump(self, dump):
+        path = self.connection.settings_dict["NAME"]
+        with open(path, "wb") as db_file:
+            copyfileobj(dump, db_file)
+
+
+class SqliteBackupConnector(BaseDBConnector):
+    """
+    Create a dump using the SQLite backup command,
+    which is safe to execute when the database is
+    in use (unlike simply copying the database file).
+    Restore by copying the backup file over the
+    database file.
+    """
+
+    extension = "sqlite3"
+
+    def _write_dump(self, fileobj):
+        pass
+
+    def create_dump(self):
+        if not self.connection.is_usable():
+            self.connection.connect()
+        # Important: ensure the connection to the DB
+        # has been established.
+        self.connection.ensure_connection()
+        src_db_connection = self.connection.connection
+
+        # On Windows sqlite3 cannot open a NamedTemporaryFile that is still
+        # open by another handle. Use delete=False then reopen.
+        bkp_db_file = NamedTemporaryFile(delete=False)
+        bkp_path = bkp_db_file.name
+        bkp_db_file.close()  # Close so sqlite can open it on Windows.
+        try:
+            with sqlite3.connect(bkp_path) as bkp_db_connection:
+                src_db_connection.backup(bkp_db_connection)
+            with open(bkp_path, "rb") as reopened:
+                spooled = SpooledTemporaryFile()
+                copyfileobj(reopened, spooled)
+            spooled.seek(0)
+            return spooled
+        finally:  # pragma: no cover - cleanup best effort
+            with contextlib.suppress(Exception):
+                os.remove(bkp_path)
 
     def restore_dump(self, dump):
         path = self.connection.settings_dict["NAME"]

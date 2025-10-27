@@ -2,11 +2,12 @@
 Utils for handle files.
 """
 
+import contextlib
 import logging
 
 from django.core.exceptions import ImproperlyConfigured
 
-from . import settings, utils
+from dbbackup import settings, utils
 
 
 def get_storage(path=None, options=None):
@@ -14,11 +15,11 @@ def get_storage(path=None, options=None):
     Get the specified storage configured with options.
 
     :param path: Path in Python dot style to module containing the storage
-                 class. If empty settings.DBBACKUP_STORAGE will be used.
+                 class. If empty settings.STORAGES["dbbackup"] will be used.
     :type path: ``str``
 
     :param options: Parameters for configure the storage, if empty
-                    settings.DBBACKUP_STORAGE_OPTIONS will be used.
+                    settings.STORAGES["dbbackup"]["OPTIONS"] will be used.
     :type options: ``dict``
 
     :return: Storage configured
@@ -27,17 +28,12 @@ def get_storage(path=None, options=None):
     path = path or settings.STORAGE
     options = options or settings.STORAGE_OPTIONS
     if not path:
-        raise ImproperlyConfigured(
-            "You must specify a storage class using " "DBBACKUP_STORAGE settings."
-        )
+        msg = 'You must specify a storage class using settings.STORAGES["dbbackup"] settings.'
+        raise ImproperlyConfigured(msg)
     return Storage(path, **options)
 
 
 class StorageError(Exception):
-    pass
-
-
-class FileNotFound(StorageError):
     pass
 
 
@@ -59,7 +55,7 @@ class Storage:
         Initialize a Django Storage instance with given options.
 
         :param storage_path: Path to a Django Storage class with dot style
-                             If ``None``, ``settings.DBBACKUP_STORAGE`` will
+                             If ``None``, ``settings.STORAGES["dbbackup"]`` will
                              be used.
         :type storage_path: str
         """
@@ -126,7 +122,7 @@ class Storage:
         :rtype: ``list`` of ``str``
         """
         if content_type not in ("db", "media", None):
-            msg = "Bad content_type %s, must be 'db', 'media', or None" % (content_type)
+            msg = f"Bad content_type {content_type}, must be 'db', 'media', or None"
             raise TypeError(msg)
         # TODO: Make better filter for include only backups
         files = [f for f in self.list_directory() if utils.filename_to_datestring(f)]
@@ -185,7 +181,8 @@ class Storage:
             servername=servername,
         )
         if not files:
-            raise FileNotFound("There's no backup file available.")
+            msg = "There's no backup file available."
+            raise StorageError(msg)
         return max(files, key=utils.filename_to_date)
 
     def get_older_backup(
@@ -229,7 +226,8 @@ class Storage:
             servername=servername,
         )
         if not files:
-            raise FileNotFound("There's no backup file available.")
+            msg = "There's no backup file available."
+            raise StorageError(msg)
         return min(files, key=utils.filename_to_date)
 
     def clean_old_backups(
@@ -265,11 +263,7 @@ class Storage:
         :type keep_number: ``int`` or ``None``
         """
         if keep_number is None:
-            keep_number = (
-                settings.CLEANUP_KEEP
-                if content_type == "db"
-                else settings.CLEANUP_KEEP_MEDIA
-            )
+            keep_number = settings.CLEANUP_KEEP if content_type == "db" else settings.CLEANUP_KEEP_MEDIA
         keep_filter = settings.CLEANUP_KEEP_FILTER
         files = self.list_backups(
             encrypted=encrypted,
@@ -303,11 +297,11 @@ def get_storage_class(path=None):
         # this is a workaround to keep compatibility with Django >= 5.1 (django.core.files.storage.get_storage_class is removed)
         return import_string(path)
 
-    try:
+    with contextlib.suppress(Exception):
         from django.core.files.storage import DefaultStorage
 
         return DefaultStorage
-    except Exception:
-        from django.core.files.storage import get_storage_class
 
-        return get_storage_class()
+    from django.core.files.storage import get_storage_class
+
+    return get_storage_class()

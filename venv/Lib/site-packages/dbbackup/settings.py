@@ -28,30 +28,18 @@ FILENAME_TEMPLATE = getattr(
     "DBBACKUP_FILENAME_TEMPLATE",
     "{databasename}-{servername}-{datetime}.{extension}",
 )
-MEDIA_FILENAME_TEMPLATE = getattr(
-    settings, "DBBACKUP_MEDIA_FILENAME_TEMPLATE", "{servername}-{datetime}.{extension}"
-)
+MEDIA_FILENAME_TEMPLATE = getattr(settings, "DBBACKUP_MEDIA_FILENAME_TEMPLATE", "{servername}-{datetime}.{extension}")
 
 GPG_ALWAYS_TRUST = getattr(settings, "DBBACKUP_GPG_ALWAYS_TRUST", False)
 GPG_RECIPIENT = GPG_ALWAYS_TRUST = getattr(settings, "DBBACKUP_GPG_RECIPIENT", None)
 
-STORAGE = getattr(settings, "DBBACKUP_STORAGE", None)
-STORAGE_OPTIONS = getattr(settings, "DBBACKUP_STORAGE_OPTIONS", {})
-# https://docs.djangoproject.com/en/5.1/ref/settings/#std-setting-STORAGES
 STORAGES_DBBACKUP_ALIAS = "dbbackup"
 DJANGO_STORAGES = getattr(settings, "STORAGES", {})
-django_dbbackup_storage = DJANGO_STORAGES.get(STORAGES_DBBACKUP_ALIAS, {})
-
-if not STORAGE:
-    STORAGE = (
-        django_dbbackup_storage.get("BACKEND")
-        or "django.core.files.storage.FileSystemStorage"
-    )
-if not STORAGE_OPTIONS:
-    STORAGE_OPTIONS = django_dbbackup_storage.get("OPTIONS") or STORAGE_OPTIONS
+storage: dict = DJANGO_STORAGES.get(STORAGES_DBBACKUP_ALIAS, {})
+STORAGE = storage.get("BACKEND", "django.core.files.storage.FileSystemStorage")
+STORAGE_OPTIONS = storage.get("OPTIONS", {})
 
 CONNECTORS = getattr(settings, "DBBACKUP_CONNECTORS", {})
-
 CUSTOM_CONNECTOR_MAPPING = getattr(settings, "DBBACKUP_CONNECTOR_MAPPING", {})
 
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
@@ -59,9 +47,5 @@ DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 # Mail
 SEND_EMAIL = getattr(settings, "DBBACKUP_SEND_EMAIL", True)
 SERVER_EMAIL = getattr(settings, "DBBACKUP_SERVER_EMAIL", settings.SERVER_EMAIL)
-FAILURE_RECIPIENTS = getattr(settings, "DBBACKUP_FAILURE_RECIPIENTS", None)
-if FAILURE_RECIPIENTS is None:
-    ADMINS = getattr(settings, "DBBACKUP_ADMIN", settings.ADMINS)
-else:
-    ADMINS = FAILURE_RECIPIENTS
+ADMINS = getattr(settings, "DBBACKUP_ADMIN", settings.ADMINS)
 EMAIL_SUBJECT_PREFIX = getattr(settings, "DBBACKUP_EMAIL_SUBJECT_PREFIX", "[dbbackup] ")

@@ -16,7 +16,6 @@ class Command(BaseCommand):
         parser.add_argument(
             "--database",
             default=DEFAULT_DB_ALIAS,
-            choices=tuple(connections),
             help=(
                 "Nominates a database onto which to open a shell. Defaults to the "
                 '"default" database.'
@@ -42,7 +41,7 @@ class Command(BaseCommand):
             raise CommandError(
                 '"%s" returned non-zero exit status %s.'
                 % (
-                    " ".join(map(str, e.cmd)),
+                    " ".join(e.cmd),
                     e.returncode,
                 ),
                 returncode=e.returncode,
