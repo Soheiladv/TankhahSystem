@@ -225,6 +225,39 @@
                                         </div>
                                         <div class="form-text">{% trans "اگر فعال باشد، ثبت فاکتور بیش از مانده تنخواه مجاز است (مستقل از تنظیم تنخواه)." %}</div>
                                     </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold d-block">{% trans "حذف تنخواه‌های منقضی‌شده از لیست" %}</label>
+                                        <div class="form-check form-switch">
+                                            {{ form.exclude_expired_tankhah_from_factor_form }}
+                                            <label class="form-check-label" for="{{ form.exclude_expired_tankhah_from_factor_form.id_for_label }}">
+                                                {% trans "فعال" %}
+                                            </label>
+                                        </div>
+                                        <div class="form-text">{% trans "اگر فعال باشد، تنخواه‌هایی که تاریخ انقضای آن‌ها گذشته است از dropdown فرم ایجاد فاکتور حذف می‌شوند." %}</div>
+                                        {{ form.exclude_expired_tankhah_from_factor_form.errors }}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold d-block">{% trans "اجبار سقف مبلغ در فرم فاکتور" %}</label>
+                                        <div class="form-check form-switch">
+                                            {{ form.enforce_tankhah_ceiling_on_factor }}
+                                            <label class="form-check-label" for="{{ form.enforce_tankhah_ceiling_on_factor.id_for_label }}">
+                                                {% trans "فعال" %}
+                                            </label>
+                                        </div>
+                                        <div class="form-text">{% trans "اگر فعال باشد، هنگام ثبت فاکتور، چک می‌شود که مبلغ فاکتور از سقف تنخواه تجاوز نکند." %}</div>
+                                        {{ form.enforce_tankhah_ceiling_on_factor.errors }}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold d-block">{% trans "ایجاد تعهد بودجه هنگام ثبت" %}</label>
+                                        <div class="form-check form-switch">
+                                            {{ form.create_budget_commitment_on_factor_draft }}
+                                            <label class="form-check-label" for="{{ form.create_budget_commitment_on_factor_draft.id_for_label }}">
+                                                {% trans "فعال" %}
+                                            </label>
+                                        </div>
+                                        <div class="form-text">{% trans "اگر فعال باشد، هنگام ثبت فاکتور، یک COMMITMENT در BudgetTransaction ایجاد می‌شود و بودجه رزرو می‌شود." %}</div>
+                                        {{ form.create_budget_commitment_on_factor_draft.errors }}
+                                    </div>
                                     <div class="col-12">
                                         <div class="alert alert-info small">
                                             <i class="fas fa-info-circle me-1"></i>

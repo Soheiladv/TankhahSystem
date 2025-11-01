@@ -258,14 +258,14 @@ switch ($Action.ToLower()) {
     }
     default {
         Write-Host "استفاده:" -ForegroundColor Yellow
-        Write-Host "  .\docker-manage.ps1 -Action status                    # وضعیت سیستم" -ForegroundColor Cyan
-        Write-Host "  .\docker-manage.ps1 -Action logs -Service web         # لاگ‌های وب" -ForegroundColor Cyan
+        Write-Host "  .\docker-manage.ps1 -Action status                     # وضعیت سیستم" -ForegroundColor Cyan
+        Write-Host "  .\docker-manage.ps1 -Action logs -Service web          # لاگ‌های وب" -ForegroundColor Cyan
         Write-Host "  .\docker-manage.ps1 -Action logs -Follow               # لاگ‌های زنده" -ForegroundColor Cyan
-        Write-Host "  .\docker-manage.ps1 -Action exec -Service web         # اجرای دستور" -ForegroundColor Cyan
-        Write-Host "  .\docker-manage.ps1 -Action backup                    # پشتیبان‌گیری" -ForegroundColor Cyan
+        Write-Host "  .\docker-manage.ps1 -Action exec -Service web          # اجرای دستور" -ForegroundColor Cyan
+        Write-Host "  .\docker-manage.ps1 -Action backup                     # پشتیبان‌گیری" -ForegroundColor Cyan
         Write-Host "  .\docker-manage.ps1 -Action restore                    # بازگردانی" -ForegroundColor Cyan
         Write-Host "  .\docker-manage.ps1 -Action clean                      # پاک‌سازی" -ForegroundColor Cyan
-        Write-Host "  .\docker-manage.ps1 -Action info -Service web         # اطلاعات سرویس" -ForegroundColor Cyan
+        Write-Host "  .\docker-manage.ps1 -Action info -Service web          # اطلاعات سرویس" -ForegroundColor Cyan
         Write-Host "  .\docker-manage.ps1 -Action restart -Service web       # راه‌اندازی مجدد" -ForegroundColor Cyan
         Write-Host "  .\docker-manage.ps1 -Action shell -Service web         # ورود به shell" -ForegroundColor Cyan
         Write-Host "  .\docker-manage.ps1 -Action commands                   # دستورات مفید" -ForegroundColor Cyan

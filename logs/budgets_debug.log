@@ -9176,3 +9176,4 @@ django.core.exceptions.ValidationError: ['مبلغ بازگشت (57,000 ریال
 [2025-10-17 20:41:49] DEBUG [budgets.signals:72] invalidate_transaction_cache - Invalidated cache keys after BudgetTransaction change: {'project_remaining_budget_1', 'returned_budgets_1_all_no_filters', 'free_budget_1', 'budget_transfers_1_no_filters'}
 [2025-10-17 20:41:49] INFO [budgets.models:661] save - BudgetTransaction saved with ID: 1
 [2025-10-17 20:41:49] DEBUG [budgets.signals:102] invalidate_tankhah_cache - Invalidated cache keys after Tankhah change: {'tankhah_report_1_no_filters', 'free_budget_1'}
+[2025-10-27 11:57:02] DEBUG [budgets.signals:102] invalidate_tankhah_cache - Invalidated cache keys after Tankhah change: {'free_budget_92', 'tankhah_report_29_no_filters'}

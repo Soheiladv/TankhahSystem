@@ -36,8 +36,6 @@ def calculate_remaining_amount(allocation, amount_field='allocated_amount', mode
         Decimal: بودجه باقی‌مانده (همیشه غیرمنفی)
 
     Example:
-        >>> alloc = BudgetAllocation.objects.get(pk=1)
-        >>> remaining = calculate_remaining_amount(alloc)
         Decimal('1000.00')
     """
     try:
@@ -81,8 +79,6 @@ def old__calculate_remaining_amount(allocation, amount_field='allocated_amount',
         Decimal: بودجه باقی‌مانده (همیشه غیرمنفی)
 
     Example:
-        >>> alloc = BudgetAllocation.objects.get(pk=1)
-        >>> remaining = calculate_remaining_amount(alloc)
         Decimal('1000.00')
     """
     from budgets.models import BudgetTransaction,BudgetAllocation,BudgetAllocation
@@ -351,22 +347,145 @@ def faild______get_tankhah_remaining_budget(tankhah, filters=None):
         logger.error(f"Error calculating tankhah_remaining_budget for {tankhah.number}: {str(e)}", exc_info=True)
         return Decimal('0')
 
-def get_tankhah_remaining_budget(tankhah: Tankhah) -> Decimal:
+# ==============================
+def ___get_tankhah_remaining_budget(tankhah: Tankhah) -> Decimal:
     """
     **تابع نهایی و صحیح برای محاسبه موجودی واقعی تنخواه.**
     این تابع با مدل‌های جدید که status یک ForeignKey است، کاملاً سازگار است.
+
+    اگر COMMITMENT فعال باشد، از BudgetTransaction استفاده می‌کند.
+    در غیر این صورت، از روش قدیمی (فاکتورهای DRAFT/PENDING) استفاده می‌کند.
     """
     if not tankhah: return Decimal('0')
 
-    # محاسبه بودجه کل تنخواه
-    total_budget = get_tankhah_total_budget(tankhah)
-    used_budget = get_tankhah_used_budget(tankhah)
+    # بررسی تنظیمات سیستم
+    from core.models import SystemSettings
+    system_settings = SystemSettings.get_solo()
+    use_commitment = getattr(system_settings, 'create_budget_commitment_on_factor_draft', True)
 
-    # محاسبه بودجه باقی‌مانده
-    remaining_budget = total_budget - used_budget
-    logger.info(f"Final Remaining Budget for '{tankhah.number}': {remaining_budget}")
+    if use_commitment and tankhah.project_budget_allocation and tankhah.project_budget_allocation.budget_allocation:
+        # استفاده از BudgetTransaction
+        budget_allocation = tankhah.project_budget_allocation.budget_allocation
 
-    return max(remaining_budget, Decimal('0'))
+        # محاسبه CONSUMPTION و COMMITMENT از تراکنش‌ها
+        from budgets.models import BudgetTransaction
+        transactions = BudgetTransaction.objects.filter(
+            allocation=budget_allocation,
+            transaction_type__in=['CONSUMPTION', 'COMMITMENT'],
+            is_active=True
+        ).aggregate(
+            total=Coalesce(Sum('amount'), Value(Decimal('0')))
+        )
+        reserved_budget = transactions['total'] or Decimal('0')
+
+        # محاسبه بودجه باقی‌مانده
+        total_budget = budget_allocation.allocated_amount
+        remaining_budget = total_budget - reserved_budget
+
+        logger.info(
+            f"BudgetTransaction-based: Total={total_budget}, Reserved={reserved_budget}, Remaining={remaining_budget}")
+        return max(remaining_budget, Decimal('0'))
+    else:
+        # روش قدیمی - استفاده از فاکتورها
+        total_budget = get_tankhah_total_budget(tankhah)
+        used_budget = get_tankhah_used_budget(tankhah)
+        remaining_budget = total_budget - used_budget
+
+        logger.info(f"Factor-based: Total={total_budget}, Used={used_budget}, Remaining={remaining_budget}")
+        return max(remaining_budget, Decimal('0'))
+# ===== UTILITY FUNCTIONS =====
+def _get_total_budget_simple(tankhah: Tankhah) -> Decimal:
+    """محاسبه total_budget با روش قدیمی (فاکتور-based)."""
+    from budgets.budget_calculations import get_tankhah_total_budget  # Import محلی
+    return get_tankhah_total_budget(tankhah)
+
+def _get_used_budget_simple(tankhah: Tankhah) -> Decimal:
+    """محاسبه used_budget با روش قدیمی."""
+    from budgets.budget_calculations import get_tankhah_used_budget  # Import محلی
+    return get_tankhah_used_budget(tankhah)
+
+def _get_total_budget_transaction(tankhah: Tankhah) -> Decimal:
+    """محاسبه total_budget از BudgetAllocation."""
+    allocation = getattr(tankhah, 'project_budget_allocation', None)
+    if allocation and allocation.budget_allocation:
+        return allocation.budget_allocation.allocated_amount
+    raise ValueError("No valid budget allocation found for transaction-based calculation.")
+
+def _get_reserved_budget_transaction(budget_allocation) -> Decimal:
+    """محاسبه reserved (CONSUMPTION + COMMITMENT) از تراکنش‌ها."""
+    from budgets.models import BudgetTransaction
+    transactions = BudgetTransaction.objects.filter(
+        allocation=budget_allocation,
+        transaction_type__in=['CONSUMPTION', 'COMMITMENT'],
+        is_active=True
+    ).aggregate(
+        total=Coalesce(Sum('amount'), Value(Decimal('0')))
+    )
+    return transactions['total'] or Decimal('0')
+
+# ===== CORE BUSINESS LOGIC =====
+# @lru_cache(maxsize=128)  # Cache محلی برای calls مکرر
+def get_tankhah_remaining_budget(tankhah: Tankhah) -> Decimal:
+    """
+    **تابع نهایی و بهینه برای محاسبه موجودی واقعی تنخواه.**
+    - سازگار با مدل‌های جدید (status as FK).
+    - Config-driven: اگر COMMITMENT فعال، از BudgetTransaction؛ else fallback به فاکتورها.
+    - Cached و error-handled برای production.
+    """
+    if not tankhah:
+        return Decimal('0')
+
+    # Cache key منحصربه‌فرد (بر اساس PK و تنظیمات)
+    from core.models import SystemSettings
+    cache_key = f"tankhah_remaining_{tankhah.pk}_{hash(str(SystemSettings.get_solo()))}"
+    cached = cache.get(cache_key)
+    if cached is not None:
+        logger.debug(f"Cached remaining for Tankhah {tankhah.pk}: {cached}")
+        return cached
+
+    try:
+        # بررسی تنظیمات
+        system_settings = SystemSettings.get_solo()
+        use_commitment = getattr(system_settings, 'create_budget_commitment_on_factor_draft', True)
+
+        if use_commitment and hasattr(tankhah, 'project_budget_allocation') and tankhah.project_budget_allocation:
+            # روش Transaction-based
+            allocation = tankhah.project_budget_allocation.budget_allocation
+            if not allocation:
+                raise ValueError("Budget allocation missing for transaction method.")
+
+            total_budget = _get_total_budget_transaction(tankhah)
+            reserved_budget = _get_reserved_budget_transaction(allocation)
+            remaining_budget = total_budget - reserved_budget
+
+            logger.info(
+                f"Transaction-based Remaining for '{tankhah.number}': Total={total_budget}, Reserved={reserved_budget}, Remaining={remaining_budget}",
+                extra={'tankhah_id': tankhah.pk}
+            )
+        else:
+            # روش قدیمی (Fallback)
+            total_budget = _get_total_budget_simple(tankhah)
+            used_budget = _get_used_budget_simple(tankhah)
+            remaining_budget = total_budget - used_budget
+
+            logger.info(
+                f"Factor-based Remaining for '{tankhah.number}': Total={total_budget}, Used={used_budget}, Remaining={remaining_budget}",
+                extra={'tankhah_id': tankhah.pk}
+            )
+
+        # Cache نتیجه
+        cache.set(cache_key, max(remaining_budget, Decimal('0')), timeout=60)
+        return max(remaining_budget, Decimal('0'))
+
+    except Exception as e:
+        logger.error(f"Error calculating remaining for Tankhah {tankhah.pk}: {str(e)}", exc_info=True)
+        # Fallback امن: 0 یا از روش ساده
+        try:
+            return _get_total_budget_simple(tankhah) - _get_used_budget_simple(tankhah)
+        except:
+            return Decimal('0')
+
+# ==============================
 
 def get_tankhah_committed_budget(tankhah):
     """

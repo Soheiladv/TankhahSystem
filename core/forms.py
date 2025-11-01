@@ -37,6 +37,9 @@ class SystemSettingsForm(forms.ModelForm):
             'allow_tankhah_budget_overrun',
             'allow_factor_budget_overrun',
             'lock_period_after_expiry_enforce_on_write_only',
+            'exclude_expired_tankhah_from_factor_form',
+            'enforce_tankhah_ceiling_on_factor',
+            'create_budget_commitment_on_factor_draft',
         ]
         widgets = {
             'budget_locked_percentage_default': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0', 'max': '100', 'placeholder': _('مثلاً 10') }),
@@ -59,6 +62,9 @@ class SystemSettingsForm(forms.ModelForm):
             'allow_tankhah_budget_overrun': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'allow_factor_budget_overrun': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'lock_period_after_expiry_enforce_on_write_only': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'exclude_expired_tankhah_from_factor_form': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'enforce_tankhah_ceiling_on_factor': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'create_budget_commitment_on_factor_draft': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
         labels = {
             'budget_locked_percentage_default': _('درصد قفل پیش‌فرض بودجه'),
@@ -72,6 +78,9 @@ class SystemSettingsForm(forms.ModelForm):
             'lock_period_after_expiry_enforce_on_write_only': _('قفل دوره پس از انقضا فقط حین ثبت'),
             'factor_payment_ceiling_default': _('سقف پرداخت پیش‌فرض فاکتور'),
             'factor_payment_ceiling_enabled_default': _('فعال بودن سقف پرداخت فاکتور'),
+            'exclude_expired_tankhah_from_factor_form': _('حذف تنخواه‌های منقضی‌شده از لیست فاکتور'),
+            'enforce_tankhah_ceiling_on_factor': _('اجبار سقف مبلغ در فرم فاکتور'),
+            'create_budget_commitment_on_factor_draft': _('ایجاد تعهد بودجه هنگام ثبت فاکتور'),
         }
         help_texts = {
             'budget_locked_percentage_default': _('وقتی درصد باقیمانده بودجه کمتر از این مقدار شود قفل می‌شود.'),

@@ -5,8 +5,10 @@ from notificationApp.views import send_notification
 from tankhah.models import   ItemCategory,Factor,ApprovalLog
 from core.models import  Status
 
-from tankhah.Services.forms_approved_2 import FactorForm, FactorItemFormSet, FactorRejectForm, FactorTempApproveForm, \
+from tankhah.Services.forms_approved_2 import FactorRejectForm, FactorTempApproveForm, \
     FactorChangeStageForm, FactorBatchApproveForm
+from tankhah.Factor.NF.form_Nfactor import FactorForm, FactorDocumentForm
+from tankhah.Factor.NF.view_Nfactor import FactorItemFormSet
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, View
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.shortcuts import get_object_or_404, redirect, render
@@ -192,56 +194,178 @@ class FactorCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
 class FactorEditView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
     model = Factor
     form_class = FactorForm
-    # template_name = 'tankhah/Factors/edit_factor_form.html'
     template_name = 'tankhah/Factors/NF/new_factor_form.html'
     success_url = reverse_lazy('factor_list')
     permission_required = 'tankhah.factor_update'
 
+    def dispatch(self, request, *args, **kwargs):
+        """بررسی جلوگیری از ویرایش فاکتورهایی که تایید شده‌اند"""
+        # دریافت فاکتور
+        self.object = self.get_object()
+        
+        # بررسی اینکه آیا فاکتور تایید شده است یا نه
+        if self.object and self.object.pk:
+            # بررسی لاگ‌های تایید
+            from core.models import Action
+            approve_action = Action.objects.filter(code__in=['APPROVE', 'FINAL_APPROVE', 'APPROVE_INTERMEDIATE']).first()
+            
+            if approve_action:
+                has_approval = ApprovalLog.objects.filter(
+                    factor=self.object,
+                    action=approve_action,
+                    is_active=True
+                ).exists()
+                
+                if has_approval:
+                    messages.error(
+                        request,
+                        _("این فاکتور در حال حاضر تایید شده است و امکان ویرایش ندارد. فقط فاکتورهای تایید نشده قابل ویرایش هستند.")
+                    )
+                    logger.warning(f"کاربر {request.user.username} سعی کرد فاکتور {self.object.number} را ویرایش کند که تایید شده است.")
+                    return redirect('factor_list')
+            
+            # بررسی وضعیت فاکتور - اگر در وضعیت نهایی است، اجازه ویرایش نده
+            if self.object.status:
+                if self.object.status.is_final_approve or self.object.status.is_final_reject:
+                    messages.error(
+                        request,
+                        _("فاکتور در وضعیت نهایی قرار دارد و امکان ویرایش ندارد.")
+                    )
+                    logger.warning(f"کاربر {request.user.username} سعی کرد فاکتور {self.object.number} در وضعیت {self.object.status.code} را ویرایش کند.")
+                    return redirect('factor_list')
+        
+        return super().dispatch(request, *args, **kwargs)
+
     def get_queryset(self):
         return Factor.objects.filter(is_deleted=False)
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        
+        # اضافه کردن formset به context
         if self.request.POST:
-            context['item_formset'] = FactorItemFormSet(self.request.POST, instance=self.object)
+            context['formset'] = FactorItemFormSet(self.request.POST, instance=self.object, prefix='items')
+            context['document_form'] = FactorDocumentForm(self.request.POST, self.request.FILES, prefix='docs')
         else:
-            context['item_formset'] = FactorItemFormSet(instance=self.object)
+            context['formset'] = FactorItemFormSet(instance=self.object, prefix='items')
+            context['document_form'] = FactorDocumentForm(prefix='docs')
+        
+        # غیرفعال کردن فیلد تنخواه در حالت ویرایش
+        if self.object and self.object.pk:
+            context['is_edit_mode'] = True
+        else:
+            context['is_edit_mode'] = False
+        
         return context
 
     def form_valid(self, form):
         context = self.get_context_data()
-        item_formset = context['item_formset']
+        formset = context['formset']
+        document_form = context['document_form']
+        
+        # بررسی دوباره تایید (برای جلوگیری از race condition)
+        from core.models import Action
+        approve_action = Action.objects.filter(code__in=['APPROVE', 'FINAL_APPROVE', 'APPROVE_INTERMEDIATE']).first()
+        
+        if approve_action:
+            has_approval = ApprovalLog.objects.filter(
+                factor=self.object,
+                action=approve_action,
+                is_active=True
+            ).exists()
+            
+            if has_approval:
+                messages.error(
+                    self.request,
+                    _("این فاکتور در حال حاضر تایید شده است و امکان ویرایش ندارد.")
+                )
+                return self.form_invalid(form)
+        
+        # اعتبارسنجی formset
+        if not formset.is_valid():
+            logger.warning(f"Formset نامعتبر: {formset.errors}")
+            messages.error(self.request, _('لطفاً خطاهای ردیف‌های فاکتور را اصلاح کنید.'))
+            return self.form_invalid(form)
+        
         with transaction.atomic():
-            if item_formset.is_valid():
+            try:
+                # ذخیره فاکتور
                 self.object = form.save(commit=False)
                 self.object.save(current_user=self.request.user)
-                item_formset.instance = self.object
-                item_formset.save()
-                ApprovalLog.objects.create(
+                
+                # ذخیره فرمست
+                formset.instance = self.object
+                formset.save()
+                
+                logger.info(f"ردیف‌های فاکتور {self.object.pk} ذخیره شد")
+                
+                # ذخیره فایل‌ها
+                if document_form.is_valid():
+                    from tankhah.models import FactorDocument
+                    files = document_form.cleaned_data.get('files', [])
+                    for file in files:
+                        FactorDocument.objects.create(
+                            factor=self.object,
+                            file=file,
+                            uploaded_by=self.request.user
+                        )
+                
+                # ثبت لاگ
+                from core.models import Action as ActionModel
+                edit_action = ActionModel.objects.filter(code='EDIT').first()
+                if edit_action:
+                    ApprovalLog.objects.create(
+                        factor=self.object,
+                        action=edit_action,
+                        stage=self.object.tankhah.current_stage if self.object.tankhah else None,
+                        user=self.request.user,
+                        post=self.request.user.userpost_set.filter(is_active=True).first().post if self.request.user.userpost_set.filter(is_active=True).exists() else None,
+                        content_type=ContentType.objects.get_for_model(self.object),
+                        object_id=self.object.id,
+                        comment=_("فاکتور ویرایش شد.")
+                    )
+                
+                # ثبت تاریخچه
+                from tankhah.models import FactorHistory
+                FactorHistory.objects.create(
                     factor=self.object,
-                    action='EDIT',
-                    stage=self.object.tankhah.current_stage,
-                    user=self.request.user,
-                    post=self.request.user.userpost_set.filter(is_active=True).first().post,
-                    content_type=ContentType.objects.get_for_model(self.object),
-                    object_id=self.object.id,
-                    comment=_("فاکتور ویرایش شد.")
+                    change_type=FactorHistory.ChangeType.UPDATE,
+                    changed_by=self.request.user,
+                    description=f"فاکتور {self.object.number} ویرایش شد."
                 )
+                
                 messages.success(self.request, _("فاکتور با موفقیت ویرایش شد."))
                 self.notify_users(self.object)
+                
                 return super().form_valid(form)
-            else:
+                
+            except Exception as e:
+                logger.error(f"خطا در ویرایش فاکتور: {str(e)}", exc_info=True)
+                messages.error(self.request, _('خطای پیش‌بینی نشده در ذخیره اطلاعات.'))
                 return self.form_invalid(form)
 
+    def form_invalid(self, form):
+        logger.warning(f"فرم نامعتبر برای ویرایش فاکتور {self.object.pk if self.object else 'نامشخص'}")
+        messages.error(self.request, _('ویرایش فاکتور با خطا مواجه شد. لطفاً موارد مشخص شده را بررسی کنید.'))
+        return super().form_invalid(form)
+
     def notify_users(self, factor):
-        channel_layer = get_channel_layer()
-        async_to_sync(channel_layer.group_send)(
-            f'factor_{factor.tankhah.organization.id}',
-            {
-                'type': 'factor_update',
-                'message': f'فاکتور {factor.number} ویرایش شد.'
-            }
-        )
+        try:
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)(
+                f'factor_{factor.tankhah.organization.id}',
+                {
+                    'type': 'factor_update',
+                    'message': f'فاکتور {factor.number} ویرایش شد.'
+                }
+            )
+        except Exception as e:
+            logger.error(f"خطا در ارسال اعلان: {str(e)}")
 
 
 # تأیید سریع فاکتور

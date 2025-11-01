@@ -570,6 +570,7 @@ class BudgetTransaction(models.Model):
     TRANSACTION_TYPES = (
         ('ALLOCATION', _('تخصیص اولیه')),
         ('CONSUMPTION', _('مصرف / هزینه')),
+        ('COMMITMENT', _('تعهد / رزرو بودجه')),
         ('ADJUSTMENT_INCREASE', _('افزایش تخصیص')),
         ('ADJUSTMENT_DECREASE', _('کاهش تخصیص')),
         ('RETURN', _('برگشت به بودجه')),
@@ -580,6 +581,9 @@ class BudgetTransaction(models.Model):
     amount = models.DecimalField(max_digits=25, decimal_places=2, verbose_name=_("مبلغ"))
     related_tankhah = models.ForeignKey('tankhah.Tankhah', on_delete=models.SET_NULL, null=True, blank=True,
                                         verbose_name=_("تنخواه مرتبط"))
+    related_factor = models.ForeignKey('tankhah.Factor', on_delete=models.SET_NULL, null=True, blank=True,
+                                      verbose_name=_("فاکتور مرتبط"))
+    is_active = models.BooleanField(default=True, verbose_name=_("فعال"))
     timestamp = models.DateTimeField(auto_now_add=True, verbose_name=_("زمان"))
     created_by = models.ForeignKey('accounts.CustomUser', on_delete=models.SET_NULL, null=True, verbose_name=_("کاربر"))
     description = models.TextField(blank=True, verbose_name=_("توضیحات"))

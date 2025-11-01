@@ -322,6 +322,11 @@ class FactorForm(forms.ModelForm):
         exclude_archived = getattr(settings, 'TANKHAH_EXCLUDE_ARCHIVED', True)
         exclude_locked = getattr(settings, 'TANKHAH_EXCLUDE_LOCKED', False)
         require_remaining_positive = getattr(settings, 'TANKHAH_REQUIRE_REMAINING_POSITIVE', False)
+        
+        # استفاده از تنظیمات سیستم
+        from core.models import SystemSettings
+        system_settings = SystemSettings.get_solo()
+        exclude_expired = system_settings.exclude_expired_tankhah_from_factor_form if hasattr(system_settings, 'exclude_expired_tankhah_from_factor_form') else exclude_expired
 
         # --- ساخت QuerySet پایه بر اساس تنظیمات ---
         tankhah_queryset = Tankhah.objects.all()
@@ -336,10 +341,12 @@ class FactorForm(forms.ModelForm):
         
         # فیلتر تنخواه‌هایی که دوره بودجه‌شان منقضی/قفل شده
         tankhah_queryset = tankhah_queryset.filter(
-         Q(project_budget_allocation__isnull=True) |  # تنخواه‌هایی که تخصیص بودجه ندارند
+            Q(project_budget_allocation__isnull=True) |  # تنخواه‌هایی که تخصیص بودجه ندارند
             Q(project_budget_allocation__budget_period__isnull=True) |  # تنخواه‌هایی که دوره بودجه ندارند
-            Q(project_budget_allocation__budget_period__is_completed=False) &  # تنخواه‌هایی که دوره بودجه‌شان تکمیل نشده
-            Q(project_budget_allocation__budget_period__end_date__gte=timezone.now().date())  # و تاریخ انقضای دوره نگذشته
+            (
+                Q(project_budget_allocation__budget_period__is_completed=False) &  # تنخواه‌هایی که دوره بودجه‌شان تکمیل نشده
+                Q(project_budget_allocation__budget_period__end_date__gte=timezone.now().date())  # و تاریخ انقضای دوره نگذشته
+            )
         )
         if exclude_locked and hasattr(Tankhah, 'is_locked'):
             tankhah_queryset = tankhah_queryset.filter(is_locked=False)

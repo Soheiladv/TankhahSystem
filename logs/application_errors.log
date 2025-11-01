@@ -1679,3 +1679,120 @@ Traceback (most recent call last):
     dbbackup_log.load()
     ^^^^^^^^^^^^^^^^^
 AttributeError: module 'dbbackup.log' has no attribute 'load'
+ERROR 2025-10-27 11:50:18 budget_calculations check_tankhah_lock_status خطا در بررسی وضعیت قفل تنخواه TNKH-14040701-HSarein-HSAR-Flor3-001: '__proxy__' object is not callable
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 1099, in check_tankhah_lock_status
+    return False, _("تنخواه فعال است.")
+                  ~^^^^^^^^^^^^^^^^^^^^
+TypeError: '__proxy__' object is not callable
+ERROR 2025-10-27 11:50:18 rcms_custom_filters format_negative Error formatting number 179,380,000.00: could not convert string to float: '179,380,000.00'
+ERROR 2025-10-27 12:05:09 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-27 13:04:23 budget_calculations get_tankhah_budget_info Error in get_tankhah_budget_info: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 722, in get_tankhah_budget_info
+    'tankhah_remaining': decimal_to_clean_str(get_tankhah_remaining_budget(tankhah) or Decimal('0')),
+                                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 369, in get_tankhah_remaining_budget
+    if use_commitment and tankhah.project_budget_allocation and tankhah.project_budget_allocation.budget_allocation:
+                                                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-10-27 13:04:24 budget_calculations get_tankhah_budget_info Error in get_tankhah_budget_info: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 722, in get_tankhah_budget_info
+    'tankhah_remaining': decimal_to_clean_str(get_tankhah_remaining_budget(tankhah) or Decimal('0')),
+                                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 369, in get_tankhah_remaining_budget
+    if use_commitment and tankhah.project_budget_allocation and tankhah.project_budget_allocation.budget_allocation:
+                                                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-10-27 13:04:32 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-27 13:04:34 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-27 13:04:37 budget_calculations get_tankhah_budget_info Error in get_tankhah_budget_info: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 722, in get_tankhah_budget_info
+    'tankhah_remaining': decimal_to_clean_str(get_tankhah_remaining_budget(tankhah) or Decimal('0')),
+                                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 369, in get_tankhah_remaining_budget
+    if use_commitment and tankhah.project_budget_allocation and tankhah.project_budget_allocation.budget_allocation:
+                                                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-10-27 13:12:54 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-27 13:13:05 budget_calculations get_tankhah_budget_info Error in get_tankhah_budget_info: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 722, in get_tankhah_budget_info
+    'tankhah_remaining': decimal_to_clean_str(get_tankhah_remaining_budget(tankhah) or Decimal('0')),
+                                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 369, in get_tankhah_remaining_budget
+    if use_commitment and tankhah.project_budget_allocation and tankhah.project_budget_allocation.budget_allocation:
+                                                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-10-27 13:14:00 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-27 13:14:04 budget_calculations get_tankhah_budget_info Error in get_tankhah_budget_info: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 722, in get_tankhah_budget_info
+    'tankhah_remaining': decimal_to_clean_str(get_tankhah_remaining_budget(tankhah) or Decimal('0')),
+                                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 369, in get_tankhah_remaining_budget
+    if use_commitment and tankhah.project_budget_allocation and tankhah.project_budget_allocation.budget_allocation:
+                                                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-10-27 14:36:26 budget_calculations get_tankhah_budget_info Error in get_tankhah_budget_info: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 719, in get_tankhah_budget_info
+    'tankhah_remaining': decimal_to_clean_str(get_tankhah_remaining_budget(tankhah) or Decimal('0')),
+                                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 365, in get_tankhah_remaining_budget
+    if use_commitment and tankhah.project_budget_allocation and tankhah.project_budget_allocation.budget_allocation:
+                                                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-10-27 14:36:33 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-10-27 14:36:38 budget_calculations get_tankhah_budget_info Error in get_tankhah_budget_info: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 719, in get_tankhah_budget_info
+    'tankhah_remaining': decimal_to_clean_str(get_tankhah_remaining_budget(tankhah) or Decimal('0')),
+                                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 365, in get_tankhah_remaining_budget
+    if use_commitment and tankhah.project_budget_allocation and tankhah.project_budget_allocation.budget_allocation:
+                                                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-11-01 19:04:57 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 28: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 453, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-11-01 19:04:58 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 28: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 453, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-11-01 19:05:21 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 28: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 453, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-11-01 19:05:21 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-11-01 19:05:21 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-11-01 19:05:27 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 28: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 453, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-11-01 19:05:28 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 28: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 453, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-11-01 19:05:52 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 28: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 453, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-11-01 19:05:53 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-11-01 19:05:53 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-11-01 19:05:53 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined

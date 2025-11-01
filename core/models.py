@@ -765,6 +765,22 @@ class SystemSettings(models.Model):
         verbose_name=_("قفل دوره پس از انقضا فقط حین ثبت"),
         help_text=_("اگر فعال باشد، انقضای دوره باعث قفل سراسری نمی‌شود و فقط هنگام اقداماتی مثل ثبت تنخواه/تخصیص اعمال می‌گردد.")
     )
+    # تنظیمات فرم فاکتور
+    exclude_expired_tankhah_from_factor_form = models.BooleanField(
+        default=True,
+        verbose_name=_("حذف تنخواه‌های منقضی‌شده از لیست فاکتور"),
+        help_text=_("اگر فعال باشد، تنخواه‌هایی که due_date آن‌ها گذشته است از dropdown فرم ایجاد فاکتور حذف می‌شوند.")
+    )
+    enforce_tankhah_ceiling_on_factor = models.BooleanField(
+        default=True,
+        verbose_name=_("اجبار سقف مبلغ در فرم فاکتور"),
+        help_text=_("اگر فعال باشد، هنگام ثبت فاکتور، چک می‌شود که مبلغ فاکتور از سقف تنخواه تجاوز نکند.")
+    )
+    create_budget_commitment_on_factor_draft = models.BooleanField(
+        default=True,
+        verbose_name=_("ایجاد تعهد بودجه هنگام ثبت فاکتور"),
+        help_text=_("اگر فعال باشد، هنگام ثبت فاکتور، یک COMMITMENT در BudgetTransaction ایجاد می‌شود و بودجه رزرو می‌شود.")
+    )
     # Workflow/hierarchy enforcement settings
     enforce_strict_approval_order = models.BooleanField(
         default=True,

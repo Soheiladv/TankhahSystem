@@ -58,6 +58,132 @@ def log_factor_creation_in_history(sender, instance, created, **kwargs):
             logger.error(f"[SIGNAL_ERROR] log_factor_creation_in_history for factor {instance.pk}: {e}", exc_info=True)
 
 
+@receiver(post_save, sender=Factor)
+def manage_budget_commitment_for_factor(sender, instance, created, **kwargs):
+    """
+    مدیریت تعهد بودجه (COMMITMENT) برای فاکتور:
+    - هنگام ایجاد فاکتور DRAFT: ایجاد COMMITMENT (بعد از save)
+    - هنگام ویرایش فاکتور: به‌روزرسانی COMMITMENT
+    - هنگام تغییر وضعیت: تبدیل یا حذف COMMITMENT
+    """
+    try:
+        # دریافت تنظیمات سیستم
+        from core.models import SystemSettings
+        system_settings = SystemSettings.get_solo()
+        create_commitment = getattr(system_settings, 'create_budget_commitment_on_factor_draft', True)
+        
+        if not create_commitment:
+            return
+        
+        # اگر فاکتور تازه ایجاد شد و DRAFT است، COMMITMENT ایجاد کن
+        if created and instance.status and instance.status.code == 'DRAFT':
+            if instance.tankhah and instance.tankhah.project_budget_allocation:
+                pba = instance.tankhah.project_budget_allocation
+                if pba.budget_allocation:
+                    BudgetTransaction.objects.create(
+                        allocation=pba.budget_allocation,
+                        transaction_type='COMMITMENT',
+                        amount=instance.amount,
+                        related_factor=instance,
+                        related_tankhah=instance.tankhah,
+                        created_by=instance.created_by or get_current_user(),
+                        description=f"تعهد بودجه برای فاکتور {instance.number}",
+                        transaction_id=f"TX-COMMIT-FACTOR-{instance.pk}-{instance.number}"
+                    )
+                    logger.info(f"[SIGNAL] COMMITMENT created for new Factor {instance.number}")
+        
+        # اگر فاکتور ویرایش شد (تغییر مبلغ)
+        elif not created:
+            try:
+                old_instance = Factor.objects.get(pk=instance.pk)
+                
+                # اگر مبلغ تغییر کرد، COMMITMENT را به‌روزرسانی کن
+                if old_instance.amount != instance.amount and instance.status and instance.status.code == 'DRAFT':
+                    BudgetTransaction.objects.filter(
+                        related_factor=instance,
+                        transaction_type='COMMITMENT',
+                        is_active=True
+                    ).update(is_active=False)
+                    
+                    if instance.tankhah and instance.tankhah.project_budget_allocation:
+                        pba = instance.tankhah.project_budget_allocation
+                        if pba.budget_allocation:
+                            BudgetTransaction.objects.create(
+                                allocation=pba.budget_allocation,
+                                transaction_type='COMMITMENT',
+                                amount=instance.amount,
+                                related_factor=instance,
+                                related_tankhah=instance.tankhah,
+                                created_by=get_current_user(),
+                                description=f"تعهد بودجه برای فاکتور {instance.number}",
+                                transaction_id=f"TX-COMMIT-FACTOR-{instance.pk}-{instance.number}"
+                            )
+                            logger.info(f"[SIGNAL] COMMITMENT updated for Factor {instance.number}")
+            except Factor.DoesNotExist:
+                pass
+    
+    except Exception as e:
+        logger.error(f"[SIGNAL_ERROR] manage_budget_commitment_for_factor for factor {instance.pk}: {e}", exc_info=True)
+
+
+@receiver(pre_save, sender=Factor)
+def handle_factor_status_change(sender, instance, **kwargs):
+    """
+    مدیریت تغییر وضعیت فاکتور و تبدیل COMMITMENT
+    """
+    if not instance.pk:
+        return
+    
+    try:
+        old_instance = Factor.objects.get(pk=instance.pk)
+        old_status_code = old_instance.status.code if old_instance.status else None
+        new_status_code = instance.status.code if instance.status else None
+        
+        # دریافت تنظیمات سیستم
+        from core.models import SystemSettings
+        system_settings = SystemSettings.get_solo()
+        create_commitment = getattr(system_settings, 'create_budget_commitment_on_factor_draft', True)
+        
+        if not create_commitment:
+            return
+        
+        # اگر فاکتور REJECTED یا CANCELLED شد، COMMITMENT را غیرفعال کن
+        if new_status_code in ['REJECTED', 'CANCELLED'] and old_status_code != new_status_code:
+            BudgetTransaction.objects.filter(
+                related_factor=instance,
+                transaction_type='COMMITMENT',
+                is_active=True
+            ).update(is_active=False)
+            logger.info(f"[SIGNAL] COMMITMENT deactivated for Factor {instance.number} (status: {new_status_code})")
+        
+        # اگر فاکتور به تایید نهایی رسید، COMMITMENT را به CONSUMPTION تبدیل کن
+        elif new_status_code in ['APPROVED_FINAL', 'PAID'] and old_status_code not in ['APPROVED_FINAL', 'PAID']:
+            # حذف COMMITMENT و ایجاد CONSUMPTION
+            BudgetTransaction.objects.filter(
+                related_factor=instance,
+                transaction_type='COMMITMENT',
+                is_active=True
+            ).update(is_active=False)
+            
+            if instance.tankhah and instance.tankhah.project_budget_allocation:
+                pba = instance.tankhah.project_budget_allocation
+                if pba.budget_allocation:
+                    BudgetTransaction.objects.create(
+                        allocation=pba.budget_allocation,
+                        transaction_type='CONSUMPTION',
+                        amount=instance.amount,
+                        related_factor=instance,
+                        related_tankhah=instance.tankhah,
+                        created_by=get_current_user(),
+                        description=f"مصرف بودجه برای فاکتور {instance.number}",
+                        transaction_id=f"TX-CONSUME-FACTOR-{instance.pk}-{instance.number}"
+                    )
+                    logger.info(f"[SIGNAL] CONSUMPTION created for Factor {instance.number}")
+    
+    except Exception as e:
+        logger.error(f"[SIGNAL_ERROR] handle_factor_status_change for factor {instance.pk}: {e}", exc_info=True)
+
+
 # ==============================================================================
 # سیگنال‌های مربوط به ApprovalLog
 # ==============================================================================

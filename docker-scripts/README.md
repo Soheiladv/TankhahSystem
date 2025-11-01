@@ -80,19 +80,19 @@ docker-compose exec -T db psql -U budgets_user -d budgets_db < backup.sql
 
 ### docker-menu.ps1
 منوی اصلی با گزینه‌های زیر:
-- راه‌اندازی اولیه
-- بررسی وضعیت
-- نمایش لاگ‌ها
-- به‌روزرسانی
-- پشتیبان‌گیری
-- بازگردانی
-- راه‌اندازی مجدد
-- توقف سیستم
-- پاک‌سازی
-- نمایش اطلاعات
-- اجرای دستور
-- ورود به shell
-- نمایش دستورات مفید
+- راه‌اندازی اولیه - Start New Docker
+- بررسی وضعیت      - Status Docker 
+- نمایش لاگ‌ها       - View Docker Logs
+- به‌روزرسانی       - Update Dockers
+- پشتیبان‌گیری      - Backups Dockers 
+- بازگردانی        - Restore Dockers
+- راه‌اندازی مجدد   - Restart Dockers
+- توقف سیستم       - Stop Dockers
+- پاک‌سازی          - Clean Dockers
+- نمایش اطلاعات     - Detials Dockers
+- اجرای دستور      - Run Commands Dockers
+- ورود به shell    - Shell Run in Dockers
+- نمایش دستورات مفید   - View Commands Dockers
 
 ### docker-setup.ps1
 راه‌اندازی اولیه پروژه:
@@ -193,7 +193,14 @@ docker-scripts/
 ## 📞 پشتیبانی
 
 در صورت بروز مشکل:
-1. لاگ‌ها را بررسی کنید
-2. وضعیت کانتینرها را چک کنید
-3. تنظیمات را بررسی کنید
-4. در صورت نیاز، سیستم را راه‌اندازی مجدد کنید
+1. لاگ‌ها را بررسی کنید: `.\docker-manage.ps1 -Action logs`
+2. وضعیت کانتینرها را چک کنید: `.\docker-manage.ps1 -Action status`
+3. تنظیمات را بررسی کنید: `Get-Content ..\.env`
+4. در صورت نیاز، سیستم را راه‌اندازی مجدد کنید: `.\docker-manage.ps1 -Action restart`
+5. برای راهنمای کامل، فایل `..\DOCKER_GUIDE.md` را مطالعه کنید
+
+## 📚 مستندات کامل
+
+- **راهنمای کامل**: `..\DOCKER_GUIDE.md` - شامل تمام جزئیات
+- **راهنمای سریع**: `..\DOCKER_QUICK_START.md` - دستورات ضروری
+- **خلاصه تکمیل**: `..\DOCKER_SETUP_COMPLETE.md` - فهرست کامل فایل‌ها
