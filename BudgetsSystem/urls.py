@@ -1,17 +1,21 @@
+from importlib import import_module
+
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.contrib.staticfiles.storage import staticfiles_storage
-from django.urls import path, include
+from django.urls import include, path
 from django.views.generic.base import RedirectView
 from django.views.i18n import JavaScriptCatalog
 
-from BudgetsSystem import views
-from BudgetsSystem.Dashboard_Project.DashboardView_1 import TabbedFinancialDashboardView
-from BudgetsSystem.view.view_Dashboard import DashboardView, ReportsDashboardMainView
-from BudgetsSystem.views import TanbakhWorkflowView, GuideView, soft_Help
-from accounts.views import SetTimeLockView, TimeLockListView, LockStatusView
 from accounts.RCMS_Lock.views import lock_status
+from accounts.views import LockStatusView, SetTimeLockView, TimeLockListView
+from BudgetsSystem import views
+from BudgetsSystem.Dashboard_Project.DashboardView_1 import \
+    TabbedFinancialDashboardView
+from BudgetsSystem.view.view_Dashboard import (DashboardView,
+                                               ReportsDashboardMainView)
+from BudgetsSystem.views import GuideView, TanbakhWorkflowView, soft_Help
 from version_tracker.admin_backup import backup_admin
 
 urlpatterns = [
@@ -40,9 +44,6 @@ urlpatterns = [
                   path('favicon.ico', RedirectView.as_view(url=staticfiles_storage.url('admin/img/favicon.ico')), name='favicon'),
                   path('guide/', GuideView.as_view(), name='guide'),
                   path('guide/soft_Help/', soft_Help , name='soft_help'),
-                  
-                  # Test URLs
-                  path('test/', include('test_urls')),
 
                   # Default pattern last
                   path('', DashboardView.as_view(), name='index'),
@@ -56,3 +57,11 @@ urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 urlpatterns +=[
     path('usb-key-validator/', include('usb_key_validator.urls')),
 ]# validate_usb_key
+
+# ثبت مسیرهای تست فقط زمانی که ماژول test_urls وجود داشته باشد (برای جلوگیری از خطا در تولید)
+try:
+    import_module('test_urls')
+except ModuleNotFoundError:
+    pass
+else:
+    urlpatterns.append(path('test/', include('test_urls')))

@@ -1,20 +1,26 @@
 import os
 from decimal import Decimal
 
-from Demos.win32ts_logoff_disconnected import username
+# Import username from Demos (Windows only) or use fallback
+try:
+    from Demos.win32ts_logoff_disconnected import username
+except (ImportError, ModuleNotFoundError):
+    # Fallback for Linux/Docker environments
+    import getpass
+    username = lambda: getpass.getuser()
+import logging
+
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import ValidationError, ImproperlyConfigured
+from django.core.exceptions import ImproperlyConfigured, ValidationError
 from django.db import models, transaction
-from django.db.models import Sum, Max, Q
+from django.db.models import Max, Q, Sum
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import TemplateView
-from accounts.models import CustomUser
-from django.contrib.contenttypes.models import ContentType
-import logging
 
+from accounts.models import CustomUser
 
 logger = logging.getLogger('Tankhah_Models')
 
@@ -265,7 +271,8 @@ class Tankhah(models.Model):
                 factor.status = Status.objects.get(code='PAID')
                 factor.save(current_user=user)
 
-                from budgets.budget_calculations import create_budget_transaction
+                from budgets.budget_calculations import \
+                    create_budget_transaction
                 create_budget_transaction(
                     allocation=self.project_budget_allocation,
                     transaction_type='CONSUMPTION',
@@ -346,9 +353,7 @@ class Tankhah(models.Model):
         """محاسبه بودجه باقی‌مانده از منبع مربوطه"""
         remaining = Decimal('0')
         from budgets.budget_calculations import (
-            get_subproject_remaining_budget,
-            get_project_remaining_budget
-        )
+            get_project_remaining_budget, get_subproject_remaining_budget)
 
         if self.project_budget_allocation:
             remaining = self.project_budget_allocation.get_remaining_amount()
@@ -849,7 +854,8 @@ class Factor(models.Model):
                     f"Factor {self.number} marked as PAID. Creating CONSUMPTION transaction."
                 )
                 self.is_locked = True
-                from budgets.budget_calculations import create_budget_transaction
+                from budgets.budget_calculations import \
+                    create_budget_transaction
                 create_budget_transaction(
                     allocation=self.tankhah.project_budget_allocation,
                     transaction_type='CONSUMPTION',
@@ -873,7 +879,7 @@ class Factor(models.Model):
                         action = self._get_action_by_type(DynamicSystemManager.get_action_for_reject())
                     else:
                         action = self._get_action_by_type(DynamicSystemManager.get_action_for_change())
-                    
+
                     if action:
                         ApprovalLog.objects.create(
                             factor=self,
@@ -933,30 +939,30 @@ class Factor(models.Model):
         try:
             from budgets.models import PaymentOrder
             from core.models import Status
-            
+
             # بررسی اینکه آیا قبلاً دستور پرداخت ایجاد شده یا نه
             if self.payment_orders.exists():
                 logger.info(f"Payment order already exists for Factor {self.number}")
                 return
-            
+
             # بررسی وجود payee
             if not self.payee:
                 logger.warning(f"No payee for Factor {self.number}, cannot create payment order")
                 return
-            
+
             # دریافت وضعیت پیش‌نویس دستور پرداخت
             from core.dynamic_config import DynamicSystemManager
             po_draft_status = self._get_status_by_entity_and_type(
-                DynamicSystemManager.get_entity_type_for_payment_order(), 
+                DynamicSystemManager.get_entity_type_for_payment_order(),
                 'is_initial'
             )
-            
+
             # دریافت پست کاربر فعلی
             user_post = current_user.userpost_set.filter(is_active=True).first()
             if not user_post:
                 logger.warning(f"No active post for user {current_user.username}")
                 return
-            
+
             # ایجاد دستور پرداخت
             payment_order = PaymentOrder(
                 tankhah=self.tankhah,
@@ -973,12 +979,12 @@ class Factor(models.Model):
                 status=po_draft_status
             )
             payment_order.save()
-            
+
             # اتصال فاکتور به دستور پرداخت
             payment_order.related_factors.add(self)
-            
+
             logger.info(f"Payment order {payment_order.order_number} created for Factor {self.number}")
-            
+
         except Exception as e:
             logger.error(f"Error creating payment order for Factor {self.number}: {e}")
 
@@ -990,22 +996,22 @@ class Factor(models.Model):
             # پیدا کردن وضعیت در انتظار تأیید
             from core.dynamic_config import DynamicSystemManager
             pending_status = self._get_status_by_entity_and_type(
-                DynamicSystemManager.get_entity_type_for_factor(), 
+                DynamicSystemManager.get_entity_type_for_factor(),
                 'is_pending'
             )
-            
+
             if not pending_status:
                 logger.error(f"No pending status found for Factor {self.number}")
                 return
-                
+
             self.status = pending_status
             self.is_locked = False
             self.save(update_fields=['status', 'is_locked'])
-            
+
             # پیدا کردن Action مناسب
             from core.dynamic_config import DynamicSystemManager
             action = self._get_action_by_type(DynamicSystemManager.get_action_for_change())
-            
+
             if action:
                 ApprovalLog.objects.create(
                     factor=self,
@@ -1320,8 +1326,8 @@ class StageApprover(models.Model):
         null=True
     )
     organization = models.ForeignKey(
-        'core.Organization', 
-        on_delete=models.CASCADE, 
+        'core.Organization',
+        on_delete=models.CASCADE,
         verbose_name=_("سازمان"),
         help_text=_("سازمانی که این تأییدکننده در آن فعال است")
     )
@@ -1379,6 +1385,7 @@ class ItemCategory(models.Model):
 
 class Dashboard_Tankhah(models.Model):
     class Meta:
+        managed = False
         default_permissions = ()
         permissions = [
             ('Dashboard_Tankhah_view', 'دسترسی به داشبورد تنخواه گردان ')
@@ -1388,7 +1395,7 @@ class Dashboard_Tankhah(models.Model):
 class AdminWorkflowControl(models.Model):
     """
     مدل مجازی برای تعریف دسترسی‌های کنترل گردش کار ادمین
-    تغییر حالت فاکتور به عقب یا دیگر وضعیت ها 
+    تغییر حالت فاکتور به عقب یا دیگر وضعیت ها
     """
     class Meta:
         managed = False

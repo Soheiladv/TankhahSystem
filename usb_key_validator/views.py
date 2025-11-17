@@ -3,25 +3,42 @@ import os
 import platform
 from time import timezone
 
-import pythoncom
-import win32file
-import win32con
-import wmi
-from django.shortcuts import render
-from django.contrib import messages
-from django.http import HttpResponseRedirect
-from django.urls import reverse
-from django.utils.translation import gettext_lazy as _
+# Windows-specific imports (only available on Windows)
+try:
+    import pythoncom
+    import win32con
+    import win32file
+    import wmi
+    WINDOWS_AVAILABLE = True
+except (ImportError, ModuleNotFoundError):
+    # Fallback for Linux/Docker environments
+    pythoncom = None
+    win32file = None
+    win32con = None
+    wmi = None
+    WINDOWS_AVAILABLE = False
+
+import logging
+
 from cryptography.fernet import Fernet, InvalidToken
 from django.conf import settings
+from django.contrib import messages
+from django.http import HttpResponseRedirect
+from django.shortcuts import render
+from django.urls import reverse
+from django.utils.translation import gettext_lazy as _
 from requests import request
 
 from accounts.models import TimeLockModel
-from .forms import USBKeyForm, write_license_file_to_usb, read_license_file_from_usb
-import logging
+
+from .forms import (USBKeyForm, read_license_file_from_usb,
+                    write_license_file_to_usb)
+
 logger = logging.getLogger(__name__)
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 from django.shortcuts import render
+
+
 def find_usb_drives():
     """شناسایی درایوهای USB با wmi (ویندوز)"""
     if os.name != 'nt':

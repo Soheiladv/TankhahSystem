@@ -1,0 +1,13 @@
+﻿{
+    "mcpServers":  {
+                       "ollama-local":  {
+                                            "args":  [
+                                                         "/mcp-server-ollama/dist/index.js"
+                                                     ],
+                                            "env":  {
+                                                        "OLLAMA_URL":  "http://localhost:11434"
+                                                    },
+                                            "command":  "node"
+                                        }
+                   }
+}

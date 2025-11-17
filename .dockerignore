@@ -4,119 +4,87 @@
 .gitattributes
 
 # Python
-__pycache__/
+__pycache__
 *.py[cod]
 *$py.class
 *.so
 .Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
+*.egg-info
+dist
+build
+.pytest_cache
 *.egg
-MANIFEST
-
-# Virtual environments
 venv/
 env/
 ENV/
-env.bak/
-venv.bak/
-.venv/
+.venv
+
+# Django
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+/media
+/staticfiles
+/collected_static
 
 # IDE
-.vscode/
-.idea/
+.vscode
+.idea
 *.swp
 *.swo
 *~
-
-# OS
 .DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
 
-# Logs
-*.log
-logs/
-log/
-
-# Environment files
-.env
-.env.local
-.env.development
-.env.test
-.env.production
-
-# Database
-*.db
-*.sqlite3
-db.sqlite3
-
-# Media files (will be mounted as volume)
-media/
-mediafiles/
-
-# Static files (will be built in container)
-static/
-staticfiles/
-
-# Backup files
-backups/
-*.backup
-*.bak
+# Docker
+docker-compose*.yml
+Dockerfile
+.dockerignore
+docker-scripts/
 
 # Documentation
-docs/
 *.md
-README.md
+docs/
 
-# Test files
-.pytest_cache/
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Logs
+logs/
+*.log
+
+# Secrets
+secrets/
+
+# Backups
+backups/
+*.bak
+*.sql
+
+# Node (if any)
+node_modules/
+npm-debug.log
+
+# Testing
 .coverage
 htmlcov/
 .tox/
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-.hypothesis/
 
-# Docker
-Dockerfile*
-docker-compose*.yml
-.dockerignore
-
-# Node.js (if any)
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Temporary files
-tmp/
-temp/
+# Miscellaneous
 *.tmp
 *.temp
+.cache
+*.cache
 
-# SSL certificates (should be mounted)
-ssl/
-certs/
+# OS
+Thumbs.db
+.DS_Store
 
-# Local development files
-local_settings.py
-dev_settings.py
+# Project specific
+mcp-server-ollama/
+*.ps1
+*.sh
+!docker/entrypoint.sh
+!docker/healthcheck.sh

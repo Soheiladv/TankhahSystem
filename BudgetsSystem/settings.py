@@ -2,6 +2,8 @@ import logging.config
 import os
 import sys
 from pathlib import Path
+from typing import Optional
+
 from dotenv import load_dotenv
 
 # لود فایل .env
@@ -19,8 +21,31 @@ TEMPLATE_DIRS = [
     os.path.join(BASE_DIR, 'templates'),
 ]
 
-# تنظیمات حساس از .env
-SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-default-key-for-dev-only')  # پیش‌فرض برای توسعه
+def read_secret_file(*env_keys: str) -> Optional[str]:
+    """
+    تلاشی ساده برای خواندن مقادیر حساس از فایل‌هایی که مسیرشان در متغیرهای محیطی قرار دارد.
+    اولین فایل موجود خوانده می‌شود و مقدار trim شده برگردانده خواهد شد.
+    """
+    for key in env_keys:
+        if not key:
+            continue
+        file_path = os.getenv(key)
+        if not file_path:
+            continue
+        path_obj = Path(file_path)
+        if path_obj.exists():
+            try:
+                return path_obj.read_text(encoding="utf-8").strip()
+            except Exception:  # pragma: no cover - فقط برای جلوگیری از کرش در زمان اجرا
+                logger.warning("Could not read secret file for %s", key)
+    return None
+
+
+# تنظیمات حساس از .env / فایل‌های secret
+SECRET_KEY = os.getenv('SECRET_KEY')
+if not SECRET_KEY:
+    SECRET_KEY = read_secret_file('SECRET_KEY_FILE', 'SECRET_KEY_FILE_PATH')
+SECRET_KEY = SECRET_KEY or 'django-insecure-default-key-for-dev-only'  # پیش‌فرض برای توسعه
 # DEBUG = True # os.getenv('DEBUG', 'False') == 'True'  # تبدیل به bool
 DEBUG = os.getenv("DEBUG", "False") == "True"
 # دامنه‌های مجاز برای Django
@@ -29,11 +54,20 @@ ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,testserver,*.try
 CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in os.getenv("CSRF_TRUSTED_ORIGINS", "http://localhost:8000,http://127.0.0.1:8000,https://*.trycloudflare.com,https://*.cfargotunnel.com").split(',') if origin.strip()]
 
 # تنظیمات دیتابیس از .env
-DB_NAME = os.getenv('DB_NAME', 'tankhasystem')
-DB_USER = os.getenv('DB_USER', 'root')
-DB_PASSWORD = os.getenv('DB_PASSWORD', 'S@123456@1234')
-DB_HOST = os.getenv('DB_HOST', '127.0.0.1')
-DB_PORT = os.getenv('DB_PORT', '3306')
+# پشتیبانی از هر دو فرمت: DB_* (Docker) و DATABASE_DEFAULT_* (محلی)
+DB_NAME = os.getenv('DATABASE_DEFAULT_NAME') or os.getenv('DB_NAME', 'tankhasystem')
+DB_USER = os.getenv('DATABASE_DEFAULT_USER') or os.getenv('DB_USER', 'root')
+DB_PASSWORD = (
+    os.getenv('DATABASE_DEFAULT_PASSWORD') or
+    os.getenv('DB_PASSWORD') or
+    read_secret_file('DATABASE_DEFAULT_PASSWORD_FILE', 'DB_PASSWORD_FILE', 'DB_PASSWORD_FILE_PATH') or
+    'S@123456@1234'
+)
+DB_HOST = os.getenv('DATABASE_DEFAULT_HOST') or os.getenv('DB_HOST', '127.0.0.1')
+# اگر DB_HOST=db است (برای Docker) اما در سیستم محلی اجرا می‌شود، به localhost تغییر می‌دهیم
+if DB_HOST == 'db' and not os.path.exists('/.dockerenv'):
+    DB_HOST = '127.0.0.1'
+DB_PORT = os.getenv('DATABASE_DEFAULT_PORT') or os.getenv('DB_PORT', '3306')
 
 # تنظیمات ایمیل از .env
 EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend')
@@ -44,7 +78,15 @@ EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
 
 # تنظیمات Redis از .env
-REDIS_URL = os.getenv('REDIS_URL', 'redis://127.0.0.1:6379/0')
+REDIS_PASSWORD = os.getenv('REDIS_PASSWORD') or read_secret_file('REDIS_PASSWORD_FILE', 'REDIS_PASSWORD_FILE_PATH')
+REDIS_URL = os.getenv('REDIS_URL')
+if not REDIS_URL:
+    redis_host = os.getenv('REDIS_HOST', '127.0.0.1')
+    redis_port = os.getenv('REDIS_PORT', '6379')
+    if REDIS_PASSWORD:
+        REDIS_URL = f"redis://:{REDIS_PASSWORD}@{redis_host}:{redis_port}/0"
+    else:
+        REDIS_URL = f"redis://{redis_host}:{redis_port}/0"
 
 # تنظیمات امنیتی از .env
 SECURE_SSL_REDIRECT = os.getenv('SECURE_SSL_REDIRECT', 'False') == 'True'
@@ -136,7 +178,7 @@ MIDDLEWARE = [
     'accounts.middleware.AuditLogMiddleware',
     'accounts.middleware.ActiveUserMiddleware',
     'accounts.middleware.RequestMiddleware',
-    'usb_key_validator.middleware.USBDongleValidationMiddleware', 
+    'usb_key_validator.middleware.USBDongleValidationMiddleware',
 ]
 
 ROOT_URLCONF = 'BudgetsSystem.urls'
@@ -182,15 +224,22 @@ DBBACKUP_MAIL_ADMINS = True
 DBBACKUP_MAIL_SUBJECT = '[Django Backup] '
 DBBACKUP_GPG_ALWAYS_TRUST = True
 
+# نرمال‌سازی مقادیر دیتابیس برای استفاده در چند بخش
+DATABASE_DEFAULT_NAME = os.getenv('DATABASE_DEFAULT_NAME', DB_NAME)
+DATABASE_DEFAULT_USER = os.getenv('DATABASE_DEFAULT_USER', DB_USER)
+DATABASE_DEFAULT_PASSWORD = os.getenv('DATABASE_DEFAULT_PASSWORD', DB_PASSWORD)
+DATABASE_DEFAULT_HOST = os.getenv('DATABASE_DEFAULT_HOST', DB_HOST)
+DATABASE_DEFAULT_PORT = os.getenv('DATABASE_DEFAULT_PORT', DB_PORT)
+
 # تنظیمات پشتیبان‌گیری برای دیتابیس لاگ
 DBBACKUP_CONNECTORS = {
     'default': {
         'CONNECTOR': 'dbbackup.db.mysql.MysqlDumpConnector',
-        'NAME': os.getenv('DATABASE_DEFAULT_NAME', 'tankhasystem'),
-        'USER': os.getenv('DATABASE_DEFAULT_USER', 'root'),
-        'PASSWORD': os.getenv('DATABASE_DEFAULT_PASSWORD', ''),
-        'HOST': os.getenv('DATABASE_DEFAULT_HOST', '127.0.0.1'),
-        'PORT': os.getenv('DATABASE_DEFAULT_PORT', '3306'),
+        'NAME': DATABASE_DEFAULT_NAME,
+        'USER': DATABASE_DEFAULT_USER,
+        'PASSWORD': DATABASE_DEFAULT_PASSWORD,
+        'HOST': DATABASE_DEFAULT_HOST,
+        'PORT': DATABASE_DEFAULT_PORT,
     },
     'logs': {
         'CONNECTOR': 'dbbackup.db.mysql.MysqlDumpConnector',
@@ -208,14 +257,22 @@ DATABASE_MANAGE_APP_LABELS = ['core', 'budgets', 'tankhah', 'BudgetsSystem', 'no
 DATABASE_ROUTERS = ['accounts.routers.LogRouter']
 
 # تنظیمات دیتابیس از .env
+# استفاده از pymysql در Docker (Linux) - باید قبل از import کردن Django database backends باشد
+try:
+    import pymysql
+    pymysql.install_as_MySQLdb()
+except (ImportError, ModuleNotFoundError):
+    # اگر pymysql نصب نشده، از mysqlclient استفاده می‌شود
+    pass
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.getenv('DATABASE_DEFAULT_NAME', 'tankhasystem'),
-        'USER': os.getenv('DATABASE_DEFAULT_USER', 'root'),
-        'PASSWORD': os.getenv('DATABASE_DEFAULT_PASSWORD', ''),
-        'HOST': os.getenv('DATABASE_DEFAULT_HOST', '127.0.0.1'),
-        'PORT': os.getenv('DATABASE_DEFAULT_PORT', '3306'),
+        'NAME': DATABASE_DEFAULT_NAME,
+        'USER': DATABASE_DEFAULT_USER,
+        'PASSWORD': DATABASE_DEFAULT_PASSWORD,
+        'HOST': DATABASE_DEFAULT_HOST,
+        'PORT': DATABASE_DEFAULT_PORT,
         'OPTIONS': {
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
             'use_unicode': True,
@@ -311,6 +368,7 @@ ORGANIZATION_NAME = "پیش‌فرض"
 # لود کردن اطلاعات لایسنس از فایل JSON
 import json
 from datetime import date
+
 from cryptography.fernet import Fernet
 
 try:

@@ -21,7 +21,15 @@ from budgets.budget_calculations import (
 logger = logging.getLogger(__name__)
 
 class TankhahCalculationsAPI(APIView):
-    """API برای محاسبات بودجه تنخواه"""
+    """
+    API برای محاسبات بودجه تنخواه
+    
+    این API با SystemSettings هماهنگ است و به طور خودکار:
+    - اگر create_budget_commitment_on_factor_draft فعال باشد، از BudgetTransaction استفاده می‌کند
+    - در غیر این صورت از روش قدیمی (Factor-based) استفاده می‌کند
+    
+    همه توابع از budget_calculations استفاده می‌کنند که خودشان با SystemSettings هماهنگ هستند.
+    """
     permission_classes = [IsAuthenticated]
     
     def post(self, request):
@@ -34,7 +42,14 @@ class TankhahCalculationsAPI(APIView):
             filters (dict): فیلترهای اضافی
         
         Returns:
-            Response: نتیجه محاسبه
+            Response: نتیجه محاسبه شامل:
+                - total_budget: بودجه کل تنخواه
+                - remaining_budget: بودجه باقی‌مانده (با در نظر گیری SystemSettings)
+                - committed_budget: بودجه در تعهد
+                - used_budget: بودجه مصرف‌شده
+                - available_budget: بودجه در دسترس
+                - lock_status: وضعیت قفل تنخواه
+                - system_settings_info: اطلاعات تنظیمات سیستم استفاده شده
         """
         try:
             tankhah_id = request.data.get('tankhah_id')
@@ -47,7 +62,13 @@ class TankhahCalculationsAPI(APIView):
                 }, status=status.HTTP_400_BAD_REQUEST)
             
             from tankhah.models import Tankhah
+            from core.models import SystemSettings
+            
             tankhah = Tankhah.objects.get(pk=tankhah_id)
+            
+            # دریافت تنظیمات سیستم برای نمایش در پاسخ
+            system_settings = SystemSettings.get_solo()
+            use_commitment = getattr(system_settings, 'create_budget_commitment_on_factor_draft', True)
             
             result = {}
             
@@ -55,6 +76,7 @@ class TankhahCalculationsAPI(APIView):
                 result['total_budget'] = float(get_tankhah_total_budget(tankhah, filters))
             
             if calculation_type in ['remaining', 'all']:
+                # این تابع خودش SystemSettings را بررسی می‌کند
                 result['remaining_budget'] = float(get_tankhah_remaining_budget(tankhah))
             
             if calculation_type in ['committed', 'all']:
@@ -73,6 +95,14 @@ class TankhahCalculationsAPI(APIView):
             for key, value in result.items():
                 if isinstance(value, (int, float)):
                     result[f'{key}_str'] = decimal_to_clean_str(Decimal(str(value)))
+            
+            # اضافه کردن اطلاعات SystemSettings به پاسخ
+            result['system_settings_info'] = {
+                'use_commitment': use_commitment,
+                'method': 'transaction-based' if use_commitment else 'factor-based',
+                'description': 'استفاده از BudgetTransaction برای محاسبات' if use_commitment 
+                             else 'استفاده از روش قدیمی (Factor-based) برای محاسبات'
+            }
             
             return Response({
                 'tankhah_id': tankhah_id,

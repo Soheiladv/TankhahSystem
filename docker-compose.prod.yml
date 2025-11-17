@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # PostgreSQL Database
   db:
@@ -9,18 +7,23 @@ services:
     environment:
       POSTGRES_DB: ${DB_NAME}
       POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./backups:/backups
     networks:
       - budgets_network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      test:
+        - CMD-SHELL
+        - |
+          DB_PASS=$(cat /run/secrets/db_password) && pg_isready -U ${DB_USER} -d ${DB_NAME} -h localhost -p 5432 && PGPASSWORD="$DB_PASS" psql -U ${DB_USER} -d ${DB_NAME} -c "SELECT 1" >/dev/null
       interval: 30s
       timeout: 10s
       retries: 5
     deploy:
+    secrets:
+      - db_password
       resources:
         limits:
           memory: 1G
@@ -32,16 +35,23 @@ services:
     image: redis:7-alpine
     container_name: budgets_redis_prod
     restart: unless-stopped
-    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD} --maxmemory 256mb --maxmemory-policy allkeys-lru
+    command: >
+      /bin/sh -c "REDIS_PASS=$(cat /run/secrets/redis_password) &&
+      exec redis-server --appendonly yes --requirepass $$REDIS_PASS --maxmemory 256mb --maxmemory-policy allkeys-lru"
     volumes:
       - redis_data:/data
     networks:
       - budgets_network
     healthcheck:
-      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      test:
+        - CMD-SHELL
+        - |
+          REDIS_PASS=$(cat /run/secrets/redis_password) && redis-cli -a "$REDIS_PASS" ping
       interval: 30s
       timeout: 10s
       retries: 5
+    secrets:
+      - redis_password
     deploy:
       resources:
         limits:
@@ -56,13 +66,17 @@ services:
     restart: unless-stopped
     environment:
       - DEBUG=False
-      - SECRET_KEY=${SECRET_KEY}
       - DB_NAME=${DB_NAME}
       - DB_USER=${DB_USER}
-      - DB_PASSWORD=${DB_PASSWORD}
       - DB_HOST=db
       - DB_PORT=5432
-      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
+      - DATABASE_DEFAULT_NAME=${DB_NAME}
+      - DATABASE_DEFAULT_USER=${DB_USER}
+      - DATABASE_DEFAULT_HOST=db
+      - DATABASE_DEFAULT_PORT=5432
+      - SECRET_KEY_FILE=/run/secrets/django_secret_key
+      - DB_PASSWORD_FILE=/run/secrets/db_password
+      - REDIS_PASSWORD_FILE=/run/secrets/redis_password
       - ALLOWED_HOSTS=${ALLOWED_HOSTS}
       - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS}
       - EMAIL_BACKEND=${EMAIL_BACKEND}
@@ -88,13 +102,19 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+    secrets:
+      - db_password
+      - redis_password
+      - django_secret_key
     deploy:
       resources:
         limits:
           memory: 2G
         reservations:
           memory: 1G
-      replicas: 2
+      # Note: replicas only work with Docker Swarm
+      # For single host, remove replicas or use docker-compose up --scale web=2
+      # replicas: 2
 
   # Nginx Reverse Proxy
   nginx:
@@ -129,13 +149,17 @@ services:
     command: celery -A BudgetsSystem worker -l info --concurrency=2
     environment:
       - DEBUG=False
-      - SECRET_KEY=${SECRET_KEY}
       - DB_NAME=${DB_NAME}
       - DB_USER=${DB_USER}
-      - DB_PASSWORD=${DB_PASSWORD}
       - DB_HOST=db
       - DB_PORT=5432
-      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
+      - DATABASE_DEFAULT_NAME=${DB_NAME}
+      - DATABASE_DEFAULT_USER=${DB_USER}
+      - DATABASE_DEFAULT_HOST=db
+      - DATABASE_DEFAULT_PORT=5432
+      - SECRET_KEY_FILE=/run/secrets/django_secret_key
+      - DB_PASSWORD_FILE=/run/secrets/db_password
+      - REDIS_PASSWORD_FILE=/run/secrets/redis_password
       - SENTRY_DSN=${SENTRY_DSN}
     volumes:
       - ./logs:/app/logs
@@ -144,6 +168,10 @@ services:
       - redis
     networks:
       - budgets_network
+    secrets:
+      - db_password
+      - redis_password
+      - django_secret_key
     deploy:
       resources:
         limits:
@@ -159,13 +187,17 @@ services:
     command: celery -A BudgetsSystem beat -l info
     environment:
       - DEBUG=False
-      - SECRET_KEY=${SECRET_KEY}
       - DB_NAME=${DB_NAME}
       - DB_USER=${DB_USER}
-      - DB_PASSWORD=${DB_PASSWORD}
       - DB_HOST=db
       - DB_PORT=5432
-      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
+      - DATABASE_DEFAULT_NAME=${DB_NAME}
+      - DATABASE_DEFAULT_USER=${DB_USER}
+      - DATABASE_DEFAULT_HOST=db
+      - DATABASE_DEFAULT_PORT=5432
+      - SECRET_KEY_FILE=/run/secrets/django_secret_key
+      - DB_PASSWORD_FILE=/run/secrets/db_password
+      - REDIS_PASSWORD_FILE=/run/secrets/redis_password
       - SENTRY_DSN=${SENTRY_DSN}
     volumes:
       - ./logs:/app/logs
@@ -174,6 +206,10 @@ services:
       - redis
     networks:
       - budgets_network
+    secrets:
+      - db_password
+      - redis_password
+      - django_secret_key
     deploy:
       resources:
         limits:
@@ -181,27 +217,29 @@ services:
         reservations:
           memory: 256M
 
-  # Backup service
-  backup:
-    build: .
-    container_name: budgets_backup_prod
-    restart: "no"
-    command: python manage.py dbbackup --compress --encrypt
-    environment:
-      - DEBUG=False
-      - SECRET_KEY=${SECRET_KEY}
-      - DB_NAME=${DB_NAME}
-      - DB_USER=${DB_USER}
-      - DB_PASSWORD=${DB_PASSWORD}
-      - DB_HOST=db
-      - DB_PORT=5432
-      - BACKUP_ENABLED=True
-    volumes:
-      - ./backups:/backups
-    depends_on:
-      - db
-    networks:
-      - budgets_network
+  # Backup service (commented out - requires django-dbbackup configuration)
+  # Uncomment and configure if you have django-dbbackup set up
+  # backup:
+  #   build: .
+  #   container_name: budgets_backup_prod
+  #   restart: "no"
+  #   command: python manage.py dbbackup --compress
+  #   environment:
+  #     - DEBUG=False
+  #     - SECRET_KEY=${SECRET_KEY}
+  #     - DB_NAME=${DB_NAME}
+  #     - DB_USER=${DB_USER}
+  #     - DB_PASSWORD=${DB_PASSWORD}
+  #     - DB_HOST=db
+  #     - DB_PORT=5432
+  #     - BACKUP_ENABLED=True
+  #   volumes:
+  #     - ./backups:/backups
+  #   depends_on:
+  #     db:
+  #       condition: service_healthy
+  #   networks:
+  #     - budgets_network
 
 volumes:
   postgres_data:
@@ -216,3 +254,11 @@ volumes:
 networks:
   budgets_network:
     driver: bridge
+
+secrets:
+  db_password:
+    file: ${DB_PASSWORD_SECRET_FILE:-./secrets/db_password.txt}
+  redis_password:
+    file: ${REDIS_PASSWORD_SECRET_FILE:-./secrets/redis_password.txt}
+  django_secret_key:
+    file: ${SECRET_KEY_FILE_PATH:-./secrets/django_secret_key.txt}
