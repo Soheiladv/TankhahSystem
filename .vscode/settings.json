@@ -1,114 +1,114 @@
-﻿{
-    "editor.trimAutoWhitespace":  true,
-    "files.insertFinalNewline":  true,
-    "python.defaultInterpreterPath":  "${workspaceFolder}/venv/Scripts/python.exe",
-    "python.analysis.completeFunctionParens":  true,
-    "editor.codeActionsOnSave":  {
-                                     "source.organizeImports":  "explicit"
-                                 },
-    "files.encoding":  "utf8",
-    "python.linting.enabled":  true,
-    "python.testing.nosetestsEnabled":  false,
-    "editor.tabSize":  4,
-    "editor.quickSuggestions":  {
-                                    "other":  true,
-                                    "comments":  false,
-                                    "strings":  true
-                                },
-    "editor.inlineSuggest.enabled":  true,
-    "[typescript]":  {
-                         "editor.formatOnSave":  true,
-                         "editor.defaultFormatter":  "vscode.typescript-language-features"
-                     },
-    "editor.suggest.snippetsPreventQuickSuggestions":  false,
-    "files.autoSave":  "afterDelay",
-    "git.enabled":  true,
-    "editor.suggestSelection":  "first",
-    "mcp.servers":  {
-                        "ollama-local":  {
-                                             "args":  [
-                                                          "/mcp-server-ollama/dist/index.js"
-                                                      ],
-                                             "env":  {
-                                                         "OLLAMA_URL":  "http://localhost:11434"
-                                                     },
-                                             "command":  "node"
-                                         }
-                    },
-    "editor.acceptSuggestionOnCommitCharacter":  true,
-    "files.eol":  "\n",
-    "claude-code.useTerminal":  true,
-    "python.analysis.typeCheckingMode":  "basic",
-    "git.confirmSync":  false,
-    "editor.guides.bracketPairs":  true,
-    "terminal.integrated.fontSize":  14,
-    "editor.wordWrap":  "on",
-    "files.trimTrailingWhitespace":  true,
-    "editor.insertSpaces":  true,
-    "python.terminal.activateEnvironment":  true,
-    "editor.bracketPairColorization.enabled":  true,
-    "python.linting.pylintEnabled":  true,
-    "editor.formatOnSave":  true,
-    "[python]":  {
-                     "editor.defaultFormatter":  "ms-python.black-formatter",
-                     "editor.formatOnSave":  true,
-                     "editor.codeActionsOnSave":  {
-                                                      "source.organizeImports":  "explicit"
-                                                  }
-                 },
-    "git.autofetch":  true,
-    "files.autoSaveDelay":  1000,
-    "python.analysis.diagnosticMode":  "workspace",
-    "[json]":  {
-                   "editor.formatOnSave":  true,
-                   "editor.defaultFormatter":  "vscode.json-language-features"
-               },
-    "python.formatting.provider":  "black",
-    "[jsonc]":  {
-                    "editor.formatOnSave":  true,
-                    "editor.defaultFormatter":  "vscode.json-language-features"
-                },
-    "search.exclude":  {
-                           "**/node_modules":  true,
-                           "**/venv":  true,
-                           "**/dist":  true,
-                           "**/__pycache__":  true,
-                           "**/.git":  true
-                       },
-    "[javascript]":  {
-                         "editor.formatOnSave":  true,
-                         "editor.defaultFormatter":  "vscode.typescript-language-features"
-                     },
-    "workbench.colorTheme":  "Default Dark+",
-    "python.linting.flake8Enabled":  true,
-    "editor.snippetSuggestions":  "top",
-    "workbench.iconTheme":  "vs-seti",
-    "editor.rulers":  [
-                          80,
-                          120
-                      ],
-    "python.analysis.stubPath":  "${workspaceFolder}/venv/Lib/site-packages",
-    "editor.tabCompletion":  "on",
-    "editor.minimap.enabled":  true,
-    "python.analysis.autoImportCompletions":  true,
-    "python.testing.pytestEnabled":  true,
-    "python.testing.unittestEnabled":  false,
-    "files.exclude":  {
-                          "**/node_modules":  true,
-                          "**/dist":  false
-                      },
-    "claude-code.environmentVariables":  [
-                                             {
-                                                 "claude.apiBase":  "https://agentrouter.org/",
-                                                 "claude.apiKey":  "sk-TYv5IehnCWDMz66j2TKSOUXXekib2x08THAYUGmD0tjhOO5m"
-                                             }
-                                         ],
-    "terminal.integrated.defaultProfile.windows":  "PowerShell",
-    "files.watcherExclude":  {
-                                 "**/node_modules/**":  true,
-                                 "**/venv/**":  true,
-                                 "**/.git/**":  true,
-                                 "**/dist/**":  true,
-                                 "**/__pycache__/**":  true
-                             }
+{
+    "editor.trimAutoWhitespace": true,
+    "files.insertFinalNewline": true,
+    "python.defaultInterpreterPath": "${workspaceFolder}/venv/Scripts/python.exe",
+    "python.analysis.completeFunctionParens": true,
+    "editor.codeActionsOnSave": {
+        "source.organizeImports": "explicit"
+    },
+    "files.encoding": "utf8",
+    "python.linting.enabled": true,
+    "python.testing.nosetestsEnabled": false,
+    "editor.tabSize": 4,
+    "editor.quickSuggestions": {
+        "other": true,
+        "comments": false,
+        "strings": true
+    },
+    "editor.inlineSuggest.enabled": true,
+    "[typescript]": {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "vscode.typescript-language-features"
+    },
+    "editor.suggest.snippetsPreventQuickSuggestions": false,
+    "files.autoSave": "afterDelay",
+    "git.enabled": true,
+    "editor.suggestSelection": "first",
+    "mcp.servers": {
+        "ollama-local": {
+            "args": [
+                "/mcp-server-ollama/dist/index.js"
+            ],
+            "env": {
+                "OLLAMA_URL": "http://localhost:11434"
+            },
+            "command": "node"
+        }
+    },
+    "editor.acceptSuggestionOnCommitCharacter": true,
+    "files.eol": "\n",
+    "claude-code.useTerminal": true,
+    "python.analysis.typeCheckingMode": "basic",
+    "git.confirmSync": false,
+    "editor.guides.bracketPairs": true,
+    "terminal.integrated.fontSize": 14,
+    "editor.wordWrap": "on",
+    "files.trimTrailingWhitespace": true,
+    "editor.insertSpaces": true,
+    "python.terminal.activateEnvironment": true,
+    "editor.bracketPairColorization.enabled": true,
+    "python.linting.pylintEnabled": true,
+    "editor.formatOnSave": true,
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.black-formatter",
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": "explicit"
+        }
+    },
+    "git.autofetch": true,
+    "files.autoSaveDelay": 1000,
+    "python.analysis.diagnosticMode": "workspace",
+    "[json]": {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "vscode.json-language-features"
+    },
+    "python.formatting.provider": "black",
+    "[jsonc]": {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "vscode.json-language-features"
+    },
+    "search.exclude": {
+        "**/node_modules": true,
+        "**/venv": true,
+        "**/dist": true,
+        "**/__pycache__": true,
+        "**/.git": true
+    },
+    "[javascript]": {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "vscode.typescript-language-features"
+    },
+    "workbench.colorTheme": "Cursor Dark",
+    "python.linting.flake8Enabled": true,
+    "editor.snippetSuggestions": "top",
+    "workbench.iconTheme": "vs-seti",
+    "editor.rulers": [
+        80,
+        120
+    ],
+    "python.analysis.stubPath": "${workspaceFolder}/venv/Lib/site-packages",
+    "editor.tabCompletion": "on",
+    "editor.minimap.enabled": true,
+    "python.analysis.autoImportCompletions": true,
+    "python.testing.pytestEnabled": true,
+    "python.testing.unittestEnabled": false,
+    "files.exclude": {
+        "**/node_modules": true,
+        "**/dist": false
+    },
+    "claude-code.environmentVariables": [
+        {
+            "claude.apiBase": "https://agentrouter.org/",
+            "claude.apiKey": "sk-TYv5IehnCWDMz66j2TKSOUXXekib2x08THAYUGmD0tjhOO5m"
+        }
+    ],
+    "terminal.integrated.defaultProfile.windows": "PowerShell",
+    "files.watcherExclude": {
+        "**/node_modules/**": true,
+        "**/venv/**": true,
+        "**/.git/**": true,
+        "**/dist/**": true,
+        "**/__pycache__/**": true
+    }
 }

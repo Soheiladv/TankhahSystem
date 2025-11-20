@@ -6,6 +6,7 @@
 2. [دسترسی به اپلیکیشن در مرورگر](#دسترسی-در-مرورگر)
 3. [انتقال به سرور لینوکس](#انتقال-به-سرور-لینوکس)
 4. [تست و بررسی](#تست-و-بررسی)
+5. [اجرای دستورات در Windows](#اجرای-دستورات-در-windows)
 
 ---
 
@@ -365,4 +366,220 @@ docker compose exec web python manage.py dbshell
 
 ---
 
+## ⚡ دستورات سریع
+
+### اجرای کامل در یک خط (سیستم محلی)
+
+```powershell
+# ساخت secret files (اگر وجود ندارند)
+if (-not (Test-Path "secrets\db_password.txt")) { Set-Content -Path "secrets\db_password.txt" -Value "BudgetsDB2024!SecurePass#2486" -NoNewline }
+if (-not (Test-Path "secrets\redis_password.txt")) { Set-Content -Path "secrets\redis_password.txt" -Value "BudgetsRedis2024!SecurePass#7922" -NoNewline }
+if (-not (Test-Path "secrets\django_secret_key.txt")) { Set-Content -Path "secrets\django_secret_key.txt" -Value "!z0w58$sax3)7&wgme3bgp(s8@ql*3vex^w$aw5aarzx#4x5^j" -NoNewline }
+
+# راه‌اندازی
+docker compose up -d --build
+
+# بررسی وضعیت
+docker compose ps
+```
+
+### اجرای کامل در یک خط (سرور لینوکس)
+
+```bash
+# ساخت secret files
+mkdir -p secrets
+echo -n "BudgetsDB2024!SecurePass#2486" > secrets/db_password.txt
+echo -n "BudgetsRedis2024!SecurePass#7922" > secrets/redis_password.txt
+echo -n "!z0w58$sax3)7&wgme3bgp(s8@ql*3vex^w$aw5aarzx#4x5^j" > secrets/django_secret_key.txt
+chmod 600 secrets/*.txt
+
+# راه‌اندازی
+docker compose up -d --build
+
+# بررسی وضعیت
+docker compose ps
+```
+
+---
+
 **نکته:** برای انتقال به سرور، حتماً فایل‌های secret را به صورت امن منتقل کنید و هرگز آن‌ها را در Git commit نکنید!
+
+---
+
+## 💻 اجرای دستورات در Windows
+
+برای راهنمای کامل اجرای دستورات `manage.py` و Shell در Windows، به فایل [`docs/DOCKER_WINDOWS_COMMANDS.md`](./DOCKER_WINDOWS_COMMANDS.md) مراجعه کنید.
+
+### خلاصه دستورات مهم:
+
+#### اجرای دستورات manage.py
+
+```powershell
+# Migration
+docker compose exec web python manage.py migrate
+docker compose exec web python manage.py makemigrations
+
+# Shell
+docker compose exec web python manage.py shell
+docker compose exec web python manage.py dbshell
+
+# User Management
+docker compose exec web python manage.py createsuperuser
+```
+
+#### انتقال تغییرات به Docker
+
+```powershell
+# روش 1: Rebuild (برای تغییرات در requirements.txt یا Dockerfile)
+docker compose up -d --build web
+
+# روش 2: Restart (برای تغییرات در کد Python که volume mount شده)
+docker compose restart web
+
+# روش 3: Copy Files
+docker cp ".\accounts" budgets_web:/app/
+```
+
+برای جزئیات بیشتر و مثال‌های عملی، فایل [`DOCKER_WINDOWS_COMMANDS.md`](./DOCKER_WINDOWS_COMMANDS.md) را مطالعه کنید.
+
+روش 2: با SCP/RSYNC
+
+# از Windows به سرور:
+
+scp -r "D:\Design & Source Code\Source Coding\BudgetsSystem" user@server:/path/to/destination/
+
+# سپس در سرور:
+
+cd /path/to/BudgetsSystem
+
+# ... (مثل روش 1)
+
+بررسی علت کمبود 26 جدول و اجرای مجدد migration‌ها:
+
+[5 tools called]
+
+بررسی علت کمبود 26 جدول و اجرای مجدد migration‌ها:
+
+[7 tools called]
+
+ایجاد migration برای `purchase_requests` و سپس اجرای مجدد:
+
+[6 tools called]
+
+بررسی و اجرای migrationهای `purchase_requests`:
+
+[7 tools called]
+
+بررسی و رفع مشکل migration‌ها:
+
+[4 tools called]
+
+fake کردن migration‌های موجود و ساخت migration برای `purchase_requests`:
+
+[4 tools called]
+
+91 جدول ایجاد شد. خلاصه وضعیت و راهنمای اجرا:
+
+## خلاصه وضعیت
+
+- تعداد جداول: 91 جدول ایجاد شد
+- Migration‌ها: همه اجرا شدند
+- سرویس‌ها: همه در حال اجرا هستند
+
+## راهنمای اجرای Docker
+
+### 1. اجرا در سیستم محلی (Windows)
+
+```powershell
+# 1. ساخت فایل‌های secret (اگر وجود ندارند)
+if (-not (Test-Path "secrets\db_password.txt")) {
+    New-Item -ItemType Directory -Force -Path "secrets" | Out-Null
+    Set-Content -Path "secrets\db_password.txt" -Value "BudgetsDB2024!SecurePass#2486" -NoNewline
+}
+if (-not (Test-Path "secrets\redis_password.txt")) {
+    Set-Content -Path "secrets\redis_password.txt" -Value "BudgetsRedis2024!SecurePass#7922" -NoNewline
+}
+if (-not (Test-Path "secrets\django_secret_key.txt")) {
+    Set-Content -Path "secrets\django_secret_key.txt" -Value "!z0w58$sax3)7&wgme3bgp(s8@ql*3vex^w$aw5aarzx#4x5^j" -NoNewline
+}
+
+# 2. راه‌اندازی Docker
+docker compose up -d --build
+
+# 3. بررسی وضعیت
+docker compose ps
+
+# 4. مشاهده لاگ‌ها
+docker compose logs -f web
+```
+
+### 2. دسترسی در مرورگر
+
+- HTTP: http://localhost:8080
+- HTTPS: https://localhost:443
+- Django مستقیم: http://localhost:8000
+- Admin Panel: http://localhost:8080/admin/
+
+### 3. انتقال به سرور لینوکس
+
+#### روش 1: با Git (توصیه می‌شود)
+
+```bash
+# در سرور لینوکس:
+git clone <repository-url>
+cd BudgetsSystem
+
+# ساخت فایل‌های secret
+mkdir -p secrets
+echo -n "BudgetsDB2024!SecurePass#2486" > secrets/db_password.txt
+echo -n "BudgetsRedis2024!SecurePass#7922" > secrets/redis_password.txt
+echo -n "!z0w58$sax3)7&wgme3bgp(s8@ql*3vex^w$aw5aarzx#4x5^j" > secrets/django_secret_key.txt
+chmod 600 secrets/*.txt
+
+# راه‌اندازی
+docker compose up -d --build
+
+# بررسی وضعیت
+docker compose ps
+```
+
+#### روش 2: با SCP/RSYNC
+
+```bash
+# از Windows به سرور:
+scp -r "D:\Design & Source Code\Source Coding\BudgetsSystem" user@server:/path/to/destination/
+
+# سپس در سرور:
+cd /path/to/BudgetsSystem
+# ... (مثل روش 1)
+```
+
+### 4. دستورات مفید
+
+```bash
+# بررسی تعداد جداول
+docker compose exec web python -c "
+import os, django
+os.environ.setdefault('DJANGO_SETTINGS_MODULE','BudgetsSystem.settings')
+django.setup()
+from django.db import connection
+cursor = connection.cursor()
+cursor.execute('SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE()')
+print('Total tables:', cursor.fetchone()[0])
+"
+
+# راه‌اندازی مجدد
+docker compose restart
+
+# توقف
+docker compose stop
+
+# توقف و حذف همه چیز
+docker compose down -v
+```
+
+راهنمای کامل در فایل `docs/DOCKER_DEPLOYMENT_GUIDE.md` ذخیره شد.
+
+نکته: فایل‌های `secrets/*.txt` را هرگز در Git commit نکنید. آن‌ها در `.gitignore` قرار دارند.
+
+آیا می‌خواهید تعداد جداول را به 117 برسانیم یا همین 91 جدول کافی است؟

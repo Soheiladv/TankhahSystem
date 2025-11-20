@@ -1850,3 +1850,5 @@ Traceback (most recent call last):
     allocation = tankhah.project_budget_allocation.budget_allocation
                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-11-17 23:08:41 view_Dashboard get_enhanced_dashboard_stats خطا در دریافت آمار پیشرفته: (1054, "Unknown column 'tankhah_factor.status_id' in 'on clause'")
+ERROR 2025-11-18 19:56:57 view_Dashboard get_enhanced_dashboard_stats خطا در دریافت آمار پیشرفته: (1054, "Unknown column 'tankhah_factor.status_id' in 'on clause'")
