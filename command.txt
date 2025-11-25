@@ -1,6 +1,8 @@
 D@d123
 ==========================================
 pip install --no-cache-dir -r requirements.txt
+
+pip freeze > requirements.txt 
 ==========================================
  python manage.py migrate --noinput 2>&1 | Select-String -Pattern "Operations to perform|Applying|OK|No migrations|Error" | Select-Object -First 20
  docker compose exec web python manage.py migrate tankhah 0001 --fake --noinput

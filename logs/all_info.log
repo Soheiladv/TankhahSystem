@@ -100094,3 +100094,1755 @@ INFO 2025-11-23 13:32:20 middleware __call__ پاسخ برای / - کد وضعی
 INFO 2025-11-23 13:32:20 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
 INFO 2025-11-23 13:32:20 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
 INFO 2025-11-23 13:32:20 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 13:39:40 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 13:39:40 middleware __call__ درخواست به: /tankhah/factors/, کاربر: admin
+INFO 2025-11-23 13:39:40 PermissionBase has_required_permissions [PERM_CHECK] User admin is superuser → full access granted.
+INFO 2025-11-23 13:39:40 PermissionBase dispatch [PERM_CHECK] User admin passed base permission check for /tankhah/factors/
+INFO 2025-11-23 13:39:40 PermissionBase dispatch [PERM_ORG] User admin has access to organizations [1, 2, 3, 4, 5, 6, 7, 8, 9]
+INFO 2025-11-23 13:39:40 View_Factor_list get_queryset [FACTOR_LIST] شروع دریافت لیست فاکتورها برای کاربر: admin
+INFO 2025-11-23 13:39:40 View_Factor_list get_queryset [FACTOR_LIST] کاربر admin دسترسی کامل دارد. دریافت همه فاکتورها.
+INFO 2025-11-23 13:39:40 View_Factor_list get_queryset [FACTOR_LIST] تعداد اولیه فاکتورها: 3
+INFO 2025-11-23 13:39:40 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] شروع ایجاد context برای کاربر: admin
+INFO 2025-11-23 13:39:40 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] پردازش 3 فاکتور برای گروه‌بندی
+INFO 2025-11-23 13:39:40 check_user_access check_user_factor_access کاربر admin دسترسی کامل دارد.
+ERROR 2025-11-23 13:39:40 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+INFO 2025-11-23 13:39:40 check_user_access check_user_factor_access کاربر admin دسترسی کامل دارد.
+ERROR 2025-11-23 13:39:40 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+INFO 2025-11-23 13:39:40 check_user_access check_user_factor_access کاربر admin دسترسی کامل دارد.
+ERROR 2025-11-23 13:39:40 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+INFO 2025-11-23 13:39:40 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] گروه‌بندی تکمیل شد. 1 سازمان، 3 فاکتور، مبلغ کل: 10.00
+INFO 2025-11-23 13:39:41 middleware __call__ پاسخ برای /tankhah/factors/ - کد وضعیت: 200
+INFO 2025-11-23 13:39:41 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 13:39:41 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 13:39:41 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 13:39:51 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 13:39:51 middleware __call__ درخواست به: /tankhah/admin/workflow/control/factor/88/, کاربر: admin
+INFO 2025-11-23 13:39:51 middleware __call__ پاسخ برای /tankhah/admin/workflow/control/factor/88/ - کد وضعیت: 200
+INFO 2025-11-23 13:39:51 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 13:39:51 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 13:39:52 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 13:40:00 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 13:40:00 middleware __call__ درخواست به: /tankhah/factor/88/perform-action/, کاربر: admin
+INFO 2025-11-23 13:40:00 PermissionBase has_required_permissions [PERM_CHECK] User admin is superuser → full access granted.
+INFO 2025-11-23 13:40:00 PermissionBase dispatch [PERM_CHECK] User admin passed base permission check for /tankhah/factor/88/perform-action/
+INFO 2025-11-23 13:40:00 PermissionBase dispatch [PERM_ORG] User admin has access to organizations [1, 2, 3, 4, 5, 6, 7, 8, 9]
+INFO 2025-11-23 13:40:00 budget_calculations get_committed_budget Calculated COMMITTED budget for Tankhah PK 28: 0.00
+INFO 2025-11-23 13:40:00 budget_calculations get_committed_budget Calculated COMMITTED budget for Tankhah PK 28: 0.00
+INFO 2025-11-23 13:40:00 budget_calculations get_available_budget Available budget for Tankhah PK 28: Initial(12.00) - Paid(0.00) - Committed(0.00) = 12.00
+INFO 2025-11-23 13:40:01 views_FactorDetail get_user_allowed_transitions User admin allowed transitions: ['ارسال برای تایید']
+INFO 2025-11-23 13:40:01 views_FactorDetail get_context_data [FACTOR_DETAIL] factor=88 status=DRAFT org=1 path_len=3 allowed_len=1 next_users_steps=3
+INFO 2025-11-23 13:40:01 middleware __call__ پاسخ برای /tankhah/factor/88/perform-action/ - کد وضعیت: 200
+INFO 2025-11-23 13:40:01 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 13:40:01 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 13:40:01 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 13:40:08 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 13:40:08 middleware __call__ درخواست به: /tankhah/api/factor/88/transition/343/, کاربر: admin
+INFO 2025-11-23 13:40:08 views_FactorDetail post API: Attempting transition 'ارسال از پیشنویس - هتل لاله سرعین' on Factor 88 by user admin
+INFO 2025-11-23 13:40:08 views_FactorDetail post Factor 88 status changed from 'پیش‌نویس' to 'در انتظار تایید'.
+INFO 2025-11-23 13:40:08 models save ApprovalLog PK=340 for tankhah | فاکتور ID=88 saved successfully.
+INFO 2025-11-23 13:40:08 middleware __call__ پاسخ برای /tankhah/api/factor/88/transition/343/ - کد وضعیت: 200
+INFO 2025-11-23 13:40:10 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 13:40:10 middleware __call__ درخواست به: /tankhah/factor/88/perform-action/, کاربر: admin
+INFO 2025-11-23 13:40:10 PermissionBase has_required_permissions [PERM_CHECK] User admin is superuser → full access granted.
+INFO 2025-11-23 13:40:10 PermissionBase dispatch [PERM_CHECK] User admin passed base permission check for /tankhah/factor/88/perform-action/
+INFO 2025-11-23 13:40:10 PermissionBase dispatch [PERM_ORG] User admin has access to organizations [1, 2, 3, 4, 5, 6, 7, 8, 9]
+INFO 2025-11-23 13:40:10 budget_calculations get_committed_budget Calculated COMMITTED budget for Tankhah PK 28: 0.00
+INFO 2025-11-23 13:40:10 budget_calculations get_committed_budget Calculated COMMITTED budget for Tankhah PK 28: 0.00
+INFO 2025-11-23 13:40:10 budget_calculations get_available_budget Available budget for Tankhah PK 28: Initial(12.00) - Paid(0.00) - Committed(0.00) = 12.00
+INFO 2025-11-23 13:40:11 views_FactorDetail get_user_allowed_transitions User admin allowed transitions: ['تأیید', 'رد']
+INFO 2025-11-23 13:40:11 views_FactorDetail get_context_data [FACTOR_DETAIL] factor=88 status=PENDING org=1 path_len=2 allowed_len=2 next_users_steps=2
+INFO 2025-11-23 13:40:11 middleware __call__ پاسخ برای /tankhah/factor/88/perform-action/ - کد وضعیت: 200
+INFO 2025-11-23 13:40:11 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 13:40:11 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 13:40:11 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 13:40:20 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 13:40:20 middleware __call__ درخواست به: /tankhah/api/factor/88/transition/344/, کاربر: admin
+INFO 2025-11-23 13:40:20 views_FactorDetail post API: Attempting transition 'تایید نهایی - هتل لاله سرعین' on Factor 88 by user admin
+INFO 2025-11-23 13:40:20 utils send_notification notification Log In Utils For Save =admin - APPROVED - فاکتور
+INFO 2025-11-23 13:40:20 utils send_notification notification Log In Utils For Save =admin - APPROVED - فاکتور
+ERROR 2025-11-23 13:40:20 models _create_payment_order_for_approved_factor Error creating payment order for Factor FAC-TNKH-14040701-HSarein-HSAR-Flor3-001-14040810-HSarein-0002: 'NoneType' object has no attribute 'userpost_set'
+INFO 2025-11-23 13:40:20 views_FactorDetail post Factor 88 status changed from 'در انتظار تایید' to 'تأیید شده'.
+INFO 2025-11-23 13:40:20 models save ApprovalLog PK=341 for tankhah | فاکتور ID=88 saved successfully.
+INFO 2025-11-23 13:40:20 middleware __call__ پاسخ برای /tankhah/api/factor/88/transition/344/ - کد وضعیت: 200
+INFO 2025-11-23 13:40:22 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 13:40:22 middleware __call__ درخواست به: /tankhah/factor/88/perform-action/, کاربر: admin
+INFO 2025-11-23 13:40:22 PermissionBase has_required_permissions [PERM_CHECK] User admin is superuser → full access granted.
+INFO 2025-11-23 13:40:22 PermissionBase dispatch [PERM_CHECK] User admin passed base permission check for /tankhah/factor/88/perform-action/
+INFO 2025-11-23 13:40:22 PermissionBase dispatch [PERM_ORG] User admin has access to organizations [1, 2, 3, 4, 5, 6, 7, 8, 9]
+INFO 2025-11-23 13:40:22 budget_calculations get_committed_budget Calculated COMMITTED budget for Tankhah PK 28: 2.00
+INFO 2025-11-23 13:40:22 budget_calculations get_committed_budget Calculated COMMITTED budget for Tankhah PK 28: 2.00
+INFO 2025-11-23 13:40:22 budget_calculations get_available_budget Available budget for Tankhah PK 28: Initial(12.00) - Paid(0.00) - Committed(2.00) = 10.00
+INFO 2025-11-23 13:40:23 views_FactorDetail get_user_allowed_transitions User admin allowed transitions: ['رد', 'تأیید']
+INFO 2025-11-23 13:40:23 views_FactorDetail get_context_data [FACTOR_DETAIL] factor=88 status=APPROVED org=1 path_len=1 allowed_len=2 next_users_steps=1
+INFO 2025-11-23 13:40:23 middleware __call__ پاسخ برای /tankhah/factor/88/perform-action/ - کد وضعیت: 200
+INFO 2025-11-23 13:40:23 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 13:40:23 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 13:40:23 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 13:40:39 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 13:40:39 middleware __call__ درخواست به: /workflow-management/factor/88/approval-path/, کاربر: admin
+INFO 2025-11-23 13:40:40 views_FactorDetail get_user_allowed_transitions User admin allowed transitions: ['رد', 'تأیید']
+INFO 2025-11-23 13:40:40 middleware __call__ پاسخ برای /workflow-management/factor/88/approval-path/ - کد وضعیت: 200
+INFO 2025-11-23 13:40:40 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 13:40:40 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 13:40:40 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 13:40:47 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 13:40:47 middleware __call__ درخواست به: /tankhah/factor/88/perform-action/, کاربر: admin
+INFO 2025-11-23 13:40:47 PermissionBase has_required_permissions [PERM_CHECK] User admin is superuser → full access granted.
+INFO 2025-11-23 13:40:47 PermissionBase dispatch [PERM_CHECK] User admin passed base permission check for /tankhah/factor/88/perform-action/
+INFO 2025-11-23 13:40:47 PermissionBase dispatch [PERM_ORG] User admin has access to organizations [1, 2, 3, 4, 5, 6, 7, 8, 9]
+INFO 2025-11-23 13:40:47 budget_calculations get_committed_budget Calculated COMMITTED budget for Tankhah PK 28: 2.00
+INFO 2025-11-23 13:40:47 budget_calculations get_committed_budget Calculated COMMITTED budget for Tankhah PK 28: 2.00
+INFO 2025-11-23 13:40:47 budget_calculations get_available_budget Available budget for Tankhah PK 28: Initial(12.00) - Paid(0.00) - Committed(2.00) = 10.00
+INFO 2025-11-23 13:40:48 views_FactorDetail get_user_allowed_transitions User admin allowed transitions: ['رد', 'تأیید']
+INFO 2025-11-23 13:40:48 views_FactorDetail get_context_data [FACTOR_DETAIL] factor=88 status=APPROVED org=1 path_len=1 allowed_len=2 next_users_steps=1
+INFO 2025-11-23 13:40:48 middleware __call__ پاسخ برای /tankhah/factor/88/perform-action/ - کد وضعیت: 200
+INFO 2025-11-23 13:40:48 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 13:40:48 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 13:40:48 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 13:40:54 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 13:40:54 middleware __call__ درخواست به: /tankhah/factors/, کاربر: admin
+INFO 2025-11-23 13:40:54 PermissionBase has_required_permissions [PERM_CHECK] User admin is superuser → full access granted.
+INFO 2025-11-23 13:40:54 PermissionBase dispatch [PERM_CHECK] User admin passed base permission check for /tankhah/factors/
+INFO 2025-11-23 13:40:54 PermissionBase dispatch [PERM_ORG] User admin has access to organizations [1, 2, 3, 4, 5, 6, 7, 8, 9]
+INFO 2025-11-23 13:40:54 View_Factor_list get_queryset [FACTOR_LIST] شروع دریافت لیست فاکتورها برای کاربر: admin
+INFO 2025-11-23 13:40:54 View_Factor_list get_queryset [FACTOR_LIST] کاربر admin دسترسی کامل دارد. دریافت همه فاکتورها.
+INFO 2025-11-23 13:40:54 View_Factor_list get_queryset [FACTOR_LIST] تعداد اولیه فاکتورها: 3
+INFO 2025-11-23 13:40:54 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] شروع ایجاد context برای کاربر: admin
+INFO 2025-11-23 13:40:54 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] پردازش 3 فاکتور برای گروه‌بندی
+INFO 2025-11-23 13:40:54 check_user_access check_user_factor_access کاربر admin دسترسی کامل دارد.
+ERROR 2025-11-23 13:40:54 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+INFO 2025-11-23 13:40:55 check_user_access check_user_factor_access کاربر admin دسترسی کامل دارد.
+ERROR 2025-11-23 13:40:55 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+INFO 2025-11-23 13:40:55 check_user_access check_user_factor_access کاربر admin دسترسی کامل دارد.
+ERROR 2025-11-23 13:40:55 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+INFO 2025-11-23 13:40:55 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] گروه‌بندی تکمیل شد. 1 سازمان، 3 فاکتور، مبلغ کل: 10.00
+INFO 2025-11-23 13:40:55 middleware __call__ پاسخ برای /tankhah/factors/ - کد وضعیت: 200
+INFO 2025-11-23 13:40:55 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 13:40:55 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 13:40:55 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 13:40:58 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 13:40:58 middleware __call__ درخواست به: /workflow-management/factor/88/approval-path/, کاربر: admin
+INFO 2025-11-23 13:40:58 views_FactorDetail get_user_allowed_transitions User admin allowed transitions: ['رد', 'تأیید']
+INFO 2025-11-23 13:40:58 middleware __call__ پاسخ برای /workflow-management/factor/88/approval-path/ - کد وضعیت: 200
+INFO 2025-11-23 13:40:58 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 13:40:58 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 13:40:59 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 13:41:05 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 13:41:05 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 13:41:06 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 13:41:06 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 13:41:06 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 13:41:06 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 13:41:06 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 13:41:06 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 13:41:06 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 13:41:06 middleware __call__ درخواست به: /accounts/login/, کاربر: admin
+INFO 2025-11-23 13:41:06 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 13:41:06 middleware __call__ پاسخ برای /accounts/login/ - کد وضعیت: 200
+INFO 2025-11-23 13:41:06 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 13:41:06 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 13:41:06 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 13:41:08 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 13:41:08 middleware __call__ درخواست به: /accounts/login/, کاربر: admin
+INFO 2025-11-23 13:41:08 middleware __call__ سشن موجود برای admin آپدیت شد: oz0ejlmrjjylwyhziybx16tizfm68922
+INFO 2025-11-23 13:41:08 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 13:41:08 middleware __call__ درخواست به: /, کاربر: admin
+INFO 2025-11-23 13:41:09 views get_chart_data [CHART_DATA] شروع get_chart_data - start_date: None, end_date: None, org: None, project: None
+INFO 2025-11-23 13:41:09 views get_chart_data [CHART_DATA] تعداد تخصیص‌های اولیه: 6
+INFO 2025-11-23 13:41:09 views get_chart_data [CHART_DATA] org_budget query - تعداد: 3
+INFO 2025-11-23 13:41:09 views get_chart_data [CHART_DATA] org_budget - هتل لاله سرعین: 419380000.00
+INFO 2025-11-23 13:41:09 views get_chart_data [CHART_DATA] org_budget - دفتر مرکزی شرکت توسعه گردشگری ایران: 20000000.00
+INFO 2025-11-23 13:41:09 views get_chart_data [CHART_DATA] org_budget - Test Org Factor: 500000.00
+INFO 2025-11-23 13:41:09 middleware __call__ پاسخ برای / - کد وضعیت: 200
+INFO 2025-11-23 13:41:09 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 13:41:09 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 13:41:09 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 13:41:12 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 13:41:12 middleware __call__ درخواست به: /tankhah/tankhah/status/, کاربر: admin
+INFO 2025-11-23 13:41:12 PermissionBase has_required_permissions [PERM_CHECK] User admin is superuser → full access granted.
+INFO 2025-11-23 13:41:12 PermissionBase dispatch [PERM_CHECK] User admin passed base permission check for /tankhah/tankhah/status/
+INFO 2025-11-23 13:41:12 PermissionBase dispatch [PERM_ORG] User admin has access to organizations [1, 2, 3, 4, 5, 6, 7, 8, 9]
+INFO 2025-11-23 13:41:12 PermissionBase get_queryset [PERM_CHECK] User admin is superuser → full queryset access.
+INFO 2025-11-23 13:41:12 middleware __call__ پاسخ برای /tankhah/tankhah/status/ - کد وضعیت: 200
+INFO 2025-11-23 13:41:13 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 13:41:13 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 13:41:13 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 13:41:43 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 13:41:43 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 13:41:43 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 13:42:13 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 13:42:13 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 13:42:13 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 13:42:43 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 13:42:43 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 13:42:43 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 13:43:13 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 13:43:13 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 13:43:13 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 13:43:43 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 13:43:43 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 13:43:43 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 13:44:13 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 13:44:13 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 13:44:13 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 13:44:43 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 13:44:43 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 13:44:43 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 13:45:13 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 13:45:13 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 13:45:13 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 13:45:43 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 13:45:43 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 13:45:43 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 13:46:13 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 13:46:13 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 13:46:13 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 13:46:43 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 13:46:43 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 13:46:43 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 13:47:13 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 13:47:13 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 13:47:13 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 13:47:43 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 13:47:43 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 13:47:43 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 13:48:13 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 13:48:13 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 13:48:13 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 13:48:43 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 13:48:43 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 13:48:43 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 13:49:13 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 13:49:13 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 13:49:13 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 13:49:43 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 13:49:43 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 13:49:43 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 13:50:13 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 13:50:13 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 13:50:13 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 13:50:43 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 13:50:43 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 13:50:43 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 13:51:13 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 13:51:13 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 13:51:13 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 13:51:43 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 13:51:43 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 13:51:43 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 13:52:13 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 13:52:13 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 13:52:13 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 13:52:50 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 13:52:50 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 13:52:50 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 13:53:50 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 13:53:50 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 13:53:50 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 13:54:50 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 13:54:50 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 13:54:50 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 13:55:50 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 13:55:50 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 13:55:50 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 13:56:50 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 13:56:50 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 13:56:50 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 13:57:50 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 13:57:50 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 13:57:50 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 13:58:50 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 13:58:50 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 13:58:50 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 13:59:50 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 13:59:50 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 13:59:50 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 14:00:50 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 14:00:50 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 14:00:50 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 14:01:50 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 14:01:50 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 14:01:50 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 14:02:50 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 14:02:50 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 14:02:50 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 14:03:50 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 14:03:50 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 14:03:50 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 14:04:50 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 14:04:50 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 14:04:50 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 14:05:50 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 14:05:50 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 14:05:50 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 14:06:13 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 14:06:13 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 14:06:13 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 14:06:43 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 14:06:43 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 14:06:43 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 14:07:13 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 14:07:13 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 14:07:13 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 14:07:50 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 14:07:50 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 14:07:50 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 14:08:50 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 14:08:50 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 14:08:50 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 14:09:50 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 14:09:50 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 14:09:50 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 14:10:50 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 14:10:50 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 14:10:50 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 14:11:50 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 14:11:50 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 14:11:50 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 14:12:50 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 14:12:50 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 14:12:50 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 14:13:50 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 14:13:50 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 14:13:50 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 14:14:50 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 14:14:50 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 14:14:50 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 14:15:50 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 14:15:50 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 14:15:50 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 14:16:50 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 14:16:50 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 14:16:50 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 14:17:50 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 14:17:50 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 14:17:50 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 14:18:50 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 14:18:50 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 14:18:50 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 14:19:50 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 14:19:50 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 14:19:50 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 14:20:50 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 14:20:50 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 14:20:50 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 14:21:50 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 14:21:50 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 14:21:50 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 14:22:50 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 14:22:50 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 14:22:50 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 14:23:50 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 14:23:50 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 14:23:50 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 14:24:50 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 14:24:50 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 14:24:50 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 14:25:50 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 14:25:50 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 14:25:50 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 14:26:50 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 14:26:50 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 14:26:50 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 14:27:50 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 14:27:50 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 14:27:50 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 14:28:50 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 14:28:50 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 14:28:50 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 14:29:13 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 14:29:13 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 14:29:13 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 14:29:43 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 14:29:43 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 14:29:43 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 14:30:50 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 14:30:50 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 14:30:50 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 14:31:50 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 14:31:50 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 14:31:50 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 14:32:50 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 14:32:50 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 14:32:50 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 14:33:50 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 14:33:50 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 14:33:50 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 14:34:50 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 14:34:50 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 14:34:50 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 14:35:50 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 14:35:50 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 14:35:50 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 14:36:50 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 14:36:50 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 14:36:50 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 14:37:50 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 14:37:50 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 14:37:50 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 14:38:50 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 14:38:50 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 14:38:50 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 14:39:50 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 14:39:50 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 14:39:50 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 14:40:50 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 14:40:50 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 14:40:50 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 14:41:50 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 14:41:50 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 14:41:50 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 14:42:50 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 14:42:50 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 14:42:50 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 14:43:50 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 14:43:50 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 14:43:50 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 14:44:50 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 14:44:50 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 14:44:50 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 14:45:50 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 14:45:50 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 14:45:50 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 14:46:50 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 14:46:50 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 14:46:50 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 14:47:50 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 14:47:50 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 14:47:50 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 14:48:50 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 14:48:50 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 14:48:50 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 14:51:30 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 14:51:30 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-23 14:51:30 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-23 14:51:50 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 14:51:50 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: AnonymousUser
+INFO 2025-11-23 14:51:50 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-23 14:51:51 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 14:51:51 middleware __call__ درخواست به: /accounts/login/, کاربر: AnonymousUser
+INFO 2025-11-23 14:51:51 middleware __call__ پاسخ برای /accounts/login/ - کد وضعیت: 200
+INFO 2025-11-23 14:51:53 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 14:51:53 middleware __call__ درخواست به: /, کاربر: AnonymousUser
+INFO 2025-11-23 14:51:53 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-23 14:51:53 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 14:51:53 middleware __call__ درخواست به: /accounts/login/, کاربر: AnonymousUser
+INFO 2025-11-23 14:51:53 middleware __call__ پاسخ برای /accounts/login/ - کد وضعیت: 200
+INFO 2025-11-23 14:51:56 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 14:51:56 middleware __call__ درخواست به: /accounts/login/, کاربر: AnonymousUser
+INFO 2025-11-23 14:51:56 middleware __call__ پاسخ برای /accounts/login/ - کد وضعیت: 200
+INFO 2025-11-23 14:51:59 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 14:51:59 middleware __call__ درخواست به: /accounts/login/, کاربر: AnonymousUser
+INFO 2025-11-23 14:51:59 middleware __call__ پاسخ برای /accounts/login/ - کد وضعیت: 200
+INFO 2025-11-23 14:52:00 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 14:52:01 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-23 14:52:01 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-23 14:57:32 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 14:57:32 middleware __call__ درخواست به: /, کاربر: AnonymousUser
+INFO 2025-11-23 14:57:32 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-23 14:57:32 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 14:57:32 middleware __call__ درخواست به: /accounts/login/, کاربر: AnonymousUser
+INFO 2025-11-23 14:57:32 middleware __call__ پاسخ برای /accounts/login/ - کد وضعیت: 200
+INFO 2025-11-23 14:57:46 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 14:57:46 middleware __call__ درخواست به: /accounts/login/, کاربر: AnonymousUser
+INFO 2025-11-23 14:57:47 signals enforce_single_session_on_login Single-session enforced for user=admin, session=mrfermr0rswu5873yvcki6lift171phe
+INFO 2025-11-23 14:57:47 middleware __call__ پاسخ برای /accounts/login/ - کد وضعیت: 302
+INFO 2025-11-23 14:57:47 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 14:57:47 middleware __call__ درخواست به: /, کاربر: admin
+INFO 2025-11-23 14:57:47 views get_chart_data [CHART_DATA] شروع get_chart_data - start_date: None, end_date: None, org: None, project: None
+INFO 2025-11-23 14:57:47 views get_chart_data [CHART_DATA] تعداد تخصیص‌های اولیه: 6
+INFO 2025-11-23 14:57:47 views get_chart_data [CHART_DATA] org_budget query - تعداد: 3
+INFO 2025-11-23 14:57:47 views get_chart_data [CHART_DATA] org_budget - هتل لاله سرعین: 419380000.00
+INFO 2025-11-23 14:57:47 views get_chart_data [CHART_DATA] org_budget - دفتر مرکزی شرکت توسعه گردشگری ایران: 20000000.00
+INFO 2025-11-23 14:57:47 views get_chart_data [CHART_DATA] org_budget - Test Org Factor: 500000.00
+INFO 2025-11-23 14:57:47 middleware __call__ پاسخ برای / - کد وضعیت: 200
+INFO 2025-11-23 14:57:47 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 14:57:47 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 14:57:48 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 14:58:15 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 14:58:15 middleware __call__ درخواست به: /, کاربر: admin
+INFO 2025-11-23 14:58:15 views get_chart_data [CHART_DATA] شروع get_chart_data - start_date: None, end_date: None, org: None, project: None
+INFO 2025-11-23 14:58:15 views get_chart_data [CHART_DATA] تعداد تخصیص‌های اولیه: 6
+INFO 2025-11-23 14:58:15 views get_chart_data [CHART_DATA] org_budget query - تعداد: 3
+INFO 2025-11-23 14:58:15 views get_chart_data [CHART_DATA] org_budget - هتل لاله سرعین: 419380000.00
+INFO 2025-11-23 14:58:15 views get_chart_data [CHART_DATA] org_budget - دفتر مرکزی شرکت توسعه گردشگری ایران: 20000000.00
+INFO 2025-11-23 14:58:15 views get_chart_data [CHART_DATA] org_budget - Test Org Factor: 500000.00
+INFO 2025-11-23 14:58:16 middleware __call__ پاسخ برای / - کد وضعیت: 200
+INFO 2025-11-23 14:58:17 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 14:58:17 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 14:58:17 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 14:58:18 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 14:58:18 middleware __call__ درخواست به: /tankhah/factors/, کاربر: admin
+INFO 2025-11-23 14:58:18 PermissionBase has_required_permissions [PERM_CHECK] User admin is superuser → full access granted.
+INFO 2025-11-23 14:58:18 PermissionBase dispatch [PERM_CHECK] User admin passed base permission check for /tankhah/factors/
+INFO 2025-11-23 14:58:18 PermissionBase dispatch [PERM_ORG] User admin has access to organizations [1, 2, 3, 4, 5, 6, 7, 8, 9]
+INFO 2025-11-23 14:58:18 View_Factor_list get_queryset [FACTOR_LIST] شروع دریافت لیست فاکتورها برای کاربر: admin
+INFO 2025-11-23 14:58:18 View_Factor_list get_queryset [FACTOR_LIST] کاربر admin دسترسی کامل دارد. دریافت همه فاکتورها.
+INFO 2025-11-23 14:58:18 View_Factor_list get_queryset [FACTOR_LIST] تعداد اولیه فاکتورها: 3
+INFO 2025-11-23 14:58:18 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] شروع ایجاد context برای کاربر: admin
+INFO 2025-11-23 14:58:18 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] پردازش 3 فاکتور برای گروه‌بندی
+INFO 2025-11-23 14:58:18 check_user_access check_user_factor_access کاربر admin دسترسی کامل دارد.
+ERROR 2025-11-23 14:58:18 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+INFO 2025-11-23 14:58:18 check_user_access check_user_factor_access کاربر admin دسترسی کامل دارد.
+ERROR 2025-11-23 14:58:18 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+INFO 2025-11-23 14:58:18 check_user_access check_user_factor_access کاربر admin دسترسی کامل دارد.
+ERROR 2025-11-23 14:58:18 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+INFO 2025-11-23 14:58:18 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] گروه‌بندی تکمیل شد. 1 سازمان، 3 فاکتور، مبلغ کل: 10.00
+INFO 2025-11-23 14:58:18 middleware __call__ پاسخ برای /tankhah/factors/ - کد وضعیت: 200
+INFO 2025-11-23 14:58:19 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 14:58:19 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 14:58:19 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 14:58:23 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 14:58:23 middleware __call__ درخواست به: /tankhah/factors/88/edit/, کاربر: admin
+WARNING 2025-11-23 14:58:23 views_approved_2 dispatch کاربر admin سعی کرد فاکتور FAC-TNKH-14040701-HSarein-HSAR-Flor3-001-14040810-HSarein-0002 را ویرایش کند که تایید شده است.
+INFO 2025-11-23 14:58:23 middleware __call__ پاسخ برای /tankhah/factors/88/edit/ - کد وضعیت: 302
+INFO 2025-11-23 14:58:23 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 14:58:23 middleware __call__ درخواست به: /tankhah/factors/, کاربر: admin
+INFO 2025-11-23 14:58:23 PermissionBase has_required_permissions [PERM_CHECK] User admin is superuser → full access granted.
+INFO 2025-11-23 14:58:23 PermissionBase dispatch [PERM_CHECK] User admin passed base permission check for /tankhah/factors/
+INFO 2025-11-23 14:58:23 PermissionBase dispatch [PERM_ORG] User admin has access to organizations [1, 2, 3, 4, 5, 6, 7, 8, 9]
+INFO 2025-11-23 14:58:23 View_Factor_list get_queryset [FACTOR_LIST] شروع دریافت لیست فاکتورها برای کاربر: admin
+INFO 2025-11-23 14:58:23 View_Factor_list get_queryset [FACTOR_LIST] کاربر admin دسترسی کامل دارد. دریافت همه فاکتورها.
+INFO 2025-11-23 14:58:23 View_Factor_list get_queryset [FACTOR_LIST] تعداد اولیه فاکتورها: 3
+INFO 2025-11-23 14:58:23 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] شروع ایجاد context برای کاربر: admin
+INFO 2025-11-23 14:58:23 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] پردازش 3 فاکتور برای گروه‌بندی
+INFO 2025-11-23 14:58:23 check_user_access check_user_factor_access کاربر admin دسترسی کامل دارد.
+ERROR 2025-11-23 14:58:23 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+INFO 2025-11-23 14:58:24 check_user_access check_user_factor_access کاربر admin دسترسی کامل دارد.
+ERROR 2025-11-23 14:58:24 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+INFO 2025-11-23 14:58:24 check_user_access check_user_factor_access کاربر admin دسترسی کامل دارد.
+ERROR 2025-11-23 14:58:24 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+INFO 2025-11-23 14:58:24 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] گروه‌بندی تکمیل شد. 1 سازمان، 3 فاکتور، مبلغ کل: 10.00
+INFO 2025-11-23 14:58:24 middleware __call__ پاسخ برای /tankhah/factors/ - کد وضعیت: 200
+INFO 2025-11-23 14:58:24 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 14:58:24 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 14:58:24 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 14:58:28 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 14:58:28 middleware __call__ درخواست به: /tankhah/factor/create/new/, کاربر: admin
+INFO 2025-11-23 14:58:28 PermissionBase has_required_permissions [PERM_CHECK] User admin is superuser → full access granted.
+INFO 2025-11-23 14:58:28 PermissionBase dispatch [PERM_CHECK] User admin passed base permission check for /tankhah/factor/create/new/
+INFO 2025-11-23 14:58:28 PermissionBase dispatch [PERM_ORG] User admin has access to organizations [1, 2, 3, 4, 5, 6, 7, 8, 9]
+INFO 2025-11-23 14:58:28 middleware __call__ پاسخ برای /tankhah/factor/create/new/ - کد وضعیت: 200
+INFO 2025-11-23 14:58:28 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 14:58:28 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 14:58:29 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 14:58:58 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 14:58:59 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 14:58:59 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 14:59:28 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 14:59:28 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 14:59:29 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 14:59:58 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 14:59:58 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 14:59:59 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 15:00:28 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 15:00:28 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 15:00:29 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 15:00:59 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 15:00:59 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 15:00:59 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 15:01:28 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 15:01:28 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 15:01:29 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 15:01:58 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 15:01:59 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 15:01:59 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 15:02:28 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 15:02:28 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 15:02:29 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 15:02:59 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 15:02:59 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 15:02:59 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 15:03:29 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 15:03:29 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 15:03:29 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 15:03:59 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 15:03:59 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 15:03:59 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 15:04:28 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 15:04:29 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 15:04:29 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 15:04:58 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 15:04:58 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 15:04:59 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 15:05:29 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 15:05:29 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 15:05:29 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 15:05:58 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 15:05:58 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 15:05:59 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 15:06:28 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 15:06:28 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 15:06:29 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 15:06:59 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 15:06:59 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 15:06:59 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 15:07:28 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 15:07:28 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 15:07:29 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 15:07:58 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 15:07:58 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 15:07:59 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 15:08:28 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 15:08:29 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: admin
+INFO 2025-11-23 15:08:29 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-11-23 16:17:17 models remove_inactive_users حذف کاربر غیرفعال: admin (آی‌پی: 127.0.0.1)
+INFO 2025-11-23 16:17:17 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: AnonymousUser
+INFO 2025-11-23 16:17:17 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-23 16:17:17 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 16:17:17 middleware __call__ درخواست به: /accounts/login/, کاربر: AnonymousUser
+INFO 2025-11-23 16:17:17 middleware __call__ پاسخ برای /accounts/login/ - کد وضعیت: 200
+INFO 2025-11-23 16:17:23 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 16:17:23 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: AnonymousUser
+INFO 2025-11-23 16:17:23 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-23 16:17:23 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 16:17:23 middleware __call__ درخواست به: /accounts/login/, کاربر: AnonymousUser
+INFO 2025-11-23 16:17:23 middleware __call__ پاسخ برای /accounts/login/ - کد وضعیت: 200
+INFO 2025-11-23 16:17:53 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 16:17:53 middleware __call__ درخواست به: /inbox/notifications/api/list/, کاربر: AnonymousUser
+INFO 2025-11-23 16:17:53 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-23 16:17:53 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 16:17:53 middleware __call__ درخواست به: /accounts/login/, کاربر: AnonymousUser
+INFO 2025-11-23 16:17:53 middleware __call__ پاسخ برای /accounts/login/ - کد وضعیت: 200
+INFO 2025-11-23 16:23:35 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 16:23:35 middleware __call__ درخواست به: /tankhah/factor/create/new/, کاربر: AnonymousUser
+INFO 2025-11-23 16:23:35 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-23 16:23:35 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 16:23:35 middleware __call__ درخواست به: /accounts/login/, کاربر: AnonymousUser
+INFO 2025-11-23 16:23:36 middleware __call__ پاسخ برای /accounts/login/ - کد وضعیت: 200
+INFO 2025-11-23 20:04:38 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 20:04:38 middleware __call__ درخواست به: /accounts/login/, کاربر: AnonymousUser
+INFO 2025-11-23 20:04:39 middleware __call__ پاسخ برای /accounts/login/ - کد وضعیت: 403
+INFO 2025-11-23 20:04:39 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 20:04:39 middleware __call__ درخواست به: /favicon.ico, کاربر: AnonymousUser
+INFO 2025-11-23 20:04:39 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-23 20:04:39 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-23 20:04:39 middleware __call__ درخواست به: /accounts/login/, کاربر: AnonymousUser
+INFO 2025-11-23 20:04:39 middleware __call__ پاسخ برای /accounts/login/ - کد وضعیت: 200
+INFO 2025-11-24 06:44:46 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-24 06:44:46 middleware __call__ درخواست به: /accounts/login/, کاربر: AnonymousUser
+INFO 2025-11-24 06:44:47 middleware __call__ پاسخ برای /accounts/login/ - کد وضعیت: 403
+INFO 2025-11-24 06:44:47 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-24 06:44:47 middleware __call__ درخواست به: /favicon.ico, کاربر: AnonymousUser
+INFO 2025-11-24 06:44:47 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-24 06:44:47 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-24 06:44:47 middleware __call__ درخواست به: /accounts/login/, کاربر: AnonymousUser
+INFO 2025-11-24 06:44:47 middleware __call__ پاسخ برای /accounts/login/ - کد وضعیت: 200
+INFO 2025-11-25 18:05:43 signals update_versions 🚀 post_migrate triggered for django.contrib.admin 🚀
+INFO 2025-11-25 18:05:43 signals update_versions Calling update_versions command...
+INFO 2025-11-25 18:05:43 update_versions handle Starting version update process...
+INFO 2025-11-25 18:05:43 update_versions update_app_versions Checking core for changes...
+INFO 2025-11-25 18:05:43 models update_version_file Updated version.py for core
+INFO 2025-11-25 18:05:43 models create_code_changes 1 code changes recorded for مدیریت ساختار نرم افزار v1.0.0.14
+INFO 2025-11-25 18:05:43 models update_version_file Updated version.py for core
+INFO 2025-11-25 18:05:43 update_versions update_app_versions Checking accounts for changes...
+INFO 2025-11-25 18:05:43 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 18:05:43 models create_code_changes 1 code changes recorded for مدیریت کاربران v1.0.0.14
+INFO 2025-11-25 18:05:43 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 18:05:43 update_versions update_app_versions Checking version_tracker for changes...
+INFO 2025-11-25 18:05:43 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 18:05:43 models create_code_changes 1 code changes recorded for مدیریت نسخه v1.0.0.14
+INFO 2025-11-25 18:05:43 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 18:05:43 update_versions handle Versions updated: {'core': '1.0.0.14', 'accounts': '1.0.0.14', 'version_tracker': '1.0.0.14'}
+INFO 2025-11-25 18:05:43 update_versions handle Final version updated successfully!
+INFO 2025-11-25 18:05:43 signals update_versions 🚀 post_migrate triggered for django.contrib.auth 🚀
+INFO 2025-11-25 18:05:43 signals update_versions Calling update_versions command...
+INFO 2025-11-25 18:05:43 update_versions handle Starting version update process...
+INFO 2025-11-25 18:05:43 update_versions update_app_versions Checking core for changes...
+INFO 2025-11-25 18:05:43 models update_version_file Updated version.py for core
+INFO 2025-11-25 18:05:43 models create_code_changes 1 code changes recorded for مدیریت ساختار نرم افزار v1.0.0.15
+INFO 2025-11-25 18:05:43 models update_version_file Updated version.py for core
+INFO 2025-11-25 18:05:43 update_versions update_app_versions Checking accounts for changes...
+INFO 2025-11-25 18:05:43 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 18:05:43 models create_code_changes 1 code changes recorded for مدیریت کاربران v1.0.0.15
+INFO 2025-11-25 18:05:43 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 18:05:43 update_versions update_app_versions Checking version_tracker for changes...
+INFO 2025-11-25 18:05:43 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 18:05:43 models create_code_changes 1 code changes recorded for مدیریت نسخه v1.0.0.15
+INFO 2025-11-25 18:05:43 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 18:05:43 update_versions handle Versions updated: {'core': '1.0.0.15', 'accounts': '1.0.0.15', 'version_tracker': '1.0.0.15'}
+INFO 2025-11-25 18:05:43 update_versions handle Final version updated successfully!
+INFO 2025-11-25 18:05:43 signals update_versions 🚀 post_migrate triggered for django.contrib.contenttypes 🚀
+INFO 2025-11-25 18:05:43 signals update_versions Calling update_versions command...
+INFO 2025-11-25 18:05:43 update_versions handle Starting version update process...
+INFO 2025-11-25 18:05:43 update_versions update_app_versions Checking core for changes...
+INFO 2025-11-25 18:05:43 models update_version_file Updated version.py for core
+INFO 2025-11-25 18:05:43 models create_code_changes 1 code changes recorded for مدیریت ساختار نرم افزار v1.0.0.16
+INFO 2025-11-25 18:05:43 models update_version_file Updated version.py for core
+INFO 2025-11-25 18:05:43 update_versions update_app_versions Checking accounts for changes...
+INFO 2025-11-25 18:05:43 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 18:05:43 models create_code_changes 1 code changes recorded for مدیریت کاربران v1.0.0.16
+INFO 2025-11-25 18:05:43 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 18:05:43 update_versions update_app_versions Checking version_tracker for changes...
+INFO 2025-11-25 18:05:43 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 18:05:43 models create_code_changes 1 code changes recorded for مدیریت نسخه v1.0.0.16
+INFO 2025-11-25 18:05:43 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 18:05:43 update_versions handle Versions updated: {'core': '1.0.0.16', 'accounts': '1.0.0.16', 'version_tracker': '1.0.0.16'}
+INFO 2025-11-25 18:05:43 update_versions handle Final version updated successfully!
+INFO 2025-11-25 18:05:43 signals update_versions 🚀 post_migrate triggered for django.contrib.sessions 🚀
+INFO 2025-11-25 18:05:43 signals update_versions Calling update_versions command...
+INFO 2025-11-25 18:05:43 update_versions handle Starting version update process...
+INFO 2025-11-25 18:05:43 update_versions update_app_versions Checking core for changes...
+INFO 2025-11-25 18:05:43 models update_version_file Updated version.py for core
+INFO 2025-11-25 18:05:43 models create_code_changes 1 code changes recorded for مدیریت ساختار نرم افزار v1.0.0.17
+INFO 2025-11-25 18:05:43 models update_version_file Updated version.py for core
+INFO 2025-11-25 18:05:43 update_versions update_app_versions Checking accounts for changes...
+INFO 2025-11-25 18:05:43 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 18:05:43 models create_code_changes 1 code changes recorded for مدیریت کاربران v1.0.0.17
+INFO 2025-11-25 18:05:43 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 18:05:43 update_versions update_app_versions Checking version_tracker for changes...
+INFO 2025-11-25 18:05:43 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 18:05:43 models create_code_changes 1 code changes recorded for مدیریت نسخه v1.0.0.17
+INFO 2025-11-25 18:05:43 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 18:05:43 update_versions handle Versions updated: {'core': '1.0.0.17', 'accounts': '1.0.0.17', 'version_tracker': '1.0.0.17'}
+INFO 2025-11-25 18:05:44 update_versions handle Final version updated successfully!
+INFO 2025-11-25 18:05:44 signals update_versions 🚀 post_migrate triggered for django_jalali 🚀
+INFO 2025-11-25 18:05:44 signals update_versions Calling update_versions command...
+INFO 2025-11-25 18:05:44 update_versions handle Starting version update process...
+INFO 2025-11-25 18:05:44 update_versions update_app_versions Checking core for changes...
+INFO 2025-11-25 18:05:44 models update_version_file Updated version.py for core
+INFO 2025-11-25 18:05:44 models create_code_changes 1 code changes recorded for مدیریت ساختار نرم افزار v1.0.0.18
+INFO 2025-11-25 18:05:44 models update_version_file Updated version.py for core
+INFO 2025-11-25 18:05:44 update_versions update_app_versions Checking accounts for changes...
+INFO 2025-11-25 18:05:44 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 18:05:44 models create_code_changes 1 code changes recorded for مدیریت کاربران v1.0.0.18
+INFO 2025-11-25 18:05:44 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 18:05:44 update_versions update_app_versions Checking version_tracker for changes...
+INFO 2025-11-25 18:05:44 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 18:05:44 models create_code_changes 1 code changes recorded for مدیریت نسخه v1.0.0.18
+INFO 2025-11-25 18:05:44 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 18:05:44 update_versions handle Versions updated: {'core': '1.0.0.18', 'accounts': '1.0.0.18', 'version_tracker': '1.0.0.18'}
+INFO 2025-11-25 18:05:44 update_versions handle Final version updated successfully!
+INFO 2025-11-25 18:05:44 signals update_versions 🚀 post_migrate triggered for formtools 🚀
+INFO 2025-11-25 18:05:44 signals update_versions Calling update_versions command...
+INFO 2025-11-25 18:05:44 update_versions handle Starting version update process...
+INFO 2025-11-25 18:05:44 update_versions update_app_versions Checking core for changes...
+INFO 2025-11-25 18:05:44 models update_version_file Updated version.py for core
+INFO 2025-11-25 18:05:44 models create_code_changes 1 code changes recorded for مدیریت ساختار نرم افزار v1.0.0.19
+INFO 2025-11-25 18:05:44 models update_version_file Updated version.py for core
+INFO 2025-11-25 18:05:44 update_versions update_app_versions Checking accounts for changes...
+INFO 2025-11-25 18:05:44 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 18:05:44 models create_code_changes 1 code changes recorded for مدیریت کاربران v1.0.0.19
+INFO 2025-11-25 18:05:44 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 18:05:44 update_versions update_app_versions Checking version_tracker for changes...
+INFO 2025-11-25 18:05:44 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 18:05:44 models create_code_changes 1 code changes recorded for مدیریت نسخه v1.0.0.19
+INFO 2025-11-25 18:05:44 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 18:05:44 update_versions handle Versions updated: {'core': '1.0.0.19', 'accounts': '1.0.0.19', 'version_tracker': '1.0.0.19'}
+INFO 2025-11-25 18:05:44 update_versions handle Final version updated successfully!
+INFO 2025-11-25 18:05:44 signals update_versions 🚀 post_migrate triggered for core 🚀
+INFO 2025-11-25 18:05:44 signals update_versions Calling update_versions command...
+INFO 2025-11-25 18:05:44 update_versions handle Starting version update process...
+INFO 2025-11-25 18:05:44 update_versions update_app_versions Checking core for changes...
+INFO 2025-11-25 18:05:44 models update_version_file Updated version.py for core
+INFO 2025-11-25 18:05:44 models create_code_changes 1 code changes recorded for مدیریت ساختار نرم افزار v1.0.0.20
+INFO 2025-11-25 18:05:44 models update_version_file Updated version.py for core
+INFO 2025-11-25 18:05:44 update_versions update_app_versions Checking accounts for changes...
+INFO 2025-11-25 18:05:44 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 18:05:44 models create_code_changes 1 code changes recorded for مدیریت کاربران v1.0.0.20
+INFO 2025-11-25 18:05:44 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 18:05:44 update_versions update_app_versions Checking version_tracker for changes...
+INFO 2025-11-25 18:05:44 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 18:05:44 models create_code_changes 1 code changes recorded for مدیریت نسخه v1.0.0.20
+INFO 2025-11-25 18:05:44 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 18:05:44 update_versions handle Versions updated: {'core': '1.0.0.20', 'accounts': '1.0.0.20', 'version_tracker': '1.0.0.20'}
+INFO 2025-11-25 18:05:44 update_versions handle Final version updated successfully!
+INFO 2025-11-25 18:05:44 signals update_versions 🚀 post_migrate triggered for accounts 🚀
+INFO 2025-11-25 18:05:44 signals update_versions Calling update_versions command...
+INFO 2025-11-25 18:05:44 update_versions handle Starting version update process...
+INFO 2025-11-25 18:05:44 update_versions update_app_versions Checking core for changes...
+INFO 2025-11-25 18:05:44 models update_version_file Updated version.py for core
+INFO 2025-11-25 18:05:44 models create_code_changes 1 code changes recorded for مدیریت ساختار نرم افزار v1.0.0.21
+INFO 2025-11-25 18:05:44 models update_version_file Updated version.py for core
+INFO 2025-11-25 18:05:44 update_versions update_app_versions Checking accounts for changes...
+INFO 2025-11-25 18:05:44 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 18:05:44 models create_code_changes 1 code changes recorded for مدیریت کاربران v1.0.0.21
+INFO 2025-11-25 18:05:44 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 18:05:44 update_versions update_app_versions Checking version_tracker for changes...
+INFO 2025-11-25 18:05:44 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 18:05:44 models create_code_changes 1 code changes recorded for مدیریت نسخه v1.0.0.21
+INFO 2025-11-25 18:05:44 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 18:05:44 update_versions handle Versions updated: {'core': '1.0.0.21', 'accounts': '1.0.0.21', 'version_tracker': '1.0.0.21'}
+INFO 2025-11-25 18:05:44 update_versions handle Final version updated successfully!
+INFO 2025-11-25 18:05:44 signals update_versions 🚀 post_migrate triggered for reports 🚀
+INFO 2025-11-25 18:05:44 signals update_versions Calling update_versions command...
+INFO 2025-11-25 18:05:44 update_versions handle Starting version update process...
+INFO 2025-11-25 18:05:44 update_versions update_app_versions Checking core for changes...
+INFO 2025-11-25 18:05:44 models update_version_file Updated version.py for core
+INFO 2025-11-25 18:05:44 models create_code_changes 1 code changes recorded for مدیریت ساختار نرم افزار v1.0.0.22
+INFO 2025-11-25 18:05:44 models update_version_file Updated version.py for core
+INFO 2025-11-25 18:05:44 update_versions update_app_versions Checking accounts for changes...
+INFO 2025-11-25 18:05:44 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 18:05:44 models create_code_changes 1 code changes recorded for مدیریت کاربران v1.0.0.22
+INFO 2025-11-25 18:05:44 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 18:05:44 update_versions update_app_versions Checking version_tracker for changes...
+INFO 2025-11-25 18:05:44 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 18:05:44 models create_code_changes 1 code changes recorded for مدیریت نسخه v1.0.0.22
+INFO 2025-11-25 18:05:44 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 18:05:44 update_versions handle Versions updated: {'core': '1.0.0.22', 'accounts': '1.0.0.22', 'version_tracker': '1.0.0.22'}
+INFO 2025-11-25 18:05:44 update_versions handle Final version updated successfully!
+INFO 2025-11-25 18:05:44 signals update_versions 🚀 post_migrate triggered for version_tracker 🚀
+INFO 2025-11-25 18:05:44 signals update_versions 🚀 post_migrate triggered for version_tracker 🚀
+INFO 2025-11-25 18:05:44 signals update_versions 🚀 post_migrate triggered for usb_key_validator 🚀
+INFO 2025-11-25 18:05:44 signals update_versions Calling update_versions command...
+INFO 2025-11-25 18:05:44 update_versions handle Starting version update process...
+INFO 2025-11-25 18:05:44 update_versions update_app_versions Checking core for changes...
+INFO 2025-11-25 18:05:44 models update_version_file Updated version.py for core
+INFO 2025-11-25 18:05:44 models create_code_changes 1 code changes recorded for مدیریت ساختار نرم افزار v1.0.0.23
+INFO 2025-11-25 18:05:44 models update_version_file Updated version.py for core
+INFO 2025-11-25 18:05:44 update_versions update_app_versions Checking accounts for changes...
+INFO 2025-11-25 18:05:44 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 18:05:44 models create_code_changes 1 code changes recorded for مدیریت کاربران v1.0.0.23
+INFO 2025-11-25 18:05:44 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 18:05:44 update_versions update_app_versions Checking version_tracker for changes...
+INFO 2025-11-25 18:05:44 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 18:05:44 models create_code_changes 1 code changes recorded for مدیریت نسخه v1.0.0.23
+INFO 2025-11-25 18:05:44 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 18:05:44 update_versions handle Versions updated: {'core': '1.0.0.23', 'accounts': '1.0.0.23', 'version_tracker': '1.0.0.23'}
+INFO 2025-11-25 18:05:44 update_versions handle Final version updated successfully!
+INFO 2025-11-25 18:05:44 signals update_versions 🚀 post_migrate triggered for notificationApp 🚀
+INFO 2025-11-25 18:05:44 signals update_versions Calling update_versions command...
+INFO 2025-11-25 18:05:44 update_versions handle Starting version update process...
+INFO 2025-11-25 18:05:44 update_versions update_app_versions Checking core for changes...
+INFO 2025-11-25 18:05:44 models update_version_file Updated version.py for core
+INFO 2025-11-25 18:05:44 models create_code_changes 1 code changes recorded for مدیریت ساختار نرم افزار v1.0.0.24
+INFO 2025-11-25 18:05:44 models update_version_file Updated version.py for core
+INFO 2025-11-25 18:05:44 update_versions update_app_versions Checking accounts for changes...
+INFO 2025-11-25 18:05:44 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 18:05:44 models create_code_changes 1 code changes recorded for مدیریت کاربران v1.0.0.24
+INFO 2025-11-25 18:05:44 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 18:05:44 update_versions update_app_versions Checking version_tracker for changes...
+INFO 2025-11-25 18:05:44 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 18:05:44 models create_code_changes 1 code changes recorded for مدیریت نسخه v1.0.0.24
+INFO 2025-11-25 18:05:44 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 18:05:44 update_versions handle Versions updated: {'core': '1.0.0.24', 'accounts': '1.0.0.24', 'version_tracker': '1.0.0.24'}
+INFO 2025-11-25 18:05:44 update_versions handle Final version updated successfully!
+INFO 2025-11-25 18:05:44 signals update_versions 🚀 post_migrate triggered for purchase_requests 🚀
+INFO 2025-11-25 18:05:44 signals update_versions Calling update_versions command...
+INFO 2025-11-25 18:05:44 update_versions handle Starting version update process...
+INFO 2025-11-25 18:05:44 update_versions update_app_versions Checking core for changes...
+INFO 2025-11-25 18:05:44 models update_version_file Updated version.py for core
+INFO 2025-11-25 18:05:44 models create_code_changes 1 code changes recorded for مدیریت ساختار نرم افزار v1.0.0.25
+INFO 2025-11-25 18:05:44 models update_version_file Updated version.py for core
+INFO 2025-11-25 18:05:44 update_versions update_app_versions Checking accounts for changes...
+INFO 2025-11-25 18:05:44 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 18:05:44 models create_code_changes 1 code changes recorded for مدیریت کاربران v1.0.0.25
+INFO 2025-11-25 18:05:44 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 18:05:44 update_versions update_app_versions Checking version_tracker for changes...
+INFO 2025-11-25 18:05:44 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 18:05:44 models create_code_changes 1 code changes recorded for مدیریت نسخه v1.0.0.25
+INFO 2025-11-25 18:05:44 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 18:05:44 update_versions handle Versions updated: {'core': '1.0.0.25', 'accounts': '1.0.0.25', 'version_tracker': '1.0.0.25'}
+INFO 2025-11-25 18:05:44 update_versions handle Final version updated successfully!
+INFO 2025-11-25 18:05:44 signals update_versions 🚀 post_migrate triggered for tankhah 🚀
+INFO 2025-11-25 18:05:44 signals update_versions Calling update_versions command...
+INFO 2025-11-25 18:05:44 update_versions handle Starting version update process...
+INFO 2025-11-25 18:05:44 update_versions update_app_versions Checking core for changes...
+INFO 2025-11-25 18:05:44 models update_version_file Updated version.py for core
+INFO 2025-11-25 18:05:44 models create_code_changes 1 code changes recorded for مدیریت ساختار نرم افزار v1.0.0.26
+INFO 2025-11-25 18:05:44 models update_version_file Updated version.py for core
+INFO 2025-11-25 18:05:44 update_versions update_app_versions Checking accounts for changes...
+INFO 2025-11-25 18:05:44 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 18:05:44 models create_code_changes 1 code changes recorded for مدیریت کاربران v1.0.0.26
+INFO 2025-11-25 18:05:44 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 18:05:44 update_versions update_app_versions Checking version_tracker for changes...
+INFO 2025-11-25 18:05:44 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 18:05:44 models create_code_changes 1 code changes recorded for مدیریت نسخه v1.0.0.26
+INFO 2025-11-25 18:05:44 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 18:05:44 update_versions handle Versions updated: {'core': '1.0.0.26', 'accounts': '1.0.0.26', 'version_tracker': '1.0.0.26'}
+INFO 2025-11-25 18:05:44 update_versions handle Final version updated successfully!
+INFO 2025-11-25 18:05:44 signals update_versions 🚀 post_migrate triggered for budgets 🚀
+INFO 2025-11-25 18:05:44 signals update_versions Calling update_versions command...
+INFO 2025-11-25 18:05:44 update_versions handle Starting version update process...
+INFO 2025-11-25 18:05:44 update_versions update_app_versions Checking core for changes...
+INFO 2025-11-25 18:05:44 models update_version_file Updated version.py for core
+INFO 2025-11-25 18:05:44 models create_code_changes 1 code changes recorded for مدیریت ساختار نرم افزار v1.0.0.27
+INFO 2025-11-25 18:05:44 models update_version_file Updated version.py for core
+INFO 2025-11-25 18:05:44 update_versions update_app_versions Checking accounts for changes...
+INFO 2025-11-25 18:05:44 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 18:05:44 models create_code_changes 1 code changes recorded for مدیریت کاربران v1.0.0.27
+INFO 2025-11-25 18:05:44 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 18:05:44 update_versions update_app_versions Checking version_tracker for changes...
+INFO 2025-11-25 18:05:44 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 18:05:44 models create_code_changes 1 code changes recorded for مدیریت نسخه v1.0.0.27
+INFO 2025-11-25 18:05:44 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 18:05:44 update_versions handle Versions updated: {'core': '1.0.0.27', 'accounts': '1.0.0.27', 'version_tracker': '1.0.0.27'}
+INFO 2025-11-25 18:05:44 update_versions handle Final version updated successfully!
+INFO 2025-11-25 18:05:52 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:05:52 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:05:52 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:06:22 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:06:22 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:06:22 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:06:52 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:06:52 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:06:52 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:07:23 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:07:23 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:07:23 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:07:53 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:07:53 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:07:53 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:08:23 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:08:23 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:08:23 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:08:54 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:08:54 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:08:54 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:09:24 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:09:24 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:09:24 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:09:54 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:09:54 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:09:54 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:10:24 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:10:24 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:10:24 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:10:54 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:10:54 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:10:54 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:11:24 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:11:24 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:11:24 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:11:54 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:11:54 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:11:54 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:12:24 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:12:24 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:12:24 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:12:54 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:12:54 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:12:54 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:13:24 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:13:24 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:13:24 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:13:55 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:13:55 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:13:55 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:14:25 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:14:25 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:14:25 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:14:55 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:14:55 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:14:55 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:15:25 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:15:25 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:15:25 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:15:55 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:15:55 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:15:55 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:16:25 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:16:25 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:16:25 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:16:55 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:16:55 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:16:55 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:17:25 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:17:25 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:17:25 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:17:55 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:17:56 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:17:56 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:18:26 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:18:26 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:18:26 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:18:56 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:18:56 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:18:56 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:19:26 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:19:26 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:19:26 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:19:56 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:19:56 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:19:56 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:20:26 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:20:26 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:20:26 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:20:56 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:20:56 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:20:56 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:21:26 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:21:26 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:21:26 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:21:56 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:21:56 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:21:56 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:22:26 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:22:26 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:22:26 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:22:56 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:22:56 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:22:56 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:23:27 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:23:27 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:23:27 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:23:57 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:23:57 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:23:57 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:24:27 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:24:27 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:24:27 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:24:57 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:24:57 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:24:57 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:25:27 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:25:27 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:25:27 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:25:57 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:25:57 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:25:57 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:26:27 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:26:27 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:26:27 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:26:57 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:26:57 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:26:57 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:27:27 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:27:27 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:27:27 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:27:57 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:27:57 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:27:57 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:28:27 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:28:27 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:28:27 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:28:58 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:28:58 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:28:58 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:29:28 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:29:28 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:29:28 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:29:58 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:29:58 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:29:58 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:30:28 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:30:28 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:30:28 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:30:58 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:30:58 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:30:58 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:31:28 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:31:28 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:31:28 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:31:58 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:31:58 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:31:58 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:32:28 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:32:28 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:32:28 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:32:58 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:32:58 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:32:58 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:33:28 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:33:28 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:33:28 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:33:59 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:33:59 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:33:59 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:34:29 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:34:29 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:34:29 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:34:59 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:34:59 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:34:59 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:35:29 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:35:29 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:35:29 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:35:59 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:35:59 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:35:59 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:36:29 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:36:29 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:36:29 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:36:59 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:36:59 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:36:59 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:37:29 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:37:29 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:37:29 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:37:59 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:37:59 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:37:59 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:38:29 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:38:29 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:38:29 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:38:59 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:38:59 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:38:59 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:39:30 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:39:30 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:39:30 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:40:00 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:40:00 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:40:00 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:40:30 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:40:30 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:40:30 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:41:00 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:41:00 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:41:00 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:41:30 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:41:30 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:41:30 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:42:00 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:42:00 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:42:00 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:42:30 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:42:30 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:42:30 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:43:00 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:43:00 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:43:00 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:43:30 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:43:30 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:43:30 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:44:00 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:44:00 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:44:00 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:44:31 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:44:31 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:44:31 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:45:01 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:45:01 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:45:01 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:45:31 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:45:31 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:45:31 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:46:01 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:46:01 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:46:01 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:46:31 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:46:31 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:46:31 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:47:01 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:47:01 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:47:01 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:47:31 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:47:31 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:47:31 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:48:01 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:48:01 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:48:01 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:48:31 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:48:31 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:48:31 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:49:01 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:49:01 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:49:01 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:49:31 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:49:32 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:49:32 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:50:02 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:50:02 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:50:02 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:50:32 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:50:32 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:50:32 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:51:02 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:51:02 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:51:02 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:51:32 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:51:32 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:51:32 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:52:02 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:52:02 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:52:02 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:52:32 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:52:32 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:52:32 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:53:02 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:53:02 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:53:02 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:53:32 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:53:32 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:53:32 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:54:02 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:54:02 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:54:02 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:54:33 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:54:33 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:54:33 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:55:03 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:55:03 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:55:03 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:55:33 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:55:33 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:55:33 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:56:03 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:56:03 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:56:03 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:56:33 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:56:33 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:56:33 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:57:03 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:57:03 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:57:03 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:57:33 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:57:33 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:57:33 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:58:03 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:58:03 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:58:03 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:58:34 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:58:34 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:58:34 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:59:04 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:59:04 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:59:04 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 18:59:34 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 18:59:34 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 18:59:34 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 19:00:04 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 19:00:04 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 19:00:04 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 19:00:18 signals update_versions 🚀 post_migrate triggered for django.contrib.admin 🚀
+INFO 2025-11-25 19:00:18 signals update_versions Calling update_versions command...
+INFO 2025-11-25 19:00:18 update_versions handle Starting version update process...
+INFO 2025-11-25 19:00:18 update_versions update_app_versions Checking core for changes...
+INFO 2025-11-25 19:00:18 models update_version_file Updated version.py for core
+INFO 2025-11-25 19:00:18 models create_code_changes 1 code changes recorded for مدیریت ساختار نرم افزار v1.0.0.28
+INFO 2025-11-25 19:00:18 models update_version_file Updated version.py for core
+INFO 2025-11-25 19:00:18 update_versions update_app_versions Checking accounts for changes...
+INFO 2025-11-25 19:00:18 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 19:00:18 models create_code_changes 1 code changes recorded for مدیریت کاربران v1.0.0.28
+INFO 2025-11-25 19:00:18 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 19:00:18 update_versions update_app_versions Checking version_tracker for changes...
+INFO 2025-11-25 19:00:18 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 19:00:18 models create_code_changes 1 code changes recorded for مدیریت نسخه v1.0.0.28
+INFO 2025-11-25 19:00:18 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 19:00:18 update_versions handle Versions updated: {'core': '1.0.0.28', 'accounts': '1.0.0.28', 'version_tracker': '1.0.0.28'}
+INFO 2025-11-25 19:00:18 update_versions handle Final version updated successfully!
+INFO 2025-11-25 19:00:18 signals update_versions 🚀 post_migrate triggered for django.contrib.auth 🚀
+INFO 2025-11-25 19:00:18 signals update_versions Calling update_versions command...
+INFO 2025-11-25 19:00:18 update_versions handle Starting version update process...
+INFO 2025-11-25 19:00:18 update_versions update_app_versions Checking core for changes...
+INFO 2025-11-25 19:00:18 models update_version_file Updated version.py for core
+INFO 2025-11-25 19:00:18 models create_code_changes 1 code changes recorded for مدیریت ساختار نرم افزار v1.0.0.29
+INFO 2025-11-25 19:00:18 models update_version_file Updated version.py for core
+INFO 2025-11-25 19:00:18 update_versions update_app_versions Checking accounts for changes...
+INFO 2025-11-25 19:00:18 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 19:00:18 models create_code_changes 1 code changes recorded for مدیریت کاربران v1.0.0.29
+INFO 2025-11-25 19:00:18 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 19:00:18 update_versions update_app_versions Checking version_tracker for changes...
+INFO 2025-11-25 19:00:18 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 19:00:18 models create_code_changes 1 code changes recorded for مدیریت نسخه v1.0.0.29
+INFO 2025-11-25 19:00:18 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 19:00:18 update_versions handle Versions updated: {'core': '1.0.0.29', 'accounts': '1.0.0.29', 'version_tracker': '1.0.0.29'}
+INFO 2025-11-25 19:00:18 update_versions handle Final version updated successfully!
+INFO 2025-11-25 19:00:18 signals update_versions 🚀 post_migrate triggered for django.contrib.contenttypes 🚀
+INFO 2025-11-25 19:00:18 signals update_versions Calling update_versions command...
+INFO 2025-11-25 19:00:18 update_versions handle Starting version update process...
+INFO 2025-11-25 19:00:18 update_versions update_app_versions Checking core for changes...
+INFO 2025-11-25 19:00:18 models update_version_file Updated version.py for core
+INFO 2025-11-25 19:00:18 models create_code_changes 1 code changes recorded for مدیریت ساختار نرم افزار v1.0.0.30
+INFO 2025-11-25 19:00:18 models update_version_file Updated version.py for core
+INFO 2025-11-25 19:00:18 update_versions update_app_versions Checking accounts for changes...
+INFO 2025-11-25 19:00:18 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 19:00:18 models create_code_changes 1 code changes recorded for مدیریت کاربران v1.0.0.30
+INFO 2025-11-25 19:00:18 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 19:00:18 update_versions update_app_versions Checking version_tracker for changes...
+INFO 2025-11-25 19:00:18 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 19:00:18 models create_code_changes 1 code changes recorded for مدیریت نسخه v1.0.0.30
+INFO 2025-11-25 19:00:18 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 19:00:18 update_versions handle Versions updated: {'core': '1.0.0.30', 'accounts': '1.0.0.30', 'version_tracker': '1.0.0.30'}
+INFO 2025-11-25 19:00:18 update_versions handle Final version updated successfully!
+INFO 2025-11-25 19:00:18 signals update_versions 🚀 post_migrate triggered for django.contrib.sessions 🚀
+INFO 2025-11-25 19:00:18 signals update_versions Calling update_versions command...
+INFO 2025-11-25 19:00:18 update_versions handle Starting version update process...
+INFO 2025-11-25 19:00:18 update_versions update_app_versions Checking core for changes...
+INFO 2025-11-25 19:00:19 models update_version_file Updated version.py for core
+INFO 2025-11-25 19:00:19 models create_code_changes 1 code changes recorded for مدیریت ساختار نرم افزار v1.0.0.31
+INFO 2025-11-25 19:00:19 models update_version_file Updated version.py for core
+INFO 2025-11-25 19:00:19 update_versions update_app_versions Checking accounts for changes...
+INFO 2025-11-25 19:00:19 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 19:00:19 models create_code_changes 1 code changes recorded for مدیریت کاربران v1.0.0.31
+INFO 2025-11-25 19:00:19 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 19:00:19 update_versions update_app_versions Checking version_tracker for changes...
+INFO 2025-11-25 19:00:19 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 19:00:19 models create_code_changes 1 code changes recorded for مدیریت نسخه v1.0.0.31
+INFO 2025-11-25 19:00:19 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 19:00:19 update_versions handle Versions updated: {'core': '1.0.0.31', 'accounts': '1.0.0.31', 'version_tracker': '1.0.0.31'}
+INFO 2025-11-25 19:00:19 update_versions handle Final version updated successfully!
+INFO 2025-11-25 19:00:19 signals update_versions 🚀 post_migrate triggered for django_jalali 🚀
+INFO 2025-11-25 19:00:19 signals update_versions Calling update_versions command...
+INFO 2025-11-25 19:00:19 update_versions handle Starting version update process...
+INFO 2025-11-25 19:00:19 update_versions update_app_versions Checking core for changes...
+INFO 2025-11-25 19:00:19 models update_version_file Updated version.py for core
+INFO 2025-11-25 19:00:19 models create_code_changes 1 code changes recorded for مدیریت ساختار نرم افزار v1.0.0.32
+INFO 2025-11-25 19:00:19 models update_version_file Updated version.py for core
+INFO 2025-11-25 19:00:19 update_versions update_app_versions Checking accounts for changes...
+INFO 2025-11-25 19:00:19 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 19:00:19 models create_code_changes 1 code changes recorded for مدیریت کاربران v1.0.0.32
+INFO 2025-11-25 19:00:19 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 19:00:19 update_versions update_app_versions Checking version_tracker for changes...
+INFO 2025-11-25 19:00:19 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 19:00:19 models create_code_changes 1 code changes recorded for مدیریت نسخه v1.0.0.32
+INFO 2025-11-25 19:00:19 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 19:00:19 update_versions handle Versions updated: {'core': '1.0.0.32', 'accounts': '1.0.0.32', 'version_tracker': '1.0.0.32'}
+INFO 2025-11-25 19:00:19 update_versions handle Final version updated successfully!
+INFO 2025-11-25 19:00:19 signals update_versions 🚀 post_migrate triggered for formtools 🚀
+INFO 2025-11-25 19:00:19 signals update_versions Calling update_versions command...
+INFO 2025-11-25 19:00:19 update_versions handle Starting version update process...
+INFO 2025-11-25 19:00:19 update_versions update_app_versions Checking core for changes...
+INFO 2025-11-25 19:00:19 models update_version_file Updated version.py for core
+INFO 2025-11-25 19:00:19 models create_code_changes 1 code changes recorded for مدیریت ساختار نرم افزار v1.0.0.33
+INFO 2025-11-25 19:00:19 models update_version_file Updated version.py for core
+INFO 2025-11-25 19:00:19 update_versions update_app_versions Checking accounts for changes...
+INFO 2025-11-25 19:00:19 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 19:00:19 models create_code_changes 1 code changes recorded for مدیریت کاربران v1.0.0.33
+INFO 2025-11-25 19:00:19 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 19:00:19 update_versions update_app_versions Checking version_tracker for changes...
+INFO 2025-11-25 19:00:19 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 19:00:19 models create_code_changes 1 code changes recorded for مدیریت نسخه v1.0.0.33
+INFO 2025-11-25 19:00:19 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 19:00:19 update_versions handle Versions updated: {'core': '1.0.0.33', 'accounts': '1.0.0.33', 'version_tracker': '1.0.0.33'}
+INFO 2025-11-25 19:00:19 update_versions handle Final version updated successfully!
+INFO 2025-11-25 19:00:19 signals update_versions 🚀 post_migrate triggered for core 🚀
+INFO 2025-11-25 19:00:19 signals update_versions Calling update_versions command...
+INFO 2025-11-25 19:00:19 update_versions handle Starting version update process...
+INFO 2025-11-25 19:00:19 update_versions update_app_versions Checking core for changes...
+INFO 2025-11-25 19:00:19 models update_version_file Updated version.py for core
+INFO 2025-11-25 19:00:19 models create_code_changes 1 code changes recorded for مدیریت ساختار نرم افزار v1.0.0.34
+INFO 2025-11-25 19:00:19 models update_version_file Updated version.py for core
+INFO 2025-11-25 19:00:19 update_versions update_app_versions Checking accounts for changes...
+INFO 2025-11-25 19:00:19 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 19:00:19 models create_code_changes 1 code changes recorded for مدیریت کاربران v1.0.0.34
+INFO 2025-11-25 19:00:19 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 19:00:19 update_versions update_app_versions Checking version_tracker for changes...
+INFO 2025-11-25 19:00:19 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 19:00:19 models create_code_changes 1 code changes recorded for مدیریت نسخه v1.0.0.34
+INFO 2025-11-25 19:00:19 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 19:00:19 update_versions handle Versions updated: {'core': '1.0.0.34', 'accounts': '1.0.0.34', 'version_tracker': '1.0.0.34'}
+INFO 2025-11-25 19:00:19 update_versions handle Final version updated successfully!
+INFO 2025-11-25 19:00:19 signals update_versions 🚀 post_migrate triggered for accounts 🚀
+INFO 2025-11-25 19:00:19 signals update_versions Calling update_versions command...
+INFO 2025-11-25 19:00:19 update_versions handle Starting version update process...
+INFO 2025-11-25 19:00:19 update_versions update_app_versions Checking core for changes...
+INFO 2025-11-25 19:00:19 models update_version_file Updated version.py for core
+INFO 2025-11-25 19:00:19 models create_code_changes 1 code changes recorded for مدیریت ساختار نرم افزار v1.0.0.35
+INFO 2025-11-25 19:00:19 models update_version_file Updated version.py for core
+INFO 2025-11-25 19:00:19 update_versions update_app_versions Checking accounts for changes...
+INFO 2025-11-25 19:00:19 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 19:00:19 models create_code_changes 1 code changes recorded for مدیریت کاربران v1.0.0.35
+INFO 2025-11-25 19:00:19 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 19:00:19 update_versions update_app_versions Checking version_tracker for changes...
+INFO 2025-11-25 19:00:19 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 19:00:19 models create_code_changes 1 code changes recorded for مدیریت نسخه v1.0.0.35
+INFO 2025-11-25 19:00:19 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 19:00:19 update_versions handle Versions updated: {'core': '1.0.0.35', 'accounts': '1.0.0.35', 'version_tracker': '1.0.0.35'}
+INFO 2025-11-25 19:00:19 update_versions handle Final version updated successfully!
+INFO 2025-11-25 19:00:19 signals update_versions 🚀 post_migrate triggered for reports 🚀
+INFO 2025-11-25 19:00:19 signals update_versions Calling update_versions command...
+INFO 2025-11-25 19:00:19 update_versions handle Starting version update process...
+INFO 2025-11-25 19:00:19 update_versions update_app_versions Checking core for changes...
+INFO 2025-11-25 19:00:19 models update_version_file Updated version.py for core
+INFO 2025-11-25 19:00:19 models create_code_changes 1 code changes recorded for مدیریت ساختار نرم افزار v1.0.0.36
+INFO 2025-11-25 19:00:19 models update_version_file Updated version.py for core
+INFO 2025-11-25 19:00:19 update_versions update_app_versions Checking accounts for changes...
+INFO 2025-11-25 19:00:19 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 19:00:19 models create_code_changes 1 code changes recorded for مدیریت کاربران v1.0.0.36
+INFO 2025-11-25 19:00:19 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 19:00:19 update_versions update_app_versions Checking version_tracker for changes...
+INFO 2025-11-25 19:00:19 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 19:00:19 models create_code_changes 1 code changes recorded for مدیریت نسخه v1.0.0.36
+INFO 2025-11-25 19:00:19 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 19:00:19 update_versions handle Versions updated: {'core': '1.0.0.36', 'accounts': '1.0.0.36', 'version_tracker': '1.0.0.36'}
+INFO 2025-11-25 19:00:19 update_versions handle Final version updated successfully!
+INFO 2025-11-25 19:00:19 signals update_versions 🚀 post_migrate triggered for version_tracker 🚀
+INFO 2025-11-25 19:00:19 signals update_versions 🚀 post_migrate triggered for version_tracker 🚀
+INFO 2025-11-25 19:00:19 signals update_versions 🚀 post_migrate triggered for usb_key_validator 🚀
+INFO 2025-11-25 19:00:19 signals update_versions Calling update_versions command...
+INFO 2025-11-25 19:00:19 update_versions handle Starting version update process...
+INFO 2025-11-25 19:00:19 update_versions update_app_versions Checking core for changes...
+INFO 2025-11-25 19:00:19 models update_version_file Updated version.py for core
+INFO 2025-11-25 19:00:19 models create_code_changes 1 code changes recorded for مدیریت ساختار نرم افزار v1.0.0.37
+INFO 2025-11-25 19:00:19 models update_version_file Updated version.py for core
+INFO 2025-11-25 19:00:19 update_versions update_app_versions Checking accounts for changes...
+INFO 2025-11-25 19:00:19 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 19:00:19 models create_code_changes 1 code changes recorded for مدیریت کاربران v1.0.0.37
+INFO 2025-11-25 19:00:19 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 19:00:19 update_versions update_app_versions Checking version_tracker for changes...
+INFO 2025-11-25 19:00:19 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 19:00:19 models create_code_changes 1 code changes recorded for مدیریت نسخه v1.0.0.37
+INFO 2025-11-25 19:00:19 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 19:00:19 update_versions handle Versions updated: {'core': '1.0.0.37', 'accounts': '1.0.0.37', 'version_tracker': '1.0.0.37'}
+INFO 2025-11-25 19:00:19 update_versions handle Final version updated successfully!
+INFO 2025-11-25 19:00:19 signals update_versions 🚀 post_migrate triggered for notificationApp 🚀
+INFO 2025-11-25 19:00:19 signals update_versions Calling update_versions command...
+INFO 2025-11-25 19:00:19 update_versions handle Starting version update process...
+INFO 2025-11-25 19:00:19 update_versions update_app_versions Checking core for changes...
+INFO 2025-11-25 19:00:19 models update_version_file Updated version.py for core
+INFO 2025-11-25 19:00:19 models create_code_changes 1 code changes recorded for مدیریت ساختار نرم افزار v1.0.0.38
+INFO 2025-11-25 19:00:19 models update_version_file Updated version.py for core
+INFO 2025-11-25 19:00:19 update_versions update_app_versions Checking accounts for changes...
+INFO 2025-11-25 19:00:19 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 19:00:19 models create_code_changes 1 code changes recorded for مدیریت کاربران v1.0.0.38
+INFO 2025-11-25 19:00:19 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 19:00:19 update_versions update_app_versions Checking version_tracker for changes...
+INFO 2025-11-25 19:00:19 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 19:00:19 models create_code_changes 1 code changes recorded for مدیریت نسخه v1.0.0.38
+INFO 2025-11-25 19:00:19 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 19:00:19 update_versions handle Versions updated: {'core': '1.0.0.38', 'accounts': '1.0.0.38', 'version_tracker': '1.0.0.38'}
+INFO 2025-11-25 19:00:19 update_versions handle Final version updated successfully!
+INFO 2025-11-25 19:00:19 signals update_versions 🚀 post_migrate triggered for purchase_requests 🚀
+INFO 2025-11-25 19:00:19 signals update_versions Calling update_versions command...
+INFO 2025-11-25 19:00:19 update_versions handle Starting version update process...
+INFO 2025-11-25 19:00:19 update_versions update_app_versions Checking core for changes...
+INFO 2025-11-25 19:00:19 models update_version_file Updated version.py for core
+INFO 2025-11-25 19:00:19 models create_code_changes 1 code changes recorded for مدیریت ساختار نرم افزار v1.0.0.39
+INFO 2025-11-25 19:00:19 models update_version_file Updated version.py for core
+INFO 2025-11-25 19:00:19 update_versions update_app_versions Checking accounts for changes...
+INFO 2025-11-25 19:00:19 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 19:00:19 models create_code_changes 1 code changes recorded for مدیریت کاربران v1.0.0.39
+INFO 2025-11-25 19:00:19 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 19:00:19 update_versions update_app_versions Checking version_tracker for changes...
+INFO 2025-11-25 19:00:19 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 19:00:19 models create_code_changes 1 code changes recorded for مدیریت نسخه v1.0.0.39
+INFO 2025-11-25 19:00:19 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 19:00:19 update_versions handle Versions updated: {'core': '1.0.0.39', 'accounts': '1.0.0.39', 'version_tracker': '1.0.0.39'}
+INFO 2025-11-25 19:00:19 update_versions handle Final version updated successfully!
+INFO 2025-11-25 19:00:19 signals update_versions 🚀 post_migrate triggered for tankhah 🚀
+INFO 2025-11-25 19:00:19 signals update_versions Calling update_versions command...
+INFO 2025-11-25 19:00:19 update_versions handle Starting version update process...
+INFO 2025-11-25 19:00:19 update_versions update_app_versions Checking core for changes...
+INFO 2025-11-25 19:00:19 models update_version_file Updated version.py for core
+INFO 2025-11-25 19:00:19 models create_code_changes 1 code changes recorded for مدیریت ساختار نرم افزار v1.0.0.40
+INFO 2025-11-25 19:00:19 models update_version_file Updated version.py for core
+INFO 2025-11-25 19:00:19 update_versions update_app_versions Checking accounts for changes...
+INFO 2025-11-25 19:00:19 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 19:00:19 models create_code_changes 1 code changes recorded for مدیریت کاربران v1.0.0.40
+INFO 2025-11-25 19:00:19 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 19:00:19 update_versions update_app_versions Checking version_tracker for changes...
+INFO 2025-11-25 19:00:19 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 19:00:19 models create_code_changes 1 code changes recorded for مدیریت نسخه v1.0.0.40
+INFO 2025-11-25 19:00:19 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 19:00:19 update_versions handle Versions updated: {'core': '1.0.0.40', 'accounts': '1.0.0.40', 'version_tracker': '1.0.0.40'}
+INFO 2025-11-25 19:00:19 update_versions handle Final version updated successfully!
+INFO 2025-11-25 19:00:19 signals update_versions 🚀 post_migrate triggered for budgets 🚀
+INFO 2025-11-25 19:00:19 signals update_versions Calling update_versions command...
+INFO 2025-11-25 19:00:19 update_versions handle Starting version update process...
+INFO 2025-11-25 19:00:19 update_versions update_app_versions Checking core for changes...
+INFO 2025-11-25 19:00:19 models update_version_file Updated version.py for core
+INFO 2025-11-25 19:00:19 models create_code_changes 1 code changes recorded for مدیریت ساختار نرم افزار v1.0.0.41
+INFO 2025-11-25 19:00:19 models update_version_file Updated version.py for core
+INFO 2025-11-25 19:00:19 update_versions update_app_versions Checking accounts for changes...
+INFO 2025-11-25 19:00:19 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 19:00:19 models create_code_changes 1 code changes recorded for مدیریت کاربران v1.0.0.41
+INFO 2025-11-25 19:00:19 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 19:00:19 update_versions update_app_versions Checking version_tracker for changes...
+INFO 2025-11-25 19:00:19 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 19:00:19 models create_code_changes 1 code changes recorded for مدیریت نسخه v1.0.0.41
+INFO 2025-11-25 19:00:19 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 19:00:19 update_versions handle Versions updated: {'core': '1.0.0.41', 'accounts': '1.0.0.41', 'version_tracker': '1.0.0.41'}
+INFO 2025-11-25 19:00:19 update_versions handle Final version updated successfully!
+INFO 2025-11-25 19:00:34 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 19:00:34 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 19:00:34 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 19:01:04 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 19:01:04 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 19:01:04 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 19:01:19 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 19:01:19 middleware __call__ درخواست به: /, کاربر: AnonymousUser
+INFO 2025-11-25 19:01:19 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 19:01:19 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 19:01:19 middleware __call__ درخواست به: /accounts/login/, کاربر: AnonymousUser
+INFO 2025-11-25 19:01:20 middleware __call__ پاسخ برای /accounts/login/ - کد وضعیت: 200
+INFO 2025-11-25 19:01:25 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 19:01:25 middleware __call__ درخواست به: /accounts/login/, کاربر: AnonymousUser
+INFO 2025-11-25 19:01:25 middleware __call__ پاسخ برای /accounts/login/ - کد وضعیت: 200
+INFO 2025-11-25 19:01:30 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 19:01:30 middleware __call__ درخواست به: /accounts/login/, کاربر: AnonymousUser
+INFO 2025-11-25 19:01:30 signals enforce_single_session_on_login Single-session enforced for user=admin3, session=45bi03fafqk8yw72vipwmxzj4u42ym72
+INFO 2025-11-25 19:01:30 middleware __call__ پاسخ برای /accounts/login/ - کد وضعیت: 302
+INFO 2025-11-25 19:01:30 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 19:01:30 middleware __call__ درخواست به: /, کاربر: admin3
+ERROR 2025-11-25 19:01:30 view_Dashboard get_enhanced_dashboard_stats خطا در دریافت آمار پیشرفته: (1054, "Unknown column 'tankhah_factor.status_id' in 'on clause'")
+INFO 2025-11-25 19:01:30 middleware __call__ پاسخ برای / - کد وضعیت: 500
+INFO 2025-11-25 19:01:31 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 19:01:31 middleware __call__ درخواست به: /favicon.ico, کاربر: admin3
+INFO 2025-11-25 19:01:31 middleware __call__ پاسخ برای /favicon.ico - کد وضعیت: 302
+INFO 2025-11-25 19:01:34 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 19:01:34 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 19:01:34 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 19:02:04 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 19:02:04 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 19:02:04 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 19:02:35 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 19:02:35 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 19:02:35 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 19:03:05 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 19:03:05 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 19:03:05 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 19:03:35 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 19:03:35 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 19:03:35 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 19:04:05 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 19:04:05 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 19:04:05 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 19:04:35 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 19:04:35 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 19:04:35 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 19:05:05 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 19:05:05 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 19:05:05 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 19:05:35 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 19:05:35 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 19:05:35 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 19:06:05 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 19:06:05 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 19:06:05 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 19:06:35 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 19:06:35 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 19:06:35 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 19:07:06 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 19:07:06 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 19:07:06 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 19:07:36 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 19:07:36 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 19:07:36 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 19:08:06 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 19:08:06 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 19:08:06 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 19:08:36 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-11-25 19:08:36 middleware __call__ درخواست به: /health/, کاربر: AnonymousUser
+INFO 2025-11-25 19:08:36 middleware __call__ کاربر لاگین نکرده - ریدایرکت به accounts:login
+INFO 2025-11-25 19:47:36 signals update_versions 🚀 post_migrate triggered for django.contrib.admin 🚀
+INFO 2025-11-25 19:47:36 signals update_versions Calling update_versions command...
+INFO 2025-11-25 19:47:36 update_versions handle Starting version update process...
+INFO 2025-11-25 19:47:36 update_versions update_app_versions Checking core for changes...
+INFO 2025-11-25 19:47:36 models update_version_file Updated version.py for core
+INFO 2025-11-25 19:47:36 models create_code_changes 1 code changes recorded for مدیریت ساختار نرم افزار v1.0.0.42
+INFO 2025-11-25 19:47:36 models update_version_file Updated version.py for core
+INFO 2025-11-25 19:47:36 update_versions update_app_versions Checking accounts for changes...
+INFO 2025-11-25 19:47:36 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 19:47:36 models create_code_changes 1 code changes recorded for مدیریت کاربران v1.0.0.42
+INFO 2025-11-25 19:47:36 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 19:47:36 update_versions update_app_versions Checking version_tracker for changes...
+INFO 2025-11-25 19:47:36 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 19:47:36 models create_code_changes 1 code changes recorded for مدیریت نسخه v1.0.0.42
+INFO 2025-11-25 19:47:36 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 19:47:36 update_versions handle Versions updated: {'core': '1.0.0.42', 'accounts': '1.0.0.42', 'version_tracker': '1.0.0.42'}
+INFO 2025-11-25 19:47:36 update_versions handle Final version updated successfully!
+INFO 2025-11-25 19:47:36 signals update_versions 🚀 post_migrate triggered for django.contrib.auth 🚀
+INFO 2025-11-25 19:47:36 signals update_versions Calling update_versions command...
+INFO 2025-11-25 19:47:36 update_versions handle Starting version update process...
+INFO 2025-11-25 19:47:36 update_versions update_app_versions Checking core for changes...
+INFO 2025-11-25 19:47:36 models update_version_file Updated version.py for core
+INFO 2025-11-25 19:47:36 models create_code_changes 1 code changes recorded for مدیریت ساختار نرم افزار v1.0.0.43
+INFO 2025-11-25 19:47:36 models update_version_file Updated version.py for core
+INFO 2025-11-25 19:47:36 update_versions update_app_versions Checking accounts for changes...
+INFO 2025-11-25 19:47:36 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 19:47:36 models create_code_changes 1 code changes recorded for مدیریت کاربران v1.0.0.43
+INFO 2025-11-25 19:47:36 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 19:47:36 update_versions update_app_versions Checking version_tracker for changes...
+INFO 2025-11-25 19:47:36 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 19:47:36 models create_code_changes 1 code changes recorded for مدیریت نسخه v1.0.0.43
+INFO 2025-11-25 19:47:36 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 19:47:36 update_versions handle Versions updated: {'core': '1.0.0.43', 'accounts': '1.0.0.43', 'version_tracker': '1.0.0.43'}
+INFO 2025-11-25 19:47:36 update_versions handle Final version updated successfully!
+INFO 2025-11-25 19:47:36 signals update_versions 🚀 post_migrate triggered for django.contrib.contenttypes 🚀
+INFO 2025-11-25 19:47:36 signals update_versions Calling update_versions command...
+INFO 2025-11-25 19:47:36 update_versions handle Starting version update process...
+INFO 2025-11-25 19:47:36 update_versions update_app_versions Checking core for changes...
+INFO 2025-11-25 19:47:36 models update_version_file Updated version.py for core
+INFO 2025-11-25 19:47:36 models create_code_changes 1 code changes recorded for مدیریت ساختار نرم افزار v1.0.0.44
+INFO 2025-11-25 19:47:36 models update_version_file Updated version.py for core
+INFO 2025-11-25 19:47:36 update_versions update_app_versions Checking accounts for changes...
+INFO 2025-11-25 19:47:36 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 19:47:36 models create_code_changes 1 code changes recorded for مدیریت کاربران v1.0.0.44
+INFO 2025-11-25 19:47:36 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 19:47:36 update_versions update_app_versions Checking version_tracker for changes...
+INFO 2025-11-25 19:47:36 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 19:47:36 models create_code_changes 1 code changes recorded for مدیریت نسخه v1.0.0.44
+INFO 2025-11-25 19:47:36 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 19:47:36 update_versions handle Versions updated: {'core': '1.0.0.44', 'accounts': '1.0.0.44', 'version_tracker': '1.0.0.44'}
+INFO 2025-11-25 19:47:36 update_versions handle Final version updated successfully!
+INFO 2025-11-25 19:47:36 signals update_versions 🚀 post_migrate triggered for django.contrib.sessions 🚀
+INFO 2025-11-25 19:47:36 signals update_versions Calling update_versions command...
+INFO 2025-11-25 19:47:36 update_versions handle Starting version update process...
+INFO 2025-11-25 19:47:36 update_versions update_app_versions Checking core for changes...
+INFO 2025-11-25 19:47:36 models update_version_file Updated version.py for core
+INFO 2025-11-25 19:47:36 models create_code_changes 1 code changes recorded for مدیریت ساختار نرم افزار v1.0.0.45
+INFO 2025-11-25 19:47:36 models update_version_file Updated version.py for core
+INFO 2025-11-25 19:47:36 update_versions update_app_versions Checking accounts for changes...
+INFO 2025-11-25 19:47:36 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 19:47:36 models create_code_changes 1 code changes recorded for مدیریت کاربران v1.0.0.45
+INFO 2025-11-25 19:47:36 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 19:47:36 update_versions update_app_versions Checking version_tracker for changes...
+INFO 2025-11-25 19:47:36 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 19:47:36 models create_code_changes 1 code changes recorded for مدیریت نسخه v1.0.0.45
+INFO 2025-11-25 19:47:36 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 19:47:36 update_versions handle Versions updated: {'core': '1.0.0.45', 'accounts': '1.0.0.45', 'version_tracker': '1.0.0.45'}
+INFO 2025-11-25 19:47:36 update_versions handle Final version updated successfully!
+INFO 2025-11-25 19:47:36 signals update_versions 🚀 post_migrate triggered for django_jalali 🚀
+INFO 2025-11-25 19:47:36 signals update_versions Calling update_versions command...
+INFO 2025-11-25 19:47:36 update_versions handle Starting version update process...
+INFO 2025-11-25 19:47:36 update_versions update_app_versions Checking core for changes...
+INFO 2025-11-25 19:47:36 models update_version_file Updated version.py for core
+INFO 2025-11-25 19:47:36 models create_code_changes 1 code changes recorded for مدیریت ساختار نرم افزار v1.0.0.46
+INFO 2025-11-25 19:47:36 models update_version_file Updated version.py for core
+INFO 2025-11-25 19:47:36 update_versions update_app_versions Checking accounts for changes...
+INFO 2025-11-25 19:47:36 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 19:47:36 models create_code_changes 1 code changes recorded for مدیریت کاربران v1.0.0.46
+INFO 2025-11-25 19:47:36 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 19:47:36 update_versions update_app_versions Checking version_tracker for changes...
+INFO 2025-11-25 19:47:36 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 19:47:36 models create_code_changes 1 code changes recorded for مدیریت نسخه v1.0.0.46
+INFO 2025-11-25 19:47:36 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 19:47:36 update_versions handle Versions updated: {'core': '1.0.0.46', 'accounts': '1.0.0.46', 'version_tracker': '1.0.0.46'}
+INFO 2025-11-25 19:47:36 update_versions handle Final version updated successfully!
+INFO 2025-11-25 19:47:36 signals update_versions 🚀 post_migrate triggered for formtools 🚀
+INFO 2025-11-25 19:47:36 signals update_versions Calling update_versions command...
+INFO 2025-11-25 19:47:36 update_versions handle Starting version update process...
+INFO 2025-11-25 19:47:36 update_versions update_app_versions Checking core for changes...
+INFO 2025-11-25 19:47:36 models update_version_file Updated version.py for core
+INFO 2025-11-25 19:47:36 models create_code_changes 1 code changes recorded for مدیریت ساختار نرم افزار v1.0.0.47
+INFO 2025-11-25 19:47:36 models update_version_file Updated version.py for core
+INFO 2025-11-25 19:47:36 update_versions update_app_versions Checking accounts for changes...
+INFO 2025-11-25 19:47:36 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 19:47:36 models create_code_changes 1 code changes recorded for مدیریت کاربران v1.0.0.47
+INFO 2025-11-25 19:47:36 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 19:47:36 update_versions update_app_versions Checking version_tracker for changes...
+INFO 2025-11-25 19:47:36 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 19:47:36 models create_code_changes 1 code changes recorded for مدیریت نسخه v1.0.0.47
+INFO 2025-11-25 19:47:36 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 19:47:36 update_versions handle Versions updated: {'core': '1.0.0.47', 'accounts': '1.0.0.47', 'version_tracker': '1.0.0.47'}
+INFO 2025-11-25 19:47:36 update_versions handle Final version updated successfully!
+INFO 2025-11-25 19:47:36 signals update_versions 🚀 post_migrate triggered for core 🚀
+INFO 2025-11-25 19:47:36 signals update_versions Calling update_versions command...
+INFO 2025-11-25 19:47:36 update_versions handle Starting version update process...
+INFO 2025-11-25 19:47:36 update_versions update_app_versions Checking core for changes...
+INFO 2025-11-25 19:47:36 models update_version_file Updated version.py for core
+INFO 2025-11-25 19:47:37 models create_code_changes 1 code changes recorded for مدیریت ساختار نرم افزار v1.0.0.48
+INFO 2025-11-25 19:47:37 models update_version_file Updated version.py for core
+INFO 2025-11-25 19:47:37 update_versions update_app_versions Checking accounts for changes...
+INFO 2025-11-25 19:47:37 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 19:47:37 models create_code_changes 1 code changes recorded for مدیریت کاربران v1.0.0.48
+INFO 2025-11-25 19:47:37 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 19:47:37 update_versions update_app_versions Checking version_tracker for changes...
+INFO 2025-11-25 19:47:37 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 19:47:37 models create_code_changes 1 code changes recorded for مدیریت نسخه v1.0.0.48
+INFO 2025-11-25 19:47:37 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 19:47:37 update_versions handle Versions updated: {'core': '1.0.0.48', 'accounts': '1.0.0.48', 'version_tracker': '1.0.0.48'}
+INFO 2025-11-25 19:47:37 update_versions handle Final version updated successfully!
+INFO 2025-11-25 19:47:37 signals update_versions 🚀 post_migrate triggered for accounts 🚀
+INFO 2025-11-25 19:47:37 signals update_versions Calling update_versions command...
+INFO 2025-11-25 19:47:37 update_versions handle Starting version update process...
+INFO 2025-11-25 19:47:37 update_versions update_app_versions Checking core for changes...
+INFO 2025-11-25 19:47:37 models update_version_file Updated version.py for core
+INFO 2025-11-25 19:47:37 models create_code_changes 1 code changes recorded for مدیریت ساختار نرم افزار v1.0.0.49
+INFO 2025-11-25 19:47:37 models update_version_file Updated version.py for core
+INFO 2025-11-25 19:47:37 update_versions update_app_versions Checking accounts for changes...
+INFO 2025-11-25 19:47:37 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 19:47:37 models create_code_changes 1 code changes recorded for مدیریت کاربران v1.0.0.49
+INFO 2025-11-25 19:47:37 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 19:47:37 update_versions update_app_versions Checking version_tracker for changes...
+INFO 2025-11-25 19:47:37 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 19:47:37 models create_code_changes 1 code changes recorded for مدیریت نسخه v1.0.0.49
+INFO 2025-11-25 19:47:37 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 19:47:37 update_versions handle Versions updated: {'core': '1.0.0.49', 'accounts': '1.0.0.49', 'version_tracker': '1.0.0.49'}
+INFO 2025-11-25 19:47:37 update_versions handle Final version updated successfully!
+INFO 2025-11-25 19:47:37 signals update_versions 🚀 post_migrate triggered for reports 🚀
+INFO 2025-11-25 19:47:37 signals update_versions Calling update_versions command...
+INFO 2025-11-25 19:47:37 update_versions handle Starting version update process...
+INFO 2025-11-25 19:47:37 update_versions update_app_versions Checking core for changes...
+INFO 2025-11-25 19:47:37 models update_version_file Updated version.py for core
+INFO 2025-11-25 19:47:37 models create_code_changes 1 code changes recorded for مدیریت ساختار نرم افزار v1.0.0.50
+INFO 2025-11-25 19:47:37 models update_version_file Updated version.py for core
+INFO 2025-11-25 19:47:37 update_versions update_app_versions Checking accounts for changes...
+INFO 2025-11-25 19:47:37 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 19:47:37 models create_code_changes 1 code changes recorded for مدیریت کاربران v1.0.0.50
+INFO 2025-11-25 19:47:37 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 19:47:37 update_versions update_app_versions Checking version_tracker for changes...
+INFO 2025-11-25 19:47:37 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 19:47:37 models create_code_changes 1 code changes recorded for مدیریت نسخه v1.0.0.50
+INFO 2025-11-25 19:47:37 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 19:47:37 update_versions handle Versions updated: {'core': '1.0.0.50', 'accounts': '1.0.0.50', 'version_tracker': '1.0.0.50'}
+INFO 2025-11-25 19:47:37 update_versions handle Final version updated successfully!
+INFO 2025-11-25 19:47:37 signals update_versions 🚀 post_migrate triggered for version_tracker 🚀
+INFO 2025-11-25 19:47:37 signals update_versions 🚀 post_migrate triggered for version_tracker 🚀
+INFO 2025-11-25 19:47:37 signals update_versions 🚀 post_migrate triggered for usb_key_validator 🚀
+INFO 2025-11-25 19:47:37 signals update_versions Calling update_versions command...
+INFO 2025-11-25 19:47:37 update_versions handle Starting version update process...
+INFO 2025-11-25 19:47:37 update_versions update_app_versions Checking core for changes...
+INFO 2025-11-25 19:47:37 models update_version_file Updated version.py for core
+INFO 2025-11-25 19:47:37 models create_code_changes 1 code changes recorded for مدیریت ساختار نرم افزار v1.0.0.51
+INFO 2025-11-25 19:47:37 models update_version_file Updated version.py for core
+INFO 2025-11-25 19:47:37 update_versions update_app_versions Checking accounts for changes...
+INFO 2025-11-25 19:47:37 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 19:47:37 models create_code_changes 1 code changes recorded for مدیریت کاربران v1.0.0.51
+INFO 2025-11-25 19:47:37 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 19:47:37 update_versions update_app_versions Checking version_tracker for changes...
+INFO 2025-11-25 19:47:37 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 19:47:37 models create_code_changes 1 code changes recorded for مدیریت نسخه v1.0.0.51
+INFO 2025-11-25 19:47:37 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 19:47:37 update_versions handle Versions updated: {'core': '1.0.0.51', 'accounts': '1.0.0.51', 'version_tracker': '1.0.0.51'}
+INFO 2025-11-25 19:47:37 update_versions handle Final version updated successfully!
+INFO 2025-11-25 19:47:37 signals update_versions 🚀 post_migrate triggered for notificationApp 🚀
+INFO 2025-11-25 19:47:37 signals update_versions Calling update_versions command...
+INFO 2025-11-25 19:47:37 update_versions handle Starting version update process...
+INFO 2025-11-25 19:47:37 update_versions update_app_versions Checking core for changes...
+INFO 2025-11-25 19:47:37 models update_version_file Updated version.py for core
+INFO 2025-11-25 19:47:37 models create_code_changes 1 code changes recorded for مدیریت ساختار نرم افزار v1.0.0.52
+INFO 2025-11-25 19:47:37 models update_version_file Updated version.py for core
+INFO 2025-11-25 19:47:37 update_versions update_app_versions Checking accounts for changes...
+INFO 2025-11-25 19:47:37 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 19:47:37 models create_code_changes 1 code changes recorded for مدیریت کاربران v1.0.0.52
+INFO 2025-11-25 19:47:37 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 19:47:37 update_versions update_app_versions Checking version_tracker for changes...
+INFO 2025-11-25 19:47:37 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 19:47:37 models create_code_changes 1 code changes recorded for مدیریت نسخه v1.0.0.52
+INFO 2025-11-25 19:47:37 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 19:47:37 update_versions handle Versions updated: {'core': '1.0.0.52', 'accounts': '1.0.0.52', 'version_tracker': '1.0.0.52'}
+INFO 2025-11-25 19:47:37 update_versions handle Final version updated successfully!
+INFO 2025-11-25 19:47:37 signals update_versions 🚀 post_migrate triggered for purchase_requests 🚀
+INFO 2025-11-25 19:47:37 signals update_versions Calling update_versions command...
+INFO 2025-11-25 19:47:37 update_versions handle Starting version update process...
+INFO 2025-11-25 19:47:37 update_versions update_app_versions Checking core for changes...
+INFO 2025-11-25 19:47:37 models update_version_file Updated version.py for core
+INFO 2025-11-25 19:47:37 models create_code_changes 1 code changes recorded for مدیریت ساختار نرم افزار v1.0.0.53
+INFO 2025-11-25 19:47:37 models update_version_file Updated version.py for core
+INFO 2025-11-25 19:47:37 update_versions update_app_versions Checking accounts for changes...
+INFO 2025-11-25 19:47:37 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 19:47:37 models create_code_changes 1 code changes recorded for مدیریت کاربران v1.0.0.53
+INFO 2025-11-25 19:47:37 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 19:47:37 update_versions update_app_versions Checking version_tracker for changes...
+INFO 2025-11-25 19:47:37 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 19:47:37 models create_code_changes 1 code changes recorded for مدیریت نسخه v1.0.0.53
+INFO 2025-11-25 19:47:37 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 19:47:37 update_versions handle Versions updated: {'core': '1.0.0.53', 'accounts': '1.0.0.53', 'version_tracker': '1.0.0.53'}
+INFO 2025-11-25 19:47:37 update_versions handle Final version updated successfully!
+INFO 2025-11-25 19:47:37 signals update_versions 🚀 post_migrate triggered for tankhah 🚀
+INFO 2025-11-25 19:47:37 signals update_versions Calling update_versions command...
+INFO 2025-11-25 19:47:37 update_versions handle Starting version update process...
+INFO 2025-11-25 19:47:37 update_versions update_app_versions Checking core for changes...
+INFO 2025-11-25 19:47:37 models update_version_file Updated version.py for core
+INFO 2025-11-25 19:47:37 models create_code_changes 1 code changes recorded for مدیریت ساختار نرم افزار v1.0.0.54
+INFO 2025-11-25 19:47:37 models update_version_file Updated version.py for core
+INFO 2025-11-25 19:47:37 update_versions update_app_versions Checking accounts for changes...
+INFO 2025-11-25 19:47:37 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 19:47:37 models create_code_changes 1 code changes recorded for مدیریت کاربران v1.0.0.54
+INFO 2025-11-25 19:47:37 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 19:47:37 update_versions update_app_versions Checking version_tracker for changes...
+INFO 2025-11-25 19:47:37 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 19:47:37 models create_code_changes 1 code changes recorded for مدیریت نسخه v1.0.0.54
+INFO 2025-11-25 19:47:37 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 19:47:37 update_versions handle Versions updated: {'core': '1.0.0.54', 'accounts': '1.0.0.54', 'version_tracker': '1.0.0.54'}
+INFO 2025-11-25 19:47:37 update_versions handle Final version updated successfully!
+INFO 2025-11-25 19:47:37 signals update_versions 🚀 post_migrate triggered for budgets 🚀
+INFO 2025-11-25 19:47:37 signals update_versions Calling update_versions command...
+INFO 2025-11-25 19:47:37 update_versions handle Starting version update process...
+INFO 2025-11-25 19:47:37 update_versions update_app_versions Checking core for changes...
+INFO 2025-11-25 19:47:37 models update_version_file Updated version.py for core
+INFO 2025-11-25 19:47:37 models create_code_changes 1 code changes recorded for مدیریت ساختار نرم افزار v1.0.0.55
+INFO 2025-11-25 19:47:37 models update_version_file Updated version.py for core
+INFO 2025-11-25 19:47:37 update_versions update_app_versions Checking accounts for changes...
+INFO 2025-11-25 19:47:37 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 19:47:37 models create_code_changes 1 code changes recorded for مدیریت کاربران v1.0.0.55
+INFO 2025-11-25 19:47:37 models update_version_file Updated version.py for accounts
+INFO 2025-11-25 19:47:37 update_versions update_app_versions Checking version_tracker for changes...
+INFO 2025-11-25 19:47:37 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 19:47:37 models create_code_changes 1 code changes recorded for مدیریت نسخه v1.0.0.55
+INFO 2025-11-25 19:47:37 models update_version_file Updated version.py for version_tracker
+INFO 2025-11-25 19:47:37 update_versions handle Versions updated: {'core': '1.0.0.55', 'accounts': '1.0.0.55', 'version_tracker': '1.0.0.55'}
+INFO 2025-11-25 19:47:37 update_versions handle Final version updated successfully!

@@ -6,14 +6,25 @@ load_secret() {
   local var_name="$1"
   local file_path="$2"
 
+  # First try Docker secrets path, then try environment variable path
   if [ -n "$file_path" ] && [ -f "$file_path" ]; then
-    export "$var_name"="$(cat "$file_path" | tr -d '\r')"
+    export "$var_name"="$(cat "$file_path" | tr -d '\r\n')"
+    echo "Loaded $var_name from $file_path"
+  elif [ -n "$file_path" ]; then
+    # Try Docker secrets default path (/run/secrets/)
+    local secret_name=$(basename "$file_path")
+    if [ -f "/run/secrets/$secret_name" ]; then
+      export "$var_name"="$(cat "/run/secrets/$secret_name" | tr -d '\r\n')"
+      echo "Loaded $var_name from /run/secrets/$secret_name"
+    fi
   fi
 }
 
-load_secret "SECRET_KEY" "${SECRET_KEY_FILE:-${SECRET_KEY_FILE_PATH:-}}"
-load_secret "DB_PASSWORD" "${DB_PASSWORD_FILE:-${DB_PASSWORD_FILE_PATH:-}}"
-load_secret "REDIS_PASSWORD" "${REDIS_PASSWORD_FILE:-${REDIS_PASSWORD_FILE_PATH:-}}"
+# Load secrets from Docker secrets (mounted at /run/secrets/)
+# These are set as environment variables with *_FILE paths in docker-compose.yml
+load_secret "SECRET_KEY" "${SECRET_KEY_FILE:-/run/secrets/django_secret_key}"
+load_secret "DB_PASSWORD" "${DB_PASSWORD_FILE:-/run/secrets/db_password}"
+load_secret "REDIS_PASSWORD" "${REDIS_PASSWORD_FILE:-/run/secrets/redis_password}"
 
 if [ -n "$REDIS_PASSWORD" ] && [ -z "$REDIS_URL" ]; then
   REDIS_HOST_ENV="${REDIS_HOST:-redis}"

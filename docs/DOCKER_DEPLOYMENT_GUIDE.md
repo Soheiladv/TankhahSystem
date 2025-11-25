@@ -301,10 +301,15 @@ docker compose exec -T db mysql -ubudgets_user -p$(cat /run/secrets/db_password)
 
 ## 🔐 نکات امنیتی
 
+> **📖 برای راهنمای کامل امنیت‌سازی رمزها و پسوردها، به فایل [`docs/SECURITY_SECRETS_GUIDE.md`](./SECURITY_SECRETS_GUIDE.md) مراجعه کنید.**
+
 1. **فایل‌های Secret:**
 
    - هرگز `secrets/*.txt` را commit نکنید
    - در سرور، دسترسی را محدود کنید: `chmod 600 secrets/*.txt`
+   - **امنیت‌سازی فوری:**
+     - Windows: `.\docker-scripts\secure-secrets.ps1`
+     - Linux: `bash docker-scripts/secure-secrets.sh`
 
 2. **متغیرهای محیطی:**
 
