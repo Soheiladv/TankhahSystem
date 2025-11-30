@@ -42,8 +42,9 @@ urlpatterns = [
                   path('view-locks/', TimeLockListView.as_view(), name='timelock_list'),
                   path('js-catalog', JavaScriptCatalog.as_view(), name='js-catalog'),
                   path('favicon.ico', RedirectView.as_view(url=staticfiles_storage.url('admin/img/favicon.ico')), name='favicon'),
-                  path('guide/', GuideView.as_view(), name='guide'),
+                  # path('guide/', GuideView.as_view(), name='guide'), # جایگزین شده با اپلیکیشن guide
                   path('guide/soft_Help/', soft_Help , name='soft_help'),
+                  path('guide/', include('guide.urls')),
 
                   # Default pattern last
                   path('', DashboardView.as_view(), name='index'),

@@ -2,31 +2,32 @@ import json
 import logging
 # --- BudgetAllocation CRUD ---
 from decimal import Decimal
+
 from django.contrib import messages
-from django.core.exceptions import ValidationError, PermissionDenied
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import transaction
-from django.db.models import Sum, DecimalField
+from django.db.models import DecimalField, Prefetch, Q, Sum
 from django.db.models.functions import Coalesce
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.utils.translation import gettext_lazy as _
-from django.views.generic import ListView, DetailView, DeleteView, CreateView, TemplateView
-from budgets.BudgetAllocation.forms_BudgetAllocation import BudgetAllocationForm
-from budgets.ProjectBudgetAllocation.forms_ProjectBudgetAllocation import ProjectBudgetAllocationForm
-from budgets.budget_calculations import (get_organization_budget, get_project_total_budget, get_project_used_budget,
-                                         get_project_remaining_budget)
+from django.views.generic import (CreateView, DeleteView, DetailView, ListView,
+                                  TemplateView)
+
+from budgets.budget_calculations import (get_organization_budget,
+                                         get_project_remaining_budget,
+                                         get_project_total_budget,
+                                         get_project_used_budget)
+from budgets.BudgetAllocation.forms_BudgetAllocation import \
+    BudgetAllocationForm
 from budgets.get_budget_details import get_budget_details
-from budgets.models import BudgetAllocation, BudgetTransaction, BudgetAllocation
-from core.PermissionBase import PermissionBaseView
+from budgets.models import BudgetAllocation, BudgetTransaction
+from budgets.ProjectBudgetAllocation.forms_ProjectBudgetAllocation import \
+    ProjectBudgetAllocationForm
 from core.models import Organization, Project, SubProject
-from decimal import Decimal
-from django.shortcuts import get_object_or_404, redirect
-from django.contrib import messages
-from django.db.models import Sum, Prefetch, Q, DecimalField
-from django.db.models.functions import Coalesce
-from django.views.generic import DetailView
+from core.PermissionBase import PermissionBaseView
 
 logger = logging.getLogger("ProjectBudgetAllocationDetailView")
 
@@ -630,7 +631,7 @@ class ProjectBudgetAllocationDetailView(PermissionBaseView, DetailView):
         if project:
             active_subprojects = SubProject.objects.filter(
                 project=project, is_active=True
-            ).prefetch_related('project_allocations')
+            )
             for subproject in active_subprojects:
                 subproject_allocations = BudgetAllocation.objects.filter(
                     subproject=subproject, is_active=True

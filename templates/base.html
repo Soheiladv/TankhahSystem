@@ -467,8 +467,8 @@
 {% if messages %}
     {% for message in messages %}
         <div class="alert {% if message.tags %}alert-
-            
-            
+
+
             {{ message.tags }}{% else %}alert-info{% endif %} alert-dismissible fade show animate__animated animate__fadeIn"
              role="alert">
             {{ message }}
@@ -620,7 +620,7 @@
             </a>
         </li>
         <li class="nav-item">
-            <a href="{% url 'guide' %}" class="nav-link animate__animated animate__fadeInRight">
+            <a href="{% url 'guide:index' %}" class="nav-link animate__animated animate__fadeInRight">
                 <i class="fas fa-book-open"></i>{% trans "راهنما" %}
             </a>
         </li>

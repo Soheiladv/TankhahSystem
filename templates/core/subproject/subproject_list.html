@@ -15,7 +15,7 @@
          <a href="{% url 'project_list' %}" class="btn btn-animate-light btn-sm">
                 <i class="fas fa-list me-1"></i>{% trans 'فهرست مرکز هزینه ها' %}
             </a>
-        
+
         </div>
         <div class="card-body">
             <form method="get" class="mb-3">
@@ -53,13 +53,16 @@
                             </td>
                             <td>
                                 <div class="btn-group">
-                                    {% if perms.tankhah.SubProject_update %}
-                                    <a href="{% url 'subproject_update' subproject.pk %}" class="btn btn-outline-secondary btn-sm">
+                                    <a href="{% url 'subproject_detail' subproject.pk %}" class="btn btn-outline-info btn-sm" title="{% trans 'جزئیات' %}">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    {% if perms.core.SubProject_update %}
+                                    <a href="{% url 'subproject_update' subproject.pk %}" class="btn btn-outline-secondary btn-sm" title="{% trans 'ویرایش' %}">
                                         <i class="fas fa-edit"></i>
                                     </a>
                                     {% endif %}
-                                    {% if perms.tankhah.SubProject_delete %}
-                                    <a href="{% url 'subproject_delete' subproject.pk %}" class="btn btn-outline-danger btn-sm">
+                                    {% if perms.core.SubProject_delete %}
+                                    <a href="{% url 'subproject_delete' subproject.pk %}" class="btn btn-outline-danger btn-sm" title="{% trans 'حذف' %}">
                                         <i class="fas fa-trash"></i>
                                     </a>
                                     {% endif %}
@@ -98,5 +101,5 @@
         </div>
     </div>
 </div>
- 
+
 {% endblock %}

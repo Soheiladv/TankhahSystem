@@ -3,33 +3,31 @@ import logging
 from decimal import Decimal
 from time import timezone
 
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db.models import Count, DecimalField, F, Prefetch, Q, Sum
 from django.db.models.functions import Coalesce
 from django.http import JsonResponse
-from django.shortcuts import render, redirect
-from tankhah.models import Tankhah,  StageApprover
-from django.contrib import messages
-from django.contrib.auth.mixins import LoginRequiredMixin
-from core.PermissionBase import  PermissionBaseView
-from django.db.models import Q, Sum, F, Count, Prefetch, DecimalField
+from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
 from django.utils.translation import gettext_lazy as _
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, View
-from django.views.generic import TemplateView
+from django.views.generic import (CreateView, DeleteView, DetailView, ListView,
+                                  TemplateView, UpdateView, View)
 
-from core.forms import OrganizationForm, ProjectForm, PostForm, UserPostForm, PostHistoryForm, StatusForm, \
-    SubProjectForm
-from core.models import Project, Post, UserPost, PostHistory, SubProject, PostAction, Status, Branch
-from django.db.models import Sum, Q
-from budgets.models import BudgetAllocation, BudgetPeriod, \
+from budgets.budget_calculations import (get_organization_budget,
+                                         get_project_remaining_budget,
+                                         get_project_total_budget,
+                                         get_project_used_budget)
+from budgets.models import \
     BudgetTransaction  # فرض بر این که BudgetAllocation در budgets است
-from budgets.budget_calculations import get_project_total_budget
-
-from django.db.models import Q
-from budgets.budget_calculations import get_project_remaining_budget, \
-    get_project_used_budget, get_organization_budget
-from core.models import Organization
-from django.views.generic import ListView
+from budgets.models import BudgetAllocation, BudgetPeriod
+from core.forms import (OrganizationForm, PostForm, PostHistoryForm,
+                        ProjectForm, StatusForm, SubProjectForm, UserPostForm)
+from core.models import (Branch, Organization, Post, PostAction, PostHistory,
+                         Project, Status, SubProject, UserPost)
+from core.PermissionBase import PermissionBaseView
+from tankhah.models import StageApprover, Tankhah
 
 #######################################################################################
 # داشبورد آماری تنخواه گردان
@@ -140,16 +138,17 @@ class OLD_DashboardView_flows(LoginRequiredMixin, TemplateView):
         context['workflow_stages'] = workflow_stages
         return context
 
-from django.views.generic import TemplateView
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import Count, Q, Prefetch
-from django.core.cache import cache
-from collections import defaultdict
 import logging
+from collections import defaultdict
+
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.cache import cache
+from django.db.models import Count, Prefetch, Q
+from django.views.generic import TemplateView
 
 logger = logging.getLogger("DashboardFlowsView")
-from django.db import DatabaseError
 from django.core.exceptions import ObjectDoesNotExist
+from django.db import DatabaseError
 
 #--------------------------------------------------------------
 
@@ -1098,21 +1097,21 @@ class OrganizationDetailView(PermissionBaseView, DetailView):
         """محاسبه جزئیات بودجه سازمان"""
         try:
             from budgets.models import BudgetTransaction
-            
+
             allocations = organization.budget_allocations.filter(is_active=True)
             total_allocated = allocations.aggregate(total=Sum('allocated_amount'))['total'] or Decimal('0')
-            
+
             # محاسبه مصرف واقعی از تراکنش‌ها
             total_consumed = BudgetTransaction.objects.filter(
                 allocation__in=allocations,
                 transaction_type='CONSUMPTION'
             ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
-            
+
             remaining_budget = total_allocated - total_consumed
 
             # محاسبه پروژه‌های منحصر به فرد
             project_count = allocations.exclude(project__isnull=True).values('project').distinct().count()
-            
+
             # آخرین بروزرسانی
             last_allocation = allocations.order_by('-allocation_date').first()
             last_update = last_allocation.allocation_date if last_allocation else None
@@ -1141,40 +1140,40 @@ class OrganizationDetailView(PermissionBaseView, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['title'] = _('جزئیات سازمان') + f" - {self.object.code}"
-        
+
         # اضافه کردن جزئیات بودجه
         context['budget_details'] = self.get_budget_details(self.object)
-        
+
         # اضافه کردن آمار اضافی
         organization = self.object
-        
+
         # آمار پست‌ها
         context['posts_stats'] = {
             'total_posts': organization.post_set.count(),
             'active_posts': organization.post_set.filter(is_active=True).count(),
             'inactive_posts': organization.post_set.filter(is_active=False).count(),
         }
-        
+
         # آمار کاربران
         total_users = 0
         active_users = 0
         for post in organization.post_set.all():
             total_users += post.userpost_set.count()
             active_users += post.userpost_set.filter(is_active=True).count()
-        
+
         context['users_stats'] = {
             'total_users': total_users,
             'active_users': active_users,
             'inactive_users': total_users - active_users,
         }
-        
+
         # آمار دوره‌های بودجه
         context['budget_periods_stats'] = {
             'total_periods': organization.budget_periods.count(),
             'active_periods': organization.budget_periods.filter(is_active=True).count(),
             'completed_periods': organization.budget_periods.filter(is_completed=True).count(),
         }
-        
+
         return context
 class OrganizationCreateView(PermissionBaseView, CreateView):
     model = Organization
@@ -1496,12 +1495,12 @@ class PostListView(PermissionBaseView, ListView):
         context['search_query'] = self.request.GET.get('q', '')
         # Pass the current sort order to the template to highlight the active sort option
         context['current_sort'] = self.request.GET.get('sort', 'asc')
-        
+
         # Pass filter data to template
         context['organizations'] = Organization.objects.filter(is_active=True).order_by('name')
         context['branches'] = Branch.objects.filter(is_active=True).order_by('name')
         context['levels'] = range(1, 11)  # Assuming max level is 10, adjust as needed
-        
+
         # Pass current filter values
         context['current_organization'] = self.request.GET.get('organization', '')
         context['current_branch'] = self.request.GET.get('branch', '')
@@ -1510,7 +1509,7 @@ class PostListView(PermissionBaseView, ListView):
         context['current_budget_approval'] = self.request.GET.get('budget_approval', '')
         context['current_factor_approval'] = self.request.GET.get('factor_approval', '')
         context['current_tankhah_approval'] = self.request.GET.get('tankhah_approval', '')
-        
+
         # اضافه کردن اطلاعات فرزندان و کاربران فعال برای هر پست
         posts = context.get('posts', [])
         for post in posts:
@@ -1519,18 +1518,18 @@ class PostListView(PermissionBaseView, ListView):
             # اضافه کردن کاربران فعال
             post.active_users = post.userpost_set.filter(is_active=True).select_related('user')
             # active_users_count یک property است، نیازی به setattr نیست
-        
+
         return context
 
 class PostActiveUsersAPIView(PermissionBaseView, View):
     """API view برای دریافت کاربران فعال یک پست"""
     permission_codename = 'core.Post_view'
-    
+
     def get(self, request, post_id):
         try:
             post = Post.objects.get(pk=post_id, is_active=True)
             active_users = post.userpost_set.filter(is_active=True).select_related('user')
-            
+
             users_data = []
             for userpost in active_users:
                 users_data.append({
@@ -1541,14 +1540,14 @@ class PostActiveUsersAPIView(PermissionBaseView, View):
                     'start_date': userpost.start_date.strftime('%Y-%m-%d') if userpost.start_date else None,
                     'end_date': userpost.end_date.strftime('%Y-%m-%d') if userpost.end_date else None,
                 })
-            
+
             return JsonResponse({
                 'success': True,
                 'post_name': post.name,
                 'active_users': users_data,
                 'count': len(users_data)
             })
-            
+
         except Post.DoesNotExist:
             return JsonResponse({
                 'success': False,
@@ -1572,24 +1571,24 @@ class PostDetailView(PermissionBaseView, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         post = self.object
-        
+
         # اطلاعات مراحل گردش کار
         from tankhah.models import StageApprover
         context['stages'] = StageApprover.objects.filter(post=post).select_related('stage')
-        
+
         # اطلاعات کاربران فعال
         context['active_users'] = post.userpost_set.filter(is_active=True).select_related('user')
         context['inactive_users'] = post.userpost_set.filter(is_active=False).select_related('user')
-        
+
         # اطلاعات پست‌های فرزند
         context['child_posts'] = Post.objects.filter(parent=post, is_active=True).select_related('organization', 'branch')
-        
+
         # اطلاعات اقدامات مجاز پست
         context['post_actions'] = post.postactions.filter(is_active=True).select_related('stage')
-        
+
         # اطلاعات قوانین تخصیص یافته
         context['rule_assignments'] = post.postruleassignment_set.filter(is_active=True).select_related('action', 'organization')
-        
+
         # آمار کلی
         context['stats'] = {
             'active_users_count': context['active_users'].count(),
@@ -1598,7 +1597,7 @@ class PostDetailView(PermissionBaseView, DetailView):
             'post_actions_count': context['post_actions'].count(),
             'rule_assignments_count': context['rule_assignments'].count(),
         }
-        
+
         return context
 
 class PostCreateView(PermissionBaseView, CreateView):
@@ -1659,30 +1658,30 @@ class PostDeleteView(PermissionBaseView, DeleteView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         post = self.get_object()
-        
+
         # بررسی پست‌های فرزند
         child_posts = Post.objects.filter(parent=post, is_active=True).select_related('organization', 'branch')
         context['child_posts'] = child_posts
         context['has_children'] = child_posts.exists()
         context['child_posts_count'] = child_posts.count()
-        
+
         return context
 
     def delete(self, request, *args, **kwargs):
         post = self.get_object()
-        
+
         # بررسی پست‌های فرزند
         child_posts = Post.objects.filter(parent=post, is_active=True)
-        
+
         if child_posts.exists():
             # اگر پست‌های فرزند وجود دارند، حذف نکن
             child_names = [child.name for child in child_posts]
             messages.error(
-                self.request, 
+                self.request,
                 _('نمی‌توان این پست را حذف کرد زیرا والد پست‌های زیر است: ') + ', '.join(child_names)
             )
             return redirect('post_list')
-        
+
         messages.success(self.request, _('پست سازمانی با موفقیت حذف شد.'))
         return super().delete(request, *args, **kwargs)
 #     ==================================================
@@ -1702,7 +1701,7 @@ class UserPostListView(PermissionBaseView, ListView):
         """فیلتر کردن اتصالات بر اساس جستجو و سازمان‌های مجاز"""
         queryset = UserPost.objects.select_related('user', 'post__organization', 'post__branch').order_by('-start_date')
         logger.debug(f"[UserPostListView] شروع فیلتر اتصالات برای کاربر '{self.request.user.username}'")
-        
+
         # Handle per_page parameter
         per_page = self.request.GET.get('per_page', '25')
         try:
@@ -1769,17 +1768,17 @@ class UserPostListView(PermissionBaseView, ListView):
         context = super().get_context_data(**kwargs)
         context['title'] = _("لیست اتصالات کاربر به پست")
         context['organizations'] = Organization.objects.filter(is_active=True).order_by('name')
-        
+
         # محاسبه آمار
         queryset = self.get_queryset()
         context['total_connections'] = queryset.count()
         context['active_connections'] = queryset.filter(is_active=True).count()
         context['inactive_connections'] = queryset.filter(is_active=False).count()
         context['organizations_count'] = context['organizations'].count()
-        
+
         # Add per_page to context
         context['per_page'] = self.request.GET.get('per_page', '25')
-        
+
         return context
 
     def handle_no_permission(self):
@@ -1942,6 +1941,8 @@ def search_posts_autocomplete(request):
     return JsonResponse(data, safe=False)
 
 from django.utils.decorators import method_decorator
+
+
 @method_decorator(login_required, name='dispatch')
 class PostSearchAPIView(PermissionBaseView, View):
     """
@@ -2189,6 +2190,51 @@ class SubProjectUpdateView(PermissionBaseView, UpdateView):
         response = super().form_valid(form)
         messages.success(self.request, _('ساب‌پروژه با موفقیت به‌روزرسانی شد.'))
         return response
+class SubProjectDetailView(PermissionBaseView, DetailView):
+    model = SubProject
+    template_name = 'core/subproject/subproject_detail.html'
+    context_object_name = 'subproject'
+    permission_required = 'core.SubProject_view'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        subproject = self.object
+
+        # اطلاعات بودجه
+        from budgets.budget_calculations import get_subproject_remaining_budget
+        from budgets.models import BudgetAllocation, BudgetTransaction
+
+        allocations = BudgetAllocation.objects.filter(
+            subproject=subproject,
+            is_active=True
+        )
+
+        total_allocated = allocations.aggregate(
+            total=Sum('allocated_amount')
+        )['total'] or Decimal('0')
+
+        transactions = BudgetTransaction.objects.filter(
+            allocation__subproject=subproject
+        )
+        consumed = transactions.filter(transaction_type='CONSUMPTION').aggregate(
+            total=Sum('amount')
+        )['total'] or Decimal('0')
+        returned = transactions.filter(transaction_type='RETURN').aggregate(
+            total=Sum('amount')
+        )['total'] or Decimal('0')
+
+        remaining_budget = get_subproject_remaining_budget(subproject)
+
+        context['title'] = _('جزئیات زیرپروژه') + f" - {subproject.name}"
+        context['total_allocated'] = total_allocated
+        context['consumed'] = consumed
+        context['returned'] = returned
+        context['remaining_budget'] = remaining_budget
+        context['allocations'] = allocations.select_related('budget_period', 'organization', 'budget_item')
+        context['transactions'] = transactions.select_related('allocation', 'created_by')[:50]
+
+        return context
+
 class SubProjectDeleteView(PermissionBaseView, DeleteView):
     model = SubProject
     template_name = 'core/subproject/subproject_confirm_delete.html'

@@ -3,52 +3,7 @@
 
 {% block title %}{{ report_title|default:_("جزئیات تخصیص بودجه پروژه") }} #{{ allocation.id|to_persian_number }}{% endblock %}
 
-{% block extra_css %}
-<style>
-    body { background-color: #f8f9fa; font-family: 'Vazirmatn', sans-serif; }
-    .card { border-radius: .75rem; border: none; margin-bottom: 1.5rem; box-shadow: 0 0.25rem 0.75rem rgba(0,0,0,.05); }
-    .card-header { padding: 1rem 1.25rem; font-weight: 600; background-color: #eef2f7; border-bottom: 1px solid #dee2e6; }
-    .card-header .fas { margin-right: 0.5rem; }
-    .card-body { padding: 1.5rem; }
-    .badge { font-size: 0.85rem; padding: .4em .7em; }
-    .table { font-size: 0.9rem; }
-    .table th { white-space: nowrap; font-weight: 600; color: #495057; }
-    .table td { vertical-align: middle; }
-    .text-negative { color: var(--bs-danger) !important; }
-    .text-positive { color: var(--bs-success) !important; }
-    .text-primary-emphasis { color: var(--bs-primary) !important; }
-    .section-title {
-        font-size: 1.4rem;
-        font-weight: 600;
-        color: var(--bs-primary);
-        margin-bottom: 1.25rem;
-        padding-bottom: 0.6rem;
-        border-bottom: 2px solid var(--bs-primary);
-        display: inline-block;
-    }
-    .info-grid p { margin-bottom: 0.6rem; }
-    .info-grid strong { min-width: 150px; display: inline-block; color: #555; }
-    .progress { height: 1.2rem; margin-bottom: 1rem; }
-    .progress-bar { transition: width 0.3s ease-in-out; }
 
-    @media print {
-        body { background-color: #fff !important; font-size: 10pt; }
-        .no-print, .btn, .alert .btn-close, footer, header, .page-title-actions { display: none !important; }
-        .card { box-shadow: none !important; border: 1px solid #ccc !important; margin-bottom: 1rem !important; }
-        .card-header { background-color: #f8f9fa !important; padding: 0.5rem 1rem !important; }
-        .card-body { padding: 1rem !important; }
-        .container-fluid { padding: 0 !important; margin: 0 !important; }
-        h1, h2, h3, h4, h5, h6 { margin-top: 0.5rem; margin-bottom: 0.5rem; }
-        .table { font-size: 9pt; }
-        .table th, .table td { padding: 0.4rem !important; }
-        .text-negative { color: #dc3545 !important; }
-        .text-positive { color: #198754 !important; }
-        a { text-decoration: none !important; color: #000 !important; }
-        .badge { border: 1px solid #ccc; color: #000 !important; background-color: #fff !important; }
-        .progress { display: none; }
-    }
-</style>
-{% endblock %}
 
 {% block page_title %}
 <div class="d-flex justify-content-between align-items-center">
@@ -321,8 +276,8 @@
             <i class="fas fa-edit me-1"></i>{% trans "ویرایش تخصیص" %}
         </a>
         {% endif %}
-        {% if perms.budgets.add_budgettransaction and allocation.is_active %}
-        <a href="{% url 'transactiontype_add' %}?allocation_id={{ allocation.pk }}&type=RETURN" class="btn btn-info">
+        {% if perms.budgets.add_budgettransaction and allocation.is_active and main_budget_allocation_summary.current_remaining_on_it > 0 %}
+        <a href="{% url 'budget_return' allocation_id=allocation.pk %}" class="btn btn-info">
             <i class="fas fa-undo me-1"></i>{% trans "ثبت بازگشت بودجه" %}
         </a>
         {% endif %}

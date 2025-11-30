@@ -1,98 +1,76 @@
-from django.urls import path, include
+# core/urls.py
+from django.urls import include, path
 from django.views.generic import TemplateView
 
-from BudgetsSystem.view.view_Dashboard import SimpleChartView, ExecutiveDashboardView
-from core.views_executive_dashboard import (
-    ComprehensiveBudgetReportView,
-    ComprehensiveFactorReportView, 
-    ComprehensiveTankhahReportView,
-    FinancialPerformanceReportView,
-    AnalyticalReportsView
-)
-from budgets.BudgetAllocation.get_projects_by_organization import get_budget_items_by_organization, \
-    get_budget_item_remaining, get_budget_item_details
-from core.views import (
-    # داشبوردها
-    DashboardView_flows_1, DashboardView_flows, AllLinksView,
-    # سازمان‌ها
-    OrganizationListView, OrganizationDetailView, OrganizationCreateView,
-    OrganizationUpdateView, OrganizationDeleteView,
-    # پروژه‌ها
-    ProjectListView, ProjectDetailView, ProjectCreateView, ProjectUpdateView, ProjectDeleteView,
-    # پست‌ها
-    PostListView, PostDetailView, PostCreateView, PostUpdateView, PostDeleteView, PostActiveUsersAPIView,
-    # اتصال کاربر به پست
-    UserPostListView, UserPostCreateView, UserPostUpdateView, UserPostDeleteView,
-    # تاریخچه پست‌ها
-    PostHistoryListView, PostHistoryCreateView, PostHistoryDeleteView,
-    # مراحل گردش کار
-    WorkflowStageListView, WorkflowStageCreateView, WorkflowStageUpdateView, WorkflowStageDeleteView,
-     PostSearchAPIView,
-
-)
+from budgets.BudgetAllocation.get_projects_by_organization import (
+    get_budget_item_details, get_budget_item_remaining,
+    get_budget_items_by_organization)
+from BudgetsSystem.view.view_Dashboard import (ExecutiveDashboardView,
+                                               SimpleChartView)
+from BudgetsSystem.view.view_SystemSettings import (  # Font Management Views
+    FontSettingsCreateView, FontSettingsDeleteView, FontSettingsListView,
+    FontSettingsSetDefaultView, FontSettingsToggleView, FontSettingsUpdateView,
+    OrgActionsReportView, SystemSettingsCreateView,
+    SystemSettingsDashboardView, SystemSettingsExportView,
+    SystemSettingsHealthView, SystemSettingsImportView,
+    SystemSettingsPreviewView, SystemSettingsResetView,
+    SystemSettingsUpdateView, ToggleDashboardWidgetView)
+from core.Branch.views_branch import (BranchCreateView, BranchDeleteView,
+                                      BranchDetailView, BranchListView,
+                                      BranchUpdateView)
+from core.views import (  # داشبوردها; سازمان‌ها; پروژه‌ها; پست‌ها; اتصال کاربر به پست; تاریخچه پست‌ها; مراحل گردش کار
+    AllLinksView, DashboardView_flows, DashboardView_flows_1,
+    OrganizationCreateView, OrganizationDeleteView, OrganizationDetailView,
+    OrganizationListView, OrganizationUpdateView, PostActiveUsersAPIView,
+    PostCreateView, PostDeleteView, PostDetailView, PostHistoryCreateView,
+    PostHistoryDeleteView, PostHistoryListView, PostListView,
+    PostSearchAPIView, PostUpdateView, ProjectCreateView, ProjectDeleteView,
+    ProjectDetailView, ProjectListView, ProjectUpdateView, UserPostCreateView,
+    UserPostDeleteView, UserPostListView, UserPostUpdateView,
+    WorkflowStageCreateView, WorkflowStageDeleteView, WorkflowStageListView,
+    WorkflowStageUpdateView)
+from core.views_API.views_api import (OrganizationChartAPIView,
+                                      OrganizationChartView)
+from core.views_executive_dashboard import (AnalyticalReportsView,
+                                            ComprehensiveBudgetReportView,
+                                            ComprehensiveFactorReportView,
+                                            ComprehensiveTankhahReportView,
+                                            FinancialPerformanceReportView)
+from core.views_workflow_chart import (WorkflowChartView, workflow_chart_api,
+                                       workflow_transition_create,
+                                       workflow_transition_delete,
+                                       workflow_transition_toggle,
+                                       workflow_transition_update)
+from core.views_workflow_debug import (factor_workflow_shortcuts_view,
+                                       workflow_debug_view)
+from core.views_workflow_management import (ActionTransitionsReportView,
+                                            WorkflowAccessAuditView)
+from core.workflow.views_Action import (  # ویوهای Transition و Permission در مراحل بعدی اضافه خواهند شد
+    ActionCreteView, ActionDeleteView, ActionListView, ActionUpdateView)
+# from core.AccessRule.views_accessrule import SelectWorkflowView, WorkflowBuilderView  # حذف شده - مدل AccessRule منسوخ شده است
+from core.workflow.views_workflow import (StatusCreateView, StatusDeleteView,
+                                          StatusListView, StatusUpdateView,
+                                          WorkflowDashboardView)
 from reports.views import FinancialDashboardView
+
 from . import views_workflow_management
-from .workflow.views_Transition import TransitionListView, TransitionCreateView, TransitionUpdateView, \
-    TransitionDeleteView
+from .views import (SubProjectCreateView, SubProjectDeleteView,
+                    SubProjectDetailView, SubProjectListView,
+                    SubProjectUpdateView)
+from .workflow.views_Transition import (TransitionCreateView,
+                                        TransitionDeleteView,
+                                        TransitionListView,
+                                        TransitionUpdateView)
 
 # app_name = 'core'
 
-from .views import (
-    SubProjectListView, SubProjectCreateView, SubProjectUpdateView, SubProjectDeleteView
-)
-from core.views_API.views_api import OrganizationChartAPIView,OrganizationChartView
-from core.views_workflow_debug import workflow_debug_view, factor_workflow_shortcuts_view
-from core.views_workflow_chart import (
-    WorkflowChartView, workflow_chart_api,
-    workflow_transition_create, workflow_transition_update,
-    workflow_transition_toggle, workflow_transition_delete,
-)
 
-from django.urls import path
 # from core.AccessRule.views_accessrule import (
 #     AccessRuleListView, AccessRuleDetailView, AccessRuleCreateView,
 #     AccessRuleUpdateView, AccessRuleDeleteView, userGiud_AccessRule, PostAccessRuleAssignView, PostRuleReportView,
 #     UserGuideView, SelectWorkflowView, PostAccessRuleAssignView_old
 # )  # حذف شده - مدل AccessRule منسوخ شده است
 
-# core/urls.py
-from django.urls import path
-from core.Branch.views_branch import (
-    BranchListView,
-    BranchDetailView,
-    BranchCreateView,
-    BranchUpdateView,
-    BranchDeleteView
-)
-# from core.AccessRule.views_accessrule import SelectWorkflowView, WorkflowBuilderView  # حذف شده - مدل AccessRule منسوخ شده است
-from core.workflow.views_workflow import (
-    WorkflowDashboardView,
-    StatusListView, StatusCreateView, StatusUpdateView , StatusDeleteView,
-)
-from core.workflow.views_Action import (
-    ActionListView, ActionUpdateView, ActionDeleteView, ActionCreteView,
-    # ویوهای Transition و Permission در مراحل بعدی اضافه خواهند شد
-)
-from core.views_workflow_management import ActionTransitionsReportView, WorkflowAccessAuditView
-from BudgetsSystem.view.view_SystemSettings import (
-    SystemSettingsDashboardView,
-    SystemSettingsCreateView,
-    SystemSettingsUpdateView,
-    SystemSettingsResetView,
-    SystemSettingsExportView,
-    SystemSettingsImportView,
-    SystemSettingsHealthView,
-    SystemSettingsPreviewView,
-    OrgActionsReportView,
-    ToggleDashboardWidgetView,
-    # Font Management Views
-    FontSettingsListView,
-    FontSettingsCreateView,
-    FontSettingsUpdateView,
-    FontSettingsDeleteView,
-    FontSettingsToggleView,
-    FontSettingsSetDefaultView,
-)
 urlpatterns = [
             # داشبوردها
             path('dashboard/flows-1/', DashboardView_flows_1.as_view(), name='dashboard_flows_1'),
@@ -148,6 +126,7 @@ urlpatterns = [
 
 urlpatterns += [
             path('subprojects/', SubProjectListView.as_view(), name='subproject_list'),
+            path('subproject/<int:pk>/', SubProjectDetailView.as_view(), name='subproject_detail'),
             path('subproject/add/', SubProjectCreateView.as_view(), name='subproject_create'),
             path('subproject/<int:pk>/edit/', SubProjectUpdateView.as_view(), name='subproject_update'),
             path('subproject/<int:pk>/delete/', SubProjectDeleteView.as_view(), name='subproject_delete'),
@@ -162,7 +141,7 @@ urlpatterns += [
 urlpatterns += [
             path('api/organization-chart/', OrganizationChartAPIView.as_view(), name='organization_chart_api'),
             path('organization-chart/', OrganizationChartView.as_view(), name='organization_chart'),
-      
+
         path('workflow-debug/', workflow_debug_view, name='workflow_debug'),
         path('factor-workflow-tools/', factor_workflow_shortcuts_view, name='factor_workflow_tools'),
         path('workflow-chart/', WorkflowChartView.as_view(), name='workflow_chart'),
@@ -255,7 +234,7 @@ urlpatterns += [
             path('workflow/transition/<int:pk>/update/', TransitionUpdateView.as_view(), name='transition_update'),
             path('workflow/transition/<int:pk>/delete/', TransitionDeleteView.as_view(), name='transition_delete'),
             path('workflow/org-actions/', OrgActionsReportView.as_view(), name='workflow_org_actions'),
-            
+
             # داشبورد اجرایی
             path('executive-dashboard/', ExecutiveDashboardView.as_view(), name='executive_dashboard'),
             # System Settings
@@ -269,7 +248,7 @@ urlpatterns += [
             path('system-settings/health/', SystemSettingsHealthView.as_view(), name='system_settings_health'),
             path('system-settings/preview/', SystemSettingsPreviewView.as_view(), name='system_settings_preview'),
             path('system-settings/toggle-widget/', ToggleDashboardWidgetView.as_view(), name='system_settings_toggle_widget'),
-            
+
             # Font Management
             path('system-settings/fonts/', FontSettingsListView.as_view(), name='font_settings_list'),
             path('system-settings/fonts/create/', FontSettingsCreateView.as_view(), name='font_settings_create'),
@@ -278,14 +257,14 @@ urlpatterns += [
             path('system-settings/fonts/<int:pk>/toggle/', FontSettingsToggleView.as_view(), name='font_settings_toggle'),
             path('system-settings/fonts/<int:pk>/set-default/', FontSettingsSetDefaultView.as_view(), name='font_settings_set_default'),
             path('system-settings/fonts/guide/', TemplateView.as_view(template_name='core/font_management_guide.html'), name='font_management_guide'),
-            
+
             # گزارشات جامع
             path('comprehensive-budget-report/', ComprehensiveBudgetReportView.as_view(), name='comprehensive_budget_report'),
             path('comprehensive-factor-report/', ComprehensiveFactorReportView.as_view(), name='comprehensive_factor_report'),
             path('comprehensive-tankhah-report/', ComprehensiveTankhahReportView.as_view(), name='comprehensive_tankhah_report'),
             path('financial-performance-report/', FinancialPerformanceReportView.as_view(), name='financial_performance_report'),
             path('analytical-reports/', AnalyticalReportsView.as_view(), name='analytical_reports'),
-            
+
             # الگوی تخصیص کاربران - حذف شده به دلیل خطای import
 
  ]

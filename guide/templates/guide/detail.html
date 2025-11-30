@@ -1,0 +1,201 @@
+{% extends 'base.html' %} {% load static %} {% block extra_head %}
+<!-- Marked.js for Markdown rendering -->
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<!-- Highlight.js for syntax highlighting -->
+<link
+  rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css"
+/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+<style>
+  .markdown-content {
+    line-height: 1.8;
+    font-family: "Vazir", "Tahoma", sans-serif;
+    color: #333;
+  }
+  .markdown-content h1,
+  .markdown-content h2,
+  .markdown-content h3,
+  .markdown-content h4 {
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    color: #2c3e50;
+    font-weight: bold;
+  }
+  .markdown-content h1 {
+    border-bottom: 2px solid #eee;
+    padding-bottom: 0.5rem;
+    font-size: 2rem;
+  }
+  .markdown-content h2 {
+    border-bottom: 1px solid #eee;
+    padding-bottom: 0.5rem;
+    font-size: 1.75rem;
+  }
+  .markdown-content h3 {
+    font-size: 1.5rem;
+  }
+
+  .markdown-content p {
+    margin-bottom: 1rem;
+    text-align: justify;
+  }
+
+  .markdown-content code {
+    background-color: #f1f3f5;
+    padding: 0.2rem 0.4rem;
+    border-radius: 4px;
+    color: #d63384;
+    font-family: "Consolas", "Monaco", monospace;
+    font-size: 0.9em;
+  }
+
+  .markdown-content pre {
+    background-color: #282c34;
+    padding: 1rem;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin: 1.5rem 0;
+    direction: ltr;
+    text-align: left;
+  }
+  .markdown-content pre code {
+    background-color: transparent;
+    color: inherit;
+    padding: 0;
+    font-size: 0.95em;
+  }
+
+  .markdown-content blockquote {
+    border-right: 5px solid #0d6efd;
+    background-color: #f8f9fa;
+    padding: 1rem 1.5rem;
+    margin: 1.5rem 0;
+    color: #495057;
+    font-style: italic;
+    border-radius: 4px;
+  }
+
+  .markdown-content ul,
+  .markdown-content ol {
+    padding-right: 2rem;
+    margin-bottom: 1rem;
+  }
+  .markdown-content li {
+    margin-bottom: 0.5rem;
+  }
+
+  .markdown-content table {
+    width: 100%;
+    margin: 1.5rem 0;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+  }
+  .markdown-content th,
+  .markdown-content td {
+    border: 1px solid #dee2e6;
+    padding: 0.75rem;
+    text-align: right;
+  }
+  .markdown-content th {
+    background-color: #e9ecef;
+    font-weight: bold;
+  }
+
+  .markdown-content img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin: 1.5rem auto;
+    display: block;
+  }
+
+  .markdown-content hr {
+    margin: 2rem 0;
+    border: 0;
+    border-top: 1px solid #dee2e6;
+  }
+
+  .markdown-content a {
+    color: #0d6efd;
+    text-decoration: none;
+  }
+  .markdown-content a:hover {
+    text-decoration: underline;
+  }
+</style>
+{% endblock %} {% block content %}
+<div class="container mt-4 mb-5">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <a href="{% url 'guide:index' %}" class="btn btn-outline-secondary">
+      <i class="fas fa-arrow-right me-1"></i> بازگشت به فهرست
+    </a>
+    <h1 class="h5 text-muted mb-0">نمایش مستندات</h1>
+  </div>
+
+  <div class="card shadow-lg border-0">
+    <div class="card-header bg-white border-bottom py-3">
+      <h1 class="h3 mb-0 text-primary fw-bold">{{ title }}</h1>
+    </div>
+    <div class="card-body p-4 p-md-5">
+      <div id="content" class="markdown-content">
+        <div class="text-center py-5">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+          <p class="mt-2 text-muted">در حال بارگذاری و پردازش متن...</p>
+        </div>
+      </div>
+
+      <!-- Hidden raw content -->
+      <textarea id="raw-content" style="display: none">{{ content }}</textarea>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const rawContent = document.getElementById("raw-content").value;
+    const contentDiv = document.getElementById("content");
+
+    // Configure marked options
+    marked.use({
+      gfm: true,
+      breaks: true,
+      headerIds: true,
+      mangle: false,
+    });
+
+    try {
+      // Parse Markdown (URLs already converted in backend)
+      contentDiv.innerHTML = marked.parse(rawContent);
+
+      // Apply syntax highlighting
+      document.querySelectorAll("pre code").forEach((block) => {
+        hljs.highlightElement(block);
+      });
+
+      // Add Bootstrap table classes
+      document.querySelectorAll("table").forEach((table) => {
+        table.classList.add(
+          "table",
+          "table-striped",
+          "table-hover",
+          "table-bordered"
+        );
+      });
+    } catch (e) {
+      console.error("Error parsing markdown:", e);
+      contentDiv.innerHTML = `
+                <div class='alert alert-danger'>
+                    <h4 class='alert-heading'>خطا در نمایش محتوا!</h4>
+                    <p>متاسفانه مشکلی در پردازش فایل مارک‌داون پیش آمده است.</p>
+                </div>
+                <pre class='bg-light p-3 border rounded'>${rawContent}</pre>
+            `;
+    }
+  });
+</script>
+{% endblock %}

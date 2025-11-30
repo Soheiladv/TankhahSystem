@@ -2,42 +2,59 @@ from django import views
 from django.urls import path
 
 # from budgets.PaymentOrder.view_PaymentOrder import TankhahUpdateStatusView
-from budgets.budget_calculations import get_budget_info, get_tankhah_budget_info
+from budgets.budget_calculations import (get_budget_info,
+                                         get_tankhah_budget_info)
 from tankhah.Factor import FactorItemsDetailView
 from tankhah.Factor.Approved.SubmitFactor import SubmitFactorForApprovalView
+from tankhah.Factor.Approved.view_FactorItemApprove import (
+    FactorApproveView, FactorItemApproveView)
+from tankhah.Factor.FactorDetail.views_FactorDetail import (
+    FactorDetailView, PerformFactorTransitionAPI)
 # from tankhah.Factor.Approved.views_PerformFactorAction import FactorApprovalView_new
-from tankhah.Factor.FactorStatusReviewView import FactorStatusReviewView, AdvancedFactorStatusReviewView, \
-    ComprehensiveFactorDetailView, UltimateFactorDetailView
+from tankhah.Factor.FactorStatusReviewView import (
+    AdvancedFactorStatusReviewView, ComprehensiveFactorDetailView,
+    FactorStatusReviewView, UltimateFactorDetailView)
 from tankhah.Factor.NF.view_Nfactor import New_FactorCreateView
+#FactorStatusUpdateView, mark_notification_as_read,, get_unread_notifications, FactorDetailView,    upload_tankhah_documents,
+from tankhah.Factor.view_Factor import (BudgetCheckView,
+                                        TankhahBudgetInfoAjaxView)
 from tankhah.Factor.View_Factor_list import FactorListView, FactorListView2
-from tankhah.Factor.Approved.view_FactorItemApprove import FactorItemApproveView, FactorApproveView
 from tankhah.Factor.view_FactorUpdate import FactorUpdateView
 from tankhah.Factor.views_approval_path import FactorApprovalPathView
-from tankhah.FactorStatusDashboard.FactorStatusDashboardView import FactorStatusDashboardView
+from tankhah.FactorStatusDashboard.FactorStatusDashboardView import \
+    FactorStatusDashboardView
 from tankhah.Services.views_FactorApproval import FactorApprovalView
 from tankhah.Tankhah.views_tankhah_create import TankhahCreateView
-from tankhah.TankhahTrackingView import TankhahTrackingViewOLDer, TankhahStatusView, TankhahApprovalTimelineView
-from tankhah.view_folder_tankhah.EnhancedTankhahUpdateStatus import EnhancedTankhahUpdateStatusView
-from tankhah.view_folder_tankhah.view_tankhah import (
-    TankhahDetailView, TankhahDeleteView,
-    TankhahListView, TankhahApproveView, TankhahUpdateView, TankhahRejectView, get_projects
-)
-from tankhah.views_return_budget import ReturnExpiredTankhahBudgetView, ReturnExpiredBudgetAPIView
-from tankhah.views import (
-    ApprovalListView, ApprovalCreateView, ApprovalDetailView, ApprovalUpdateView, ApprovalDeleteView,
-    FactorItemRejectView, ApprovalLogListView,
-    get_subprojects, FactorDeleteView,
-    ItemCategoryListView, ItemCategoryCreateView, ItemCategoryUpdateView, ItemCategoryDeleteView, RulesUserGuideView,
-    FactorStatusUpdateView, upload_tankhah_documents, ItemCategoryDetailView
-)
-from tankhah.views_admin_workflow import (
-    admin_workflow_control, admin_change_status, admin_reset_workflow, admin_workflow_dashboard
-)
-from tankhah.Factor.FactorDetail.views_FactorDetail import FactorDetailView, PerformFactorTransitionAPI
-#FactorStatusUpdateView, mark_notification_as_read,, get_unread_notifications, FactorDetailView,    upload_tankhah_documents,
-from tankhah.Factor.view_Factor import (TankhahBudgetInfoAjaxView,  BudgetCheckView)
-from tankhah.views import (itemcategory_list,itemcategory_create,itemcategory_update,itemcategory_delete
-)
+from tankhah.TankhahTrackingView import (TankhahApprovalTimelineView,
+                                         TankhahStatusView,
+                                         TankhahTrackingViewOLDer)
+from tankhah.view_folder_tankhah.EnhancedTankhahUpdateStatus import \
+    EnhancedTankhahUpdateStatusView
+from tankhah.view_folder_tankhah.view_tankhah import (TankhahApproveView,
+                                                      TankhahDeleteView,
+                                                      TankhahDetailView,
+                                                      TankhahListView,
+                                                      TankhahRejectView,
+                                                      TankhahUpdateView,
+                                                      get_projects)
+from tankhah.views import (ApprovalCreateView, ApprovalDeleteView,
+                           ApprovalDetailView, ApprovalListView,
+                           ApprovalLogListView, ApprovalUpdateView,
+                           FactorDeleteView, FactorItemRejectView,
+                           FactorStatusUpdateView, ItemCategoryCreateView,
+                           ItemCategoryDeleteView, ItemCategoryDetailView,
+                           ItemCategoryListView, ItemCategoryUpdateView,
+                           RulesUserGuideView, get_subprojects,
+                           itemcategory_create, itemcategory_delete,
+                           itemcategory_list, itemcategory_update,
+                           upload_tankhah_documents)
+from tankhah.views_admin_workflow import (admin_change_status,
+                                          admin_reset_workflow,
+                                          admin_workflow_control,
+                                          admin_workflow_dashboard)
+from tankhah.views_return_budget import (ReturnExpiredBudgetAPIView,
+                                         ReturnExpiredTankhahBudgetView)
+
 # app_name = 'tankhah'
 
 urlpatterns = [
@@ -136,8 +153,16 @@ urlpatterns += [
 
 
 
-from tankhah.Services.views_approved_2 import FactorRejectView,FactorEditView,FactorListView__ ,FactorApproveView__,\
-FactorTempApproveView,FactorChangeStageView,FactorBatchApproveView,FactorIssuePaymentView,FactorUnlockView,DashboardView___
+from tankhah.Services.views_approved_2 import (DashboardView___,
+                                               FactorApproveView__,
+                                               FactorBatchApproveView,
+                                               FactorChangeStageView,
+                                               FactorEditView,
+                                               FactorIssuePaymentView,
+                                               FactorListView__,
+                                               FactorRejectView,
+                                               FactorTempApproveView,
+                                               FactorUnlockView)
 
 urlpatterns += [
     # لیست فاکتورها
@@ -166,8 +191,9 @@ urlpatterns += [
     path('factor/<int:pk>/submit/', SubmitFactorForApprovalView.as_view(), name='factor_submit_for_approval'),
 
 ]
-from tankhah.Factor.Approved.views_PerformFactorAction   import FactorApprovalView,FactorApprovalView_new
-
+from tankhah.Factor.Approved.views_PerformFactorAction import (
+    FactorApprovalView, FactorApprovalView_new)
+from tankhah.views_factor_approval_test import FactorApprovalCycleTestView
 
 urlpatterns += [
     # path('factor/<int:pk>/perform-action/', FactorApprovalView_new.as_view(), name='perform_factor_action'),
@@ -177,6 +203,9 @@ urlpatterns += [
     # path('factors/<int:pk>/', FactorDetailView.as_view(), name='factor_detail'),
     # new
     path('factor/<int:pk>/approve/', FactorApprovalView.as_view(), name='factor_approval'),
+
+    # تست چرخه ثبت و تایید فاکتور
+    path('factor/approval-cycle-test/', FactorApprovalCycleTestView.as_view(), name='factor_approval_cycle_test'),
 
 ]
 urlpatterns += [

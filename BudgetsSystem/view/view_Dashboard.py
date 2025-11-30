@@ -5,23 +5,24 @@ from datetime import timedelta
 from decimal import Decimal
 
 import jdatetime
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.contenttypes.models import ContentType
-from django.db.models import Sum, Q, Value, DecimalField, F, Case, When
+from django.db.models import Case, DecimalField, F, Q, Sum, Value, When
 from django.db.models.functions import Coalesce
 from django.shortcuts import render
-from django.urls import reverse, NoReverseMatch
+from django.urls import NoReverseMatch, reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django.views import View
 
-from budgets.budget_calculations import get_project_total_budget, get_project_used_budget, get_project_remaining_budget
-from budgets.models import BudgetPeriod, BudgetAllocation, BudgetTransaction
+from budgets.budget_calculations import (get_project_remaining_budget,
+                                         get_project_total_budget,
+                                         get_project_used_budget)
+from budgets.models import BudgetAllocation, BudgetPeriod, BudgetTransaction
+from core.models import Project, SystemSettings
 from core.PermissionBase import PermissionBaseView
-from core.models import Project
-from core.models import SystemSettings
 from notificationApp.models import Notification
-from tankhah.models import ApprovalLog
-from tankhah.models import Tankhah, Factor
+from tankhah.models import ApprovalLog, Factor, Tankhah
 from version_tracker.models import FinalVersion
 
 logger = logging.getLogger('Main_Dashboard')
@@ -135,6 +136,7 @@ dashboard_links = {
             {'name': _('راهنمای بودجه‌بندی'), 'url': 'budget_Help', 'permission': None, 'icon': 'fas fa-question-circle'},
             {'name': _('راهنمای سیستم'), 'url': 'soft_help', 'permission': None, 'icon': 'fas fa-question-circle'},
             {'name': _('مستندات API'), 'url': 'staff_api_documentation', 'permission': 'is_staff', 'icon': 'fas fa-code'},
+            {'name': _('راهنما با مارک دان'), 'url': 'guide:index', 'permission': 'is_staff', 'icon': 'fas fa-code'},
         ]
     },
 }
@@ -200,18 +202,18 @@ class ExecutiveDashboardView(PermissionBaseView, View):
         user = request.user
         now = timezone.now()
         j_now = jdatetime.datetime.now()
-        
+
         # اطلاعات پایه
         context['title'] = _("داشبورد اجرایی - گزارشات جامع")
         context['current_date'] = j_now.strftime('%Y/%m/%d')
         context['current_time'] = j_now.strftime('%H:%M')
-        
+
         # بررسی دسترسی‌ها
         context['is_ceo'] = user.has_perm('core.view_organization') or user.is_superuser
         context['can_view_budget'] = user.has_perm('budgets.view_budgetallocation') or user.is_superuser
         context['can_view_tankhah'] = user.has_perm('tankhah.view_tankhah') or user.is_superuser
         context['can_view_factors'] = user.has_perm('tankhah.view_factor') or user.is_superuser
-        
+
         # آمار کلی بودجه
         if context['can_view_budget']:
             try:
@@ -220,7 +222,7 @@ class ExecutiveDashboardView(PermissionBaseView, View):
             except Exception as e:
                 logger.error(f"خطا در محاسبه آمار بودجه: {e}")
                 context['budget_error'] = True
-        
+
         # آمار کلی تنخواه
         if context['can_view_tankhah']:
             try:
@@ -229,7 +231,7 @@ class ExecutiveDashboardView(PermissionBaseView, View):
             except Exception as e:
                 logger.error(f"خطا در محاسبه آمار تنخواه: {e}")
                 context['tankhah_error'] = True
-        
+
         # آمار کلی فاکتورها
         if context['can_view_factors']:
             try:
@@ -238,7 +240,7 @@ class ExecutiveDashboardView(PermissionBaseView, View):
             except Exception as e:
                 logger.error(f"خطا در محاسبه آمار فاکتور: {e}")
                 context['factor_error'] = True
-        
+
         # گزارشات تحلیلی
         try:
             analytical_data = self._get_analytical_data()
@@ -246,23 +248,23 @@ class ExecutiveDashboardView(PermissionBaseView, View):
         except Exception as e:
             logger.error(f"خطا در محاسبه داده‌های تحلیلی: {e}")
             context['analytical_error'] = True
-        
+
         return context
 
     def _get_budget_statistics(self):
         """آمار کلی بودجه"""
         stats = {}
-        
+
         try:
             # آمار دوره‌های بودجه
             active_periods = BudgetPeriod.objects.filter(is_active=True, is_completed=False)
             total_allocated = active_periods.aggregate(total=Coalesce(Sum('total_amount'), Decimal('0')))['total']
-            
+
             # آمار مصرف بودجه
             total_consumed = BudgetTransaction.objects.filter(
                 transaction_type='CONSUMPTION'
             ).aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total']
-            
+
             stats.update({
                 'total_budget_allocated': total_allocated or Decimal('0'),
                 'total_budget_consumed': total_consumed or Decimal('0'),
@@ -270,18 +272,18 @@ class ExecutiveDashboardView(PermissionBaseView, View):
                 'budget_consumption_percentage': (total_consumed / total_allocated * 100) if total_allocated and total_allocated > 0 else 0,
                 'active_budget_periods_count': active_periods.count(),
             })
-            
+
             # آمار تخصیص‌های بودجه
             allocations = BudgetAllocation.objects.filter(is_active=True)
             stats.update({
                 'total_allocations_count': allocations.count(),
                 'total_allocated_amount': allocations.aggregate(total=Coalesce(Sum('allocated_amount'), Decimal('0')))['total'] or Decimal('0'),
             })
-            
+
             # روند ماهانه بودجه
             monthly_budget_data = self._get_monthly_budget_trend()
             stats['monthly_budget_trend'] = monthly_budget_data
-            
+
         except Exception as e:
             logger.error(f"خطا در محاسبه آمار بودجه: {e}")
             stats.update({
@@ -299,19 +301,19 @@ class ExecutiveDashboardView(PermissionBaseView, View):
                     'remaining': '[]'
                 }
             })
-        
+
         return stats
 
     def _get_tankhah_statistics(self):
         """آمار کلی تنخواه"""
         stats = {}
-        
+
         try:
             # آمار کلی تنخواه‌ها
             total_tankhah = Tankhah.objects.aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total']
             paid_tankhah = Tankhah.objects.filter(status__code='PAID').aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total']
             pending_tankhah = Tankhah.objects.filter(status__code__in=['PENDING', 'APPROVED']).aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total']
-            
+
             stats.update({
                 'total_tankhah_amount': total_tankhah or Decimal('0'),
                 'paid_tankhah_amount': paid_tankhah or Decimal('0'),
@@ -321,11 +323,11 @@ class ExecutiveDashboardView(PermissionBaseView, View):
                 'paid_tankhah_count': Tankhah.objects.filter(status__code='PAID').count(),
                 'pending_tankhah_count': Tankhah.objects.filter(status__code__in=['PENDING', 'APPROVED']).count(),
             })
-            
+
             # روند ماهانه تنخواه
             monthly_tankhah_data = self._get_monthly_tankhah_trend()
             stats['monthly_tankhah_trend'] = monthly_tankhah_data
-            
+
         except Exception as e:
             logger.error(f"خطا در محاسبه آمار تنخواه: {e}")
             stats.update({
@@ -343,20 +345,20 @@ class ExecutiveDashboardView(PermissionBaseView, View):
                     'pending': '[]'
                 }
             })
-        
+
         return stats
 
     def _get_factor_statistics(self):
         """آمار کلی فاکتورها"""
         stats = {}
-        
+
         try:
             # آمار کلی فاکتورها
             total_factors = Factor.objects.aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total']
             paid_factors = Factor.objects.filter(status__code='PAID').aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total']
             pending_factors = Factor.objects.filter(status__code__in=['PENDING_APPROVAL', 'APPROVED']).aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total']
             rejected_factors = Factor.objects.filter(status__code='REJECTED').aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total']
-            
+
             stats.update({
                 'total_factor_amount': total_factors or Decimal('0'),
                 'paid_factor_amount': paid_factors or Decimal('0'),
@@ -368,11 +370,11 @@ class ExecutiveDashboardView(PermissionBaseView, View):
                 'pending_factor_count': Factor.objects.filter(status__code__in=['PENDING_APPROVAL', 'APPROVED']).count(),
                 'rejected_factor_count': Factor.objects.filter(status__code='REJECTED').count(),
             })
-            
+
             # روند ماهانه فاکتورها
             monthly_factor_data = self._get_monthly_factor_trend()
             stats['monthly_factor_trend'] = monthly_factor_data
-            
+
         except Exception as e:
             logger.error(f"خطا در محاسبه آمار فاکتور: {e}")
             stats.update({
@@ -392,26 +394,26 @@ class ExecutiveDashboardView(PermissionBaseView, View):
                     'pending': '[]'
                 }
             })
-        
+
         return stats
 
     def _get_analytical_data(self):
         """داده‌های تحلیلی"""
         data = {}
-        
+
         try:
             # تحلیل عملکرد مالی
             financial_performance = self._get_financial_performance_analysis()
             data['financial_performance'] = financial_performance
-            
+
             # تحلیل روندها
             trend_analysis = self._get_trend_analysis()
             data['trend_analysis'] = trend_analysis
-            
+
             # تحلیل ریسک‌ها
             risk_analysis = self._get_risk_analysis()
             data['risk_analysis'] = risk_analysis
-            
+
         except Exception as e:
             logger.error(f"خطا در محاسبه داده‌های تحلیلی: {e}")
             data.update({
@@ -434,7 +436,7 @@ class ExecutiveDashboardView(PermissionBaseView, View):
                     'medium_risk_count': 0
                 }
             })
-        
+
         return data
 
     def _get_monthly_budget_trend(self):
@@ -442,30 +444,30 @@ class ExecutiveDashboardView(PermissionBaseView, View):
         try:
             now = timezone.now()
             monthly_data = []
-            
+
             for i in range(11, -1, -1):
                 month_start = (now.replace(day=1) - timedelta(days=i * 30)).replace(day=1)
                 month_end = (month_start + timedelta(days=31)).replace(day=1) - timedelta(days=1)
-                
+
                 j_month_start = jdatetime.date.fromgregorian(date=month_start)
                 month_label = f"{self._get_jalali_month_name(j_month_start.month)} {j_month_start.year}"
-                
+
                 allocated = BudgetAllocation.objects.filter(
                     allocation_date__range=(month_start, month_end)
                 ).aggregate(total=Coalesce(Sum('allocated_amount'), Decimal('0')))['total']
-                
+
                 consumed = BudgetTransaction.objects.filter(
                     transaction_type='CONSUMPTION',
                     timestamp__range=(month_start, month_end)
                 ).aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total']
-                
+
                 monthly_data.append({
                     'month': month_label,
                     'allocated': float(allocated or 0),
                     'consumed': float(consumed or 0),
                     'remaining': float((allocated or 0) - (consumed or 0))
                 })
-            
+
             return {
                 'labels': json.dumps([item['month'] for item in monthly_data], ensure_ascii=False),
                 'allocated': json.dumps([item['allocated'] for item in monthly_data]),
@@ -486,30 +488,30 @@ class ExecutiveDashboardView(PermissionBaseView, View):
         try:
             now = timezone.now()
             monthly_data = []
-            
+
             for i in range(11, -1, -1):
                 month_start = (now.replace(day=1) - timedelta(days=i * 30)).replace(day=1)
                 month_end = (month_start + timedelta(days=31)).replace(day=1) - timedelta(days=1)
-                
+
                 j_month_start = jdatetime.date.fromgregorian(date=month_start)
                 month_label = f"{self._get_jalali_month_name(j_month_start.month)} {j_month_start.year}"
-                
+
                 created = Tankhah.objects.filter(
                     created_at__range=(month_start, month_end)
                 ).aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total']
-                
+
                 paid = Tankhah.objects.filter(
                     status__code='PAID',
                     created_at__range=(month_start, month_end)
                 ).aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total']
-                
+
                 monthly_data.append({
                     'month': month_label,
                     'created': float(created or 0),
                     'paid': float(paid or 0),
                     'pending': float((created or 0) - (paid or 0))
                 })
-            
+
             return {
                 'labels': json.dumps([item['month'] for item in monthly_data], ensure_ascii=False),
                 'created': json.dumps([item['created'] for item in monthly_data]),
@@ -530,30 +532,30 @@ class ExecutiveDashboardView(PermissionBaseView, View):
         try:
             now = timezone.now()
             monthly_data = []
-            
+
             for i in range(11, -1, -1):
                 month_start = (now.replace(day=1) - timedelta(days=i * 30)).replace(day=1)
                 month_end = (month_start + timedelta(days=31)).replace(day=1) - timedelta(days=1)
-                
+
                 j_month_start = jdatetime.date.fromgregorian(date=month_start)
                 month_label = f"{self._get_jalali_month_name(j_month_start.month)} {j_month_start.year}"
-                
+
                 created = Factor.objects.filter(
                     created_at__range=(month_start, month_end)
                 ).aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total']
-                
+
                 paid = Factor.objects.filter(
                     status__code='PAID',
                     created_at__range=(month_start, month_end)
                 ).aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total']
-                
+
                 monthly_data.append({
                     'month': month_label,
                     'created': float(created or 0),
                     'paid': float(paid or 0),
                     'pending': float((created or 0) - (paid or 0))
                 })
-            
+
             return {
                 'labels': json.dumps([item['month'] for item in monthly_data], ensure_ascii=False),
                 'created': json.dumps([item['created'] for item in monthly_data]),
@@ -572,30 +574,30 @@ class ExecutiveDashboardView(PermissionBaseView, View):
     def _get_financial_performance_analysis(self):
         """تحلیل عملکرد مالی"""
         analysis = {}
-        
+
         try:
             # محاسبه شاخص‌های کلیدی
             total_budget = BudgetPeriod.objects.filter(is_active=True).aggregate(
                 total=Coalesce(Sum('total_amount'), Decimal('0'))
             )['total']
-            
+
             total_consumed = BudgetTransaction.objects.filter(
                 transaction_type='CONSUMPTION'
             ).aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total']
-            
+
             total_tankhah = Tankhah.objects.aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total']
             total_factors = Factor.objects.aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total']
-            
+
             tankhah_count = Tankhah.objects.count()
             factor_count = Factor.objects.count()
-            
+
             analysis.update({
                 'budget_utilization_rate': (total_consumed / total_budget * 100) if total_budget and total_budget > 0 else 0,
                 'tankhah_efficiency': (total_factors / total_tankhah * 100) if total_tankhah and total_tankhah > 0 else 0,
                 'cost_per_tankhah': total_tankhah / tankhah_count if tankhah_count > 0 else 0,
                 'average_factor_amount': total_factors / factor_count if factor_count > 0 else 0,
             })
-            
+
         except Exception as e:
             logger.error(f"خطا در محاسبه تحلیل عملکرد مالی: {e}")
             analysis.update({
@@ -604,41 +606,41 @@ class ExecutiveDashboardView(PermissionBaseView, View):
                 'cost_per_tankhah': 0,
                 'average_factor_amount': 0,
             })
-        
+
         return analysis
 
     def _get_trend_analysis(self):
         """تحلیل روندها"""
         trends = {}
-        
+
         try:
             # روند مصرف بودجه
             current_month = timezone.now().replace(day=1)
             last_month = (current_month - timedelta(days=1)).replace(day=1)
-            
+
             current_consumption = BudgetTransaction.objects.filter(
                 transaction_type='CONSUMPTION',
                 timestamp__gte=current_month
             ).aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total']
-            
+
             last_consumption = BudgetTransaction.objects.filter(
                 transaction_type='CONSUMPTION',
                 timestamp__gte=last_month,
                 timestamp__lt=current_month
             ).aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total']
-            
+
             current_consumption = current_consumption or Decimal('0')
             last_consumption = last_consumption or Decimal('0')
-            
+
             consumption_trend = ((current_consumption - last_consumption) / last_consumption * 100) if last_consumption > 0 else 0
-            
+
             trends.update({
                 'consumption_trend': consumption_trend,
                 'consumption_trend_direction': 'up' if consumption_trend > 0 else 'down' if consumption_trend < 0 else 'stable',
                 'current_month_consumption': float(current_consumption),
                 'last_month_consumption': float(last_consumption),
             })
-            
+
         except Exception as e:
             logger.error(f"خطا در محاسبه تحلیل روندها: {e}")
             trends.update({
@@ -647,28 +649,28 @@ class ExecutiveDashboardView(PermissionBaseView, View):
                 'current_month_consumption': 0,
                 'last_month_consumption': 0,
             })
-        
+
         return trends
 
     def _get_risk_analysis(self):
         """تحلیل ریسک‌ها"""
         risks = []
-        
+
         try:
             # ریسک بودجه کم
             total_budget = BudgetPeriod.objects.filter(is_active=True).aggregate(
                 total=Coalesce(Sum('total_amount'), Decimal('0'))
             )['total']
-            
+
             total_consumed = BudgetTransaction.objects.filter(
                 transaction_type='CONSUMPTION'
             ).aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total']
-            
+
             total_budget = total_budget or Decimal('0')
             total_consumed = total_consumed or Decimal('0')
-            
+
             budget_usage_percentage = (total_consumed / total_budget * 100) if total_budget > 0 else 0
-            
+
             if budget_usage_percentage > 80:
                 risks.append({
                     'type': 'high_budget_usage',
@@ -683,12 +685,12 @@ class ExecutiveDashboardView(PermissionBaseView, View):
                     'message': f'مصرف بودجه به {budget_usage_percentage:.1f}% رسیده است',
                     'recommendation': 'نظارت بر هزینه‌ها توصیه می‌شود'
                 })
-            
+
             # ریسک فاکتورهای رد شده
             rejected_factors_count = Factor.objects.filter(status__code='REJECTED').count()
             total_factors_count = Factor.objects.count()
             rejection_rate = (rejected_factors_count / total_factors_count * 100) if total_factors_count > 0 else 0
-            
+
             if rejection_rate > 20:
                 risks.append({
                     'type': 'high_rejection_rate',
@@ -696,11 +698,11 @@ class ExecutiveDashboardView(PermissionBaseView, View):
                     'message': f'نرخ رد فاکتورها {rejection_rate:.1f}% است',
                     'recommendation': 'بررسی فرآیند تأیید فاکتورها ضروری است'
                 })
-            
+
         except Exception as e:
             logger.error(f"خطا در محاسبه تحلیل ریسک‌ها: {e}")
             risks = []
-        
+
         return {
             'risks': risks,
             'risk_count': len(risks),
@@ -710,7 +712,7 @@ class ExecutiveDashboardView(PermissionBaseView, View):
 
     def _get_jalali_month_name(self, month_number):
         """نام ماه شمسی"""
-        j_months_fa = ["فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور", 
+        j_months_fa = ["فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور",
                        "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"]
         try:
             month_number = int(month_number)
@@ -962,18 +964,18 @@ class ReportsDashboardMainView(PermissionBaseView, View):
             return str(month_number)
 
 
-class DashboardView(View):
+class DashboardView(LoginRequiredMixin, View):
     template_name = 'core/dashboard.html'
 
     # permission_codename = 'reports.view_dashboard'
-    
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         try:
             self.final_version = FinalVersion.calculate_final_version()
         except Exception:
             self.final_version = "نامشخص"
-        
+
         # Import the new dashboard views for integration
         try:
             from reports.dashboard.views import DashboardMainView
@@ -1033,7 +1035,7 @@ class DashboardView(View):
         active_tankhah_status_codes = ['PENDING', 'APPROVED', 'SENT_TO_HQ', 'HQ_OPS_PENDING', 'HQ_OPS_APPROVED',
                                        'HQ_FIN_PENDING']
         pending_tankhah_status_codes = ['PENDING', 'SENT_TO_HQ', 'HQ_OPS_PENDING', 'HQ_FIN_PENDING']
-        
+
         # محاسبه آمار پایه
         stats = {
             'active_tankhah_count': Tankhah.objects.filter(status__code__in=active_tankhah_status_codes).count(),
@@ -1111,7 +1113,7 @@ class DashboardView(View):
         """دریافت آمار پیشرفته از داشبورد جدید"""
         if not self.dashboard_main_view:
             return {}
-        
+
         try:
             # دریافت آمار از داشبورد جدید
             budget_stats = self.dashboard_main_view.get_budget_statistics()
@@ -1120,7 +1122,7 @@ class DashboardView(View):
             payment_stats = self.dashboard_main_view.get_payment_statistics()
             return_stats = self.dashboard_main_view.get_budget_return_statistics()
             chart_data = self.dashboard_main_view.get_chart_data()
-            
+
             return {
                 'enhanced_budget_stats': budget_stats,
                 'enhanced_tankhah_stats': tankhah_stats,
@@ -1144,7 +1146,7 @@ class DashboardView(View):
         # اطلاعات پایه
         context['title'] = _("داشبورد سیستم جامع نظارتی بر هزینه")
         context['version'] = self.final_version
-        
+
         # اضافه کردن لینک به داشبورد جدید
         context['new_dashboard_url'] = 'reports_dashboard:main_dashboard'
         context['analytics_dashboard_url'] = 'reports_dashboard:budget_analytics'
@@ -1155,14 +1157,14 @@ class DashboardView(View):
         context['can_view_tankhah_stats'] = True
         context['can_view_project_status'] = True
         context['can_view_budget_alerts'] = True
-        
+
         # متغیرهای دسترسی برای تمپلیت
         context['budget_stats_permission_denied'] = False
         context['tankhah_stats_permission_denied'] = False
         context['project_status_permission_denied'] = False
         context['budget_alerts_permission_denied'] = False
         context['user_activity_permission_denied'] = False
-        
+
         # متغیرهای خطا برای تمپلیت
         context['budget_stats_error'] = False
         context['tankhah_stats_error'] = False
@@ -1173,7 +1175,7 @@ class DashboardView(View):
         except Exception as e:
             logger.error('legacy dashboard_links build error: %s', e)
             context['dashboard_links'] = {}
-        
+
         # اضافه کردن آمار پیشرفته از داشبورد جدید
         enhanced_stats = self.get_enhanced_dashboard_stats()
         context.update(enhanced_stats)
@@ -1202,7 +1204,7 @@ class DashboardView(View):
         context['total_allocated_tankhah'] = Tankhah.objects.aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total'] or Decimal('0')
         context['total_spent_on_factors'] = Factor.objects.filter(status__code='PAID').aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total'] or Decimal('0')
         context['total_unspent_tankhah'] = (context['total_allocated_tankhah'] - context['total_spent_on_factors']) or Decimal('0')
-        
+
         # متغیرهای اضافی برای تمپلیت
         context['current_month_total_amount'] = context.get('current_month_paid_factors', Decimal('0'))
         context['pending_approval_count'] = context.get('pending_tankhah_count', 0)
@@ -1250,7 +1252,7 @@ class DashboardView(View):
                         {'category__name': 'دسته ۱', 'total_spent': 2000000},
                         {'category__name': 'دسته ۲', 'total_spent': 1500000},
                     ]
-                
+
                 context['budget_category_consumption'] = {
                     'labels': json.dumps([item['category__name'] or _("نامشخص") for item in category_consumption], ensure_ascii=False),
                     'values': json.dumps([float(item['total_spent'] or 0) for item in category_consumption])
@@ -1279,7 +1281,7 @@ class DashboardView(View):
                                 total=Coalesce(Sum('amount'), Decimal('0')))['total']
                             budget_vs_actual_allocated_data.append(float(monthly_allocated or 0))
                             budget_vs_actual_consumed_data.append(float(monthly_consumed or 0))
-                    
+
                     context['budget_vs_actual_data'] = {
                         'labels': json.dumps(budget_vs_actual_labels, ensure_ascii=False),
                         'allocated': json.dumps(budget_vs_actual_allocated_data),
@@ -1307,7 +1309,7 @@ class DashboardView(View):
                     enhanced_tankhah = context['enhanced_tankhah_stats']
                     context['total_allocated_tankhah'] = enhanced_tankhah.get('total_amount', Decimal('0'))
                     context['active_tankhah_count'] = enhanced_tankhah.get('total_count', 0)
-                    
+
                     # محاسبه آمار اضافی
                     tankhah_stats = self._get_tankhah_stats()
                     context.update(tankhah_stats)

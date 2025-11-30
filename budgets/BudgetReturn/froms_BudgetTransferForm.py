@@ -7,22 +7,23 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from django.db.models import Sum, Q, F
+from django.db.models import F, Q, Sum
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
-from budgets.models import BudgetTransaction, BudgetAllocation, Tankhah, BudgetHistory, BudgetPeriod, \
-    BudgetAllocation
+from budgets.models import (BudgetAllocation, BudgetHistory, BudgetPeriod,
+                            BudgetTransaction, Tankhah)
 from tankhah.models import Factor
 
-logger = logging.getLogger(__name__) 
+logger = logging.getLogger(__name__)
 
 # یک تابع کمکی برای نمایش بهتر مبالغ در پیام‌های خطا
 def __format_currency_for_display(value):
     try:
         # اگر از فیلتر to_persian_number_with_comma استفاده می‌کنید
-        from core.templatetags.rcms_custom_filters import to_persian_number_with_comma
+        from core.templatetags.rcms_custom_filters import \
+            to_persian_number_with_comma
         return to_persian_number_with_comma(value)
     except (ImportError, TypeError, ValueError):
         # فال‌بک ساده
@@ -129,7 +130,7 @@ class BudgetTransferForm(forms.Form):
         return cleaned_data
 
     def execute_transfer(self):
-        from budgets.models import BudgetTransaction, BudgetHistory
+        from budgets.models import BudgetHistory, BudgetTransaction
         user = self.user
         source_alloc = self.cleaned_data['source_allocation']
         dest_alloc = self.cleaned_data['destination_allocation']
@@ -236,7 +237,7 @@ class BudgetReturnForm(forms.Form):
             raise forms.ValidationError(_('تمام فیلدها الزامی هستند.'))
 
         # بررسی قفل بودن تخصیص یا دوره
-        if allocation.budget_allocation.is_locked or allocation.budget_allocation.budget_period.is_locked:
+        if allocation.is_locked or allocation.budget_period.is_locked:
             raise forms.ValidationError(_('تخصیص یا دوره بودجه قفل شده است.'))
 
         # بررسی بودجه آزاد
@@ -253,7 +254,7 @@ class BudgetReturnForm(forms.Form):
         free_budget = cache.get(cache_key)
         if free_budget is None:
             transactions = BudgetTransaction.objects.filter(
-                allocation=allocation.budget_allocation,
+                allocation=allocation,
                 project=allocation.project
             ).aggregate(
                 consumed=Sum('amount', filter=Q(transaction_type='CONSUMPTION')),
@@ -287,48 +288,44 @@ class BudgetReturnForm(forms.Form):
         from django.db import transaction
         with transaction.atomic():
             transaction = BudgetTransaction.objects.create(
-                allocation=allocation.budget_allocation,
+                allocation=allocation,
                 project=allocation.project,
                 transaction_type='RETURN',
                 amount=amount,
-                description=description or f"برگشت بودجه از پروژه {allocation.project.name}",
+                description=description or f"برگشت بودجه از پروژه {allocation.project.name if allocation.project else 'بدون پروژه'}",
                 created_by=self.user,
                 transaction_id=transaction_id
             )
             allocation.returned_amount = (allocation.returned_amount or Decimal('0')) + amount
             allocation.allocated_amount -= amount
-            allocation.budget_allocation.returned_amount = (
-                allocation.budget_allocation.returned_amount or Decimal('0')
+            allocation.budget_period.returned_amount = (
+                allocation.budget_period.returned_amount or Decimal('0')
             ) + amount
-            allocation.budget_allocation.allocated_amount -= amount
-            allocation.budget_allocation.budget_period.returned_amount = (
-                allocation.budget_allocation.budget_period.returned_amount or Decimal('0')
-            ) + amount
-            allocation.budget_allocation.budget_period.total_allocated -= amount
+            allocation.budget_period.total_allocated -= amount
             allocation.save(update_fields=['returned_amount', 'allocated_amount'])
-            allocation.budget_allocation.save(update_fields=['returned_amount', 'allocated_amount'])
-            allocation.budget_allocation.budget_period.save(update_fields=['returned_amount', 'total_allocated'])
+            allocation.budget_period.save(update_fields=['returned_amount', 'total_allocated'])
+
+            from django.contrib.contenttypes.models import ContentType
 
             from budgets.models import BudgetHistory
-            from django.contrib.contenttypes.models import ContentType
             BudgetHistory.objects.create(
                 content_type=ContentType.objects.get_for_model(BudgetAllocation),
                 object_id=allocation.id,
                 action='RETURN',
                 amount=amount,
                 created_by=self.user,
-                details=description or f"برگشت بودجه از پروژه {allocation.project.name}",
+                details=description or f"برگشت بودجه از پروژه {allocation.project.name if allocation.project else 'بدون پروژه'}",
                 transaction_type='RETURN',
                 transaction_id=transaction_id
             )
 
             from budgets.budget_calculations import check_budget_status
-            status, message = check_budget_status(allocation.budget_allocation.budget_period)
+            status, message = check_budget_status(allocation.budget_period)
             if status in ('warning', 'locked', 'completed', 'stopped'):
-                allocation.budget_allocation.send_notification(status, message)
-            allocation.budget_allocation.send_notification(
+                allocation.send_notification(status, message)
+            allocation.send_notification(
                 'return',
-                f"مبلغ {amount:,.0f} ریال از پروژه {allocation.project.name} برگشت داده شد."
+                f"مبلغ {amount:,.0f} ریال از پروژه {allocation.project.name if allocation.project else 'بدون پروژه'} برگشت داده شد."
             )
 
         return transaction

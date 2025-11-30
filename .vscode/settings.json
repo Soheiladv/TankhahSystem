@@ -110,5 +110,9 @@
         "**/.git/**": true,
         "**/dist/**": true,
         "**/__pycache__/**": true
-    }
+    },
+    "cursorpyright.analysis.autoImportCompletions": true,
+    "cursorpyright.analysis.diagnosticMode": "workspace",
+    "cursorpyright.analysis.stubPath": "${workspaceFolder}/venv/Lib/site-packages",
+    "cursorpyright.analysis.typeCheckingMode": "basic"
 }

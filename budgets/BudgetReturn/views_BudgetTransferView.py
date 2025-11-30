@@ -1,16 +1,17 @@
 # budgets/views.py
-from django.core.exceptions import PermissionDenied, ValidationError
-from django.http import Http404
-from django.db import transaction
-
-from budgets.BudgetReturn.froms_BudgetTransferForm import BudgetTransferForm, BudgetReturnForm
-from budgets.models import BudgetAllocation
 import logging
-from core.PermissionBase import PermissionBaseView
-from django.views.generic import FormView
-from django.urls import reverse_lazy
+
 from django.contrib import messages
+from django.core.exceptions import PermissionDenied, ValidationError
+from django.db import transaction
+from django.http import Http404
+from django.urls import reverse_lazy
 from django.utils.translation import gettext_lazy as _
+from django.views.generic import FormView
+
+from budgets.BudgetReturn.froms_BudgetTransferForm import (BudgetReturnForm,
+                                                           BudgetTransferForm)
+from core.PermissionBase import PermissionBaseView
 
 logger = logging.getLogger(__name__)
 
@@ -63,11 +64,12 @@ class BudgetReturnView(PermissionBaseView, FormView):
     def get_allocation(self):
         logger.debug(f"[{self.request.user.username}] Getting allocation with ID: {self.kwargs['allocation_id']}")
         try:
+            from budgets.models import BudgetAllocation
             logger.debug(f"[{self.request.user.username}] Querying BudgetAllocation")
             allocation = BudgetAllocation.objects.select_related(
-                'budget_allocation__budget_period',
-                'project',
-                'budget_allocation__organization'
+                'budget_period',
+                'organization',
+                'project'
             ).get(
                 pk=self.kwargs['allocation_id'],
                 is_active=True,
@@ -126,8 +128,10 @@ class BudgetReturnView(PermissionBaseView, FormView):
             return self.form_invalid(form)
 
     def get_success_url(self):
-        logger.debug(f"[{self.request.user.username}] Getting success URL: {reverse_lazy('project_budget_allocation_detail', kwargs={'pk': self.kwargs['allocation_id']})}")
-        return reverse_lazy('project_budget_allocation_detail', kwargs={'pk': self.kwargs['allocation_id']})
+        # Redirect to the project budget allocation detail page
+        allocation = self.get_allocation()
+        logger.debug(f"[{self.request.user.username}] Getting success URL for allocation: {allocation.pk}")
+        return reverse_lazy('project_budget_allocation_detail', kwargs={'pk': allocation.pk})
 
     def get_context_data(self, **kwargs):
         logger.debug(f"[{self.request.user.username}] Getting context data")

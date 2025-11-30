@@ -163,6 +163,7 @@ INSTALLED_APPS = [
     'purchase_requests.apps.PurchaseRequestsConfig',
     'tankhah.apps.TankhahConfig',
     'budgets.apps.BudgetsConfig',             # ✅ بعد از core و tankhah و غیره
+    'guide',                                  # ✅ اپلیکیشن راهنما
 ]
 
 

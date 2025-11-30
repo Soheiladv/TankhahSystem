@@ -1,0 +1,287 @@
+{% extends 'base.html' %}
+{% load i18n static rcms_custom_filters %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block page_title %}
+<h2 class="fw-bold">
+    <i class="fas fa-vial me-2 text-primary"></i>{{ title }}
+</h2>
+<p class="text-muted">{% trans "ابزار تست چرخه ثبت و تایید فاکتور بر اساس سیستم جدید (Transition + Status + Action)" %}</p>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message|safe }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="{% trans 'بستن' %}"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    {% if error %}
+        <div class="alert alert-danger">
+            <i class="fas fa-exclamation-triangle me-2"></i>{{ error }}
+        </div>
+    {% else %}
+        <!-- اطلاعات سازمان و پست‌ها -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <i class="fas fa-building me-2"></i>{% trans "اطلاعات سازمان و سلسله مراتب" %}
+            </div>
+            <div class="card-body">
+                <p><strong>{% trans "سازمان:" %}</strong> {{ organization.name }} ({{ organization.code }})</p>
+                <p><strong>{% trans "پست شما:" %}</strong> {{ user_post.post.name }} ({% trans "سطح" %}: {{ user_post.post.level }})</p>
+
+                <h6 class="mt-3">{% trans "پست‌های سازمان به ترتیب سطح (از پایین به بالا):" %}</h6>
+                <div class="table-responsive">
+                    <table class="table table-sm table-striped">
+                        <thead>
+                            <tr>
+                                <th>{% trans "سطح" %}</th>
+                                <th>{% trans "نام پست" %}</th>
+                                <th>{% trans "شاخه" %}</th>
+                                <th>{% trans "کاربر فعال" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for post in posts %}
+                            <tr>
+                                <td><span class="badge bg-info">{{ post.level }}</span></td>
+                                <td>{{ post.name }}</td>
+                                <td>{{ post.branch.name|default:"—" }}</td>
+                                <td>
+                                    {% with user_posts=post.userpost_set.all %}
+                                        {% for user_post in user_posts %}
+                                            {% if user_post.is_active %}
+                                                <span class="text-success">{{ user_post.user.get_full_name|default:user_post.user.username }}</span>
+                                            {% endif %}
+                                        {% empty %}
+                                            <span class="text-muted">{% trans "ندارد" %}</span>
+                                        {% endfor %}
+                                    {% endwith %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Transition‌های تعریف شده -->
+        {% if transitions %}
+        <div class="card mb-4">
+            <div class="card-header bg-secondary text-white">
+                <i class="fas fa-exchange-alt me-2"></i>{% trans "گذارهای گردش کار تعریف شده" %}
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm table-striped">
+                        <thead>
+                            <tr>
+                                <th>{% trans "از وضعیت" %}</th>
+                                <th>{% trans "اقدام" %}</th>
+                                <th>{% trans "به وضعیت" %}</th>
+                                <th>{% trans "پست‌های مجاز" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for transition in transitions %}
+                            <tr>
+                                <td>
+                                    <span class="badge bg-primary">{{ transition.from_status.name }}</span>
+                                    <small class="text-muted">({{ transition.from_status.code }})</small>
+                                </td>
+                                <td>
+                                    <span class="badge bg-info">{{ transition.action.name }}</span>
+                                    <small class="text-muted">({{ transition.action.code }})</small>
+                                </td>
+                                <td>
+                                    <span class="badge bg-success">{{ transition.to_status.name }}</span>
+                                    <small class="text-muted">({{ transition.to_status.code }})</small>
+                                </td>
+                                <td>
+                                    {% for post in transition.allowed_posts.all %}
+                                        <span class="badge bg-secondary">{{ post.name }} (سطح {{ post.level }})</span>
+                                    {% empty %}
+                                        <span class="text-muted">{% trans "تعریف نشده" %}</span>
+                                    {% endfor %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- فاکتورهای تستی -->
+        <div class="card mb-4">
+            <div class="card-header bg-warning text-dark">
+                <i class="fas fa-file-invoice me-2"></i>{% trans "فاکتورهای تستی" %}
+            </div>
+            <div class="card-body">
+                {% if test_factors %}
+                <div class="table-responsive">
+                    <table class="table table-sm table-striped">
+                        <thead>
+                            <tr>
+                                <th>{% trans "شماره فاکتور" %}</th>
+                                <th>{% trans "وضعیت فعلی" %}</th>
+                                <th>{% trans "مبلغ" %}</th>
+                                <th>{% trans "عملیات" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for factor in test_factors %}
+                            <tr>
+                                <td>{{ factor.factornumber }}</td>
+                                <td>
+                                    <span class="badge bg-{% if factor.status.code == 'DRAFT' %}secondary{% elif factor.status.code == 'APPROVED' %}success{% elif factor.status.code == 'REJECTED' %}danger{% else %}info{% endif %}">
+                                        {{ factor.status.name }}
+                                    </span>
+                                </td>
+                                <td>{{ factor.amount|to_persian_number }} {% trans "ریال" %}</td>
+                                <td>
+                                    <form method="post" style="display: inline;">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="simulate_approval">
+                                        <input type="hidden" name="factor_id" value="{{ factor.pk }}">
+                                        <button type="submit" class="btn btn-sm btn-primary">
+                                            <i class="fas fa-play me-1"></i>{% trans "شبیه‌سازی تایید" %}
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted">{% trans "هیچ فاکتور تستی وجود ندارد." %}</p>
+                {% endif %}
+
+                <form method="post" class="mt-3">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="create_test_factor">
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-plus me-1"></i>{% trans "ایجاد فاکتور تستی جدید" %}
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- نتایج تست -->
+        {% if request.session.approval_test_results %}
+        <div class="card mb-4">
+            <div class="card-header bg-info text-white">
+                <i class="fas fa-chart-line me-2"></i>{% trans "نتایج شبیه‌سازی تایید" %}
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm table-striped">
+                        <thead>
+                            <tr>
+                                <th>{% trans "سطح" %}</th>
+                                <th>{% trans "پست" %}</th>
+                                <th>{% trans "وضعیت" %}</th>
+                                <th>{% trans "از وضعیت" %}</th>
+                                <th>{% trans "به وضعیت" %}</th>
+                                <th>{% trans "پیام" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for result in request.session.approval_test_results %}
+                            <tr>
+                                <td><span class="badge bg-info">{{ result.level }}</span></td>
+                                <td>{{ result.post.name }}</td>
+                                <td>
+                                    {% if result.status == 'approved' %}
+                                        <span class="badge bg-success">{% trans "تایید شد" %}</span>
+                                    {% elif result.status == 'no_permission' %}
+                                        <span class="badge bg-danger">{% trans "بدون دسترسی" %}</span>
+                                    {% elif result.status == 'no_user' %}
+                                        <span class="badge bg-warning">{% trans "بدون کاربر" %}</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{{ result.status }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ result.from_status.name|default:"—" }}</td>
+                                <td>{{ result.to_status.name|default:"—" }}</td>
+                                <td>{{ result.message }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- بررسی دسترسی‌ها -->
+        <div class="card mb-4">
+            <div class="card-header bg-dark text-white">
+                <i class="fas fa-shield-alt me-2"></i>{% trans "بررسی دسترسی‌ها" %}
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="check_permissions">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search me-1"></i>{% trans "بررسی دسترسی‌های تعریف شده" %}
+                    </button>
+                </form>
+
+                {% if request.session.permission_check_results %}
+                <div class="mt-4">
+                    <h6>{% trans "نتایج بررسی:" %}</h6>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-striped">
+                            <thead>
+                                <tr>
+                                    <th>{% trans "از وضعیت" %}</th>
+                                    <th>{% trans "اقدام" %}</th>
+                                    <th>{% trans "به وضعیت" %}</th>
+                                    <th>{% trans "پست‌های مجاز (به ترتیب سطح)" %}</th>
+                                    <th>{% trans "دسترسی شما" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for result in request.session.permission_check_results %}
+                                <tr>
+                                    <td>{{ result.from_status.name }}</td>
+                                    <td>{{ result.action.name }}</td>
+                                    <td>{{ result.to_status.name }}</td>
+                                    <td>
+                                        {% for post_info in result.posts_by_level %}
+                                            <span class="badge bg-{% if post_info.has_user %}success{% else %}secondary{% endif %}">
+                                                {{ post_info.post.name }} (سطح {{ post_info.level }})
+                                            </span>
+                                        {% empty %}
+                                            <span class="text-muted">{% trans "تعریف نشده" %}</span>
+                                        {% endfor %}
+                                    </td>
+                                    <td>
+                                        {% if result.user_has_access %}
+                                            <span class="badge bg-success">{% trans "دارید" %}</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">{% trans "ندارید" %}</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
