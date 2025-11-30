@@ -1,34 +1,36 @@
 services:
-  # PostgreSQL Database
+  # MySQL Database
   db:
-    image: postgres:15-alpine
+    image: mysql:8.0
     container_name: budgets_db_prod
     restart: unless-stopped
     environment:
-      POSTGRES_DB: ${DB_NAME}
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+      MYSQL_DATABASE: ${DB_NAME:-budgets_db}
+      MYSQL_USER: ${DB_USER:-budgets_user}
+      MYSQL_PASSWORD_FILE: /run/secrets/db_password
+      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/db_password
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - mysql_data:/var/lib/mysql
       - ./backups:/backups
+      - ./docker/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh:ro
     networks:
       - budgets_network
     healthcheck:
       test:
         - CMD-SHELL
         - |
-          DB_PASS=$(cat /run/secrets/db_password) && pg_isready -U ${DB_USER} -d ${DB_NAME} -h localhost -p 5432 && PGPASSWORD="$DB_PASS" psql -U ${DB_USER} -d ${DB_NAME} -c "SELECT 1" >/dev/null
+          DB_PASS=$(cat /run/secrets/db_password) && mysqladmin ping -h localhost -uroot -p"$DB_PASS"
       interval: 30s
       timeout: 10s
       retries: 5
     deploy:
-    secrets:
-      - db_password
       resources:
         limits:
           memory: 1G
         reservations:
           memory: 512M
+    secrets:
+      - db_password
 
   # Redis for caching and sessions
   redis:
@@ -69,11 +71,11 @@ services:
       - DB_NAME=${DB_NAME}
       - DB_USER=${DB_USER}
       - DB_HOST=db
-      - DB_PORT=5432
+      - DB_PORT=3306
       - DATABASE_DEFAULT_NAME=${DB_NAME}
       - DATABASE_DEFAULT_USER=${DB_USER}
       - DATABASE_DEFAULT_HOST=db
-      - DATABASE_DEFAULT_PORT=5432
+      - DATABASE_DEFAULT_PORT=3306
       - SECRET_KEY_FILE=/run/secrets/django_secret_key
       - DB_PASSWORD_FILE=/run/secrets/db_password
       - REDIS_PASSWORD_FILE=/run/secrets/redis_password
@@ -152,11 +154,11 @@ services:
       - DB_NAME=${DB_NAME}
       - DB_USER=${DB_USER}
       - DB_HOST=db
-      - DB_PORT=5432
+      - DB_PORT=3306
       - DATABASE_DEFAULT_NAME=${DB_NAME}
       - DATABASE_DEFAULT_USER=${DB_USER}
       - DATABASE_DEFAULT_HOST=db
-      - DATABASE_DEFAULT_PORT=5432
+      - DATABASE_DEFAULT_PORT=3306
       - SECRET_KEY_FILE=/run/secrets/django_secret_key
       - DB_PASSWORD_FILE=/run/secrets/db_password
       - REDIS_PASSWORD_FILE=/run/secrets/redis_password
@@ -190,11 +192,11 @@ services:
       - DB_NAME=${DB_NAME}
       - DB_USER=${DB_USER}
       - DB_HOST=db
-      - DB_PORT=5432
+      - DB_PORT=3306
       - DATABASE_DEFAULT_NAME=${DB_NAME}
       - DATABASE_DEFAULT_USER=${DB_USER}
       - DATABASE_DEFAULT_HOST=db
-      - DATABASE_DEFAULT_PORT=5432
+      - DATABASE_DEFAULT_PORT=3306
       - SECRET_KEY_FILE=/run/secrets/django_secret_key
       - DB_PASSWORD_FILE=/run/secrets/db_password
       - REDIS_PASSWORD_FILE=/run/secrets/redis_password
@@ -231,7 +233,7 @@ services:
   #     - DB_USER=${DB_USER}
   #     - DB_PASSWORD=${DB_PASSWORD}
   #     - DB_HOST=db
-  #     - DB_PORT=5432
+  #     - DB_PORT=3306
   #     - BACKUP_ENABLED=True
   #   volumes:
   #     - ./backups:/backups
@@ -242,7 +244,7 @@ services:
   #     - budgets_network
 
 volumes:
-  postgres_data:
+  mysql_data:
     driver: local
   redis_data:
     driver: local
