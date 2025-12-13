@@ -1,12 +1,7 @@
 {% extends 'base.html' %} {% load static %} {% block extra_head %}
-<!-- Marked.js for Markdown rendering -->
-<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-<!-- Highlight.js for syntax highlighting -->
-<link
-  rel="stylesheet"
-  href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css"
-/>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<!-- Highlight.js CSS - Local -->
+<link rel="stylesheet" href="{% static 'admin/css/github-dark.min.css' %}" />
+
 
 <style>
   .markdown-content {
@@ -149,33 +144,85 @@
         </div>
       </div>
 
-      <!-- Hidden raw content -->
-      <textarea id="raw-content" style="display: none">{{ content }}</textarea>
+      <!-- Hidden raw content - using JSON encoding to preserve special characters -->
+      <script type="application/json" id="raw-content">{{ content|escapejs }}</script>
     </div>
   </div>
 </div>
 
 <script>
-  document.addEventListener("DOMContentLoaded", function () {
-    const rawContent = document.getElementById("raw-content").value;
-    const contentDiv = document.getElementById("content");
+  // This will be called after scripts are loaded (see waitForScripts below)
+
+  function processMarkdown(rawContent, contentDiv) {
+    // Check if marked library is loaded
+    if (typeof marked === 'undefined') {
+      console.error("Marked.js library is not loaded!");
+      contentDiv.innerHTML = `
+        <div class='alert alert-danger'>
+          <h4 class='alert-heading'>خطا در بارگذاری کتابخانه!</h4>
+          <p>کتابخانه Marked.js بارگذاری نشده است.</p>
+        </div>
+        <pre class='bg-light p-3 border rounded' style='white-space: pre-wrap;'>${rawContent}</pre>
+      `;
+      return;
+    }
 
     // Configure marked options
-    marked.use({
-      gfm: true,
-      breaks: true,
-      headerIds: true,
-      mangle: false,
-    });
+    try {
+      // Check if marked.setOptions exists (for newer versions)
+      if (typeof marked.setOptions === 'function') {
+        marked.setOptions({
+          gfm: true,
+          breaks: true,
+          headerIds: true,
+          mangle: false,
+          langPrefix: 'hljs language-',
+        });
+      } else if (typeof marked.use === 'function') {
+        // For marked v12+
+        marked.use({
+          gfm: true,
+          breaks: true,
+          headerIds: true,
+          mangle: false,
+        });
+      }
+    } catch (e) {
+      console.warn("Could not set marked options:", e);
+    }
 
     try {
       // Parse Markdown (URLs already converted in backend)
-      contentDiv.innerHTML = marked.parse(rawContent);
+      let htmlContent;
+      if (typeof marked.parse === 'function') {
+        htmlContent = marked.parse(rawContent);
+      } else if (typeof marked === 'function') {
+        // Fallback for older versions
+        htmlContent = marked(rawContent);
+      } else {
+        throw new Error('marked.parse is not available');
+      }
 
-      // Apply syntax highlighting
-      document.querySelectorAll("pre code").forEach((block) => {
-        hljs.highlightElement(block);
-      });
+      if (!htmlContent || htmlContent.trim() === '') {
+        contentDiv.innerHTML = '<div class="alert alert-warning">فایل خالی است یا محتوایی ندارد.</div>';
+        return;
+      }
+
+      contentDiv.innerHTML = htmlContent;
+
+      // Apply syntax highlighting if hljs is available
+      // Wait a bit for hljs to load
+      setTimeout(function() {
+        if (typeof hljs !== 'undefined' && typeof hljs.highlightElement === 'function') {
+          document.querySelectorAll("pre code").forEach((block) => {
+            try {
+              hljs.highlightElement(block);
+            } catch (e) {
+              console.warn("Error highlighting code block:", e);
+            }
+          });
+        }
+      }, 500);
 
       // Add Bootstrap table classes
       document.querySelectorAll("table").forEach((table) => {
@@ -186,16 +233,123 @@
           "table-bordered"
         );
       });
+
+      // Remove loading spinner
+      const spinner = contentDiv.querySelector('.spinner-border');
+      if (spinner && spinner.parentElement) {
+        spinner.parentElement.remove();
+      }
+
     } catch (e) {
       console.error("Error parsing markdown:", e);
       contentDiv.innerHTML = `
-                <div class='alert alert-danger'>
-                    <h4 class='alert-heading'>خطا در نمایش محتوا!</h4>
-                    <p>متاسفانه مشکلی در پردازش فایل مارک‌داون پیش آمده است.</p>
-                </div>
-                <pre class='bg-light p-3 border rounded'>${rawContent}</pre>
-            `;
+        <div class='alert alert-danger'>
+          <h4 class='alert-heading'>خطا در نمایش محتوا!</h4>
+          <p>متاسفانه مشکلی در پردازش فایل مارک‌داون پیش آمده است.</p>
+          <p class='small text-muted'>${e.message}</p>
+        </div>
+        <div class='mt-3'>
+          <h5>محتوای خام:</h5>
+          <pre class='bg-light p-3 border rounded' style='white-space: pre-wrap; direction: ltr; text-align: left; max-height: 500px; overflow-y: auto;'>${rawContent.substring(0, 2000)}${rawContent.length > 2000 ? '\n\n... (متن کامل در فایل اصلی موجود است)' : ''}</pre>
+        </div>
+      `;
     }
-  });
+  }
+
+  // Wait for scripts to load before processing
+  function waitForScripts(callback, maxAttempts, attempt) {
+    maxAttempts = maxAttempts || 50;
+    attempt = attempt || 0;
+
+    if (typeof marked !== 'undefined') {
+      // marked.js is loaded, hljs is optional
+      callback();
+    } else if (attempt >= maxAttempts) {
+      console.error('Timeout waiting for marked.js to load');
+      const contentDiv = document.getElementById("content");
+      if (contentDiv) {
+        const rawContentElement = document.getElementById("raw-content");
+        const rawContent = rawContentElement ? (rawContentElement.textContent || rawContentElement.innerText) : '';
+        contentDiv.innerHTML = `
+          <div class='alert alert-danger'>
+            <h4 class='alert-heading'>خطا در بارگذاری کتابخانه!</h4>
+            <p>کتابخانه Marked.js بارگذاری نشد.</p>
+            <ul class='mt-2'>
+              <li>marked.js: ✗ (بارگذاری نشد)</li>
+              <li>hljs: ${typeof hljs !== 'undefined' ? '✓' : '✗'}</li>
+            </ul>
+            <p class='mt-2 small'><strong>راه‌حل:</strong></p>
+            <ol class='small'>
+              <li>بررسی کنید که فایل <code>static/admin/js/marked.min.js</code> وجود دارد</li>
+              <li>بررسی کنید که Django static files به درستی تنظیم شده است</li>
+              <li>Console مرورگر را برای خطاهای بیشتر بررسی کنید</li>
+            </ol>
+            <details class='mt-3'>
+              <summary class='btn btn-sm btn-outline-secondary'>نمایش محتوای خام</summary>
+              <pre class='bg-light p-3 border rounded mt-2' style='white-space: pre-wrap; direction: ltr; text-align: left; max-height: 300px; overflow-y: auto;'>${rawContent.substring(0, 1000)}${rawContent.length > 1000 ? '\n\n... (متن کامل در فایل اصلی موجود است)' : ''}</pre>
+            </details>
+          </div>
+        `;
+      }
+    } else {
+      setTimeout(function() {
+        waitForScripts(callback, maxAttempts, attempt + 1);
+      }, 100);
+    }
+  }
+
+  // Wait for DOM and scripts to be ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+      waitForScripts(processContent);
+    });
+  } else {
+    // DOM is already ready
+    waitForScripts(processContent);
+  }
+
+  function processContent() {
+    console.log('Processing markdown content...');
+    const rawContentElement = document.getElementById("raw-content");
+    const contentDiv = document.getElementById("content");
+
+    if (!rawContentElement || !contentDiv) {
+      console.error('Content elements not found');
+      return;
+    }
+
+    // Get content from JSON script tag
+    let rawContent = rawContentElement.textContent || rawContentElement.innerText;
+
+    if (!rawContent || rawContent.trim() === '') {
+      contentDiv.innerHTML = '<div class="alert alert-warning">فایل خالی است یا محتوایی ندارد.</div>';
+      return;
+    }
+
+    // Process markdown
+    processMarkdown(rawContent, contentDiv);
+  }
+</script>
+
+<!-- Marked.js and Highlight.js - Loaded at end of body -->
+<script src="{% static 'admin/js/marked.min.js' %}"></script>
+<script src="{% static 'admin/js/highlight.min.js' %}"></script>
+
+<script>
+  // Initialize after scripts are loaded
+  (function() {
+    // Check if scripts are already loaded
+    if (typeof marked !== 'undefined') {
+      // Scripts loaded, process immediately
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', processContent);
+      } else {
+        processContent();
+      }
+    } else {
+      // Wait for scripts to load
+      waitForScripts(processContent);
+    }
+  })();
 </script>
 {% endblock %}

@@ -70,6 +70,7 @@ SQL_REGEX = [
     (r'((LEFT\s+|RIGHT\s+|FULL\s+)?(INNER\s+|OUTER\s+|STRAIGHT\s+)?'
      r'|(CROSS\s+|NATURAL\s+)?)?JOIN\b', tokens.Keyword),
     (r'END(\s+IF|\s+LOOP|\s+WHILE)?\b', tokens.Keyword),
+    (r'IF\s+(NOT\s+)?EXISTS\b', tokens.Keyword),
     (r'NOT\s+NULL\b', tokens.Keyword),
     (r'(ASC|DESC)(\s+NULLS\s+(FIRST|LAST))?\b', tokens.Keyword.Order),
     (r'(ASC|DESC)\b', tokens.Keyword.Order),
@@ -87,7 +88,7 @@ SQL_REGEX = [
      tokens.Keyword),
     (r"(AT|WITH')\s+TIME\s+ZONE\s+'[^']+'", tokens.Keyword.TZCast),
     (r'(NOT\s+)?(LIKE|ILIKE|RLIKE)\b', tokens.Operator.Comparison),
-    (r'(NOT\s+)?(REGEXP)\b', tokens.Operator.Comparison),
+    (r'(NOT\s+)?(REGEXP)(\s+(BINARY))?\b', tokens.Operator.Comparison),
     # Check for keywords, also returns tokens.Name if regex matches
     # but the match isn't a keyword.
     (r'\w[$#\w]*', PROCESS_AS_KEYWORD),
@@ -839,6 +840,8 @@ KEYWORDS_PLPGSQL = {
     'CONFLICT': tokens.Keyword,
     'WINDOW': tokens.Keyword,
     'PARTITION': tokens.Keyword,
+    'ATTACH': tokens.Keyword,
+    'DETACH': tokens.Keyword,
     'OVER': tokens.Keyword,
     'PERFORM': tokens.Keyword,
     'NOTICE': tokens.Keyword,

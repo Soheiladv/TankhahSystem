@@ -1,15 +1,19 @@
 
 ############################################Main
 # core/views.py
+import logging
+
+from django.db import connection
+from django.http import JsonResponse
 from django.views.generic.base import TemplateView
 
 from core.models import Status
-from version_tracker.models import FinalVersion, AppVersion
+from version_tracker.models import AppVersion, FinalVersion
 
-import logging
 logger = logging.getLogger(__name__)
 from django.shortcuts import render
 from django.utils.translation import gettext_lazy as _
+
 
 def about(request):
     return render(request, template_name='about.html')
@@ -33,5 +37,24 @@ def home_view(request, *args, **kwargs):
 
 def soft_Help(request):
     return render(request, template_name='help/soft_help.html')
+
+def health_check(request):
+    """Health check endpoint for Docker"""
+    try:
+        # Test database connection
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT 1")
+            cursor.fetchone()
+
+        return JsonResponse({
+            'status': 'healthy',
+            'database': 'connected'
+        }, status=200)
+    except Exception as e:
+        logger.error(f"Health check failed: {str(e)}")
+        return JsonResponse({
+            'status': 'unhealthy',
+            'error': str(e)
+        }, status=503)
 
 

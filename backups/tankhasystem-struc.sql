@@ -11,7 +11,7 @@
  Target Server Version : 80031 (8.0.31)
  File Encoding         : 65001
 
- Date: 26/11/2025 10:42:32
+ Date: 05/12/2025 21:16:00
 */
 
 SET NAMES utf8mb4;
@@ -41,7 +41,7 @@ CREATE TABLE `accounts_activeuser`  (
   INDEX `idx_last_activity`(`last_activity` ASC) USING BTREE,
   CONSTRAINT `accounts_activeuser_user_id_43ede48b_fk_accounts_customuser_id` FOREIGN KEY (`user_id`) REFERENCES `accounts_customuser` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `check_login_before_activity` CHECK (`login_time` <= `last_activity`)
-) ENGINE = InnoDB AUTO_INCREMENT = 212 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 230 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Table structure for accounts_audit_log
@@ -361,7 +361,7 @@ CREATE TABLE `auth_group_permissions`  (
   INDEX `auth_group_permissions_permission_id_84c5c92e_fk`(`permission_id` ASC) USING BTREE,
   CONSTRAINT `auth_group_permissions_group_id_b120cbf9_fk` FOREIGN KEY (`group_id`) REFERENCES `auth_group` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `auth_group_permissions_permission_id_84c5c92e_fk` FOREIGN KEY (`permission_id`) REFERENCES `auth_permission` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Table structure for auth_permission
@@ -509,7 +509,7 @@ CREATE TABLE `budgets_budgetreallocation`  (
   CONSTRAINT `budgets_budgetreallo_created_by_id_931b064f_fk_accounts_` FOREIGN KEY (`created_by_id`) REFERENCES `accounts_customuser` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `budgets_budgetreallo_source_allocation_id_d454eec2_fk_budgets_b` FOREIGN KEY (`source_allocation_id`) REFERENCES `budgets_budgetallocation` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `budgets_budgetreallo_target_allocation_id_e57b016e_fk_budgets_b` FOREIGN KEY (`target_allocation_id`) REFERENCES `budgets_budgetallocation` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Table structure for budgets_budgetsettings
@@ -528,7 +528,7 @@ CREATE TABLE `budgets_budgetsettings`  (
   INDEX `budgets_budgetsettin_organization_id_4597e0aa_fk_core_orga`(`organization_id` ASC) USING BTREE,
   CONSTRAINT `budgets_budgetsettin_budget_period_id_4d876a4b_fk_budgets_b` FOREIGN KEY (`budget_period_id`) REFERENCES `budgets_budgetperiod` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `budgets_budgetsettin_organization_id_4597e0aa_fk_core_orga` FOREIGN KEY (`organization_id`) REFERENCES `core_organization` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Table structure for budgets_budgettransaction
@@ -558,7 +558,7 @@ CREATE TABLE `budgets_budgettransaction`  (
   CONSTRAINT `budgets_budgettransa_created_by_id_30bcb59a_fk_accounts_` FOREIGN KEY (`created_by_id`) REFERENCES `accounts_customuser` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `budgets_budgettransa_related_factor_id_193681d2_fk_tankhah_f` FOREIGN KEY (`related_factor_id`) REFERENCES `tankhah_factor` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `budgets_budgettransa_related_tankhah_id_9dbc06de_fk_tankhah_t` FOREIGN KEY (`related_tankhah_id`) REFERENCES `tankhah_tankhah` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 178 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 180 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Table structure for budgets_budgettransferreturn
@@ -587,7 +587,7 @@ CREATE TABLE `budgets_costcenter`  (
   INDEX `budgets_costcenter_organization_id_3ffab0d4_fk_core_orga`(`organization_id` ASC) USING BTREE,
   CONSTRAINT `budgets_costcenter_budget_allocation_id_1f2c1ba7_fk_budgets_b` FOREIGN KEY (`budget_allocation_id`) REFERENCES `budgets_budgetallocation` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `budgets_costcenter_organization_id_3ffab0d4_fk_core_orga` FOREIGN KEY (`organization_id`) REFERENCES `core_organization` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Table structure for budgets_payee
@@ -1211,7 +1211,7 @@ CREATE TABLE `core_transitiontemplate`  (
   INDEX `core_transitiontempl_created_by_id_cd56ddf6_fk_accounts_`(`created_by_id` ASC) USING BTREE,
   CONSTRAINT `core_transitiontempl_created_by_id_cd56ddf6_fk_accounts_` FOREIGN KEY (`created_by_id`) REFERENCES `accounts_customuser` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `core_transitiontemplate_action_id_03ee8f6d_fk_core_action_id` FOREIGN KEY (`action_id`) REFERENCES `core_action` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Table structure for core_userpost
@@ -1521,7 +1521,7 @@ CREATE TABLE `purchase_requests_purchaserequest`  (
   CONSTRAINT `purchase_requests_pu_project_id_240fc284_fk_core_proj` FOREIGN KEY (`project_id`) REFERENCES `core_project` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `purchase_requests_pu_status_id_d5be6761_fk_core_stat` FOREIGN KEY (`status_id`) REFERENCES `core_status` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `purchase_requests_pu_subproject_id_5f0583cc_fk_core_subp` FOREIGN KEY (`subproject_id`) REFERENCES `core_subproject` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for purchase_requests_purchaserequestitem
@@ -1541,7 +1541,7 @@ CREATE TABLE `purchase_requests_purchaserequestitem`  (
   INDEX `purchase_re_request_c03fee_idx`(`request_id` ASC) USING BTREE,
   INDEX `purchase_re_sku_414960_idx`(`sku` ASC) USING BTREE,
   CONSTRAINT `purchase_requests_pu_request_id_d410aad4_fk_purchase_` FOREIGN KEY (`request_id`) REFERENCES `purchase_requests_purchaserequest` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for reports_reportsapis
@@ -1876,7 +1876,7 @@ CREATE TABLE `tankhah_tankhah_approved_by`  (
   INDEX `tankhah_tankhah_appr_customuser_id_8ddccd3b_fk_accounts_`(`customuser_id` ASC) USING BTREE,
   CONSTRAINT `tankhah_tankhah_appr_customuser_id_8ddccd3b_fk_accounts_` FOREIGN KEY (`customuser_id`) REFERENCES `accounts_customuser` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `tankhah_tankhah_appr_tankhah_id_1877bab9_fk_tankhah_t` FOREIGN KEY (`tankhah_id`) REFERENCES `tankhah_tankhah` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Table structure for tankhah_tankhahaction
@@ -1905,7 +1905,7 @@ CREATE TABLE `tankhah_tankhahaction`  (
   CONSTRAINT `tankhah_action_stage_fk` FOREIGN KEY (`stage_id`) REFERENCES `core_workflowstage` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `tankhah_action_tankhah_fk` FOREIGN KEY (`tankhah_id`) REFERENCES `tankhah_tankhah` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT,
   CONSTRAINT `tankhah_action_user_fk` FOREIGN KEY (`user_id`) REFERENCES `accounts_customuser` (`id`) ON DELETE SET NULL ON UPDATE RESTRICT
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Table structure for tankhah_tankhahdocument
@@ -1920,7 +1920,7 @@ CREATE TABLE `tankhah_tankhahdocument`  (
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `tankhah_tankhahdocum_tankhah_id_a34f34d7_fk_tankhah_t`(`tankhah_id` ASC) USING BTREE,
   CONSTRAINT `tankhah_tankhahdocum_tankhah_id_a34f34d7_fk_tankhah_t` FOREIGN KEY (`tankhah_id`) REFERENCES `tankhah_tankhah` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Table structure for tankhah_tankhahfinalapproval
@@ -1957,7 +1957,7 @@ CREATE TABLE `version_tracker_appversion`  (
   INDEX `idx_app_name`(`app_name` ASC) USING BTREE,
   INDEX `idx_version_number`(`version_number` ASC) USING BTREE,
   INDEX `idx_release_date`(`release_date` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 2685 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 2727 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Table structure for version_tracker_backuplocation
@@ -1998,7 +1998,7 @@ CREATE TABLE `version_tracker_codechangelog`  (
   UNIQUE INDEX `unique_version_file`(`version_id` ASC, `file_name` ASC) USING BTREE,
   INDEX `idx_version`(`version_id` ASC) USING BTREE,
   INDEX `idx_change_date`(`change_date` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 31669 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 31879 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Table structure for version_tracker_filehash
@@ -2015,7 +2015,7 @@ CREATE TABLE `version_tracker_filehash`  (
   UNIQUE INDEX `unique_file_version`(`app_version_id` ASC, `file_path` ASC) USING BTREE,
   INDEX `idx_app_version`(`app_version_id` ASC) USING BTREE,
   INDEX `idx_timestamp`(`timestamp` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 108212 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 109962 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Table structure for version_tracker_finalversion

@@ -61,7 +61,23 @@ def detail(request, doc_name):
 
         # Convert Django URL patterns to actual URLs
         content = convert_guide_urls(content)
-    except Exception as e:
-        content = f"Error reading file: {e}"
 
-    return render(request, 'guide/detail.html', {'content': content, 'title': doc_name})
+        # Ensure content is not empty
+        if not content or not content.strip():
+            content = "# فایل خالی است\n\nاین فایل محتوایی ندارد."
+
+    except UnicodeDecodeError:
+        # Try with different encoding
+        try:
+            with open(file_path, 'r', encoding='latin-1') as f:
+                content = f.read()
+            content = convert_guide_urls(content)
+        except Exception as e:
+            content = f"# خطا در خواندن فایل\n\nخطا: {str(e)}"
+    except Exception as e:
+        content = f"# خطا در خواندن فایل\n\nخطا: {str(e)}"
+
+    return render(request, 'guide/detail.html', {
+        'content': content,
+        'title': doc_name.replace('.md', '').replace('_', ' ').replace('-', ' ')
+    })

@@ -15,7 +15,8 @@ from BudgetsSystem.Dashboard_Project.DashboardView_1 import \
     TabbedFinancialDashboardView
 from BudgetsSystem.view.view_Dashboard import (DashboardView,
                                                ReportsDashboardMainView)
-from BudgetsSystem.views import GuideView, TanbakhWorkflowView, soft_Help
+from BudgetsSystem.views import (GuideView, TanbakhWorkflowView, health_check,
+                                 soft_Help)
 from version_tracker.admin_backup import backup_admin
 
 urlpatterns = [
@@ -45,6 +46,7 @@ urlpatterns = [
                   # path('guide/', GuideView.as_view(), name='guide'), # جایگزین شده با اپلیکیشن guide
                   path('guide/soft_Help/', soft_Help , name='soft_help'),
                   path('guide/', include('guide.urls')),
+                  path('health/', views.health_check, name='health_check'),
 
                   # Default pattern last
                   path('', DashboardView.as_view(), name='index'),

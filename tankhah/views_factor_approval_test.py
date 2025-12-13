@@ -20,6 +20,7 @@
 # // Complete modified section from start to finish:
 import logging
 from decimal import Decimal
+
 from django.contrib import messages
 from django.core.cache import cache
 from django.db import transaction
@@ -27,12 +28,14 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import TemplateView
+
 from accounts.models import CustomUser
 from core.models import (Action, EntityType, Organization, Post, Status,
                          Transition, UserPost)
 from core.PermissionBase import PermissionBaseView
 from core.utils_workflow import get_allowed_actions_for_user
 from tankhah.models import ApprovalLog, Factor, Tankhah
+
 logger = logging.getLogger(__name__)
 class FactorApprovalCycleTestView(PermissionBaseView, TemplateView):
     """
@@ -267,7 +270,7 @@ class FactorApprovalCycleTestView(PermissionBaseView, TemplateView):
             )
             # بررسی اینکه Action مربوط به Transition در لیست مجاز باشد
             action_code = transition.action.code if transition.action else None
-            if action_code and action_code in allowed_actions.get('allowed_actions', []):
+            if action_code and action_code in allowed_actions.get('allowed', []):
                 logger.debug(f"Permission granted for user {user.id} on transition {transition.id}")
                 return True
         except Exception as e:

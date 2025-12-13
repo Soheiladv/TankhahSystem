@@ -8,7 +8,8 @@ from datetime import timedelta
 
 import timezone_field
 from celery import current_app, schedules
-from cron_descriptor import get_description
+from cron_descriptor import (FormatException, MissingFieldException,
+                             WrongArgumentException, get_description)
 from django.conf import settings
 from django.core.exceptions import MultipleObjectsReturned, ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -273,14 +274,6 @@ class CrontabSchedule(models.Model):
             'Cron Hours to Run. Use "*" for "all". (Example: "8,20")'),
         validators=[validators.hour_validator],
     )
-    day_of_week = models.CharField(
-        max_length=64, default='*',
-        verbose_name=_('Day(s) Of The Week'),
-        help_text=_(
-            'Cron Days Of The Week to Run. Use "*" for "all", Sunday '
-            'is 0 or 7, Monday is 1. (Example: "0,5")'),
-        validators=[validators.day_of_week_validator],
-    )
     day_of_month = models.CharField(
         max_length=31 * 4, default='*',
         verbose_name=_('Day(s) Of The Month'),
@@ -296,6 +289,14 @@ class CrontabSchedule(models.Model):
             'Cron Months (1-12) Of The Year to Run. Use "*" for "all". '
             '(Example: "1,12")'),
         validators=[validators.month_of_year_validator],
+    )
+    day_of_week = models.CharField(
+        max_length=64, default='*',
+        verbose_name=_('Day(s) Of The Week'),
+        help_text=_(
+            'Cron Days Of The Week to Run. Use "*" for "all", Sunday '
+            'is 0 or 7, Monday is 1. (Example: "0,5")'),
+        validators=[validators.day_of_week_validator],
     )
 
     timezone = timezone_field.TimeZoneField(
@@ -316,11 +317,19 @@ class CrontabSchedule(models.Model):
 
     @property
     def human_readable(self):
-        human_readable = get_description('{} {} {} {} {}'.format(
+        cron_expression = '{} {} {} {} {}'.format(
             cronexp(self.minute), cronexp(self.hour),
             cronexp(self.day_of_month), cronexp(self.month_of_year),
             cronexp(self.day_of_week)
-        ))
+        )
+        try:
+            human_readable = get_description(cron_expression)
+        except (
+            MissingFieldException,
+            FormatException,
+            WrongArgumentException
+        ):
+            return f'{cron_expression} {str(self.timezone)}'
         return f'{human_readable} {str(self.timezone)}'
 
     def __str__(self):

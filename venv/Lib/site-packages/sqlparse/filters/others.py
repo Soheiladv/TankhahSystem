@@ -65,6 +65,7 @@ class StripCommentsFilter:
                 if prev_ is not None and not prev_.match(T.Punctuation, '('):
                     tlist.tokens.insert(tidx, _get_insert_token(token))
                 tlist.tokens.remove(token)
+                tidx -= 1
             else:
                 tlist.tokens[tidx] = _get_insert_token(token)
 
@@ -81,7 +82,7 @@ class StripCommentsFilter:
 
 class StripWhitespaceFilter:
     def _stripws(self, tlist):
-        func_name = '_stripws_{cls}'.format(cls=type(tlist).__name__)
+        func_name = f'_stripws_{type(tlist).__name__}'
         func = getattr(self, func_name.lower(), self._stripws_default)
         func(tlist)
 
