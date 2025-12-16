@@ -378,6 +378,63 @@
             transition: background-color 0.3s ease;
         }
 
+        /* استایل برای آکاردئون اعلان‌ها */
+        .notification-accordion {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .notification-accordion-item {
+            border: 1px solid #e0e0e0;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .notification-accordion-item.unread {
+            border-left: 4px solid #007bff;
+            background: linear-gradient(to right, rgba(0, 123, 255, 0.05), transparent);
+        }
+
+        .notification-accordion-item.priority-high {
+            border-left-color: #dc3545;
+        }
+
+        .notification-accordion-item.priority-warning {
+            border-left-color: #ffc107;
+        }
+
+        .notification-accordion-item.priority-error {
+            border-left-color: #dc3545;
+        }
+
+        .notification-accordion-item:hover {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .notification-accordion-item .accordion-button {
+            background: transparent;
+            border: none;
+            padding: 12px 16px;
+            font-weight: 500;
+        }
+
+        .notification-accordion-item .accordion-button:not(.collapsed) {
+            background: linear-gradient(to right, rgba(0, 123, 255, 0.1), transparent);
+            box-shadow: none;
+        }
+
+        .notification-accordion-item .accordion-body {
+            padding: 16px;
+            background: #f8f9fa;
+        }
+
+        .notification-accordion-item.unread .accordion-button {
+            font-weight: 600;
+        }
+
         .notification-item .dropdown-item:hover {
             background-color: #f8f9fa;
         }
@@ -847,25 +904,88 @@
                         const notificationList = $('#notification-list');
                         notificationList.empty();
                         if (data.notifications && data.notifications.length > 0) {
-                            data.notifications.forEach(notification => {
+                            // ساخت آکاردئون برای اعلان‌ها
+                            let accordionHtml = '<div class="accordion accordion-flush notification-accordion" id="notificationAccordionMain">';
+                            data.notifications.forEach((notification, index) => {
                                 const unreadClass = notification.unread ? 'unread' : '';
-                                const item = `
-                                            <li class="notification-item ${unreadClass}">
-                                                <a class="dropdown-item" href="{% url 'notifications:mark_as_read' 0 %}?next={% url 'notifications:inbox' %}".replace('0', notification.id)>
-                                                    <div class="d-flex align-items-center">
-                                                        <i class="fas fa-bell me-2 text-primary"></i>
-                                                        <div class="flex-grow-1">
-                                                            <p class="mb-1">
-                                                                ${notification.actor} ${notification.verb}
-                                                                ${notification.target ? `(${notification.target})` : ''}
-                                                            </p>
-                                                            ${notification.description ? `<small class="text-muted">${notification.description}</small><br>` : ''}
-                                                            <small class="text-muted">${notification.timestamp}</small>
-                                                        </div>
+                                const priorityClass = `priority-${notification.priority.toLowerCase()}`;
+                                const markAsReadUrl = notification.url || `{% url 'notifications:mark_as_read' 0 %}?next={% url 'notifications:inbox' %}`.replace('0', notification.id);
+                                const isExpanded = index === 0 && notification.unread ? 'show' : '';
+
+                                const accordionItem = `
+                                    <div class="accordion-item notification-accordion-item ${unreadClass} ${priorityClass}">
+                                        <h2 class="accordion-header" id="headingMain${notification.id}">
+                                            <button class="accordion-button ${notification.unread ? '' : 'collapsed'}"
+                                                    type="button"
+                                                    data-bs-toggle="collapse"
+                                                    data-bs-target="#collapseMain${notification.id}"
+                                                    aria-expanded="${notification.unread ? 'true' : 'false'}"
+                                                    data-notification-id="${notification.id}"
+                                                    data-mark-viewed-url="${notification.mark_viewed_url || ''}">
+                                                <div class="d-flex align-items-center w-100">
+                                                    <i class="fas ${notification.unread ? 'fa-circle text-primary' : 'fa-check-circle text-success'} me-2"></i>
+                                                    <div class="flex-grow-1 text-start">
+                                                        <strong>${notification.actor_username || notification.actor}</strong> ${notification.verb}
+                                                        ${notification.target ? `<span class="text-muted">(${notification.target})</span>` : ''}
                                                     </div>
-                                                </a>
-                                            </li>`;
-                                notificationList.append(item);
+                                                    <span class="badge bg-${notification.priority === 'HIGH' ? 'danger' : notification.priority === 'WARNING' ? 'warning' : 'info'} me-2">
+                                                        ${notification.priority}
+                                                    </span>
+                                                    <small class="text-muted">${notification.timestamp}</small>
+                                                </div>
+                                            </button>
+                                        </h2>
+                                        <div id="collapseMain${notification.id}"
+                                             class="accordion-collapse collapse ${isExpanded}"
+                                             aria-labelledby="headingMain${notification.id}"
+                                             data-bs-parent="#notificationAccordionMain">
+                                            <div class="accordion-body">
+                                                ${notification.description ? `<p class="mb-2">${notification.description}</p>` : ''}
+                                                <div class="d-flex justify-content-between align-items-center mt-3">
+                                                    <small class="text-muted">
+                                                        ${notification.read_at ? `خوانده شده: ${notification.read_at}` : 'خوانده نشده'}
+                                                    </small>
+                                                    <div>
+                                                        <a href="${markAsReadUrl}" class="btn btn-sm btn-primary me-2">
+                                                            <i class="fas fa-external-link-alt"></i> مشاهده
+                                                        </a>
+                                                        <button class="btn btn-sm btn-outline-danger delete-notification"
+                                                                data-id="${notification.id}"
+                                                                title="{% trans 'حذف اعلان' %}">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>`;
+                                accordionHtml += accordionItem;
+                            });
+                            accordionHtml += '</div>';
+                            notificationList.html(accordionHtml);
+
+                            // علامت‌گذاری به عنوان خوانده شده وقتی آکاردئون باز می‌شود
+                            $('.accordion-button[data-mark-viewed-url]').on('click', function() {
+                                const notificationId = $(this).data('notification-id');
+                                const markViewedUrl = $(this).data('mark-viewed-url');
+                                const $item = $(this).closest('.notification-accordion-item');
+
+                                if (markViewedUrl && $item.hasClass('unread')) {
+                                    $.ajax({
+                                        url: markViewedUrl,
+                                        type: 'POST',
+                                        headers: {
+                                            'X-CSRFToken': '{{ csrf_token }}'
+                                        },
+                                        success: function(response) {
+                                            if (response.status === 'success') {
+                                                $item.removeClass('unread');
+                                                $item.find('.fa-circle').removeClass('fa-circle text-primary').addClass('fa-check-circle text-success');
+                                                fetchNotifications(); // به‌روزرسانی لیست
+                                            }
+                                        }
+                                    });
+                                }
                             });
                         } else {
                             notificationList.append('<li class="dropdown-item text-muted">{% trans "اعلانی وجود ندارد" %}</li>');
@@ -1131,29 +1251,89 @@
                         const notificationList = $('#get_notifications');
                         notificationList.empty();
                         if (data.notifications.length > 0) {
-                            data.notifications.forEach(notification => {
+                            // ساخت آکاردئون برای اعلان‌ها
+                            let accordionHtml = '<div class="accordion accordion-flush" id="notificationAccordion">';
+                            data.notifications.forEach((notification, index) => {
                                 const unreadClass = notification.unread ? 'unread' : '';
-                                const item = `
-                                            <li class="notification-item ${unreadClass}">
-                                                <div class="d-flex justify-content-between align-items-center">
-                                                    {#<a class="dropdown-item" href="{% url 'notifications:unread' 0 %}?next={% url 'notifications_inbox' %}".replace('0', notification.id)>#}
-                                                        <div class="d-flex align-items-center">
-                                                            <i class="fas fa-bell me-2 text-primary"></i>
-                                                            <div>
-                                                                <p class="mb-0">
-                                                                    ${notification.actor} ${notification.verb}
-                                                                    ${notification.target ? `(${notification.target})` : ''}
-                                                                </p>
-                                                                ${notification.description ? `<small class="text-muted">${notification.description}</small><br>` : ''}
-                                                                <small class="text-muted">${notification.timestamp}</small>
-                                                            </div>
-                                                        </div>
-                                                    {#</a>#}
-                                                    <button class="btn btn-sm btn-outline-danger delete-notification"
-                                                            data-id="${notification.id}">{% trans "حذف" %}</button>
+                                const priorityClass = `priority-${notification.priority.toLowerCase()}`;
+                                const markAsReadUrl = notification.url || `{% url 'notifications:mark_as_read' 0 %}?next={% url 'notifications:inbox' %}`.replace('0', notification.id);
+                                const isExpanded = index === 0 && notification.unread ? 'show' : '';
+
+                                // علامت‌گذاری به عنوان خوانده شده وقتی کاربر اعلان را باز می‌کند
+                                const accordionItem = `
+                                    <div class="accordion-item notification-accordion-item ${unreadClass} ${priorityClass}">
+                                        <h2 class="accordion-header" id="heading${notification.id}">
+                                            <button class="accordion-button ${notification.unread ? '' : 'collapsed'}"
+                                                    type="button"
+                                                    data-bs-toggle="collapse"
+                                                    data-bs-target="#collapse${notification.id}"
+                                                    aria-expanded="${notification.unread ? 'true' : 'false'}"
+                                                    data-notification-id="${notification.id}"
+                                                    data-mark-viewed-url="${notification.mark_viewed_url}">
+                                                <div class="d-flex align-items-center w-100">
+                                                    <i class="fas ${notification.unread ? 'fa-circle text-primary' : 'fa-check-circle text-success'} me-2"></i>
+                                                    <div class="flex-grow-1 text-start">
+                                                        <strong>${notification.actor_username}</strong> ${notification.verb}
+                                                        ${notification.target ? `<span class="text-muted">(${notification.target})</span>` : ''}
+                                                    </div>
+                                                    <span class="badge bg-${notification.priority === 'HIGH' ? 'danger' : notification.priority === 'WARNING' ? 'warning' : 'info'} me-2">
+                                                        ${notification.priority}
+                                                    </span>
+                                                    <small class="text-muted">${notification.timestamp}</small>
                                                 </div>
-                                            </li>`;
-                                notificationList.append(item);
+                                            </button>
+                                        </h2>
+                                        <div id="collapse${notification.id}"
+                                             class="accordion-collapse collapse ${isExpanded}"
+                                             aria-labelledby="heading${notification.id}"
+                                             data-bs-parent="#notificationAccordion">
+                                            <div class="accordion-body">
+                                                ${notification.description ? `<p class="mb-2">${notification.description}</p>` : ''}
+                                                <div class="d-flex justify-content-between align-items-center mt-3">
+                                                    <small class="text-muted">
+                                                        ${notification.read_at ? `خوانده شده: ${notification.read_at}` : 'خوانده نشده'}
+                                                    </small>
+                                                    <div>
+                                                        <a href="${markAsReadUrl}" class="btn btn-sm btn-primary me-2">
+                                                            <i class="fas fa-external-link-alt"></i> مشاهده
+                                                        </a>
+                                                        <button class="btn btn-sm btn-outline-danger delete-notification"
+                                                                data-id="${notification.id}"
+                                                                title="{% trans 'حذف اعلان' %}">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>`;
+                                accordionHtml += accordionItem;
+                            });
+                            accordionHtml += '</div>';
+                            notificationList.html(accordionHtml);
+
+                            // علامت‌گذاری به عنوان خوانده شده وقتی آکاردئون باز می‌شود
+                            $('.accordion-button').on('click', function() {
+                                const notificationId = $(this).data('notification-id');
+                                const markViewedUrl = $(this).data('mark-viewed-url');
+                                const $item = $(this).closest('.notification-accordion-item');
+
+                                if (markViewedUrl && $item.hasClass('unread')) {
+                                    $.ajax({
+                                        url: markViewedUrl,
+                                        type: 'POST',
+                                        headers: {
+                                            'X-CSRFToken': '{{ csrf_token }}'
+                                        },
+                                        success: function(response) {
+                                            if (response.status === 'success') {
+                                                $item.removeClass('unread');
+                                                $item.find('.fa-circle').removeClass('fa-circle text-primary').addClass('fa-check-circle text-success');
+                                                fetchNotifications(); // به‌روزرسانی لیست
+                                            }
+                                        }
+                                    });
+                                }
                             });
                         } else {
                             notificationList.append('<li class="dropdown-item text-muted">{% trans "اعلانی وجود ندارد" %}</li>');

@@ -744,7 +744,94 @@ def get_project_used_budget(project , filters=None) -> Decimal:
         logger.error(f"Error in get_project_used_budget for project '{project.name}': {e}", exc_info=True)
         return Decimal('0')
 
-def get_project_remaining_budget(
+# // == == = UTILITY FUNCTIONS == == =
+def get_project_remaining_budget(project, force_refresh=False, filters=None):
+    """
+    محاسبه بودجه باقی‌مانده پروژه با در نظر گرفتن:
+    - کل بودجه تخصیص‌یافته (از get_project_total_budget)
+    - مصرف‌ها (CONSUMPTION)
+    - برگشتی‌ها (RETURN)
+    - تخصیص‌های مستقیم به پروژه و تخصیص‌های به زیرپروژه‌ها
+    - فقط رکوردهای فعال
+
+    نتیجه برای ۵ دقیقه کش می‌شود.
+    """
+    if not project:
+        return Decimal('0')
+
+    cache_key = f"project_remaining_budget_{project.pk}_{hash(str(filters)) if filters else 'no_filters'}"
+
+    if force_refresh:
+        cache.delete(cache_key)
+        logger.debug(f"کش بودجه باقی‌مانده پروژه {project.pk} حذف شد (force_refresh)")
+
+    cached_result = cache.get(cache_key)
+    if cached_result is not None:
+        logger.debug(f"بازگشت نتیجه کش‌شده برای بودجه باقی‌مانده پروژه {project.pk}: {cached_result}")
+        return cached_result
+
+    try:
+        # کل بودجه تخصیص‌یافته به پروژه (شامل زیرپروژه‌ها)
+        total_allocated = get_project_total_budget(project, force_refresh=True, filters=filters)
+        if total_allocated is None:
+            total_allocated = Decimal('0')
+
+        # تخصیص‌های فعال مربوط به پروژه (مستقیم یا از طریق زیرپروژه)
+        from budgets import BudgetAllocation,BudgetTransaction
+        allocations_qs = BudgetAllocation.objects.filter(
+            Q(project=project) | Q(subproject__project=project),
+            is_active=True
+        )
+
+        # تراکنش‌های مصرف و بازگشت فقط از تخصیص‌های فعال
+        transactions_qs = BudgetTransaction.objects.filter(
+            allocation__in=allocations_qs,
+            is_active=True  # فرض بر وجود فیلد is_active
+        )
+
+        if filters:
+            transactions_qs = apply_filters(transactions_qs, filters)
+
+        # محاسبه مجموع مصرف
+        consumptions_total = transactions_qs.filter(
+            transaction_type='CONSUMPTION'
+        ).aggregate(
+            total=Coalesce(Sum('amount'), Value(Decimal('0')))
+        )['total']
+
+        # محاسبه مجموع برگشتی
+        returns_total = transactions_qs.filter(
+            transaction_type='RETURN'
+        ).aggregate(
+            total=Coalesce(Sum('amount'), Value(Decimal('0')))
+        )['total']
+
+        # فرمول صحیح: تخصیص‌یافته - مصرف + برگشتی
+        remaining = max(total_allocated - consumptions_total + returns_total, Decimal('0'))
+
+        # کش کردن نتیجه
+        cache.set(cache_key, remaining, timeout=300)
+
+        logger.info(
+            f"محاسبه بودجه باقی‌مانده پروژه {project.pk}: "
+            f"تخصیص‌یافته={total_allocated:,} | "
+            f"مصرف={consumptions_total:,} | "
+            f"برگشتی={returns_total:,} | "
+            f"باقی‌مانده={remaining:,} ریال"
+        )
+
+        return remaining
+
+    except Exception as e:
+        logger.error(
+            f"خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه {project.pk}: {str(e)}",
+            exc_info=True
+        )
+        return Decimal('0')
+
+
+
+def get_project_remaining_budget__old(
         project, force_refresh=False, filters=None):
     cache_key = f"project_remaining_budget_{project.pk}_{hash(str(filters)) if filters else 'no_filters'}"
     if force_refresh:
@@ -787,7 +874,7 @@ def get_project_remaining_budget(
             returns = apply_filters(returns, filters)
         returns_total = returns.aggregate(total=Sum('amount'))['total'] or Decimal('0')
 
-        remaining = max(total_allocated - consumptions_total + returns_total, Decimal('0'))
+        remaining =0# max(total_allocated - consumptions_total + returns_total, Decimal('0'))
         cache.set(cache_key, remaining, timeout=300)
         logger.debug(
             f"get_project_remaining_budget: project={project.id}, total={total_allocated}, "

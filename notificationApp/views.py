@@ -1,21 +1,23 @@
-from django.shortcuts import render, get_object_or_404, redirect
+import logging
+from datetime import date
+
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.http import JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
-from django.views.decorators.http import require_POST
-from django.contrib import messages
 from django.utils import timezone
-from datetime import date
-
+from django.views.decorators.http import require_POST
 from django_jalali.templatetags.jformat import jformat
 
-from .models import Notification, NotificationRule
 from accounts.models import CustomUser
-from core.models import UserPost, Post
-from channels.layers import get_channel_layer
-from asgiref.sync import async_to_sync
-import logging
+from core.models import Post, UserPost
+
+from .models import Notification, NotificationRule
+
 logger = logging.getLogger(__name__)
 
 @login_required
@@ -51,14 +53,19 @@ def notifications_inbox(request):
 @require_POST
 @login_required
 def delete_notification(request, notification_id):
+    """حذف اعلان (soft delete) - اعلان دیگر نمایش داده نمی‌شود"""
     try:
         notification = get_object_or_404(Notification, id=notification_id, recipient=request.user, deleted=False)
         notification.mark_as_deleted()
         messages.success(request, 'اعلان با موفقیت حذف شد.')
-        return JsonResponse({'status': 'success'})
+        return JsonResponse({
+            'status': 'success',
+            'message': 'اعلان حذف شد و دیگر نمایش داده نمی‌شود.'
+        })
     except Notification.DoesNotExist:
         return JsonResponse({'status': 'error', 'message': 'اعلان یافت نشد'}, status=404)
     except Exception as e:
+        logger.error(f"Error deleting notification: {e}")
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
 @login_required
@@ -84,7 +91,7 @@ def mark_as_read(request, notification_id):
         notification = get_object_or_404(Notification, id=notification_id, recipient=request.user, deleted=False)
         notification.mark_as_read()
         messages.success(request, 'اعلان به عنوان خوانده شده علامت‌گذاری شد.')
-        
+
         # بازگشت به صفحه قبلی یا inbox
         next_url = request.GET.get('next', reverse('notifications:inbox'))
         return redirect(next_url)
@@ -96,12 +103,30 @@ def mark_as_read(request, notification_id):
         return redirect('notifications:inbox')
 
 @login_required
+def mark_notification_viewed(request, notification_id):
+    """علامت‌گذاری اعلان به عنوان دیده شده (خوانده شده) بدون redirect"""
+    try:
+        notification = get_object_or_404(
+            Notification,
+            id=notification_id,
+            recipient=request.user,
+            deleted=False
+        )
+        if notification.unread:
+            notification.mark_as_read()
+        return JsonResponse({'status': 'success', 'unread': False})
+    except Notification.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'اعلان یافت نشد'}, status=404)
+    except Exception as e:
+        logger.error(f"Error marking notification as viewed: {e}")
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+@login_required
 def get_notifications(request):
     notifications = request.user.notifications.filter(deleted=False).order_by('-timestamp')[:10]
     unread_count = request.user.notifications.filter(unread=True, deleted=False).count()
 
     # 💡 NEW: Define URL patterns once
-    MARK_AS_READ_URL_PATTERN = reverse('notifications:mark_as_read', args=[0])
     NOTIFICATIONS_INBOX_URL = reverse('notifications:inbox')
 
     data = {
@@ -115,14 +140,139 @@ def get_notifications(request):
                 'timestamp': jformat(notice.timestamp, "%Y/%m/%d - %H:%M"),  # Use jformat for consistency
                 'unread': notice.unread,
                 'priority': notice.get_priority_display(),
+                'read_at': jformat(notice.read_at, "%Y/%m/%d - %H:%M") if notice.read_at else None,
+                'actor_username': notice.actor.username if notice.actor else 'سیستم',
                 # 💡 NEW: Generate the final URL for the frontend
-                'url': f"{MARK_AS_READ_URL_PATTERN.replace('0', str(notice.id))}?next={getattr(notice.target, 'get_absolute_url', lambda: NOTIFICATIONS_INBOX_URL)()}"
+                'url': _build_notification_url(notice, NOTIFICATIONS_INBOX_URL),
+                'mark_viewed_url': reverse('notifications:mark_viewed', args=[notice.id])
             }
             for notice in notifications
         ],
         'unread_count': unread_count,
     }
     return JsonResponse(data)
+
+
+def _build_notification_url(notice, default_url):
+    """ساخت URL برای mark_as_read با next parameter"""
+    try:
+        mark_as_read_url = reverse('notifications:mark_as_read', args=[notice.id])
+        # تعیین URL مقصد
+        if notice.target:
+            try:
+                next_url = notice.target.get_absolute_url()
+            except (AttributeError, Exception):
+                next_url = default_url
+        else:
+            next_url = default_url
+        return f"{mark_as_read_url}?next={next_url}"
+    except Exception as e:
+        logger.error(f"Error building notification URL: {e}")
+        return default_url
+
+
+@login_required
+def admin_notifications_dashboard(request):
+    """داشبورد ادمین برای مدیریت همه اعلان‌ها"""
+    if not (request.user.is_staff or request.user.is_superuser):
+        messages.error(request, 'شما اجازه دسترسی به این صفحه را ندارید.')
+        return redirect('core:dashboard')
+
+    # فیلترها
+    status_filter = request.GET.get('status', 'all')  # all, unread, read, deleted
+    priority_filter = request.GET.get('priority', 'all')
+    entity_filter = request.GET.get('entity_type', 'all')
+    actor_filter = request.GET.get('actor', '')
+
+    # دریافت اعلان‌ها
+    notifications = Notification.objects.all().select_related('recipient', 'actor', 'target_content_type').order_by('-timestamp')
+
+    # اعمال فیلترها
+    if status_filter == 'unread':
+        notifications = notifications.filter(unread=True, deleted=False)
+    elif status_filter == 'read':
+        notifications = notifications.filter(unread=False, deleted=False)
+    elif status_filter == 'deleted':
+        notifications = notifications.filter(deleted=True)
+    elif status_filter == 'all':
+        notifications = notifications.filter(deleted=False)
+
+    if priority_filter != 'all':
+        notifications = notifications.filter(priority=priority_filter)
+
+    if entity_filter != 'all':
+        notifications = notifications.filter(entity_type=entity_filter)
+
+    if actor_filter:
+        notifications = notifications.filter(actor__username__icontains=actor_filter)
+
+    # آمار کلی
+    stats = {
+        'total': Notification.objects.filter(deleted=False).count(),
+        'unread': Notification.objects.filter(unread=True, deleted=False).count(),
+        'read': Notification.objects.filter(unread=False, deleted=False).count(),
+        'deleted': Notification.objects.filter(deleted=True).count(),
+        'by_priority': {
+            'LOW': Notification.objects.filter(priority='LOW', deleted=False).count(),
+            'MEDIUM': Notification.objects.filter(priority='MEDIUM', deleted=False).count(),
+            'HIGH': Notification.objects.filter(priority='HIGH', deleted=False).count(),
+            'WARNING': Notification.objects.filter(priority='WARNING', deleted=False).count(),
+            'ERROR': Notification.objects.filter(priority='ERROR', deleted=False).count(),
+        },
+        'by_entity': {
+            entity_type: Notification.objects.filter(entity_type=entity_type, deleted=False).count()
+            for entity_type, _ in Notification._meta.get_field('entity_type').choices
+        }
+    }
+
+    # صفحه‌بندی
+    paginator = Paginator(notifications, 25)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'page_obj': page_obj,
+        'stats': stats,
+        'status_filter': status_filter,
+        'priority_filter': priority_filter,
+        'entity_filter': entity_filter,
+        'actor_filter': actor_filter,
+        'title': 'داشبورد مدیریت اعلان‌ها',
+    }
+    return render(request, 'notifications/admin_dashboard.html', context)
+
+
+@login_required
+def creator_notifications_view(request, user_id):
+    """نمایش اعلان‌های ایجاد شده توسط یک کاربر خاص"""
+    # فقط کاربر خودش یا ادمین می‌تواند ببیند
+    if request.user.id != user_id and not (request.user.is_staff or request.user.is_superuser):
+        messages.error(request, 'شما اجازه دسترسی به این صفحه را ندارید.')
+        return redirect('core:dashboard')
+
+    creator = get_object_or_404(CustomUser, id=user_id)
+    notifications = Notification.objects.filter(actor=creator).select_related('recipient', 'target_content_type').order_by('-timestamp')
+
+    # آمار
+    stats = {
+        'total_created': notifications.count(),
+        'unread_count': notifications.filter(unread=True, deleted=False).count(),
+        'read_count': notifications.filter(unread=False, deleted=False).count(),
+        'deleted_count': notifications.filter(deleted=True).count(),
+    }
+
+    # صفحه‌بندی
+    paginator = Paginator(notifications, 20)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'page_obj': page_obj,
+        'stats': stats,
+        'creator': creator,
+        'title': f'اعلان‌های ایجاد شده توسط {creator.username}',
+    }
+    return render(request, 'notifications/creator_view.html', context)
 
 
 def get_users_for_post(post):

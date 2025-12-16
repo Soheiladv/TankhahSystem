@@ -29,12 +29,57 @@ from django.views import View
 
 logger = logging.getLogger(__name__)
 # Dashboard
-class BudgetDashboardView(PermissionBaseView, TemplateView):
+class BudgetDashboardView__old(PermissionBaseView, TemplateView):
     template_name = 'budgets/budgets_dashboard.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['organizations'] = Organization.objects.all()
+        return context
+
+class BudgetDashboardView(PermissionBaseView, TemplateView):  # یا PermissionRequiredMixin اگر لازم باشد
+    template_name = 'budgets/budgets_dashboard.html'
+
+    def get_total_allocated_amount(self):
+        """
+        محاسبه جمع کل مبلغ تخصیص‌یافته (allocated_amount) در تمام تخصیص‌های فعال.
+        نتیجه کش می‌شود تا عملکرد داشبورد بالا بماند.
+        """
+        cache_key = 'dashboard_total_allocated_amount'
+        # from django.core import cache
+        from django.core.cache import cache
+        total = cache.get(cache_key)
+
+        if total is None:
+            try:
+                # فقط تخصیص‌های فعال را در نظر می‌گیریم
+                result = BudgetAllocation.objects.filter(
+                    is_active=True
+                ).aggregate(total_allocated=Sum('allocated_amount'))
+
+                total = result['total_allocated'] or Decimal('0')
+                # کش برای ۵ دقیقه (۳۰۰ ثانیه) - قابل تنظیم بر اساس نیاز
+                cache.set(cache_key, total, timeout=300)
+                logger.debug(f"Calculated total allocated amount: {total}")
+            except Exception as e:
+                logger.error(f"Error calculating total allocated amount: {str(e)}", exc_info=True)
+                total = Decimal('0')
+
+        return total
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        # اضافه کردن جمع کل بودجه تخصیص‌یافته به context
+        total_allocated = self.get_total_allocated_amount()
+        context['total_allocated_amount'] = total_allocated
+        context['total_allocated_formatted'] = f"{total_allocated:,.0f}"
+
+        # سازمان‌ها برای فیلتر یا نمایش دیگر (اگر قبلاً داشتید)
+        from core.models import Organization
+        context['organizations'] = Organization.objects.all()
+
+        logger.info(f"BudgetDashboardView rendered with total_allocated_amount={total_allocated}")
         return context
 
 # استفاده در تمپلیت‌ها

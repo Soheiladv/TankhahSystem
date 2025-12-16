@@ -64,7 +64,8 @@
 
     <h3 class="mb-3 fw-bold border-bottom pb-2"><i class="fas fa-cogs text-primary me-2"></i>{% trans "پیکربندی سیستم" %}</h3>
     <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4 mb-5">
-        
+       <!-- ===== کارت جدید: جمع کل بودجه تخصیص‌یافته ===== -->
+
         <div class="col">
             <div class="card shadow-sm dashboard-card card-group-config">
                 <div class="card-header bg-transparent d-flex align-items-center">
@@ -73,13 +74,27 @@
                 </div>
                 <div class="card-body">
                     <p class="card-text text-muted small">مدیریت و تعریف سال‌ها و دوره‌های مالی جهت تخصیص بودجه.</p>
+                    <p style="color:red;">شروع اعتبار و روند ثبت بودجه.</p>
                 </div>
+                <div  >
+{#                    <i class="fas fa-wallet fa-3x text-success mb-3"></i>#}
+                    <h5 class="card-title text-success fw-bold">{% trans "کل بودجه تخصیص‌یافته" %}
+                    <h5 class="display-5 fw-bold text-dark">
+                        {{ total_allocated_formatted }} <small class="fs-4 text-muted">ریال</small>
+                    </h5></h5>
+                    <p class="text-muted mt-3">
+                        {% trans "جمع مبلغ تخصیص‌یافته در تمام دوره‌های بودجه (فقط تخصیص‌های فعال)" %}
+                    </p>
+                </div>
+
                 <div class="card-footer bg-light d-flex justify-content-between">
-                    <a href="{% url 'budgetperiod_list' %}"><i class="fas fa-list-ul me-1"></i>{% trans "لیست دوره‌ها" %}</a>
+                    <a href="{% url 'budgetperiod_list' %}"><i class="fas fa-list-ul me-1"></i>{% trans "فهرست دوره‌ها" %}</a>
                     <a href="{% url 'budgetperiod_create' %}"><i class="fas fa-plus-circle me-1"></i>{% trans "ایجاد دوره" %}</a>
                 </div>
+
             </div>
         </div>
+
 
         <div class="col">
             <div class="card shadow-sm dashboard-card card-group-config">
@@ -91,7 +106,7 @@
                     <p class="card-text text-muted small">مدیریت تعاریف نوع ردیف بودجه.</p>
                 </div>
                 <div class="card-footer bg-light d-flex justify-content-between">
-                    <a href="{% url 'budgetitem_list' %}"><i class="fas fa-list-ul me-1"></i>{% trans "لیست دوره‌ها" %}</a>
+                    <a href="{% url 'budgetitem_list' %}"><i class="fas fa-list-ul me-1"></i>{% trans "فهرست دوره‌ها" %}</a>
                     <a href="{% url 'budgetitem_create' %}"><i class="fas fa-plus-circle me-1"></i>{% trans "ایجاد دوره" %}</a>
                 </div>
             </div>
@@ -105,9 +120,10 @@
                 </div>
                 <div class="card-body">
                     <p class="card-text text-muted small">تعریف سرفصل‌ها و کدهای هزینه برای دسته‌بندی مالی.</p>
+                    <p style="color: orangered">جهت تخصیص بودجه و اعتبار به مرکز هزینه یا شعبات باید از لینک دوره بودجه اقدام به تخصیص نمایید</p>
                 </div>
                 <div class="card-footer bg-light d-flex justify-content-between">
-                    <a href="{% url 'budgetallocation_list' %}"><i class="fas fa-list-ul me-1"></i>{% trans "لیست ردیف‌ها" %}</a>
+                    <a href="{% url 'budgetallocation_list' %}"><i class="fas fa-list-ul me-1"></i>{% trans "فهرست ردیف‌ها" %}</a>
                     <a href="{% url 'budgetallocation_create' %}"><i class="fas fa-plus-circle me-1"></i>{% trans "ایجاد ردیف" %}</a>
                 </div>
             </div>
@@ -123,7 +139,7 @@
                     <p class="card-text text-muted small">مدیریت اطلاعات اشخاص حقیقی و حقوقی طرف حساب.</p>
                 </div>
                 <div class="card-footer bg-light d-flex justify-content-between">
-                    <a href="{% url 'payee_list' %}"><i class="fas fa-list-ul me-1"></i>{% trans "لیست اشخاص" %}</a>
+                    <a href="{% url 'payee_list' %}"><i class="fas fa-list-ul me-1"></i>{% trans "فهرست اشخاص" %}</a>
                     <a href="{% url 'payee_create' %}"><i class="fas fa-plus-circle me-1"></i>{% trans "ایجاد شخص" %}</a>
                 </div>
             </div>
@@ -139,7 +155,7 @@
                     <p class="card-text text-muted small">تعریف انواع رویدادهای مالی مانند هزینه، درآمد و انتقال.</p>
                 </div>
                 <div class="card-footer bg-light d-flex justify-content-between">
-                    <a href="{% url 'transactiontype_list' %}"><i class="fas fa-list-ul me-1"></i>{% trans "لیست انواع" %}</a>
+                    <a href="{% url 'transactiontype_list' %}"><i class="fas fa-list-ul me-1"></i>{% trans "فهرست انواع" %}</a>
                     <a href="{% url 'transactiontype_add' %}"><i class="fas fa-plus-circle me-1"></i>{% trans "ایجاد نوع" %}</a>
                 </div>
             </div>
@@ -149,22 +165,44 @@
 
     <h3 class="mb-3 fw-bold border-bottom pb-2"><i class="fas fa-wallet text-success me-2"></i>{% trans "عملیات اصلی بودجه" %}</h3>
     <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 mb-5">
+{#        <div class="col">#}
+{#            <div class="card shadow-sm dashboard-card card-group-main">#}
+{#                <div class="card-header bg-transparent d-flex align-items-center">#}
+{#                    <i class="fas fa-building text-success card-header-icon"></i>#}
+{#                    <h5 class="card-title mb-0">{% trans "تخصیص به سازمان" %}</h5>#}
+{#                </div>#}
+{#                <div class="card-body">#}
+{#                    <p class="card-text text-muted small">تخصیص اعتبار کلان به سازمان‌ها و واحدهای مختلف.</p>#}
+{#                </div>#}
+{#                <div class="card-footer bg-light d-flex justify-content-between">#}
+{#                    <a href="{% url 'budgetallocation_list' %}"><i class="fas fa-list-ul me-1"></i>{% trans "فهرست تخصیص‌ها" %}</a>#}
+{#                    <a href="{% url 'budgetallocation_create' %}"><i class="fas fa-plus-circle me-1"></i>{% trans "تخصیص جدید" %}</a>#}
+{#                </div>#}
+{#            </div>#}
+{#        </div>#}
+
         <div class="col">
-            <div class="card shadow-sm dashboard-card card-group-main">
+            <div class="card shadow-sm dashboard-card card-group-report">
                 <div class="card-header bg-transparent d-flex align-items-center">
-                    <i class="fas fa-building text-success card-header-icon"></i>
-                    <h5 class="card-title mb-0">{% trans "تخصیص به سازمان" %}</h5>
+                    <i class="fas fa-chart-line text-info card-header-icon"></i>
+                    <h5 class="card-title mb-0">{% trans "گزارشات سیستم" %}</h5>
                 </div>
                 <div class="card-body">
-                    <p class="card-text text-muted small">تخصیص اعتبار کلان به سازمان‌ها و واحدهای مختلف.</p>
+                    <p class="card-text text-muted small">دسترسی به گزارشات جامع و تحلیلی سیستم.</p>
                 </div>
-                <div class="card-footer bg-light d-flex justify-content-between">
-                    <a href="{% url 'budgetallocation_list' %}"><i class="fas fa-list-ul me-1"></i>{% trans "لیست تخصیص‌ها" %}</a>
-                    <a href="{% url 'budgetallocation_create' %}"><i class="fas fa-plus-circle me-1"></i>{% trans "تخصیص جدید" %}</a>
+                <div class="card-footer bg-light text-center">
+                    <a href="{% url 'comprehensive_budget_report' %}"><strong>{% trans "مشاهده گزارش جامع" %}</strong></a>
                 </div>
+                <div class="card-footer bg-light text-center">
+                    <a href="{% url 'executive_dashboard' %}"><strong>{% trans "مشاهده گزارش  " %}</strong></a>
+                </div>
+
+                <div class="card-footer bg-light text-center">
+                    <a href="{% url 'reports_dashboard:analytics_redesigned'  %}"> <strong>{% trans "تحلیل‌های پیشرفته بودجه" %}</strong></a>
+                </div>
+
             </div>
         </div>
-
         <div class="col">
             <div class="card shadow-sm dashboard-card card-group-main">
                 <div class="card-header bg-transparent d-flex align-items-center">
@@ -208,7 +246,7 @@
                     <p class="card-text text-muted small">ایجاد، مشاهده و پیگیری تمام دستورات پرداخت مالی.</p>
                 </div>
                 <div class="card-footer bg-light d-flex justify-content-between">
-                    <a href="{% url 'paymentorder_list' %}"><i class="fas fa-list-ul me-1"></i>{% trans "لیست دستورات" %}</a>
+                    <a href="{% url 'paymentorder_list' %}"><i class="fas fa-list-ul me-1"></i>{% trans "فهرست دستورات" %}</a>
                     <a href="{% url 'paymentorder_add' %}"><i class="fas fa-plus-circle me-1"></i>{% trans "ایجاد دستور" %}</a>
                 </div>
             </div>
@@ -224,25 +262,12 @@
                     <p class="card-text text-muted small">بررسی و اقدام بر روی موارد نیازمند تایید شما.</p>
                 </div>
                 <div class="card-footer bg-light text-center">
-                    <a href="{% url 'payment_order_review' %}"><strong>{% trans "ورود به کارتابل" %}</strong></a>
+                    <a href="{% url 'executive_dashboard' %}"><strong>{% trans "ورود به کارتابل" %}</strong></a>
+{#                    <a href="{% url 'payment_order_review' %}"><strong>{% trans "ورود به کارتابل" %}</strong></a>#}
                 </div>
             </div>
         </div>
 
-        <div class="col">
-            <div class="card shadow-sm dashboard-card card-group-report">
-                <div class="card-header bg-transparent d-flex align-items-center">
-                    <i class="fas fa-chart-line text-info card-header-icon"></i>
-                    <h5 class="card-title mb-0">{% trans "گزارشات سیستم" %}</h5>
-                </div>
-                <div class="card-body">
-                    <p class="card-text text-muted small">دسترسی به گزارشات جامع و تحلیلی سیستم.</p>
-                </div>
-                <div class="card-footer bg-light text-center">
-                    <a href="{% url 'comprehensive_budget_report' %}"><strong>{% trans "مشاهده گزارش جامع" %}</strong></a>
-                </div>
-            </div>
-        </div>
 
         <div class="col">
             <div class="card shadow-sm dashboard-card card-group-help">

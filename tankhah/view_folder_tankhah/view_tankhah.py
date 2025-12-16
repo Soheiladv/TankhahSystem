@@ -513,6 +513,7 @@ class TankhahDetailView(PermissionBaseView, DetailView):
     permission_codename = ['tankhah.Tankhah_detail']
     permission_denied_message = _('متاسفانه دسترسی مجاز ندارید')
     check_organization = True
+
     def get_queryset(self):
         return Tankhah.objects.select_related(
             'organization', 'project', 'project_budget_allocation', 'subproject', 'created_by'
@@ -532,6 +533,7 @@ class TankhahDetailView(PermissionBaseView, DetailView):
         else:
             messages.error(request, _('فرم نامعتبر است. لطفاً ورودی‌ها را بررسی کنید.'))
         return self.get(request, *args, **kwargs)
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         tankhah = self.object
@@ -567,7 +569,8 @@ class TankhahDetailView(PermissionBaseView, DetailView):
         if tankhah.project:
             try:
                 context['project_total_budget'] = get_project_total_budget(tankhah.project) or Decimal('0')
-                context['project_remaining_budget'] = get_project_remaining_budget(tankhah.project) or Decimal('0')
+                logger.info(' get_project_remaining_budget is ====> ',  get_project_remaining_budget(tankhah.project) or Decimal('0'))
+                context['project_remaining_budget'] = 0#get_project_remaining_budget(tankhah.project) or Decimal('0')
                 logger.debug(
                     f"Project {tankhah.project.pk}: total={context['project_total_budget']}, "
                     f"remaining={context['project_remaining_budget']}"

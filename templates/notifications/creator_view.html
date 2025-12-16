@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+{% load i18n static jformat %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="mb-4">
+                <i class="fas fa-user-circle text-primary me-2"></i>
+                {{ title }}
+            </h2>
+        </div>
+    </div>
+
+    <!-- آمار -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-bell me-2"></i>کل اعلان‌های ایجاد شده</h5>
+                    <h2>{{ stats.total_created }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-envelope me-2"></i>خوانده نشده</h5>
+                    <h2>{{ stats.unread_count }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-check-circle me-2"></i>خوانده شده</h5>
+                    <h2>{{ stats.read_count }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card bg-danger text-white">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-trash me-2"></i>حذف شده</h5>
+                    <h2>{{ stats.deleted_count }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- اطلاعات کاربر -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title"><i class="fas fa-user me-2"></i>اطلاعات سازنده</h5>
+            <p class="mb-0"><strong>نام کاربری:</strong> {{ creator.username }}</p>
+            <p class="mb-0"><strong>نام کامل:</strong> {{ creator.get_full_name|default:"-" }}</p>
+            <p class="mb-0"><strong>ایمیل:</strong> {{ creator.email|default:"-" }}</p>
+        </div>
+    </div>
+
+    <!-- لیست اعلان‌ها -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-list me-2"></i>لیست اعلان‌های ایجاد شده</h5>
+        </div>
+        <div class="card-body">
+            {% if page_obj %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>گیرنده</th>
+                                <th>فعل</th>
+                                <th>توضیحات</th>
+                                <th>اولویت</th>
+                                <th>نوع</th>
+                                <th>وضعیت</th>
+                                <th>زمان ایجاد</th>
+                                <th>زمان خوانده شدن</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for notification in page_obj %}
+                                <tr class="{% if notification.unread %}table-warning{% endif %} {% if notification.deleted %}table-secondary{% endif %}">
+                                    <td>{{ notification.recipient.username }}</td>
+                                    <td>{{ notification.verb }}</td>
+                                    <td>{{ notification.description|truncatewords:10 }}</td>
+                                    <td>
+                                        <span class="badge bg-{% if notification.priority == 'HIGH' %}danger{% elif notification.priority == 'WARNING' %}warning{% else %}info{% endif %}">
+                                            {{ notification.get_priority_display }}
+                                        </span>
+                                    </td>
+                                    <td>{{ notification.get_entity_type_display }}</td>
+                                    <td>
+                                        {% if notification.deleted %}
+                                            <span class="badge bg-danger">حذف شده</span>
+                                        {% elif notification.unread %}
+                                            <span class="badge bg-warning">خوانده نشده</span>
+                                        {% else %}
+                                            <span class="badge bg-success">خوانده شده</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ notification.timestamp|jformat:"%Y/%m/%d %H:%M" }}</td>
+                                    <td>{{ notification.read_at|jformat:"%Y/%m/%d %H:%M"|default:"-" }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- صفحه‌بندی -->
+                <nav aria-label="Page navigation">
+                    <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">قبلی</a>
+                            </li>
+                        {% endif %}
+                        {% for num in page_obj.paginator.page_range %}
+                            <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                            </li>
+                        {% endfor %}
+                        {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}">بعدی</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>این کاربر هیچ اعلانی ایجاد نکرده است.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+

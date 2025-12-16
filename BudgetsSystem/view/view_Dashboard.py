@@ -131,7 +131,8 @@ dashboard_links = {
     'مدیریت سیستم': {
         'header': 'مدیریت کاربران و تنظیمات سیستم',
         'links': [
-            {'name': _('مدیریت کاربران'), 'url': 'accounts:admin_dashboard', 'permission': 'accounts.view_user', 'icon': 'fas fa-users-cog'},
+            {'name': _('مدیریت سامانه'), 'url': 'accounts:admin_dashboard', 'permission': 'accounts.view_user', 'icon': 'fas fa-users-cog'},
+            {'name': _('داشبورد مدیریت اعلان‌ها'), 'url': 'notifications:admin_dashboard', 'permission': 'is_staff', 'icon': 'fas fa-bell'},
             {'name': _('نسخه‌های سیستم'), 'url': 'version_index_view', 'permission': 'version_tracker.view_finalversion', 'icon': 'fas fa-code-branch'},
             {'name': _('راهنمای بودجه‌بندی'), 'url': 'budget_Help', 'permission': None, 'icon': 'fas fa-question-circle'},
             {'name': _('راهنمای سیستم'), 'url': 'soft_help', 'permission': None, 'icon': 'fas fa-question-circle'},
@@ -1229,9 +1230,9 @@ class DashboardView(LoginRequiredMixin, View):
                         transaction_type='CONSUMPTION'
                     ).aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total']
 
-                    context['total_allocated_budget'] = total_allocated or Decimal('10000000')
-                    context['total_consumed_budget'] = total_consumed or Decimal('4000000')
-                    context['remaining_total_budget'] = (total_allocated - total_consumed) or Decimal('6000000')
+                    context['total_allocated_budget'] = total_allocated or Decimal('0')
+                    context['total_consumed_budget'] = total_consumed or Decimal('0')
+                    context['remaining_total_budget'] = (total_allocated - total_consumed) or Decimal('0')
                     context['percentage_consumed_budget'] = (
                         (total_consumed / total_allocated * 100) if total_allocated > 0 else 0
                     )
@@ -1422,10 +1423,11 @@ class DashboardView(LoginRequiredMixin, View):
                 logger.error(f"خطا در محاسبه هشدارهای بودجه: {e}", exc_info=True)
                 context['recent_budget_warnings'] = []
 
-        # گرفتن اعلان‌های خوانده‌نشده کاربر
+        # گرفتن اعلان‌های کاربر (هم خوانده شده و هم خوانده نشده)
         context['notifications'] = Notification.objects.filter(
-            recipient=request.user, unread=True, deleted=False
+            recipient=request.user, deleted=False
         ).select_related('actor', 'target').order_by('-timestamp')[:5]
+        # تعداد اعلان‌های خوانده‌نشده
         context['unread_count'] = Notification.objects.filter(
             recipient=request.user, unread=True, deleted=False
         ).count()
@@ -1453,7 +1455,6 @@ class DashboardView(LoginRequiredMixin, View):
         context = self.get_context_data(request)
         return render(request, self.template_name, context)
 
-    'این درسته'
     def _get_legacy_dashboard_links(self, request):
         """Return links in the legacy structure expected by templates/core/dashboard.html.
         Structure: { 'گروه': [ { name, icon, url?, url_kwargs?, direct_url? } ] }

@@ -33071,3 +33071,883 @@ ERROR 2025-12-13 13:14:08 check_user_access check_user_factor_access خطا در
 ERROR 2025-12-13 18:08:47 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
 ERROR 2025-12-13 18:08:47 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
 ERROR 2025-12-13 18:08:47 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-12-13 19:51:20 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-12-13 19:51:20 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-12-13 19:51:20 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-12-15 08:46:57 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-12-15 08:46:57 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-12-15 08:46:57 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-12-15 08:47:09 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-12-15 08:47:09 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-12-15 08:47:09 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-12-15 09:35:33 view_Dashboard get_enhanced_dashboard_stats خطا در دریافت آمار پیشرفته: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 09:37:31 view_Dashboard get_enhanced_dashboard_stats خطا در دریافت آمار پیشرفته: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 09:37:56 view_Dashboard get_enhanced_dashboard_stats خطا در دریافت آمار پیشرفته: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 09:38:53 view_Dashboard get_enhanced_dashboard_stats خطا در دریافت آمار پیشرفته: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 09:42:08 PermissionBase dispatch [PERM_CHECK] Permission denied for user snejate to /tankhah/categories/update/9/
+ERROR 2025-12-15 09:48:36 PermissionBase dispatch [PERM_CHECK] Permission denied for user snejate to /tankhah/categories/update/9/
+ERROR 2025-12-15 09:50:13 view_Dashboard get_enhanced_dashboard_stats خطا در دریافت آمار پیشرفته: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 09:50:17 view_Dashboard get_enhanced_dashboard_stats خطا در دریافت آمار پیشرفته: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 09:51:43 view_Dashboard get_enhanced_dashboard_stats خطا در دریافت آمار پیشرفته: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 09:52:08 views_Budget_item form_invalid Form invalid: errors={"budget_period": [{"message": "This field is required.", "code": "required"}]}
+ERROR 2025-12-15 10:07:03 view_Dashboard get_enhanced_dashboard_stats خطا در دریافت آمار پیشرفته: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 10:07:24 views_executive_dashboard get_context_data خطا در گزارشات تحلیلی: Expression contains mixed types: DecimalField, IntegerField. You must set output_field.
+ERROR 2025-12-15 10:07:31 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 90, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1163, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 10:08:22 view_Dashboard get_enhanced_dashboard_stats خطا در دریافت آمار پیشرفته: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 10:09:43 view_Dashboard get_enhanced_dashboard_stats خطا در دریافت آمار پیشرفته: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 10:10:27 view_Dashboard get_enhanced_dashboard_stats خطا در دریافت آمار پیشرفته: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 10:10:47 views_executive_dashboard get_context_data خطا در گزارشات تحلیلی: Expression contains mixed types: DecimalField, IntegerField. You must set output_field.
+ERROR 2025-12-15 10:12:33 view_Dashboard get_enhanced_dashboard_stats خطا در دریافت آمار پیشرفته: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 10:12:38 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 90, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1163, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 10:14:39 view_Dashboard get_enhanced_dashboard_stats خطا در دریافت آمار پیشرفته: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 10:16:00 view_Dashboard get_enhanced_dashboard_stats خطا در دریافت آمار پیشرفته: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 11:15:59 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 90, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1163, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 11:16:02 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 90, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1163, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 11:16:06 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 90, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1163, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 11:16:58 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 90, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1163, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 11:17:01 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 90, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1163, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 11:17:14 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 90, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1163, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 11:17:16 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 90, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1163, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 11:17:17 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 90, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1163, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 11:17:28 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 90, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1163, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 11:17:30 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 90, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1163, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 11:17:37 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 90, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1163, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 11:18:10 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 90, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1163, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 11:18:24 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 90, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1163, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 11:18:27 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 90, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1163, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 11:18:40 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 90, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1163, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 11:18:42 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 90, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1163, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 11:18:55 view_Dashboard get_enhanced_dashboard_stats خطا در دریافت آمار پیشرفته: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 11:18:58 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 90, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1163, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 11:19:02 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 90, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1163, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 11:19:42 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 90, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1163, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 11:19:44 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 90, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1163, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 11:19:44 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 90, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1163, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 11:19:44 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 90, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1163, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 11:20:36 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 90, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1163, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 11:20:37 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 90, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1163, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 11:20:38 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 90, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1163, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 11:20:38 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 90, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1163, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 11:22:05 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 90, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1163, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 11:22:05 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 90, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1163, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 11:22:05 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 90, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1163, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 11:22:06 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 90, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1163, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 11:22:20 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 90, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1163, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 11:22:21 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 90, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1163, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 11:22:43 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 90, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1163, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 11:22:43 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 90, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1163, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 11:22:43 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 90, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1163, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 11:22:43 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 90, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1163, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 11:22:43 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 90, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1163, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 11:22:43 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 90, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1163, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 11:22:43 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 90, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1163, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 11:22:43 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 90, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1163, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 11:22:59 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 90, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1163, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 11:23:04 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 90, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1163, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 11:25:34 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 90, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1163, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 11:25:36 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 90, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1163, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 11:25:51 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 90, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1163, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 11:25:54 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 90, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1163, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 11:26:05 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 90, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1163, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 11:26:06 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 90, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1163, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 11:26:16 views get_context_data [DASHBOARD] خطا در get_chart_data: list.count() takes exactly one argument (0 given)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 90, in get_context_data
+    chart_data = self.get_chart_data(start_date, end_date, organization_id, project_id) or {}
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\reports\dashboard\views.py", line 1163, in get_chart_data
+    logger.info(f"[CHART_DATA] org_budget query - تعداد: {org_budget.count()}")
+                                                          ~~~~~~~~~~~~~~~~^^
+TypeError: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 12:22:15 view_Dashboard get_enhanced_dashboard_stats خطا در دریافت آمار پیشرفته: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 12:22:25 view_Dashboard get_enhanced_dashboard_stats خطا در دریافت آمار پیشرفته: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 12:22:29 view_Dashboard get_enhanced_dashboard_stats خطا در دریافت آمار پیشرفته: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 12:22:32 view_Dashboard get_enhanced_dashboard_stats خطا در دریافت آمار پیشرفته: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 12:22:55 view_Dashboard get_enhanced_dashboard_stats خطا در دریافت آمار پیشرفته: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 12:27:22 view_Dashboard get_enhanced_dashboard_stats خطا در دریافت آمار پیشرفته: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 12:32:05 view_Dashboard get_enhanced_dashboard_stats خطا در دریافت آمار پیشرفته: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 12:33:06 view_Dashboard get_enhanced_dashboard_stats خطا در دریافت آمار پیشرفته: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 12:35:13 view_Dashboard get_enhanced_dashboard_stats خطا در دریافت آمار پیشرفته: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 12:35:30 view_Dashboard get_enhanced_dashboard_stats خطا در دریافت آمار پیشرفته: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 12:36:59 view_Dashboard get_enhanced_dashboard_stats خطا در دریافت آمار پیشرفته: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 12:37:39 view_Dashboard get_enhanced_dashboard_stats خطا در دریافت آمار پیشرفته: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 12:37:59 view_Dashboard get_enhanced_dashboard_stats خطا در دریافت آمار پیشرفته: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 12:39:39 view_Dashboard get_enhanced_dashboard_stats خطا در دریافت آمار پیشرفته: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 12:42:41 view_Dashboard get_enhanced_dashboard_stats خطا در دریافت آمار پیشرفته: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 12:42:56 view_Dashboard get_enhanced_dashboard_stats خطا در دریافت آمار پیشرفته: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 12:46:15 view_Dashboard get_enhanced_dashboard_stats خطا در دریافت آمار پیشرفته: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 12:59:33 view_Dashboard get_enhanced_dashboard_stats خطا در دریافت آمار پیشرفته: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 13:01:43 view_Dashboard get_enhanced_dashboard_stats خطا در دریافت آمار پیشرفته: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 13:03:10 view_Dashboard get_enhanced_dashboard_stats خطا در دریافت آمار پیشرفته: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 13:08:34 view_Dashboard get_enhanced_dashboard_stats خطا در دریافت آمار پیشرفته: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 13:23:52 view_Dashboard get_enhanced_dashboard_stats خطا در دریافت آمار پیشرفته: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 13:41:59 view_Dashboard get_enhanced_dashboard_stats خطا در دریافت آمار پیشرفته: list.count() takes exactly one argument (0 given)
+ERROR 2025-12-15 13:42:43 views_Budget_item form_invalid Form invalid: errors={"budget_period": [{"message": "This field is required.", "code": "required"}]}
+ERROR 2025-12-15 13:48:09 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-12-15 13:48:09 budget_calculations check_tankhah_lock_status خطا در بررسی وضعیت قفل تنخواه TNKH-14041010-ComplexSHC-HHydro-1404-001: '__proxy__' object is not callable
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 998, in check_tankhah_lock_status
+    return False, _("تنخواه فعال است.")
+                  ~^^^^^^^^^^^^^^^^^^^^
+TypeError: '__proxy__' object is not callable
+ERROR 2025-12-15 13:48:09 rcms_custom_filters format_negative Error formatting number 2,000,000,000.00: could not convert string to float: '2,000,000,000.00'
+ERROR 2025-12-15 13:50:53 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-12-15 13:50:53 budget_calculations check_tankhah_lock_status خطا در بررسی وضعیت قفل تنخواه TNKH-14041010-ComplexSHC-HHydro-1404-001: '__proxy__' object is not callable
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 998, in check_tankhah_lock_status
+    return False, _("تنخواه فعال است.")
+                  ~^^^^^^^^^^^^^^^^^^^^
+TypeError: '__proxy__' object is not callable
+ERROR 2025-12-15 13:50:53 rcms_custom_filters format_negative Error formatting number 2,000,000,000.00: could not convert string to float: '2,000,000,000.00'
+ERROR 2025-12-15 13:55:16 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-12-15 13:55:16 budget_calculations check_tankhah_lock_status خطا در بررسی وضعیت قفل تنخواه TNKH-14041010-ComplexSHC-HHydro-1404-001: '__proxy__' object is not callable
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 998, in check_tankhah_lock_status
+    return False, _("تنخواه فعال است.")
+                  ~^^^^^^^^^^^^^^^^^^^^
+TypeError: '__proxy__' object is not callable
+ERROR 2025-12-15 13:55:16 rcms_custom_filters format_negative Error formatting number 2,000,000,000.00: could not convert string to float: '2,000,000,000.00'
+ERROR 2025-12-15 13:55:19 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-12-15 13:55:19 budget_calculations check_tankhah_lock_status خطا در بررسی وضعیت قفل تنخواه TNKH-14041010-ComplexSHC-HHydro-1404-001: '__proxy__' object is not callable
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 998, in check_tankhah_lock_status
+    return False, _("تنخواه فعال است.")
+                  ~^^^^^^^^^^^^^^^^^^^^
+TypeError: '__proxy__' object is not callable
+ERROR 2025-12-15 13:55:20 rcms_custom_filters format_negative Error formatting number 2,000,000,000.00: could not convert string to float: '2,000,000,000.00'
+ERROR 2025-12-15 13:55:45 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-12-15 13:55:45 budget_calculations check_tankhah_lock_status خطا در بررسی وضعیت قفل تنخواه TNKH-14041010-ComplexSHC-HHydro-1404-001: '__proxy__' object is not callable
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 998, in check_tankhah_lock_status
+    return False, _("تنخواه فعال است.")
+                  ~^^^^^^^^^^^^^^^^^^^^
+TypeError: '__proxy__' object is not callable
+ERROR 2025-12-15 13:55:45 rcms_custom_filters format_negative Error formatting number 2,000,000,000.00: could not convert string to float: '2,000,000,000.00'
+ERROR 2025-12-15 13:56:09 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-12-15 13:56:09 budget_calculations check_tankhah_lock_status خطا در بررسی وضعیت قفل تنخواه TNKH-14041010-ComplexSHC-HHydro-1404-001: '__proxy__' object is not callable
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 998, in check_tankhah_lock_status
+    return False, _("تنخواه فعال است.")
+                  ~^^^^^^^^^^^^^^^^^^^^
+TypeError: '__proxy__' object is not callable
+ERROR 2025-12-15 13:56:09 rcms_custom_filters format_negative Error formatting number 2,000,000,000.00: could not convert string to float: '2,000,000,000.00'
+ERROR 2025-12-15 13:56:55 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-12-15 13:56:55 budget_calculations check_tankhah_lock_status خطا در بررسی وضعیت قفل تنخواه TNKH-14041010-ComplexSHC-HHydro-1404-001: '__proxy__' object is not callable
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 998, in check_tankhah_lock_status
+    return False, _("تنخواه فعال است.")
+                  ~^^^^^^^^^^^^^^^^^^^^
+TypeError: '__proxy__' object is not callable
+ERROR 2025-12-15 13:56:55 rcms_custom_filters format_negative Error formatting number 2,000,000,000.00: could not convert string to float: '2,000,000,000.00'
+ERROR 2025-12-15 13:58:23 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-12-15 13:58:23 budget_calculations check_tankhah_lock_status خطا در بررسی وضعیت قفل تنخواه TNKH-14041010-ComplexSHC-HHydro-1404-001: '__proxy__' object is not callable
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 998, in check_tankhah_lock_status
+    return False, _("تنخواه فعال است.")
+                  ~^^^^^^^^^^^^^^^^^^^^
+TypeError: '__proxy__' object is not callable
+ERROR 2025-12-15 13:58:23 rcms_custom_filters format_negative Error formatting number 2,000,000,000.00: could not convert string to float: '2,000,000,000.00'
+ERROR 2025-12-15 14:04:47 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-12-15 14:04:47 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+ERROR 2025-12-15 14:04:47 budget_calculations check_tankhah_lock_status خطا در بررسی وضعیت قفل تنخواه TNKH-14041010-ComplexSHC-HHydro-1404-001: '__proxy__' object is not callable
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 1085, in check_tankhah_lock_status
+    return False, _("تنخواه فعال است.")
+                  ~^^^^^^^^^^^^^^^^^^^^
+TypeError: '__proxy__' object is not callable
+ERROR 2025-12-15 14:04:47 rcms_custom_filters format_negative Error formatting number 2,000,000,000.00: could not convert string to float: '2,000,000,000.00'
+ERROR 2025-12-15 14:07:09 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-12-15 14:07:09 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+ERROR 2025-12-15 14:07:09 budget_calculations check_tankhah_lock_status خطا در بررسی وضعیت قفل تنخواه TNKH-14041010-ComplexSHC-HHydro-1404-001: '__proxy__' object is not callable
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 1085, in check_tankhah_lock_status
+    return False, _("تنخواه فعال است.")
+                  ~^^^^^^^^^^^^^^^^^^^^
+TypeError: '__proxy__' object is not callable
+ERROR 2025-12-15 14:07:09 rcms_custom_filters format_negative Error formatting number 2,000,000,000.00: could not convert string to float: '2,000,000,000.00'
+ERROR 2025-12-15 14:07:17 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-12-15 14:07:17 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+ERROR 2025-12-15 14:07:17 budget_calculations check_tankhah_lock_status خطا در بررسی وضعیت قفل تنخواه TNKH-14041010-ComplexSHC-HHydro-1404-001: '__proxy__' object is not callable
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 1085, in check_tankhah_lock_status
+    return False, _("تنخواه فعال است.")
+                  ~^^^^^^^^^^^^^^^^^^^^
+TypeError: '__proxy__' object is not callable
+ERROR 2025-12-15 14:07:17 rcms_custom_filters format_negative Error formatting number 2,000,000,000.00: could not convert string to float: '2,000,000,000.00'
+ERROR 2025-12-16 07:45:15 view_SystemSettings form_valid SystemSettings update failed
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\BudgetsSystem\view\view_SystemSettings.py", line 76, in form_valid
+    instance.save(changed_by=self.request.user)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\core\models.py", line 847, in save
+    super().save(*args, **kwargs)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+TypeError: Model.save() got an unexpected keyword argument 'changed_by'
+ERROR 2025-12-16 07:54:28 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-12-16 07:54:28 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+ERROR 2025-12-16 07:54:28 budget_calculations check_tankhah_lock_status خطا در بررسی وضعیت قفل تنخواه TNKH-14041010-ComplexSHC-HHydro-1404-001: '__proxy__' object is not callable
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 1085, in check_tankhah_lock_status
+    return False, _("تنخواه فعال است.")
+                  ~^^^^^^^^^^^^^^^^^^^^
+TypeError: '__proxy__' object is not callable
+ERROR 2025-12-16 07:54:28 rcms_custom_filters format_negative Error formatting number 2,000,000,000.00: could not convert string to float: '2,000,000,000.00'
+ERROR 2025-12-16 08:40:51 forms_BudgetAllocation clean Error in BudgetAllocationForm.clean: ['تاریخ تخصیص باید در بازه دوره بودجه باشد.']
+ERROR 2025-12-16 08:40:51 views_BudgetAllocation form_invalid Form invalid: errors={"__all__": [{"message": "\u062e\u0637\u0627 \u062f\u0631 \u0627\u0639\u062a\u0628\u0627\u0631\u0633\u0646\u062c\u06cc \u062a\u062e\u0635\u06cc\u0635: ['\u062a\u0627\u0631\u06cc\u062e \u062a\u062e\u0635\u06cc\u0635 \u0628\u0627\u06cc\u062f \u062f\u0631 \u0628\u0627\u0632\u0647 \u062f\u0648\u0631\u0647 \u0628\u0648\u062f\u062c\u0647 \u0628\u0627\u0634\u062f.']", "code": ""}, {"message": "\u062a\u0627\u0631\u06cc\u062e \u062a\u062e\u0635\u06cc\u0635 \u0628\u0627\u06cc\u062f \u062f\u0631 \u0628\u0627\u0632\u0647 \u062f\u0648\u0631\u0647 \u0628\u0648\u062f\u062c\u0647 \u0628\u0627\u0634\u062f.", "code": ""}]}
+ERROR 2025-12-16 08:41:00 forms_BudgetAllocation clean Error in BudgetAllocationForm.clean: ['تاریخ تخصیص باید در بازه دوره بودجه باشد.']
+ERROR 2025-12-16 08:41:00 views_BudgetAllocation form_invalid Form invalid: errors={"__all__": [{"message": "\u062e\u0637\u0627 \u062f\u0631 \u0627\u0639\u062a\u0628\u0627\u0631\u0633\u0646\u062c\u06cc \u062a\u062e\u0635\u06cc\u0635: ['\u062a\u0627\u0631\u06cc\u062e \u062a\u062e\u0635\u06cc\u0635 \u0628\u0627\u06cc\u062f \u062f\u0631 \u0628\u0627\u0632\u0647 \u062f\u0648\u0631\u0647 \u0628\u0648\u062f\u062c\u0647 \u0628\u0627\u0634\u062f.']", "code": ""}, {"message": "\u062a\u0627\u0631\u06cc\u062e \u062a\u062e\u0635\u06cc\u0635 \u0628\u0627\u06cc\u062f \u062f\u0631 \u0628\u0627\u0632\u0647 \u062f\u0648\u0631\u0647 \u0628\u0648\u062f\u062c\u0647 \u0628\u0627\u0634\u062f.", "code": ""}]}
+ERROR 2025-12-16 08:41:04 forms_BudgetAllocation clean Error in BudgetAllocationForm.clean: ['تاریخ تخصیص باید در بازه دوره بودجه باشد.']
+ERROR 2025-12-16 08:41:04 views_BudgetAllocation form_invalid Form invalid: errors={"__all__": [{"message": "\u062e\u0637\u0627 \u062f\u0631 \u0627\u0639\u062a\u0628\u0627\u0631\u0633\u0646\u062c\u06cc \u062a\u062e\u0635\u06cc\u0635: ['\u062a\u0627\u0631\u06cc\u062e \u062a\u062e\u0635\u06cc\u0635 \u0628\u0627\u06cc\u062f \u062f\u0631 \u0628\u0627\u0632\u0647 \u062f\u0648\u0631\u0647 \u0628\u0648\u062f\u062c\u0647 \u0628\u0627\u0634\u062f.']", "code": ""}, {"message": "\u062a\u0627\u0631\u06cc\u062e \u062a\u062e\u0635\u06cc\u0635 \u0628\u0627\u06cc\u062f \u062f\u0631 \u0628\u0627\u0632\u0647 \u062f\u0648\u0631\u0647 \u0628\u0648\u062f\u062c\u0647 \u0628\u0627\u0634\u062f.", "code": ""}]}
+ERROR 2025-12-16 08:41:47 forms_BudgetAllocation clean Error in BudgetAllocationForm.clean: ['تاریخ تخصیص باید در بازه دوره بودجه باشد.']
+ERROR 2025-12-16 08:41:47 views_BudgetAllocation form_invalid Form invalid: errors={"__all__": [{"message": "\u062e\u0637\u0627 \u062f\u0631 \u0627\u0639\u062a\u0628\u0627\u0631\u0633\u0646\u062c\u06cc \u062a\u062e\u0635\u06cc\u0635: ['\u062a\u0627\u0631\u06cc\u062e \u062a\u062e\u0635\u06cc\u0635 \u0628\u0627\u06cc\u062f \u062f\u0631 \u0628\u0627\u0632\u0647 \u062f\u0648\u0631\u0647 \u0628\u0648\u062f\u062c\u0647 \u0628\u0627\u0634\u062f.']", "code": ""}, {"message": "\u062a\u0627\u0631\u06cc\u062e \u062a\u062e\u0635\u06cc\u0635 \u0628\u0627\u06cc\u062f \u062f\u0631 \u0628\u0627\u0632\u0647 \u062f\u0648\u0631\u0647 \u0628\u0648\u062f\u062c\u0647 \u0628\u0627\u0634\u062f.", "code": ""}]}
+ERROR 2025-12-16 08:42:22 forms_BudgetAllocation clean Error in BudgetAllocationForm.clean: ['تاریخ تخصیص باید در بازه دوره بودجه باشد.']
+ERROR 2025-12-16 08:42:22 views_BudgetAllocation form_invalid Form invalid: errors={"__all__": [{"message": "\u062e\u0637\u0627 \u062f\u0631 \u0627\u0639\u062a\u0628\u0627\u0631\u0633\u0646\u062c\u06cc \u062a\u062e\u0635\u06cc\u0635: ['\u062a\u0627\u0631\u06cc\u062e \u062a\u062e\u0635\u06cc\u0635 \u0628\u0627\u06cc\u062f \u062f\u0631 \u0628\u0627\u0632\u0647 \u062f\u0648\u0631\u0647 \u0628\u0648\u062f\u062c\u0647 \u0628\u0627\u0634\u062f.']", "code": ""}, {"message": "\u062a\u0627\u0631\u06cc\u062e \u062a\u062e\u0635\u06cc\u0635 \u0628\u0627\u06cc\u062f \u062f\u0631 \u0628\u0627\u0632\u0647 \u062f\u0648\u0631\u0647 \u0628\u0648\u062f\u062c\u0647 \u0628\u0627\u0634\u062f.", "code": ""}]}
+ERROR 2025-12-16 08:47:29 forms_BudgetAllocation clean Error in BudgetAllocationForm.clean: ['تاریخ تخصیص باید در بازه دوره بودجه باشد.']
+ERROR 2025-12-16 08:47:29 views_BudgetAllocation form_invalid Form invalid: errors={"__all__": [{"message": "\u062e\u0637\u0627 \u062f\u0631 \u0627\u0639\u062a\u0628\u0627\u0631\u0633\u0646\u062c\u06cc \u062a\u062e\u0635\u06cc\u0635: ['\u062a\u0627\u0631\u06cc\u062e \u062a\u062e\u0635\u06cc\u0635 \u0628\u0627\u06cc\u062f \u062f\u0631 \u0628\u0627\u0632\u0647 \u062f\u0648\u0631\u0647 \u0628\u0648\u062f\u062c\u0647 \u0628\u0627\u0634\u062f.']", "code": ""}, {"message": "\u062a\u0627\u0631\u06cc\u062e \u062a\u062e\u0635\u06cc\u0635 \u0628\u0627\u06cc\u062f \u062f\u0631 \u0628\u0627\u0632\u0647 \u062f\u0648\u0631\u0647 \u0628\u0648\u062f\u062c\u0647 \u0628\u0627\u0634\u062f.", "code": ""}]}
+ERROR 2025-12-16 08:47:41 forms_BudgetAllocation clean Error in BudgetAllocationForm.clean: ['تاریخ تخصیص باید در بازه دوره بودجه باشد.']
+ERROR 2025-12-16 08:47:41 views_BudgetAllocation form_invalid Form invalid: errors={"__all__": [{"message": "\u062e\u0637\u0627 \u062f\u0631 \u0627\u0639\u062a\u0628\u0627\u0631\u0633\u0646\u062c\u06cc \u062a\u062e\u0635\u06cc\u0635: ['\u062a\u0627\u0631\u06cc\u062e \u062a\u062e\u0635\u06cc\u0635 \u0628\u0627\u06cc\u062f \u062f\u0631 \u0628\u0627\u0632\u0647 \u062f\u0648\u0631\u0647 \u0628\u0648\u062f\u062c\u0647 \u0628\u0627\u0634\u062f.']", "code": ""}, {"message": "\u062a\u0627\u0631\u06cc\u062e \u062a\u062e\u0635\u06cc\u0635 \u0628\u0627\u06cc\u062f \u062f\u0631 \u0628\u0627\u0632\u0647 \u062f\u0648\u0631\u0647 \u0628\u0648\u062f\u062c\u0647 \u0628\u0627\u0634\u062f.", "code": ""}]}
+ERROR 2025-12-16 08:47:45 forms_BudgetAllocation clean Error in BudgetAllocationForm.clean: ['تاریخ تخصیص باید در بازه دوره بودجه باشد.']
+ERROR 2025-12-16 08:47:45 views_BudgetAllocation form_invalid Form invalid: errors={"__all__": [{"message": "\u062e\u0637\u0627 \u062f\u0631 \u0627\u0639\u062a\u0628\u0627\u0631\u0633\u0646\u062c\u06cc \u062a\u062e\u0635\u06cc\u0635: ['\u062a\u0627\u0631\u06cc\u062e \u062a\u062e\u0635\u06cc\u0635 \u0628\u0627\u06cc\u062f \u062f\u0631 \u0628\u0627\u0632\u0647 \u062f\u0648\u0631\u0647 \u0628\u0648\u062f\u062c\u0647 \u0628\u0627\u0634\u062f.']", "code": ""}, {"message": "\u062a\u0627\u0631\u06cc\u062e \u062a\u062e\u0635\u06cc\u0635 \u0628\u0627\u06cc\u062f \u062f\u0631 \u0628\u0627\u0632\u0647 \u062f\u0648\u0631\u0647 \u0628\u0648\u062f\u062c\u0647 \u0628\u0627\u0634\u062f.", "code": ""}]}
+ERROR 2025-12-16 08:48:37 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+ERROR 2025-12-16 08:48:37 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-12-16 08:48:37 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+ERROR 2025-12-16 08:48:37 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-12-16 08:50:17 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+ERROR 2025-12-16 08:50:17 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-12-16 08:50:17 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+ERROR 2025-12-16 08:50:17 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-12-16 08:51:09 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+ERROR 2025-12-16 08:51:09 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-12-16 08:51:09 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+ERROR 2025-12-16 08:51:09 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-12-16 09:29:24 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-12-16 09:29:24 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+ERROR 2025-12-16 09:29:25 budget_calculations check_tankhah_lock_status خطا در بررسی وضعیت قفل تنخواه TNKH-14041010-ComplexSHC-HHydro-1404-001: '__proxy__' object is not callable
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 1085, in check_tankhah_lock_status
+    return False, _("تنخواه فعال است.")
+                  ~^^^^^^^^^^^^^^^^^^^^
+TypeError: '__proxy__' object is not callable
+ERROR 2025-12-16 09:29:25 rcms_custom_filters format_negative Error formatting number 2,000,000,000.00: could not convert string to float: '2,000,000,000.00'
+ERROR 2025-12-16 09:44:04 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+ERROR 2025-12-16 09:44:04 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-12-16 09:44:04 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+ERROR 2025-12-16 09:44:04 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-12-16 09:44:09 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+ERROR 2025-12-16 09:44:09 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-12-16 09:44:09 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+ERROR 2025-12-16 09:44:09 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-12-16 10:50:04 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+ERROR 2025-12-16 10:50:04 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-12-16 10:50:04 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+ERROR 2025-12-16 10:50:04 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'

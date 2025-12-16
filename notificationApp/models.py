@@ -1,17 +1,20 @@
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.utils.translation import gettext_lazy as _
-from django.contrib.contenttypes.models import ContentType
-from django.contrib.contenttypes.fields import GenericForeignKey
+
 from accounts.models import CustomUser
-from core.models import Post, Organization
+from core.models import Organization, Post
+
+
 # Create your models here.
 # مدل اعلان پویا
 class NotificationRule(models.Model):
     entity_type = models.CharField(
         max_length=50,
         choices=[
-            ('FACTOR', _('فاکتور')), 
-            ('TANKHAH', _('تنخواه')), 
+            ('FACTOR', _('فاکتور')),
+            ('TANKHAH', _('تنخواه')),
             ('PAYMENTORDER', _('دستور پرداخت')),
             ('BACKUP', _('پشتیبان\u200cگیری')),
             ('SYSTEM', _('سیستم')),
@@ -23,9 +26,9 @@ class NotificationRule(models.Model):
     action = models.CharField(
         max_length=50,
         choices=[
-            ('CREATED', _('ایجاد')), 
-            ('APPROVED', _('تأیید')), 
-            ('REJECTED', _('رد')), 
+            ('CREATED', _('ایجاد')),
+            ('APPROVED', _('تأیید')),
+            ('REJECTED', _('رد')),
             ('PAID', _('پرداخت')),
             ('COMPLETED', _('تکمیل')),
             ('FAILED', _('ناموفق')),
@@ -72,6 +75,7 @@ class Notification(models.Model):
     unread = models.BooleanField(default=True, verbose_name=_("خوانده‌نشده"))
     deleted = models.BooleanField(default=False, verbose_name=_("حذف‌شده"))
     timestamp = models.DateTimeField(auto_now_add=True, verbose_name=_("زمان ایجاد"))
+    read_at = models.DateTimeField(null=True, blank=True, verbose_name=_("زمان خوانده شدن"))
     priority = models.CharField(
         max_length=20,
         choices=[
@@ -88,8 +92,8 @@ class Notification(models.Model):
     entity_type = models.CharField(
         max_length=50,
         choices=[
-            ('FACTOR', _('فاکتور')), 
-            ('TANKHAH', _('تنخواه')), 
+            ('FACTOR', _('فاکتور')),
+            ('TANKHAH', _('تنخواه')),
             ('PAYMENTORDER', _('دستور پرداخت')),
             ('BACKUP', _('پشتیبان\u200cگیری')),
             ('SYSTEM', _('سیستم')),
@@ -118,8 +122,10 @@ class Notification(models.Model):
 
     def mark_as_read(self):
         if self.unread:
+            from django.utils import timezone
             self.unread = False
-            self.save(update_fields=['unread'])
+            self.read_at = timezone.now()
+            self.save(update_fields=['unread', 'read_at'])
 
     def mark_as_deleted(self):
         if not self.deleted:
@@ -134,18 +140,18 @@ class BackupSchedule(models.Model):
         ('MONTHLY', _('ماهانه')),
         ('CUSTOM', _('سفارشی')),
     ]
-    
+
     DATABASE_CHOICES = [
         ('BOTH', _('هر دو دیتابیس')),
         ('MAIN', _('دیتابیس اصلی')),
         ('LOGS', _('دیتابیس لاگ')),
     ]
-    
+
     FORMAT_CHOICES = [
         ('JSON', _('JSON')),
         ('SQL', _('SQL')),
     ]
-    
+
     name = models.CharField(max_length=100, verbose_name=_("نام اسکچول"))
     description = models.TextField(blank=True, null=True, verbose_name=_("توضیحات"))
     frequency = models.CharField(max_length=20, choices=FREQUENCY_CHOICES, verbose_name=_("فرکانس"))
@@ -159,12 +165,12 @@ class BackupSchedule(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("زمان ایجاد"))
     last_run = models.DateTimeField(null=True, blank=True, verbose_name=_("آخرین اجرا"))
     next_run = models.DateTimeField(null=True, blank=True, verbose_name=_("اجرای بعدی"))
-    
+
     # تنظیمات اعلان
     notify_on_success = models.BooleanField(default=True, verbose_name=_("اعلان در صورت موفقیت"))
     notify_on_failure = models.BooleanField(default=True, verbose_name=_("اعلان در صورت خطا"))
     notify_recipients = models.ManyToManyField(CustomUser, related_name='backup_schedules', verbose_name=_("گیرندگان اعلان"))
-    
+
     class Meta:
         verbose_name = _("اسکچول پشتیبان‌گیری")
         verbose_name_plural = _("اسکچول‌های پشتیبان‌گیری")
@@ -176,17 +182,18 @@ class BackupSchedule(models.Model):
             ('BackupSchedule_delete','نمایش پشتیبان ها '),
             ('BackupSchedule_create','نمایش پشتیبان ها '),
         ]
-    
+
     def __str__(self):
         return f"{self.name} - {self.get_frequency_display()}"
-    
+
     def get_next_run_time(self):
         """محاسبه زمان اجرای بعدی"""
         from datetime import datetime, timedelta
+
         from django.utils import timezone
-        
+
         now = timezone.now()
-        
+
         if self.frequency == 'DAILY':
             return now + timedelta(days=1)
         elif self.frequency == 'WEEKLY':
@@ -201,9 +208,9 @@ class BackupSchedule(models.Model):
                 return cron.get_next(datetime)
             except ImportError:
                 return now + timedelta(hours=1)
-        
+
         return now + timedelta(hours=1)
-    
+
     def update_next_run(self):
         """بروزرسانی زمان اجرای بعدی"""
         self.next_run = self.get_next_run_time()
@@ -217,7 +224,7 @@ class BackupLog(models.Model):
         ('FAILED', _('ناموفق')),
         ('CANCELLED', _('لغو شده')),
     ]
-    
+
     schedule = models.ForeignKey(BackupSchedule, on_delete=models.CASCADE, related_name='logs', verbose_name=_("اسکچول"))
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, verbose_name=_("وضعیت"))
     started_at = models.DateTimeField(auto_now_add=True, verbose_name=_("زمان شروع"))
@@ -227,30 +234,30 @@ class BackupLog(models.Model):
     file_path = models.CharField(max_length=500, blank=True, null=True, verbose_name=_("مسیر فایل"))
     error_message = models.TextField(blank=True, null=True, verbose_name=_("پیام خطا"))
     details = models.JSONField(default=dict, blank=True, verbose_name=_("جزئیات"))
-    
+
     class Meta:
         verbose_name = _("لاگ پشتیبان‌گیری")
         verbose_name_plural = _("لاگ‌های پشتیبان‌گیری")
         ordering = ['-started_at']
-    
+
     def __str__(self):
         return f"{self.schedule.name} - {self.get_status_display()} - {self.started_at}"
-    
+
     def mark_completed(self, file_path=None, file_size=None):
         """علامت‌گذاری به عنوان تکمیل شده"""
         from django.utils import timezone
-        
+
         self.status = 'COMPLETED'
         self.finished_at = timezone.now()
         self.duration = self.finished_at - self.started_at
         self.file_path = file_path
         self.file_size = file_size
         self.save()
-    
+
     def mark_failed(self, error_message):
         """علامت‌گذاری به عنوان ناموفق"""
         from django.utils import timezone
-        
+
         self.status = 'FAILED'
         self.finished_at = timezone.now()
         self.duration = self.finished_at - self.started_at

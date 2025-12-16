@@ -37,12 +37,37 @@
                                     <td>{{ category.name }}</td>
                                     <td class="text-center">{{ category.min_stage_order }}</td>
                                     <td class="text-center">
-                                        <a href="{% url 'itemcategory_update' category.pk %}" class="btn btn-sm btn-outline-warning" title="{% trans 'ویرایش' %}">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
-                                        <a href="{% url 'itemcategory_delete' category.pk %}" class="btn btn-sm btn-outline-danger" title="{% trans 'حذف' %}">
-                                            <i class="fas fa-trash-alt"></i>
-                                        </a>
+                                        {% if perms.tankhah.ItemCategory_add %}
+                                            <a href="{% url 'itemcategory_create'   %}"
+                                               class="btn btn-sm btn-outline-warning"
+                                               title="{% trans 'ایجاد' %}">
+                                                <i class="fas fa-creative-commons-nc-eu"></i>
+                                            </a>
+                                        {% endif %}
+
+                                          {% if perms.tankhah.ItemCategory_update %}
+                                            <a href="{% url 'itemcategory_update' category.pk %}"
+                                               class="btn btn-sm btn-outline-warning"
+                                               title="{% trans 'ویرایش' %}">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                        {% endif %}
+
+                                        {% if perms.tankhah.itemcategory_delete %}
+                                            <a href="{% url 'itemcategory_delete' category.pk %}"
+                                               class="btn btn-sm btn-outline-danger"
+                                               title="{% trans 'حذف' %}">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </a>
+                                        {% endif %}
+
+                                        {% if perms.tankhah.ItemCategory_view %}
+                                            <a href="{% url 'itemcategory_details' category.pk %}"
+                                               class="btn btn-sm btn-outline-danger"
+                                               title="{% trans 'مشخصات' %}">
+                                                <i class="fas fa-street-view"></i>
+                                            </a>
+                                        {% endif %}
                                     </td>
                                 </tr>
                             {% endfor %}

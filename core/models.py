@@ -26,7 +26,7 @@ except Exception:
     class ArrayField(models.JSONField):
         def __init__(self, base_field, *args, **kwargs):
             super().__init__(*args, **kwargs)
-            
+
 logger = logging.getLogger(__name__)
 class OrganizationType(models.Model):
     fname = models.CharField(max_length=100, unique=True, null=True, blank=True, verbose_name=_('نام شعبه/مجتمع/اداره'))
@@ -175,7 +175,7 @@ class Post(models.Model):
     def clean(self):
         """اعتبارسنجی مدل برای جلوگیری از حلقه دایره‌ای"""
         super().clean()
-        
+
         # بررسی حلقه دایره‌ای در سلسله مراتب
         if self.parent:
             # بررسی اینکه آیا این پست در سلسله والدین خود قرار دارد
@@ -192,7 +192,7 @@ class Post(models.Model):
     def save(self, *args, changed_by=None, update_children=True, **kwargs):
         # اجرای اعتبارسنجی قبل از ذخیره
         self.full_clean()
-        
+
         old_level = self.level if self.pk else None
         # محاسبه خودکار سطح بر اساس والد
         if self.parent:
@@ -235,17 +235,17 @@ class Post(models.Model):
             userpost__post=self,
             userpost__is_active=True
         )
-    
+
     @property
     def active_users_count(self):
         """تعداد کاربران فعال در این پست"""
         return self.userpost_set.filter(is_active=True).count()
-    
+
     @property
     def inactive_users_count(self):
         """تعداد کاربران غیرفعال در این پست"""
         return self.userpost_set.filter(is_active=False).count()
-    
+
     @property
     def active_user_posts(self):
         """لیست کاربران فعال در این پست"""
@@ -528,7 +528,7 @@ class Status(models.Model):
     is_pending = models.BooleanField(default=False, verbose_name=_("وضعیت در انتظار؟"))
     is_paid = models.BooleanField(default=False, verbose_name=_("وضعیت پرداخت شده؟"))
     is_rejected = models.BooleanField(default=False, verbose_name=_("وضعیت رد شده؟"))
-    entity_type = models.CharField(max_length=50, blank=True, verbose_name=_("نوع موجودیت"), 
+    entity_type = models.CharField(max_length=50, blank=True, verbose_name=_("نوع موجودیت"),
                                   help_text=_("نوع موجودیت که این وضعیت برای آن استفاده می‌شود، مانند FACTOR, PAYMENTORDER"))
     is_active = models.BooleanField(default=True, db_index=True, verbose_name=_("فعال"))
 
@@ -558,9 +558,9 @@ class Action(models.Model):
     name = models.CharField(max_length=100, verbose_name=_("نام اقدام"))
     code = models.CharField(max_length=50, unique=True, help_text=_("کد منحصر به فرد انگلیسی، مانند SUBMIT"))
     description = models.TextField(blank=True, verbose_name=_("توضیحات"))
-    
+
     # فیلدهای UI
-    display_name = models.CharField(max_length=100, blank=True, verbose_name=_("نام نمایشی"), 
+    display_name = models.CharField(max_length=100, blank=True, verbose_name=_("نام نمایشی"),
                                    help_text=_("نامی که در UI نمایش داده می‌شود"))
     button_style = models.CharField(max_length=50, blank=True, verbose_name=_("استایل دکمه"),
                                    help_text=_("primary, success, danger, warning, info, secondary"))
@@ -669,7 +669,7 @@ class TransitionTemplate(models.Model):
     action_code = models.CharField(max_length=50, verbose_name=_("کد اقدام"))
     from_status_code = models.CharField(max_length=50, verbose_name=_("کد وضعیت مبدا"))
     to_status_code = models.CharField(max_length=50, verbose_name=_("کد وضعیت مقصد"))
-    name_template = models.CharField(max_length=255, verbose_name=_("تمپلیت نام"), 
+    name_template = models.CharField(max_length=255, verbose_name=_("تمپلیت نام"),
                                    help_text=_("از {organization_name} برای نام سازمان استفاده کنید"))
     is_active = models.BooleanField(default=True, verbose_name=_("فعال"))
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("تاریخ ایجاد"))
@@ -818,15 +818,44 @@ class SystemSettings(models.Model):
         verbose_name=_("مهلت منقضی شدن تب فعال (میلی‌ثانیه)"),
         help_text=_("اگر به مدت این مقدار ضربان ثبت نشود، تب دیگر می‌تواند مالکیت را بگیرد. (پیشنهادی: 6000)")
     )
+    # تنظیمات ارزش افزوده
+    value_added_tax_percentage = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=Decimal('0'),
+        verbose_name=_("درصد ارزش افزوده"),
+        help_text=_("درصد ارزش افزوده سراسری برای محاسبه در فاکتورها (مثلاً 9 برای 9%)")
+    )
 
     def save(self, *args, **kwargs):
         # اطمینان از وجود تنها یک نمونه
+        old_vat_percentage = None
+        if self.pk:
+            try:
+                old_obj = SystemSettings.objects.get(pk=self.pk)
+                old_vat_percentage = old_obj.value_added_tax_percentage
+            except SystemSettings.DoesNotExist:
+                pass
+
         if not self.pk:
             existing = SystemSettings.objects.first()
             if existing:
                 # به‌جای خطا، به‌روزرسانی همان رکورد موجود
                 self.pk = existing.pk
+                old_vat_percentage = existing.value_added_tax_percentage
+
+        # کاربر تغییر دهنده را از kwargs بگیریم قبل از super().save()
+        changed_by = kwargs.pop('changed_by', None)
+
         super().save(*args, **kwargs)
+
+        # لاگ کردن تغییرات ارزش افزوده
+        if old_vat_percentage is not None and old_vat_percentage != self.value_added_tax_percentage:
+            SystemSettingsValueAddedLog.objects.create(
+                old_value=old_vat_percentage,
+                new_value=self.value_added_tax_percentage,
+                changed_by=changed_by
+            )
 
     class Meta:
         verbose_name = _("تنظیمات سیستم")
@@ -849,7 +878,7 @@ class SystemSettings(models.Model):
     # Dashboard widget keys for management
     DASHBOARD_WIDGET_KEYS = [
         'org_budget',
-        'monthly_consumption', 
+        'monthly_consumption',
         'monthly_returns',
         'tankhah_status',
         'factor_category',
@@ -883,11 +912,55 @@ class SystemSettings(models.Model):
 
     # def __str__(self):
     #     return "تنظیمات سیستم بودجه"
+
+
+class SystemSettingsValueAddedLog(models.Model):
+    """لاگ تغییرات درصد ارزش افزوده در تنظیمات سیستم"""
+    old_value = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        verbose_name=_("مقدار قبلی")
+    )
+    new_value = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        verbose_name=_("مقدار جدید")
+    )
+    changed_by = models.ForeignKey(
+        CustomUser,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name=_("تغییر دهنده")
+    )
+    changed_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name=_("زمان تغییر")
+    )
+
+    class Meta:
+        verbose_name = _("لاگ تغییرات ارزش افزوده")
+        verbose_name_plural = _("لاگ‌های تغییرات ارزش افزوده")
+        ordering = ['-changed_at']
+        default_permissions = ()
+        permissions = [
+            ('SystemSettingsValueAddedLog_view', 'نمایش لاگ تغییرات ارزش افزوده'),
+        ]
+
+    def __str__(self):
+        user_name = self.changed_by.get_full_name() if self.changed_by else _("سیستم")
+        old_val = f"{self.old_value}%" if self.old_value is not None else _("بدون مقدار")
+        new_val = f"{self.new_value}%"
+        return f"{user_name}: {old_val} → {new_val} ({self.changed_at.strftime('%Y/%m/%d %H:%M')})"
+
+
 ############################################################# End Off models
 
 class FontSettings(models.Model):
     """مدل مدیریت فونت‌های سیستم"""
-    
+
     FONT_FORMATS = [
         ('ttf', 'TrueType Font (.ttf)'),
         ('woff', 'Web Open Font Format (.woff)'),
@@ -895,7 +968,7 @@ class FontSettings(models.Model):
         ('eot', 'Embedded OpenType (.eot)'),
         ('otf', 'OpenType Font (.otf)'),
     ]
-    
+
     FONT_WEIGHTS = [
         (100, 'Thin'),
         (200, 'Extra Light'),
@@ -907,9 +980,9 @@ class FontSettings(models.Model):
         (800, 'Extra Bold'),
         (900, 'Black'),
     ]
-    
+
     name = models.CharField(max_length=100, verbose_name=_("نام فونت"))
-    family_name = models.CharField(max_length=100, verbose_name=_("نام خانواده فونت"), 
+    family_name = models.CharField(max_length=100, verbose_name=_("نام خانواده فونت"),
                                    help_text=_("نام CSS font-family"))
     font_file = models.FileField(upload_to='fonts/', verbose_name=_("فایل فونت"))
     font_format = models.CharField(max_length=10, choices=FONT_FORMATS, verbose_name=_("فرمت فونت"))
@@ -918,13 +991,13 @@ class FontSettings(models.Model):
     is_default = models.BooleanField(default=False, verbose_name=_("فونت پیش‌فرض"))
     is_rtl_support = models.BooleanField(default=True, verbose_name=_("پشتیبانی از راست به چپ"))
     description = models.TextField(blank=True, null=True, verbose_name=_("توضیحات"))
-    
+
     # اطلاعات اضافی
     file_size = models.PositiveIntegerField(null=True, blank=True, verbose_name=_("حجم فایل (بایت)"))
     upload_date = models.DateTimeField(auto_now_add=True, verbose_name=_("تاریخ آپلود"))
-    uploaded_by = models.ForeignKey('accounts.CustomUser', on_delete=models.SET_NULL, 
+    uploaded_by = models.ForeignKey('accounts.CustomUser', on_delete=models.SET_NULL,
                                    null=True, blank=True, verbose_name=_("آپلود شده توسط"))
-    
+
     class Meta:
         verbose_name = _("تنظیمات فونت")
         verbose_name_plural = _("تنظیمات فونت‌ها")
@@ -939,46 +1012,46 @@ class FontSettings(models.Model):
         status = "فعال" if self.is_active else "غیرفعال"
         default = " (پیش‌فرض)" if self.is_default else ""
         return f"{self.name} - {self.get_font_weight_display()}{default} [{status}]"
-    
+
     def save(self, *args, **kwargs):
         # اگر این فونت به عنوان پیش‌فرض انتخاب شده، سایر فونت‌ها را غیرپیش‌فرض کن
         if self.is_default:
             FontSettings.objects.filter(is_default=True).update(is_default=False)
-        
+
         # محاسبه حجم فایل
         if self.font_file and hasattr(self.font_file, 'size'):
             self.file_size = self.font_file.size
-            
+
         super().save(*args, **kwargs)
-    
+
     @property
     def file_size_formatted(self):
         """نمایش حجم فایل به صورت قابل خواندن"""
         if not self.file_size:
             return "نامشخص"
-        
+
         if self.file_size < 1024:
             return f"{self.file_size} بایت"
         elif self.file_size < 1024 * 1024:
             return f"{self.file_size / 1024:.1f} کیلوبایت"
         else:
             return f"{self.file_size / (1024 * 1024):.1f} مگابایت"
-    
+
     @classmethod
     def get_default_font(cls):
         """دریافت فونت پیش‌فرض"""
         return cls.objects.filter(is_default=True, is_active=True).first()
-    
+
     @classmethod
     def get_active_fonts(cls):
         """دریافت تمام فونت‌های فعال"""
         return cls.objects.filter(is_active=True).order_by('-is_default', 'name')
-    
+
     def get_css_font_face(self):
         """تولید CSS @font-face برای این فونت"""
         if not self.font_file:
             return ""
-        
+
         format_map = {
             'ttf': 'truetype',
             'woff': 'woff',
@@ -986,9 +1059,9 @@ class FontSettings(models.Model):
             'eot': 'embedded-opentype',
             'otf': 'opentype',
         }
-        
+
         css_format = format_map.get(self.font_format, self.font_format)
-        
+
         return f"""@font-face {{
     font-family: '{self.family_name}';
     src: url('{self.font_file.url}') format('{css_format}');
@@ -1252,5 +1325,6 @@ class DynamicConfiguration(models.Model):
             config.value = value
             config.save()
         return config
+
 
 

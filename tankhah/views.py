@@ -669,13 +669,13 @@ from django.views.generic import DetailView
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.urls import reverse
 from .models import ItemCategory
+
 class ItemCategoryListView(PermissionBaseView, ListView):
     model = ItemCategory
     template_name = 'tankhah/itemcategory/list.html'
     context_object_name = 'categories'
     permission_codename = 'tankhah.ItemCategory_view'
     ordering = ['name']
-
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -714,7 +714,7 @@ class ItemCategoryListView(PermissionBaseView, ListView):
 
         return context
 
-class ItemCategoryDetailView(PermissionRequiredMixin, DetailView):
+class ItemCategoryDetailView(PermissionBaseView, DetailView):
     model = ItemCategory
     template_name = 'tankhah/itemcategory/itemcategory_details.html'
     context_object_name = 'category'
@@ -757,7 +757,7 @@ class ItemCategoryCreateView(PermissionBaseView, CreateView):
     form_class = ItemCategoryForm # استفاده از فرم سفارشی
     template_name = 'tankhah/itemcategory/ItemCategoryCreateView_form.html'
     success_url = reverse_lazy('itemcategory_list') # به کجا بعد از موفقیت ریدایرکت شود
-    permission_required = 'tankhah.add_itemcategory' # مجوز مورد نیاز برای ایجاد
+    permission_codename = 'tankhah.ItemCategory_add' # مجوز مورد نیاز برای ایجاد
 
 # --- به‌روزرسانی دسته‌بندی ---
 class ItemCategoryUpdateView(PermissionBaseView, UpdateView):
@@ -766,14 +766,14 @@ class ItemCategoryUpdateView(PermissionBaseView, UpdateView):
     template_name = 'tankhah/itemcategory/ItemCategoryCreateView_form.html'
     context_object_name = 'category' # نامی که در template برای آبجکت استفاده می‌شود (به جای object)
     success_url = reverse_lazy('itemcategory_list')
-    permission_required = 'tankhah.change_itemcategory' # مجوز مورد نیاز برای ویرایش
-# --- حذف دسته‌بندی ---
+    permission_codename = 'tankhah.ItemCategory_update' # مجوز مورد نیاز برای ایجاد
+ # --- حذف دسته‌بندی ---
 class ItemCategoryDeleteView(PermissionBaseView, DeleteView):
     model = ItemCategory
     template_name = 'tankhah/itemcategory/confirm_delete.html'
     context_object_name = 'category' # نامی که در template برای آبجکت استفاده می‌شود
     success_url = reverse_lazy('itemcategory_list')
-    permission_required = 'tankhah.delete_itemcategory' # مجوز مورد نیاز برای حذف
+    permission_codename = 'tankhah.ItemCategory_delete' # مجوز مورد نیاز برای ایجاد
 
     # برای نمایش نام دسته‌بندی در صفحه حذف (اگرچه context_object_name هم این کار را می‌کند)
     # def get_context_data(self, **kwargs):

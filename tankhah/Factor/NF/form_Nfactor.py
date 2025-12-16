@@ -6,7 +6,7 @@ from django.db.models import Q
 
 from BudgetsSystem.utils import format_jalali_date, to_english_digits, parse_jalali_date
 from core.models import Project, SubProject, Status, Organization, UserPost
-from tankhah.models import   FactorItem
+from tankhah.models import FactorItem
 from tankhah.utils import restrict_to_user_organization
 from django import forms
 from django.utils import timezone
@@ -17,20 +17,26 @@ import jdatetime
 from tankhah.models import Factor, Tankhah, ItemCategory
 from budgets.budget_calculations import get_tankhah_remaining_budget
 from django.utils.translation import gettext_lazy as _
+
 # ===== CONFIGURATION & CONSTANTS =====
 logger = logging.getLogger('FactorFormsLogger')
 
 ALLOWED_EXTENSIONS = ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.jpg', '.jpeg', '.png']
 ALLOWED_EXTENSIONS_STR = ", ".join(ALLOWED_EXTENSIONS)
+
+
 # Helper function to convert date (can be moved to utils)
 def convert_to_farsi_numbers(text):
     """Converts English digits in a string to Farsi digits."""
     mapping = str.maketrans('0123456789', '۰۱۲۳۴۵۶۷۸۹')
     return str(text).translate(mapping)
+
+
 # --- Form for Factor Documents (Multiple Upload) ---
 
 class MultipleFileInput(forms.ClearableFileInput):
     allow_multiple_selected = True
+
 
 class MultipleFileField(forms.FileField):
     def __init__(self, *args, **kwargs):
@@ -44,6 +50,8 @@ class MultipleFileField(forms.FileField):
         else:
             result = single_file_clean(data, initial)
         return result
+
+
 class FactorDocumentForm(forms.Form):
     files = MultipleFileField(
         label=_("بارگذاری اسناد فاکتور (فقط {} مجاز است)".format(ALLOWED_EXTENSIONS_STR)),
@@ -67,7 +75,8 @@ class FactorDocumentForm(forms.Form):
                     ext = os.path.splitext(uploaded_file.name)[1].lower()
                     if ext not in ALLOWED_EXTENSIONS:
                         invalid_files.append(uploaded_file.name)
-                        logger.warning(f"Invalid file type uploaded for FactorDocument: {uploaded_file.name} (type: {ext})")
+                        logger.warning(
+                            f"Invalid file type uploaded for FactorDocument: {uploaded_file.name} (type: {ext})")
 
             if invalid_files:
                 invalid_files_str = ", ".join(invalid_files)
@@ -77,6 +86,8 @@ class FactorDocumentForm(forms.Form):
                 )
                 raise ValidationError(error_msg)
         return files
+
+
 # --- Form for Tankhah Documents (Multiple Upload) ---
 class TankhahDocumentForm(forms.Form):
     documents = MultipleFileField(
@@ -101,7 +112,8 @@ class TankhahDocumentForm(forms.Form):
                     ext = os.path.splitext(uploaded_file.name)[1].lower()
                     if ext not in ALLOWED_EXTENSIONS:
                         invalid_files.append(uploaded_file.name)
-                        logger.warning(f"Invalid file type uploaded for TankhahDocument: {uploaded_file.name} (type: {ext})")
+                        logger.warning(
+                            f"Invalid file type uploaded for TankhahDocument: {uploaded_file.name} (type: {ext})")
 
             if invalid_files:
                 invalid_files_str = ", ".join(invalid_files)
@@ -111,6 +123,8 @@ class TankhahDocumentForm(forms.Form):
                 )
                 raise ValidationError(error_msg)
         return files
+
+
 class Update_FactorForm(forms.ModelForm):
     date = forms.CharField(
         label='تاریخ فاکتور',
@@ -244,6 +258,8 @@ class Update_FactorForm(forms.ModelForm):
         """اعتبارسنجی کلی فرم."""
         cleaned_data = super().clean()
         return cleaned_data
+
+
 # -----------------------------------------------------------------------------------------------------------
 
 # ===== UTILITY FUNCTIONS =====
@@ -258,6 +274,8 @@ def parse_jalali_date(date_str):
     except (ValueError, TypeError) as e:
         logger.error(f"خطا در پردازش تاریخ جلالی: {str(e)}, ورودی: {date_str}")
         raise forms.ValidationError(_('فرمت تاریخ نامعتبر است. لطفاً از فرمت YYYY/MM/DD استفاده کنید.'))
+
+
 # ===== CORE BUSINESS LOGIC =====
 class FactorForm(forms.ModelForm):
     date = forms.CharField(
@@ -324,11 +342,12 @@ class FactorForm(forms.ModelForm):
         exclude_archived = getattr(settings, 'TANKHAH_EXCLUDE_ARCHIVED', True)
         exclude_locked = getattr(settings, 'TANKHAH_EXCLUDE_LOCKED', False)
         require_remaining_positive = getattr(settings, 'TANKHAH_REQUIRE_REMAINING_POSITIVE', False)
-        
+
         # استفاده از تنظیمات سیستم
         from core.models import SystemSettings
         system_settings = SystemSettings.get_solo()
-        exclude_expired = system_settings.exclude_expired_tankhah_from_factor_form if hasattr(system_settings, 'exclude_expired_tankhah_from_factor_form') else exclude_expired
+        exclude_expired = system_settings.exclude_expired_tankhah_from_factor_form if hasattr(system_settings,
+                                                                                              'exclude_expired_tankhah_from_factor_form') else exclude_expired
 
         # --- ساخت QuerySet پایه بر اساس تنظیمات ---
         tankhah_queryset = Tankhah.objects.all()
@@ -340,14 +359,15 @@ class FactorForm(forms.ModelForm):
             tankhah_queryset = tankhah_queryset.filter(project__isnull=False)
         if exclude_expired:
             tankhah_queryset = tankhah_queryset.filter(Q(due_date__isnull=True) | Q(due_date__gte=timezone.now()))
-        
+
         # فیلتر تنخواه‌هایی که دوره بودجه‌شان منقضی/قفل شده
         tankhah_queryset = tankhah_queryset.filter(
             Q(project_budget_allocation__isnull=True) |  # تنخواه‌هایی که تخصیص بودجه ندارند
             Q(project_budget_allocation__budget_period__isnull=True) |  # تنخواه‌هایی که دوره بودجه ندارند
             (
-                Q(project_budget_allocation__budget_period__is_completed=False) &  # تنخواه‌هایی که دوره بودجه‌شان تکمیل نشده
-                Q(project_budget_allocation__budget_period__end_date__gte=timezone.now().date())  # و تاریخ انقضای دوره نگذشته
+                    Q(project_budget_allocation__budget_period__is_completed=False) &  # تنخواه‌هایی که دوره بودجه‌شان تکمیل نشده
+                    Q(project_budget_allocation__budget_period__end_date__gte=timezone.now().date())
+            # و تاریخ انقضای دوره نگذشته
             )
         )
         if exclude_locked and hasattr(Tankhah, 'is_locked'):
@@ -420,7 +440,6 @@ class FactorForm(forms.ModelForm):
             if tankhah.organization not in user_orgs and not tankhah.organization.is_core:
                 raise forms.ValidationError(_('شما به این شعبه دسترسی ندارید.'))
 
-
         return tankhah
 
     def clean_date(self):
@@ -445,13 +464,13 @@ class FactorForm(forms.ModelForm):
                 amount, remaining_budget)
             raise forms.ValidationError(error_msg)
 
-
         if tankhah.project_budget_allocation and tankhah.project_budget_allocation.budget_period:
             budget_period = tankhah.project_budget_allocation.budget_period
             is_locked, lock_reason = budget_period.is_locked
             if is_locked:
                 # اجازه عبور برای ادمین یا پرمیشن خاص
-                if self.user and (self.user.is_superuser or self.user.has_perm('budgets.allow_factor_after_period_end')):
+                if self.user and (
+                        self.user.is_superuser or self.user.has_perm('budgets.allow_factor_after_period_end')):
                     logger.info("[FactorForm.clean] Period locked but override permission granted; allowing save.")
                 else:
                     logger.warning(f"[FactorForm.clean] خطای اعتبارسنجی: دوره بودجه قفل است. دلیل: {lock_reason}")
@@ -459,6 +478,8 @@ class FactorForm(forms.ModelForm):
 
         logger.debug("[FactorForm.clean] اعتبارسنجی فرم با موفقیت انجام شد")
         return cleaned_data
+
+
 # -----------------------------------------------------------------------------------------------------------
 class FactorItemForm(forms.ModelForm):
     """فرم برای هر ردیف فاکتور."""
@@ -495,5 +516,5 @@ class FactorItemForm(forms.ModelForm):
             self.add_error('unit_price', _('قیمت واحد نمی‌تواند منفی باشد.'))
 
         return cleaned_data
-#-----------------------------------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------------------------------------
 

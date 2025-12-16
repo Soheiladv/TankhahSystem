@@ -596,6 +596,27 @@ class Factor(models.Model):
     tankhah = models.ForeignKey('Tankhah', on_delete=models.PROTECT, related_name='factors', verbose_name=_("تنخواه"))
     date = models.DateField(default=timezone.now, verbose_name=_("تاریخ"))
     amount = models.DecimalField(max_digits=20, decimal_places=2, verbose_name=_('مبلغ کل فاکتور'), default=0)
+    discount = models.DecimalField(
+        max_digits=20,
+        decimal_places=2,
+        default=Decimal('0'),
+        verbose_name=_('تخفیف کل فاکتور'),
+        help_text=_('مبلغ تخفیف کل فاکتور (ریال)')
+    )
+    vat_percentage = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=Decimal('0'),
+        verbose_name=_('درصد ارزش افزوده'),
+        help_text=_('درصد ارزش افزوده که در زمان ثبت فاکتور از تنظیمات سیستم گرفته شده است')
+    )
+    vat_amount = models.DecimalField(
+        max_digits=20,
+        decimal_places=2,
+        default=Decimal('0'),
+        verbose_name=_('مبلغ ارزش افزوده'),
+        help_text=_('مبلغ محاسبه شده ارزش افزوده بر اساس مجموع فاکتور')
+    )
     description = models.TextField(blank=True, verbose_name=_("توضیحات"))
     category = models.ForeignKey('ItemCategory', on_delete=models.PROTECT, verbose_name=_("دسته‌بندی"))
     created_by = models.ForeignKey('accounts.CustomUser', related_name='created_factors', on_delete=models.PROTECT,
@@ -650,11 +671,38 @@ class Factor(models.Model):
 
        # سایر فیلدها
     def update_total_amount(self):
+        """به‌روزرسانی مجموع فاکتور و محاسبه ارزش افزوده"""
+        from core.models import SystemSettings
+
         total = self.items.aggregate(total=Sum('amount'))['total'] or Decimal('0')
+
+        # محاسبه مبلغ پس از تخفیف
+        subtotal_after_discount = total - (self.discount or Decimal('0'))
+
+        # گرفتن درصد ارزش افزوده از تنظیمات سیستم (اگر هنوز تنظیم نشده)
+        if not self.vat_percentage or self.vat_percentage == 0:
+            try:
+                settings = SystemSettings.objects.first()
+                if settings and settings.value_added_tax_percentage:
+                    self.vat_percentage = settings.value_added_tax_percentage
+            except Exception:
+                self.vat_percentage = Decimal('0')
+
+        # محاسبه مبلغ ارزش افزوده
+        if self.vat_percentage and self.vat_percentage > 0:
+            self.vat_amount = (subtotal_after_discount * self.vat_percentage) / Decimal('100')
+        else:
+            self.vat_amount = Decimal('0')
+
+        # مبلغ نهایی (پس از تخفیف + ارزش افزوده)
+        final_amount = subtotal_after_discount + self.vat_amount
+
         if self.amount != total:
-            self.amount = total
-            self.save(update_fields=['amount'])
-            logger.info(f"Factor {self.pk} amount updated to {total}.")
+            self.amount = total  # مبلغ اصلی (قبل از تخفیف و VAT)
+            update_fields = ['amount', 'vat_percentage', 'vat_amount']
+            self.save(update_fields=update_fields)
+            logger.info(f"Factor {self.pk} amount updated to {total}, VAT: {self.vat_amount}, Final: {final_amount}.")
+
         return total
 
     def generate_number(self):
@@ -1115,6 +1163,20 @@ class FactorItem(models.Model):
     factor = models.ForeignKey(Factor, on_delete=models.CASCADE, related_name='items', verbose_name=_("فاکتور"))
     description = models.CharField(max_length=255, verbose_name=_("شرح ردیف"))
     amount = models.DecimalField(max_digits=25, default=0, decimal_places=2, verbose_name=_("مبلغ"))
+    vat_percentage = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=Decimal('0'),
+        verbose_name=_('درصد ارزش افزوده'),
+        help_text=_('درصد ارزش افزوده که در زمان ثبت ردیف از تنظیمات سیستم گرفته شده است')
+    )
+    vat_amount = models.DecimalField(
+        max_digits=25,
+        decimal_places=2,
+        default=Decimal('0'),
+        verbose_name=_('مبلغ ارزش افزوده'),
+        help_text=_('مبلغ محاسبه شده ارزش افزوده بر اساس مبلغ ردیف')
+    )
     status = models.ForeignKey(
         'core.Status',
         on_delete=models.PROTECT,
@@ -1166,10 +1228,34 @@ class FactorItem(models.Model):
         elif self.amount is None:
             logger.warning(f"Amount not provided and cannot be calculated for FactorItem pk={self.pk}")
             self.amount = Decimal('0')
+
+        # محاسبه ارزش افزوده برای این ردیف
+        from core.models import SystemSettings
+        if not self.vat_percentage or self.vat_percentage == 0:
+            try:
+                settings = SystemSettings.objects.first()
+                if settings and settings.value_added_tax_percentage:
+                    self.vat_percentage = settings.value_added_tax_percentage
+            except Exception:
+                self.vat_percentage = Decimal('0')
+
+        # محاسبه مبلغ ارزش افزوده
+        if self.vat_percentage and self.vat_percentage > 0:
+            self.vat_amount = (self.amount * self.vat_percentage) / Decimal('100')
+        else:
+            self.vat_amount = Decimal('0')
+
         self.clean()
 
         super().save(*args, **kwargs)
-        logger.info(f"FactorItem saved successfully (pk={self.pk}). Amount={self.amount}, Status={self.status}")
+        logger.info(f"FactorItem saved successfully (pk={self.pk}). Amount={self.amount}, VAT: {self.vat_amount}, Status={self.status}")
+
+        # به‌روزرسانی مجموع فاکتور پس از ذخیره ردیف
+        if self.factor_id:
+            try:
+                self.factor.update_total_amount()
+            except Exception as e:
+                logger.error(f"Error updating factor total amount: {e}")
 
     def __str__(self):
         try:

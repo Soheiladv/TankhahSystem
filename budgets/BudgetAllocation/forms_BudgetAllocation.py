@@ -12,11 +12,7 @@ from budgets.models import BudgetAllocation, BudgetPeriod, BudgetItem
 from core.models import Organization, OrganizationType, Project # Assuming core models
 # Assuming utils are imported correctly
 from BudgetsSystem.utils import  parse_jalali_date
-
 logger = logging.getLogger(__name__)
-
-
-
 class BudgetAllocationForm(forms.ModelForm):
     ALLOCATION_TYPE_CHOICES = [
         ('amount', _('مبلغ')),

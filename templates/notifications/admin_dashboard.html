@@ -1,0 +1,187 @@
+{% extends 'base.html' %}
+{% load i18n static jformat %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="mb-4">
+                <i class="fas fa-tachometer-alt text-primary me-2"></i>
+                {{ title }}
+            </h2>
+        </div>
+    </div>
+
+    <!-- آمار کلی -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-bell me-2"></i>کل اعلان‌ها</h5>
+                    <h2>{{ stats.total }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-envelope me-2"></i>خوانده نشده</h5>
+                    <h2>{{ stats.unread }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-check-circle me-2"></i>خوانده شده</h5>
+                    <h2>{{ stats.read }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card bg-danger text-white">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-trash me-2"></i>حذف شده</h5>
+                    <h2>{{ stats.deleted }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- فیلترها -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-filter me-2"></i>فیلترها</h5>
+        </div>
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">وضعیت</label>
+                    <select name="status" class="form-select">
+                        <option value="all" {% if status_filter == 'all' %}selected{% endif %}>همه</option>
+                        <option value="unread" {% if status_filter == 'unread' %}selected{% endif %}>خوانده نشده</option>
+                        <option value="read" {% if status_filter == 'read' %}selected{% endif %}>خوانده شده</option>
+                        <option value="deleted" {% if status_filter == 'deleted' %}selected{% endif %}>حذف شده</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">اولویت</label>
+                    <select name="priority" class="form-select">
+                        <option value="all" {% if priority_filter == 'all' %}selected{% endif %}>همه</option>
+                        <option value="LOW" {% if priority_filter == 'LOW' %}selected{% endif %}>کم</option>
+                        <option value="MEDIUM" {% if priority_filter == 'MEDIUM' %}selected{% endif %}>متوسط</option>
+                        <option value="HIGH" {% if priority_filter == 'HIGH' %}selected{% endif %}>زیاد</option>
+                        <option value="WARNING" {% if priority_filter == 'WARNING' %}selected{% endif %}>هشدار</option>
+                        <option value="ERROR" {% if priority_filter == 'ERROR' %}selected{% endif %}>خطا</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">نوع موجودیت</label>
+                    <select name="entity_type" class="form-select">
+                        <option value="all" {% if entity_filter == 'all' %}selected{% endif %}>همه</option>
+                        <option value="FACTOR" {% if entity_filter == 'FACTOR' %}selected{% endif %}>فاکتور</option>
+                        <option value="TANKHAH" {% if entity_filter == 'TANKHAH' %}selected{% endif %}>تنخواه</option>
+                        <option value="PAYMENTORDER" {% if entity_filter == 'PAYMENTORDER' %}selected{% endif %}>دستور پرداخت</option>
+                        <option value="SYSTEM" {% if entity_filter == 'SYSTEM' %}selected{% endif %}>سیستم</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">سازنده (نام کاربری)</label>
+                    <input type="text" name="actor" class="form-control" value="{{ actor_filter }}" placeholder="جستجو...">
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-search me-2"></i>اعمال فیلتر</button>
+                    <a href="{% url 'notifications:admin_dashboard' %}" class="btn btn-secondary"><i class="fas fa-redo me-2"></i>پاک کردن</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- لیست اعلان‌ها -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-list me-2"></i>لیست اعلان‌ها</h5>
+        </div>
+        <div class="card-body">
+            {% if page_obj %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>گیرنده</th>
+                                <th>سازنده</th>
+                                <th>فعل</th>
+                                <th>توضیحات</th>
+                                <th>اولویت</th>
+                                <th>نوع</th>
+                                <th>وضعیت</th>
+                                <th>زمان ایجاد</th>
+                                <th>زمان خوانده شدن</th>
+                                <th>عملیات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for notification in page_obj %}
+                                <tr class="{% if notification.unread %}table-warning{% endif %} {% if notification.deleted %}table-secondary{% endif %}">
+                                    <td>{{ notification.recipient.username }}</td>
+                                    <td>{{ notification.actor.username|default:"سیستم" }}</td>
+                                    <td>{{ notification.verb }}</td>
+                                    <td>{{ notification.description|truncatewords:10 }}</td>
+                                    <td>
+                                        <span class="badge bg-{% if notification.priority == 'HIGH' %}danger{% elif notification.priority == 'WARNING' %}warning{% else %}info{% endif %}">
+                                            {{ notification.get_priority_display }}
+                                        </span>
+                                    </td>
+                                    <td>{{ notification.get_entity_type_display }}</td>
+                                    <td>
+                                        {% if notification.deleted %}
+                                            <span class="badge bg-danger">حذف شده</span>
+                                        {% elif notification.unread %}
+                                            <span class="badge bg-warning">خوانده نشده</span>
+                                        {% else %}
+                                            <span class="badge bg-success">خوانده شده</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ notification.timestamp|jformat:"%Y/%m/%d %H:%M" }}</td>
+                                    <td>{{ notification.read_at|jformat:"%Y/%m/%d %H:%M"|default:"-" }}</td>
+                                    <td>
+                                        <a href="{% url 'notifications:creator_view' notification.actor.id %}" class="btn btn-sm btn-info" title="اعلان‌های این کاربر">
+                                            <i class="fas fa-user"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- صفحه‌بندی -->
+                <nav aria-label="Page navigation">
+                    <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if priority_filter %}&priority={{ priority_filter }}{% endif %}{% if entity_filter %}&entity_type={{ entity_filter }}{% endif %}{% if actor_filter %}&actor={{ actor_filter }}{% endif %}">قبلی</a>
+                            </li>
+                        {% endif %}
+                        {% for num in page_obj.paginator.page_range %}
+                            <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                                <a class="page-link" href="?page={{ num }}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if priority_filter %}&priority={{ priority_filter }}{% endif %}{% if entity_filter %}&entity_type={{ entity_filter }}{% endif %}{% if actor_filter %}&actor={{ actor_filter }}{% endif %}">{{ num }}</a>
+                            </li>
+                        {% endfor %}
+                        {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if priority_filter %}&priority={{ priority_filter }}{% endif %}{% if entity_filter %}&entity_type={{ entity_filter }}{% endif %}{% if actor_filter %}&actor={{ actor_filter }}{% endif %}">بعدی</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>هیچ اعلانی یافت نشد.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
