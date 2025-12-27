@@ -1,24 +1,27 @@
 import logging
 from decimal import Decimal
-from django.db import transaction, models
+
+from django.contrib import messages
+from django.db import models, transaction
+from django.forms import inlineformset_factory
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.utils import timezone
-from django.contrib import messages
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import CreateView
-from django.forms import inlineformset_factory
 
-from budgets.budget_calculations import get_tankhah_remaining_budget, get_tankhah_available_budget
+from budgets.budget_calculations import (get_tankhah_available_budget,
+                                         get_tankhah_remaining_budget)
+from core.models import Organization, Post, Project, Status, Transition
 # --- Import های لازم ---
 # مطمئن شوید تمام این مدل‌ها و فرم‌ها به درستی import شده‌اند
 from core.PermissionBase import PermissionBaseView
-from core.models import Post, Status, Transition, Project, Organization
 from notificationApp.utils import send_notification
-from tankhah.Factor.NF.form_Nfactor import FactorItemForm, FactorForm
-from tankhah.models import Factor, Tankhah, FactorItem, FactorDocument, ApprovalLog, FactorHistory
+from tankhah.Factor.NF.form_Nfactor import FactorForm, FactorItemForm
 # مسیر فرم‌های خود را بر اساس ساختار پروژه تنظیم کنید
-from tankhah.forms import  FactorDocumentForm
+from tankhah.forms import FactorDocumentForm
+from tankhah.models import (ApprovalLog, Factor, FactorDocument, FactorHistory,
+                            FactorItem, Tankhah)
 
 # --- تنظیمات اولیه ---
 logger = logging.getLogger('FactorCreateLogger')
@@ -128,7 +131,7 @@ def create_related_objects_and_notify(factor, user, tankhah, initial_stage, docu
         level__gte=2,  # سطح 2 و بالاتر
         is_active=True
     )
-    
+
     if approver_posts.exists():
         send_notification(
             sender=user,
@@ -213,6 +216,13 @@ class New_FactorCreateView(PermissionBaseView, CreateView):
         else:
             context['formset'] = FactorItemFormSet(prefix='items')
             context['document_form'] = FactorDocumentForm(prefix='docs')
+
+        # مقدار پیش‌فرض VAT برای استفاده در قالب/JS
+        try:
+            from core.models import SystemSettings
+            context['default_vat_percentage'] = SystemSettings.get_solo().value_added_tax_percentage or 0
+        except Exception:
+            context['default_vat_percentage'] = 0
         return context
 
     def form_valid(self, form):
@@ -238,7 +248,7 @@ class New_FactorCreateView(PermissionBaseView, CreateView):
                 # اجازه عبور برای ادمین یا پرمیشن خاص
                 if not (user.is_superuser or user.has_perm('budgets.allow_factor_after_period_end')):
                     logger.warning(f"دوره بودجه تنخواه {tankhah.number} قفل شده است: {lock_reason}")
-                    messages.error(self.request, 
+                    messages.error(self.request,
                                    _("دوره بودجه تنخواه انتخاب شده قفل شده است و نمی‌توان برای آن فاکتور ثبت کرد. دلیل: {}").format(lock_reason))
                     return self.form_invalid(form)
                 else:

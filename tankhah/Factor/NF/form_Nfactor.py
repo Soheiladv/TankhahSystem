@@ -1,22 +1,21 @@
 import logging
+from decimal import Decimal
+
 import jdatetime  # Assuming jdatetime is installed
+from django import forms
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Q
-
-from BudgetsSystem.utils import format_jalali_date, to_english_digits, parse_jalali_date
-from core.models import Project, SubProject, Status, Organization, UserPost
-from tankhah.models import FactorItem
-from tankhah.utils import restrict_to_user_organization
-from django import forms
 from django.utils import timezone
-from django.conf import settings
-from decimal import Decimal
-import jdatetime
-
-from tankhah.models import Factor, Tankhah, ItemCategory
-from budgets.budget_calculations import get_tankhah_remaining_budget
 from django.utils.translation import gettext_lazy as _
+
+from budgets.budget_calculations import get_tankhah_remaining_budget
+from BudgetsSystem.utils import (format_jalali_date, parse_jalali_date,
+                                 to_english_digits)
+from core.models import Organization, Project, Status, SubProject, UserPost
+from tankhah.models import Factor, FactorItem, ItemCategory, Tankhah
+from tankhah.utils import restrict_to_user_organization
 
 # ===== CONFIGURATION & CONSTANTS =====
 logger = logging.getLogger('FactorFormsLogger')
@@ -145,11 +144,16 @@ class Update_FactorForm(forms.ModelForm):
 
     class Meta:
         model = Factor
-        fields = ['tankhah', 'category', 'date', 'amount', 'description']
+        # fields = ['tankhah', 'category', 'date', 'amount', 'description']
+        fields = ['tankhah', 'category', 'date', 'amount', 'discount', 'vat_amount', 'description']
         widgets = {
             'tankhah': forms.Select(attrs={'class': 'form-select form-select-sm'}),
             'amount': forms.NumberInput(attrs={'class': 'form-control form-control-sm ltr-input'}),
             'description': forms.Textarea(attrs={'class': 'form-control form-control-sm', 'rows': 2}),
+            'discount': forms.NumberInput(
+                attrs={'class': 'form-control form-control-sm ltr-input', 'id': 'id_discount'}),
+            'vat_amount': forms.NumberInput(
+                attrs={'class': 'form-control form-control-sm ltr-input', 'id': 'id_vat_amount'}),
         }
         labels = {
             'tankhah': 'تنخواه مرتبط',
@@ -287,7 +291,18 @@ class FactorForm(forms.ModelForm):
 
     class Meta:
         model = Factor
-        fields = ['tankhah', 'category', 'date', 'payee', 'purchase_request', 'amount', 'description']
+        fields = [
+            'tankhah',
+            'category',
+            'date',
+            'payee',
+            'purchase_request',
+            'discount',
+            'vat_percentage',
+            'vat_amount',
+            'amount',
+            'description',
+        ]
         widgets = {
             'tankhah': forms.Select(attrs={'class': 'form-select'}),
             'category': forms.Select(attrs={'class': 'form-select'}),
@@ -295,6 +310,9 @@ class FactorForm(forms.ModelForm):
             'purchase_request': forms.Select(attrs={'class': 'form-select'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
             'amount': forms.NumberInput(attrs={'class': 'form-control form-control-sm text-end'}),
+            'discount': forms.NumberInput(attrs={'class': 'form-control form-control-sm text-end'}),
+            'vat_percentage': forms.NumberInput(attrs={'class': 'form-control form-control-sm text-end', 'step': '0.01'}),
+            'vat_amount': forms.NumberInput(attrs={'class': 'form-control form-control-sm text-end', 'readonly': True}),
         }
 
     def _get_user_scope(self):
@@ -396,6 +414,16 @@ class FactorForm(forms.ModelForm):
         elif self.instance and self.instance.pk and self.instance.date:
             self.initial['date'] = jdatetime.date.fromgregorian(date=self.instance.date).strftime('%Y/%m/%d')
 
+        # مقدار اولیه VAT از تنظیمات سیستم (برای نمایش و محاسبات فرانت)
+        try:
+            from core.models import SystemSettings
+            vat_setting = SystemSettings.get_solo().value_added_tax_percentage
+            if not self.initial.get('vat_percentage'):
+                self.initial['vat_percentage'] = vat_setting
+        except Exception:
+            # در صورت خطا مقدار 0 بماند
+            pass
+
     def clean_tankhah(self):
         tankhah = self.cleaned_data.get('tankhah')
         if not tankhah:
@@ -486,12 +514,14 @@ class FactorItemForm(forms.ModelForm):
 
     class Meta:
         model = FactorItem
-        fields = ['description', 'quantity', 'unit_price']
+        fields = ['description', 'quantity', 'unit_price','vat_amount']
         widgets = {
             'description': forms.TextInput(attrs={'class': 'form-control form-control-sm'}),
             # **تغییرات کلیدی:** اضافه کردن کلاس‌های CSS
             'quantity': forms.NumberInput(attrs={'class': 'form-control form-control-sm text-end quantity-field'}),
             'unit_price': forms.NumberInput(attrs={'class': 'form-control form-control-sm text-end unit-price-field'}),
+            'vat_amount': forms.NumberInput(attrs={'class': 'form-control form-control-sm text-end vat-field'}),
+
         }
 
     def clean(self):

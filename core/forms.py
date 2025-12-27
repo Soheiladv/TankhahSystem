@@ -1,19 +1,27 @@
+import logging
 import re
 
-from accounts.models import TimeLockModel, CustomUser
-from core.models import Project, Organization, UserPost, Post, PostHistory, SubProject, OrganizationType, \
-    SystemSettings, Branch, PostAction, Status, FontSettings
-from django.core.exceptions import ValidationError
-from jdatetime import datetime as jdatetime
-from django.utils.translation import gettext_lazy as _
-from core.models import Organization, Project, SubProject
 import jdatetime
-import logging
+from django.core.exceptions import ValidationError
+from django.utils.translation import gettext_lazy as _
+from jdatetime import datetime as jdatetime
+
+from accounts.models import CustomUser, TimeLockModel
+from core.models import (Branch, FontSettings, Organization, OrganizationType,
+                         Post, PostAction, PostHistory, Project, Status,
+                         SubProject, SystemSettings, UserPost)
+
 logger = logging.getLogger(__name__)
 
 from django import forms
 
+
 class SystemSettingsForm(forms.ModelForm):
+    # تیک فعال/غیرفعال بودن محاسبه ارزش افزوده (منطقی: درصد ۰ یعنی غیرفعال)
+    enable_value_added_tax = forms.BooleanField(
+        label=_("فعال بودن محاسبه ارزش افزوده"),
+        required=False,
+    )
     class Meta:
         model = SystemSettings
         fields = [
@@ -40,6 +48,7 @@ class SystemSettingsForm(forms.ModelForm):
             'exclude_expired_tankhah_from_factor_form',
             'enforce_tankhah_ceiling_on_factor',
             'create_budget_commitment_on_factor_draft',
+            'value_added_tax_percentage',
         ]
         widgets = {
             'budget_locked_percentage_default': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0', 'max': '100', 'placeholder': _('مثلاً 10') }),
@@ -65,6 +74,7 @@ class SystemSettingsForm(forms.ModelForm):
             'exclude_expired_tankhah_from_factor_form': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'enforce_tankhah_ceiling_on_factor': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'create_budget_commitment_on_factor_draft': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'value_added_tax_percentage': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0', 'max': '100'}),
         }
         labels = {
             'budget_locked_percentage_default': _('درصد قفل پیش‌فرض بودجه'),
@@ -81,6 +91,7 @@ class SystemSettingsForm(forms.ModelForm):
             'exclude_expired_tankhah_from_factor_form': _('حذف تنخواه‌های منقضی‌شده از لیست فاکتور'),
             'enforce_tankhah_ceiling_on_factor': _('اجبار سقف مبلغ در فرم فاکتور'),
             'create_budget_commitment_on_factor_draft': _('ایجاد تعهد بودجه هنگام ثبت فاکتور'),
+            'value_added_tax_percentage': _('درصد ارزش افزوده سراسری'),
         }
         help_texts = {
             'budget_locked_percentage_default': _('وقتی درصد باقیمانده بودجه کمتر از این مقدار شود قفل می‌شود.'),
@@ -99,6 +110,36 @@ class SystemSettingsForm(forms.ModelForm):
             'allow_factor_budget_overrun': _('اگر فعال باشد، ثبت فاکتور بیش از مانده تنخواه مجاز است (مستقل از تنخواه).'),
             'lock_period_after_expiry_enforce_on_write_only': _('در صورت فعال بودن، انقضای دوره فقط موقع عملیات نوشتنی اعمال می‌شود.'),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # مقدار اولیه تیک VAT بر اساس درصد ذخیره‌شده
+        instance = getattr(self, 'instance', None)
+        if instance and getattr(instance, 'value_added_tax_percentage', None) is not None:
+            try:
+                self.fields['enable_value_added_tax'].initial = instance.value_added_tax_percentage > 0
+            except Exception:
+                self.fields['enable_value_added_tax'].initial = False
+
+    def clean(self):
+        cleaned_data = super().clean()
+        enabled = cleaned_data.get('enable_value_added_tax')
+        vat_percentage = cleaned_data.get('value_added_tax_percentage') or 0
+
+        if not enabled:
+            # اگر تیک غیرفعال است، VAT را صفر کن تا در کل سیستم خاموش شود
+            cleaned_data['value_added_tax_percentage'] = 0
+        else:
+            # اگر فعال است، باید مقدار غیرمنفی و منطقی داشته باشد
+            try:
+                if vat_percentage is None or vat_percentage < 0 or vat_percentage > 100:
+                    self.add_error('value_added_tax_percentage',
+                                   _('درصد ارزش افزوده باید بین ۰ و ۱۰۰ باشد.'))
+            except Exception:
+                self.add_error('value_added_tax_percentage',
+                               _('مقدار نامعتبر برای درصد ارزش افزوده.'))
+
+        return cleaned_data
 
     def clean_tankhah_used_statuses(self):
         # این متدها را به دلیل ماهیت JSONی آن‌ها نگه دارید.
@@ -557,14 +598,14 @@ class UserPostForm(forms.ModelForm):
 
         # فیلتر کاربران فعال و تنظیم نمایش نام کامل
         self.fields['user'].queryset = CustomUser.objects.filter(is_active=True).order_by('first_name', 'last_name')
-        
+
         # تنظیم نمایش نام کامل در dropdown
         def get_user_display_name(user):
             full_name = user.get_full_name()
             if full_name and full_name != user.username:
                 return f"{full_name} " #({user.username})
             return user.username
-        
+
         # تنظیم label_from_instance برای نمایش نام کامل
         self.fields['user'].label_from_instance = get_user_display_name
 
@@ -637,25 +678,25 @@ class UserPostForm(forms.ModelForm):
             # Only check for duplicates if we're creating a new connection or changing user/post
             current_user = getattr(self.instance, 'user', None)
             current_post = getattr(self.instance, 'post', None)
-            
+
             logger.debug(f"[UserPostForm.clean] بررسی تداخل - Instance PK: {self.instance.pk}, Current User: {current_user}, New User: {user}, Current Post: {current_post}, New Post: {post}")
-            
+
             # If user or post is being changed, check for existing active connections
-            if (not self.instance.pk or 
-                (current_user and current_user != user) or 
+            if (not self.instance.pk or
+                (current_user and current_user != user) or
                 (current_post and current_post != post)):
-                
+
                 logger.debug(f"[UserPostForm.clean] بررسی تداخل لازم است - Instance PK: {self.instance.pk}")
-                
+
                 # Check for existing active connections with the same user and post
                 existing_connections = UserPost.objects.filter(
                     user=user,
                     post=post,
                     is_active=True
                 ).exclude(pk=self.instance.pk if self.instance.pk else None)
-                
+
                 logger.debug(f"[UserPostForm.clean] تعداد اتصالات موجود: {existing_connections.count()}")
-                
+
                 # Simplified validation: Only check if there are multiple active connections
                 if existing_connections.exists():
                     logger.warning(f"[UserPostForm.clean] اتصال فعال دیگری برای کاربر '{user.username}' و پست '{post.name}' وجود دارد")
@@ -763,12 +804,12 @@ class OrganizationTypeForm(forms.ModelForm):
 
 class FontSettingsForm(forms.ModelForm):
     """فرم مدیریت فونت‌ها"""
-    
+
     class Meta:
         model = FontSettings
         fields = [
             'name',
-            'family_name', 
+            'family_name',
             'font_file',
             'font_format',
             'font_weight',
@@ -820,16 +861,16 @@ class FontSettingsForm(forms.ModelForm):
             'is_default': _('در صورت انتخاب، این فونت به عنوان فونت اصلی سیستم استفاده می‌شود'),
             'is_rtl_support': _('آیا این فونت از زبان‌های راست به چپ پشتیبانی می‌کند؟')
         }
-    
+
     def clean_font_file(self):
         """اعتبارسنجی فایل فونت"""
         font_file = self.cleaned_data.get('font_file')
-        
+
         if font_file:
             # بررسی حجم فایل (حداکثر 10 مگابایت)
             if font_file.size > 10 * 1024 * 1024:
                 raise forms.ValidationError(_('حجم فایل نباید بیشتر از 10 مگابایت باشد.'))
-            
+
             # بررسی پسوند فایل
             allowed_extensions = ['.ttf', '.woff', '.woff2', '.eot', '.otf']
             file_extension = font_file.name.lower().split('.')[-1]
@@ -837,15 +878,15 @@ class FontSettingsForm(forms.ModelForm):
                 raise forms.ValidationError(
                     _('فرمت فایل مجاز نیست. فرمت‌های مجاز: {}').format(', '.join(allowed_extensions))
                 )
-        
+
         return font_file
-    
+
     def clean(self):
         """اعتبارسنجی کلی فرم"""
         cleaned_data = super().clean()
         font_format = cleaned_data.get('font_format')
         font_file = cleaned_data.get('font_file')
-        
+
         # بررسی تطابق فرمت فایل با فرمت انتخاب شده
         if font_file and font_format:
             file_extension = font_file.name.lower().split('.')[-1]
@@ -853,6 +894,6 @@ class FontSettingsForm(forms.ModelForm):
                 raise forms.ValidationError(
                     _('فرمت انتخاب شده با پسوند فایل مطابقت ندارد.')
                 )
-        
+
         return cleaned_data
 

@@ -33951,3 +33951,552 @@ Traceback (most recent call last):
     allocation = tankhah.project_budget_allocation.budget_allocation
                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-12-16 20:51:35 middleware __call__ خطا هنگام ساخت/ذخیره AuditLog درخواست
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\backends\mysql\base.py", line 76, in execute
+    return self.cursor.execute(query, args)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\MySQLdb\cursors.py", line 179, in execute
+    res = self._query(mogrified_query)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\MySQLdb\cursors.py", line 330, in _query
+    db.query(q)
+    ~~~~~~~~^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\MySQLdb\connections.py", line 280, in query
+    _mysql.connection.query(self, query)
+    ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+MySQLdb.OperationalError: (1114, "The table 'accounts_audit_log' is full")
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\accounts\middleware.py", line 303, in __call__
+    AuditLog.objects.bulk_create(self.logs_to_create)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 835, in bulk_create
+    returned_columns = self._batched_insert(
+        objs_without_pk,
+    ...<4 lines>...
+        unique_fields=unique_fields,
+    )
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1886, in _batched_insert
+    self._insert(
+    ~~~~~~~~~~~~^
+        item,
+        ^^^^^
+    ...<4 lines>...
+        unique_fields=unique_fields,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1847, in _insert
+    return query.get_compiler(using=using).execute_sql(returning_fields)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\compiler.py", line 1823, in execute_sql
+    cursor.execute(sql, params)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\backends\utils.py", line 122, in execute
+    return super().execute(sql, params)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\backends\utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        sql, params, many=False, executor=self._execute
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\backends\utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\backends\utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\backends\mysql\base.py", line 76, in execute
+    return self.cursor.execute(query, args)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\MySQLdb\cursors.py", line 179, in execute
+    res = self._query(mogrified_query)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\MySQLdb\cursors.py", line 330, in _query
+    db.query(q)
+    ~~~~~~~~^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\MySQLdb\connections.py", line 280, in query
+    _mysql.connection.query(self, query)
+    ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+django.db.utils.OperationalError: (1114, "The table 'accounts_audit_log' is full")
+ERROR 2025-12-16 20:51:36 middleware __call__ خطا هنگام ساخت/ذخیره AuditLog درخواست
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\backends\mysql\base.py", line 76, in execute
+    return self.cursor.execute(query, args)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\MySQLdb\cursors.py", line 179, in execute
+    res = self._query(mogrified_query)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\MySQLdb\cursors.py", line 330, in _query
+    db.query(q)
+    ~~~~~~~~^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\MySQLdb\connections.py", line 280, in query
+    _mysql.connection.query(self, query)
+    ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+MySQLdb.OperationalError: (1114, "The table 'accounts_audit_log' is full")
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\accounts\middleware.py", line 303, in __call__
+    AuditLog.objects.bulk_create(self.logs_to_create)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 835, in bulk_create
+    returned_columns = self._batched_insert(
+        objs_without_pk,
+    ...<4 lines>...
+        unique_fields=unique_fields,
+    )
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1886, in _batched_insert
+    self._insert(
+    ~~~~~~~~~~~~^
+        item,
+        ^^^^^
+    ...<4 lines>...
+        unique_fields=unique_fields,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1847, in _insert
+    return query.get_compiler(using=using).execute_sql(returning_fields)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\compiler.py", line 1823, in execute_sql
+    cursor.execute(sql, params)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\backends\utils.py", line 122, in execute
+    return super().execute(sql, params)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\backends\utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        sql, params, many=False, executor=self._execute
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\backends\utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\backends\utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\backends\mysql\base.py", line 76, in execute
+    return self.cursor.execute(query, args)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\MySQLdb\cursors.py", line 179, in execute
+    res = self._query(mogrified_query)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\MySQLdb\cursors.py", line 330, in _query
+    db.query(q)
+    ~~~~~~~~^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\MySQLdb\connections.py", line 280, in query
+    _mysql.connection.query(self, query)
+    ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+django.db.utils.OperationalError: (1114, "The table 'accounts_audit_log' is full")
+ERROR 2025-12-16 20:52:35 middleware __call__ خطا هنگام ساخت/ذخیره AuditLog درخواست
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\backends\mysql\base.py", line 76, in execute
+    return self.cursor.execute(query, args)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\MySQLdb\cursors.py", line 179, in execute
+    res = self._query(mogrified_query)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\MySQLdb\cursors.py", line 330, in _query
+    db.query(q)
+    ~~~~~~~~^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\MySQLdb\connections.py", line 280, in query
+    _mysql.connection.query(self, query)
+    ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+MySQLdb.OperationalError: (1114, "The table 'accounts_audit_log' is full")
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\accounts\middleware.py", line 303, in __call__
+    AuditLog.objects.bulk_create(self.logs_to_create)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 835, in bulk_create
+    returned_columns = self._batched_insert(
+        objs_without_pk,
+    ...<4 lines>...
+        unique_fields=unique_fields,
+    )
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1886, in _batched_insert
+    self._insert(
+    ~~~~~~~~~~~~^
+        item,
+        ^^^^^
+    ...<4 lines>...
+        unique_fields=unique_fields,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1847, in _insert
+    return query.get_compiler(using=using).execute_sql(returning_fields)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\compiler.py", line 1823, in execute_sql
+    cursor.execute(sql, params)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\backends\utils.py", line 122, in execute
+    return super().execute(sql, params)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\backends\utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        sql, params, many=False, executor=self._execute
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\backends\utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\backends\utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\backends\mysql\base.py", line 76, in execute
+    return self.cursor.execute(query, args)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\MySQLdb\cursors.py", line 179, in execute
+    res = self._query(mogrified_query)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\MySQLdb\cursors.py", line 330, in _query
+    db.query(q)
+    ~~~~~~~~^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\MySQLdb\connections.py", line 280, in query
+    _mysql.connection.query(self, query)
+    ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+django.db.utils.OperationalError: (1114, "The table 'accounts_audit_log' is full")
+ERROR 2025-12-16 20:52:36 middleware __call__ خطا هنگام ساخت/ذخیره AuditLog درخواست
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\backends\mysql\base.py", line 76, in execute
+    return self.cursor.execute(query, args)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\MySQLdb\cursors.py", line 179, in execute
+    res = self._query(mogrified_query)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\MySQLdb\cursors.py", line 330, in _query
+    db.query(q)
+    ~~~~~~~~^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\MySQLdb\connections.py", line 280, in query
+    _mysql.connection.query(self, query)
+    ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+MySQLdb.OperationalError: (1114, "The table 'accounts_audit_log' is full")
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\accounts\middleware.py", line 303, in __call__
+    AuditLog.objects.bulk_create(self.logs_to_create)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 835, in bulk_create
+    returned_columns = self._batched_insert(
+        objs_without_pk,
+    ...<4 lines>...
+        unique_fields=unique_fields,
+    )
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1886, in _batched_insert
+    self._insert(
+    ~~~~~~~~~~~~^
+        item,
+        ^^^^^
+    ...<4 lines>...
+        unique_fields=unique_fields,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1847, in _insert
+    return query.get_compiler(using=using).execute_sql(returning_fields)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\compiler.py", line 1823, in execute_sql
+    cursor.execute(sql, params)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\backends\utils.py", line 122, in execute
+    return super().execute(sql, params)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\backends\utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        sql, params, many=False, executor=self._execute
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\backends\utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\backends\utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\backends\mysql\base.py", line 76, in execute
+    return self.cursor.execute(query, args)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\MySQLdb\cursors.py", line 179, in execute
+    res = self._query(mogrified_query)
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\MySQLdb\cursors.py", line 330, in _query
+    db.query(q)
+    ~~~~~~~~^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\MySQLdb\connections.py", line 280, in query
+    _mysql.connection.query(self, query)
+    ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+django.db.utils.OperationalError: (1114, "The table 'accounts_audit_log' is full")
+ERROR 2025-12-17 10:53:45 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+ERROR 2025-12-17 10:53:45 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-12-17 10:53:45 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+ERROR 2025-12-17 10:53:45 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-12-19 18:42:07 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+ERROR 2025-12-19 18:42:07 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-12-19 18:42:07 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+ERROR 2025-12-19 18:42:07 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-12-19 18:44:03 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-12-19 18:44:04 models save Error updating factor total amount: {'vat_amount': ['Ensure that there are no more than 2 decimal places.']}
+ERROR 2025-12-19 18:44:04 models save Error updating factor total amount: {'vat_amount': ['Ensure that there are no more than 2 decimal places.']}
+ERROR 2025-12-19 18:44:04 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-12-20 09:04:27 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+ERROR 2025-12-20 09:04:27 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-12-20 09:04:27 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+ERROR 2025-12-20 09:04:27 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-12-20 09:05:41 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-12-20 09:05:42 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+ERROR 2025-12-20 09:05:42 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-12-20 09:05:42 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+ERROR 2025-12-20 09:05:42 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-12-20 09:11:41 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+ERROR 2025-12-20 09:11:41 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-12-20 09:11:41 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+ERROR 2025-12-20 09:11:41 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-12-20 09:22:12 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+ERROR 2025-12-20 09:22:12 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-12-20 09:22:13 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+ERROR 2025-12-20 09:22:13 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-12-23 22:47:18 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+ERROR 2025-12-23 22:47:18 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-12-23 22:47:18 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+ERROR 2025-12-23 22:47:18 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-12-23 22:47:27 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-12-23 22:48:06 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-12-23 22:50:15 PermissionBase dispatch [PERM_CHECK] Permission denied for user m.azad to /tankhah/categories/add/
+ERROR 2025-12-23 22:50:16 PermissionBase dispatch [PERM_CHECK] Permission denied for user m.azad to /tankhah/categories/add/
+ERROR 2025-12-23 22:50:21 PermissionBase dispatch [PERM_CHECK] Permission denied for user m.azad to /budgets/payee/add/
+ERROR 2025-12-23 22:50:26 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر m.azad: name 'AccessRule' is not defined
+ERROR 2025-12-23 22:50:33 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+ERROR 2025-12-23 22:50:33 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-12-23 22:50:33 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+ERROR 2025-12-23 22:50:33 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-12-27 08:26:18 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-12-27 08:26:18 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
