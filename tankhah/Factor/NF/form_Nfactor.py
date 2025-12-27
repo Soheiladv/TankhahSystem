@@ -536,9 +536,14 @@ class FactorItemForm(forms.ModelForm):
 
         quantity = cleaned_data.get('quantity')
         unit_price = cleaned_data.get('unit_price')
+        vat_amount = cleaned_data.get('vat_amount')
 
         if quantity is None or unit_price is None or cleaned_data.get('description') is None:
             raise forms.ValidationError(_("لطفاً تمام فیلدهای این ردیف را پر کنید یا آن را حذف کنید."))
+
+        # اگر vat_amount خالی است یا None است، مقدار پیش‌فرض 0 بگذار
+        if vat_amount is None or vat_amount == '':
+            cleaned_data['vat_amount'] = Decimal('0')
 
         if quantity <= 0:
             self.add_error('quantity', _('تعداد باید مثبت باشد.'))

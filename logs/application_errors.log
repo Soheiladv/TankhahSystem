@@ -34500,3 +34500,401 @@ Traceback (most recent call last):
     allocations_qs = BudgetAllocation.objects.filter(
                      ^^^^^^^^^^^^^^^^^^^^^^^^
 AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+ERROR 2025-12-27 08:27:48 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+ERROR 2025-12-27 08:27:48 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-12-27 08:27:48 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+ERROR 2025-12-27 08:27:48 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-12-27 08:29:17 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+ERROR 2025-12-27 08:29:17 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-12-27 08:29:17 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+ERROR 2025-12-27 08:29:17 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-12-27 08:30:33 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+ERROR 2025-12-27 08:30:33 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-12-27 08:30:34 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+ERROR 2025-12-27 08:30:34 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-12-27 08:35:12 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+ERROR 2025-12-27 08:35:12 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-12-27 08:35:13 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+ERROR 2025-12-27 08:35:13 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-12-27 08:36:08 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+ERROR 2025-12-27 08:36:08 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-12-27 08:36:08 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+ERROR 2025-12-27 08:36:08 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-12-27 08:44:01 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+ERROR 2025-12-27 08:44:01 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-12-27 08:44:01 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+ERROR 2025-12-27 08:44:01 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-12-27 08:48:00 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-12-27 08:48:01 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+ERROR 2025-12-27 08:48:01 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-12-27 08:48:01 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+ERROR 2025-12-27 08:48:01 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-12-27 08:48:42 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+ERROR 2025-12-27 08:48:42 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-12-27 08:48:42 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+ERROR 2025-12-27 08:48:42 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-12-27 08:55:44 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+ERROR 2025-12-27 08:55:44 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-12-27 08:55:44 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+ERROR 2025-12-27 08:55:44 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-12-27 08:58:27 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+ERROR 2025-12-27 08:58:27 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-12-27 08:58:27 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+ERROR 2025-12-27 08:58:27 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-12-27 08:59:11 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+ERROR 2025-12-27 08:59:11 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-12-27 08:59:11 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+ERROR 2025-12-27 08:59:11 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-12-27 08:59:56 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-12-27 08:59:57 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+ERROR 2025-12-27 08:59:57 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-12-27 08:59:57 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+ERROR 2025-12-27 08:59:57 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-12-27 21:33:36 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-12-27 21:33:36 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+ERROR 2025-12-27 21:33:36 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-12-27 21:33:36 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+ERROR 2025-12-27 21:33:36 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-12-27 21:36:23 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-12-27 21:36:24 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+ERROR 2025-12-27 21:36:24 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-12-27 21:36:24 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+ERROR 2025-12-27 21:36:24 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-12-27 21:36:37 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+ERROR 2025-12-27 21:36:37 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-12-27 21:36:37 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+ERROR 2025-12-27 21:36:37 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-12-27 21:37:05 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+ERROR 2025-12-27 21:37:05 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-12-27 21:37:05 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-12-27 21:49:29 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-12-27 21:49:29 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-12-27 21:50:04 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-12-27 21:50:04 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-12-27 21:50:26 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+ERROR 2025-12-27 21:50:26 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined

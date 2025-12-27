@@ -147,29 +147,128 @@
                         {# --- تب اطلاعات اصلی --- #}
                         <div class="tab-pane fade show active" id="main-tab-pane" role="tabpanel"
                              aria-labelledby="main-tab" tabindex="0">
-                            <div class="row g-3">
-                                {% for field in form %}
-                                    <div class="{% if field.name == 'description' %}col-12{% else %}col-md-6{% endif %} mb-3">
-                                        <label for="{{ field.id_for_label }}" class="form-label">
-                                            {{ field.label }}{% if field.field.required %}
-                                                <span class="text-danger">*</span>{% endif %}
-                                        </label>
-                                        {{ field }}
-                                        {% if field.help_text %}
-                                            <div class="form-text small text-muted">{{ field.help_text|safe }}</div>
-                                        {% endif %}
-                                        <div class="invalid-feedback" id="error-{{ field.id_for_label }}">
-                                            {% if field.errors %}{{ field.errors|first }}{% endif %}
+
+                            {# --- بخش اطلاعات پایه --- #}
+                            <div class="card border-0 shadow-sm mb-4">
+                                <div class="card-header bg-primary text-white py-2 px-3">
+                                    <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>{% trans "اطلاعات پایه فاکتور" %}</h6>
+                                </div>
+                                <div class="card-body p-4">
+                                    <div class="row g-3">
+                                        {% for field in form %}
+                                            {% if field.name != 'amount' and field.name != 'discount' and field.name != 'vat_percentage' and field.name != 'vat_amount' and field.name != 'description' %}
+                                                <div class="col-md-6">
+                                                    <label for="{{ field.id_for_label }}" class="form-label fw-semibold">
+                                                        {% if field.name == 'tankhah' %}<i class="fas fa-wallet text-primary me-1"></i>{% endif %}
+                                                        {% if field.name == 'category' %}<i class="fas fa-tags text-primary me-1"></i>{% endif %}
+                                                        {% if field.name == 'date' %}<i class="fas fa-calendar text-primary me-1"></i>{% endif %}
+                                                        {% if field.name == 'payee' %}<i class="fas fa-user text-primary me-1"></i>{% endif %}
+                                                        {% if field.name == 'purchase_request' %}<i class="fas fa-shopping-cart text-primary me-1"></i>{% endif %}
+                                                        {{ field.label }}{% if field.field.required %}
+                                                            <span class="text-danger">*</span>{% endif %}
+                                                    </label>
+                                                    <div class="input-group">
+                                                        {{ field }}
+                                                    </div>
+                                                    {% if field.help_text %}
+                                                        <div class="form-text small text-muted mt-1">{{ field.help_text|safe }}</div>
+                                                    {% endif %}
+                                                    <div class="invalid-feedback" id="error-{{ field.id_for_label }}">
+                                                        {% if field.errors %}{{ field.errors|first }}{% endif %}
+                                                    </div>
+                                                </div>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {# --- بخش محاسبات مالی --- #}
+                            <div class="card border-0 shadow-sm mb-4">
+                                <div class="card-header bg-success text-white py-2 px-3">
+                                    <h6 class="mb-0"><i class="fas fa-calculator me-2"></i>{% trans "محاسبات مالی" %}</h6>
+                                </div>
+                                <div class="card-body p-4">
+                                    <div class="row g-3">
+                                        {% for field in form %}
+                                            {% if field.name == 'amount' or field.name == 'discount' or field.name == 'vat_percentage' or field.name == 'vat_amount' %}
+                                                <div class="{% if field.name == 'amount' %}col-md-6{% else %}col-md-3{% endif %}">
+                                                    <label for="{{ field.id_for_label }}" class="form-label fw-semibold">
+                                                        {% if field.name == 'amount' %}<i class="fas fa-money-bill-wave text-success me-1"></i>{% endif %}
+                                                        {% if field.name == 'discount' %}<i class="fas fa-percent text-warning me-1"></i>{% endif %}
+                                                        {% if field.name == 'vat_percentage' %}<i class="fas fa-percentage text-info me-1"></i>{% endif %}
+                                                        {% if field.name == 'vat_amount' %}<i class="fas fa-coins text-info me-1"></i>{% endif %}
+                                                        {{ field.label }}{% if field.field.required %}
+                                                            <span class="text-danger">*</span>{% endif %}
+                                                    </label>
+                                                    <div class="input-group">
+                                                        {{ field }}
+                                                        {% if field.name == 'amount' or field.name == 'vat_amount' or field.name == 'discount' %}
+                                                            <span class="input-group-text bg-light">ریال</span>
+                                                        {% elif field.name == 'vat_percentage' %}
+                                                            <span class="input-group-text bg-light">%</span>
+                                                        {% endif %}
+                                                    </div>
+                                                    {% if field.help_text %}
+                                                        <div class="form-text small text-muted mt-1">{{ field.help_text|safe }}</div>
+                                                    {% endif %}
+                                                    <div class="invalid-feedback" id="error-{{ field.id_for_label }}">
+                                                        {% if field.errors %}{{ field.errors|first }}{% endif %}
+                                                    </div>
+                                                </div>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                    <div class="alert alert-info mt-3 mb-0 py-2 px-3">
+                                        <small><i class="fas fa-info-circle me-1"></i>{% trans "مبلغ کل فاکتور به صورت خودکار بر اساس جمع ردیف‌ها، تخفیف و ارزش افزوده محاسبه می‌شود." %}</small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {# --- بخش توضیحات --- #}
+                            {% for field in form %}
+                                {% if field.name == 'description' %}
+                                    <div class="card border-0 shadow-sm mb-4">
+                                        <div class="card-header bg-secondary text-white py-2 px-3">
+                                            <h6 class="mb-0"><i class="fas fa-align-right me-2"></i>{% trans "توضیحات" %}</h6>
+                                        </div>
+                                        <div class="card-body p-4">
+                                            <label for="{{ field.id_for_label }}" class="form-label fw-semibold">
+                                                {{ field.label }}{% if field.field.required %}
+                                                    <span class="text-danger">*</span>{% endif %}
+                                            </label>
+                                            {{ field }}
+                                            {% if field.help_text %}
+                                                <div class="form-text small text-muted mt-1">{{ field.help_text|safe }}</div>
+                                            {% endif %}
+                                            <div class="invalid-feedback" id="error-{{ field.id_for_label }}">
+                                                {% if field.errors %}{{ field.errors|first }}{% endif %}
+                                            </div>
                                         </div>
                                     </div>
-                                {% endfor %}
-                            </div>
+                                {% endif %}
+                            {% endfor %}
+
                             {% if budget_info %}
-                                <div class="alert alert-secondary mt-4 p-3 small border-0">
-                                    <strong class="d-block mb-2">{% trans "بودجه پروژه:" %} {{ budget_info.project_name }}</strong>
-                                    <span class="me-3">{% trans "کل:" %} {{ budget_info.project_budget|floatformat:0|to_persian_number }}</span>
-                                    <span class="me-3">{% trans "مصرف:" %} {{ budget_info.project_consumed|floatformat:0|to_persian_number }}</span>
-                                    <span>{% trans "باقیمانده:" %} {{ budget_info.project_remaining|floatformat:0|to_persian_number }}</span>
+                                <div class="alert alert-secondary mt-4 p-3 border-0 shadow-sm">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <i class="fas fa-chart-pie me-2"></i>
+                                        <strong>{% trans "بودجه پروژه:" %} {{ budget_info.project_name }}</strong>
+                                    </div>
+                                    <div class="row g-2 text-center">
+                                        <div class="col-4">
+                                            <small class="text-muted d-block">{% trans "کل بودجه" %}</small>
+                                            <strong class="text-primary">{{ budget_info.project_budget|floatformat:0|to_persian_number }} ریال</strong>
+                                        </div>
+                                        <div class="col-4">
+                                            <small class="text-muted d-block">{% trans "مصرف شده" %}</small>
+                                            <strong class="text-warning">{{ budget_info.project_consumed|floatformat:0|to_persian_number }} ریال</strong>
+                                        </div>
+                                        <div class="col-4">
+                                            <small class="text-muted d-block">{% trans "باقیمانده" %}</small>
+                                            <strong class="text-success">{{ budget_info.project_remaining|floatformat:0|to_persian_number }} ریال</strong>
+                                        </div>
+                                    </div>
                                 </div>
                             {% endif %}
                         </div>
@@ -231,6 +330,10 @@
                                                 {% endif %}
                                             </div>
                                         </div>
+                                        {# فیلد vat_amount به صورت hidden برای ارسال به سرور #}
+                                        {% if item_form.vat_amount %}
+                                            {{ item_form.vat_amount.as_hidden }}
+                                        {% endif %}
                                         {% if item_form.non_field_errors %}
                                             <div class="alert alert-warning alert-sm mt-2 py-1 px-2 bont-sm">{{ item_form.non_field_errors|striptags }}</div>
                                         {% endif %}
@@ -514,6 +617,9 @@
                             title="{% trans 'حذف ردیف' %}">
                         <i class="fas fa-trash-alt fa-sm"></i>
                     </button>
+                    {# فیلد hidden vat_amount برای ارسال به سرور #}
+                    <input type="hidden" name="{{ formset.prefix }}-__prefix__-vat_amount" value="0"
+                           id="id_{{ formset.prefix }}-__prefix__-vat_amount">
                     <input type="checkbox" name="{{ formset.prefix }}-__prefix__-DELETE"
                            class="d-none delete-item-checkbox" id="id_{{ formset.prefix }}-__prefix__-DELETE">
                 </div>
@@ -692,11 +798,16 @@
                 const unitPriceInput = rowElement.querySelector('.unit-price-field');
                 const quantityInput = rowElement.querySelector('.quantity-field');
                 const totalSpan = rowElement.querySelector('.item-total');
+                const vatAmountInput = rowElement.querySelector('input[name$="-vat_amount"]');
                 const unitPrice = getNumericValue(unitPriceInput);
                 const quantity = getNumericValue(quantityInput);
                 const rowTotal = unitPrice * quantity;
                 if (totalSpan) {
                     totalSpan.textContent = `${formatCurrency(rowTotal)} {% trans "ریال" %}`;
+                }
+                // به‌روزرسانی فیلد hidden vat_amount برای هر ردیف (مقدار پیش‌فرض 0)
+                if (vatAmountInput && (!vatAmountInput.value || vatAmountInput.value === '')) {
+                    vatAmountInput.value = '0';
                 }
                 return rowTotal;
             }
@@ -714,15 +825,45 @@
                     });
                 }
 
+                // محاسبه خودکار تخفیف و ارزش افزوده
+                const discountInput = document.getElementById('id_discount');
+                const vatPercentageInput = document.getElementById('id_vat_percentage');
+                const vatAmountInput = document.getElementById('id_vat_amount');
+
+                const discount = getNumericValue(discountInput) || 0;
+                const vatPercentage = getNumericValue(vatPercentageInput) || 0;
+
+                // محاسبه مبلغ پس از تخفیف
+                const subtotalAfterDiscount = Math.max(0, itemsGrandTotal - discount);
+
+                // محاسبه ارزش افزوده بر اساس مبلغ پس از تخفیف
+                let calculatedVatAmount = 0;
+                if (vatPercentage > 0 && subtotalAfterDiscount > 0) {
+                    calculatedVatAmount = (subtotalAfterDiscount * vatPercentage) / 100;
+                }
+
+                // محاسبه مبلغ نهایی (جمع ردیف‌ها - تخفیف + ارزش افزوده)
+                const finalAmount = subtotalAfterDiscount + calculatedVatAmount;
+
+                // به‌روزرسانی خودکار فیلد vat_amount اگر کاربر دستی تغییر نداده
+                if (vatAmountInput && !vatAmountInput.dataset.userEdited) {
+                    vatAmountInput.value = Math.round(calculatedVatAmount);
+                }
+
+                // به‌روزرسانی خودکار فیلد amount اگر کاربر دستی تغییر نداده
+                if (factorAmountInput && !factorAmountInput.dataset.userEdited) {
+                    factorAmountInput.value = Math.round(finalAmount);
+                }
+
                 const factorAmount = getNumericValue(factorAmountInput);
-                const difference = factorAmount - itemsGrandTotal;
+                const difference = factorAmount - finalAmount;
                 const previousTransactionAmount = {{ previous_transaction_amount|default:0 }};
                 const adjustedRemainingBudget = ajaxInitialRemainingBudget + previousTransactionAmount - factorAmount;
                 const tolerance = 0.01;
 
                 if (displayItemsTotalEl) displayItemsTotalEl.textContent = formatCurrency(itemsGrandTotal);
                 if (itemCountBadge) itemCountBadge.textContent = toPersianDigits(activeItemCount);
-                if (displayFactorTotalEl) displayFactorTotalEl.textContent = formatCurrency(factorAmount);
+                if (displayFactorTotalEl) displayFactorTotalEl.textContent = formatCurrency(finalAmount);
                 if (displayInitialBudgetEl) displayInitialBudgetEl.textContent = formatCurrency(ajaxInitialRemainingBudget);
                 if (displayRemainingBudgetEl) {
                     displayRemainingBudgetEl.textContent = formatCurrency(adjustedRemainingBudget);
@@ -739,11 +880,11 @@
                         amountComparisonResultEl.classList.add('text-success');
                     } else if (difference < 0) {
                         displayDifferenceEl.classList.add('negative');
-                        amountComparisonResultEl.textContent = '{% trans "جمع ردیف‌ها > مبلغ فاکتور!" %}';
+                        amountComparisonResultEl.textContent = '{% trans "مبلغ فاکتور کمتر از محاسبه است!" %}';
                         amountComparisonResultEl.classList.add('text-danger');
                     } else {
                         displayDifferenceEl.classList.add('warning');
-                        amountComparisonResultEl.textContent = '{% trans "جمع ردیف‌ها < مبلغ فاکتور." %}';
+                        amountComparisonResultEl.textContent = '{% trans "مبلغ فاکتور بیشتر از محاسبه است." %}';
                         amountComparisonResultEl.classList.add('text-warning');
                     }
                 }
@@ -873,6 +1014,12 @@
                 newRowElement.innerHTML = newRowElement.innerHTML.replace(/__prefix__/g, formIndex);
                 formsetContainer.appendChild(newRowElement);
                 totalFormsInput.value = formIndex + 1;
+
+                // تنظیم مقدار پیش‌فرض برای فیلد hidden vat_amount
+                const vatAmountInput = newRowElement.querySelector('input[name$="-vat_amount"]');
+                if (vatAmountInput) {
+                    vatAmountInput.value = '0';
+                }
 
                 attachRowEventListeners(newRowElement);
                 updateRowNumbers();
@@ -1125,7 +1272,48 @@
                 });
             }
             if (addItemButton) addItemButton.addEventListener('click', () => addFormsetRow());
-            if (factorAmountInput) factorAmountInput.addEventListener('input', updateAllCalculations);
+
+            // Event listeners برای محاسبه خودکار با تغییر تخفیف و VAT
+            const discountInput = document.getElementById('id_discount');
+            const vatPercentageInput = document.getElementById('id_vat_percentage');
+            const vatAmountInput = document.getElementById('id_vat_amount');
+
+            // علامت‌گذاری ویرایش دستی
+            if (factorAmountInput) {
+                factorAmountInput.addEventListener('input', () => {
+                    factorAmountInput.dataset.userEdited = 'true';
+                    updateAllCalculations();
+                });
+            }
+            if (vatAmountInput) {
+                vatAmountInput.addEventListener('input', () => {
+                    vatAmountInput.dataset.userEdited = 'true';
+                    updateAllCalculations();
+                });
+            }
+            if (discountInput) {
+                discountInput.addEventListener('input', () => {
+                    // اگر کاربر تخفیف را تغییر داد، محاسبات را به‌روز کن
+                    updateAllCalculations();
+                    maybeUpdateDescription();
+                });
+            }
+            if (vatPercentageInput) {
+                vatPercentageInput.addEventListener('input', () => {
+                    // اگر کاربر درصد VAT را تغییر داد، محاسبات را به‌روز کن
+                    updateAllCalculations();
+                    maybeUpdateDescription();
+                });
+            }
+
+            // Event listener برای تغییرات در فیلدهای ردیف‌ها
+            if (formsetContainer) {
+                formsetContainer.addEventListener('input', function(e) {
+                    if (e.target.matches('.unit-price-field, .quantity-field')) {
+                        updateAllCalculations();
+                    }
+                });
+            }
 
             function onTankhahChanged(){
                 fetchTankhahBudgetInfo(tankhahSelect.value);
@@ -1219,12 +1407,47 @@
             if (form) {
                 form.addEventListener('submit', function (event) {
                     updateAllCalculations();
+
+                    // محاسبه مستقیم جمع ردیف‌ها (نه از element نمایشی)
+                    let currentItemsTotal = 0;
+                    if (formsetContainer) {
+                        formsetContainer.querySelectorAll('.item-row').forEach(row => {
+                            const deleteCheckbox = row.querySelector('.delete-item-checkbox');
+                            if (!deleteCheckbox || !deleteCheckbox.checked) {
+                                currentItemsTotal += calculateRowTotal(row);
+                            }
+                        });
+                    }
+
                     const currentFactorAmount = getNumericValue(factorAmountInput);
-                    const currentItemsTotal = getNumericValue(displayItemsTotalEl);
                     const previousTransactionAmount = {{ previous_transaction_amount|default:0 }};
                     const projectedRemaining = ajaxInitialRemainingBudget + previousTransactionAmount - currentFactorAmount;
-                    const difference = currentFactorAmount - currentItemsTotal;
-                    const tolerance = 0.01;
+
+                    // محاسبه صحیح طبق استاندارد حسابداری: اول تخفیف، بعد VAT
+                    const submitDiscountInput = document.getElementById('id_discount');
+                    const submitVatPercentageInput = document.getElementById('id_vat_percentage');
+                    const submitVatAmountInput = document.getElementById('id_vat_amount');
+
+                    const submitDiscount = getNumericValue(submitDiscountInput) || 0;
+                    const submitVatPercentage = getNumericValue(submitVatPercentageInput) || 0;
+                    const submitVatAmount = getNumericValue(submitVatAmountInput) || 0;
+
+                    // محاسبه مبلغ پس از تخفیف
+                    const subtotalAfterDiscount = Math.max(0, currentItemsTotal - submitDiscount);
+
+                    // محاسبه VAT روی مبلغ پس از تخفیف (اگر VAT به صورت دستی وارد نشده، از درصد محاسبه می‌شود)
+                    let calculatedVatAmount = submitVatAmount;
+                    if (submitVatPercentage > 0 && subtotalAfterDiscount > 0) {
+                        // اگر VAT دستی وارد نشده، از درصد محاسبه کن
+                        if (!submitVatAmountInput || !submitVatAmountInput.dataset.userEdited) {
+                            calculatedVatAmount = Math.round((subtotalAfterDiscount * submitVatPercentage) / 100);
+                        }
+                    }
+
+                    // محاسبه اختلاف طبق فرمول: جمع ردیف‌ها - (مبلغ فاکتور - ارزش افزوده + تخفیف)
+                    const difference = currentItemsTotal - (currentFactorAmount - calculatedVatAmount + submitDiscount);
+                    const tolerance = 2; // 2 ریال tolerance برای پوشش خطاهای رند کردن
+
                     let errors = [];
                     form.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
 
@@ -1233,7 +1456,7 @@
                         factorAmountInput?.classList.add('is-invalid');
                     }
                     if (Math.abs(difference) >= tolerance) {
-                        errors.push('{% trans "مبلغ کل فاکتور با مجموع مبلغ ردیف‌ها همخوانی ندارد." %}');
+                        errors.push('{% trans "مبلغ کل فاکتور با محاسبات (جمع ردیف‌ها - تخفیف + ارزش افزوده) همخوانی ندارد." %}');
                         factorAmountInput?.classList.add('is-invalid');
                     }
                     let formsetHasErrors = false;
@@ -1383,7 +1606,12 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function updateCalculations() {
-        // ۱. جمع خالص ردیف‌ها (unit_price × quantity)
+        // ============================================
+        // محاسبات به ترتیب استاندارد حسابداری ایران
+        // ============================================
+
+        // مرحله ۱: جمع خالص ردیف‌ها (جمع مبالغ کالا/خدمات)
+        // جمع هر ردیف = قیمت واحد × تعداد
         let itemsTotal = 0;
         document.querySelectorAll('.item-row:not(.is-deleting)').forEach(row => {
             const price = getNumericValue(row.querySelector('.unit-price-field'));
@@ -1398,18 +1626,21 @@ document.addEventListener('DOMContentLoaded', function() {
             itemsTotal += rowTotal;
         });
 
-        // ۲. اعمال تخفیف
+        // مرحله ۲: اعمال تخفیف (اول تخفیف اعمال می‌شود)
+        // مبلغ پس از تخفیف = جمع ردیف‌ها - تخفیف
         const discount = getNumericValue(discountInput);
-        const subtotalAfterDiscount = itemsTotal - discount;
+        const subtotalAfterDiscount = Math.max(0, itemsTotal - discount);
 
-        // ۳. محاسبه ارزش افزوده کلی
+        // مرحله ۳: محاسبه ارزش افزوده روی مبلغ پس از تخفیف
+        // پایه محاسبه VAT = مبلغ پس از تخفیف (نه مبلغ قبل از تخفیف)
         const vatPercentage = getNumericValue(vatPercentageInput);
         let calculatedVatAmount = 0;
-        if (vatPercentage > 0) {
+        if (vatPercentage > 0 && subtotalAfterDiscount > 0) {
             calculatedVatAmount = (subtotalAfterDiscount * vatPercentage) / 100;
         }
 
-        // ۴. مبلغ نهایی قابل پرداخت
+        // مرحله ۴: محاسبه مبلغ نهایی فاکتور
+        // مبلغ نهایی = مبلغ پس از تخفیف + ارزش افزوده
         const finalPayableAmount = subtotalAfterDiscount + calculatedVatAmount;
 
         // ۵. به‌روزرسانی نمایش‌ها
@@ -1429,17 +1660,19 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
-        // ۶. مقایسه: مبلغ دستی وارد شده (id_amount) باید برابر جمع خالص ردیف‌ها باشه
-        const manualItemsTotal = getNumericValue(factorAmountInput);
-        const itemsDiff = Math.abs(manualItemsTotal - itemsTotal);
+        // ۶. محاسبه اختلاف طبق فرمول: جمع ردیف‌ها - (مبلغ فاکتور - ارزش افزوده + تخفیف)
+        const manualFactorAmount = getNumericValue(factorAmountInput);
+        const vatAmount = getNumericValue(vatAmountInput) || calculatedVatAmount;
+        const itemsDiff = itemsTotal - (manualFactorAmount - vatAmount + discount);
+        const tolerance = 1; // 1 ریال tolerance
 
         if (displayDifference) {
-            displayDifference.textContent = formatCurrency(itemsDiff);
-            displayDifference.className = 'summary-value ' + (itemsDiff < 10 ? 'text-success' : 'text-danger');
+            displayDifference.textContent = formatCurrency(Math.abs(itemsDiff));
+            displayDifference.className = 'summary-value ' + (Math.abs(itemsDiff) < tolerance ? 'text-success' : 'text-danger');
         }
 
         if (amountComparisonResult) {
-            if (itemsDiff < 10) {
+            if (Math.abs(itemsDiff) < tolerance) {
                 amountComparisonResult.innerHTML = '<span class="text-success"><i class="fas fa-check-circle"></i> جمع ردیف‌ها با مبلغ فاکتور همخوانی دارد</span>';
             } else {
                 amountComparisonResult.innerHTML = '<span class="text-danger"><i class="fas fa-exclamation-triangle"></i> جمع ردیف‌ها با مبلغ فاکتور مطابقت ندارد!</span>';
@@ -1447,8 +1680,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // اختیاری: اگر کاربر amount رو دستی نزده، خودکار پر کن
-        if (factorAmountInput && !factorAmountInput.dataset.userEdited && itemsTotal > 0) {
-            factorAmountInput.value = Math.round(itemsTotal);
+        if (factorAmountInput && !factorAmountInput.dataset.userEdited && finalPayableAmount > 0) {
+            factorAmountInput.value = Math.round(finalPayableAmount);
         }
     }
 
@@ -1721,6 +1954,10 @@ document.addEventListener('DOMContentLoaded', function() {
                                         {% endif %}
                                     </div>
                                 </div>
+                                {# فیلد vat_amount به صورت hidden برای ارسال به سرور #}
+                                {% if item_form.vat_amount %}
+                                    {{ item_form.vat_amount.as_hidden }}
+                                {% endif %}
                                 {% if item_form.non_field_errors %}
                                 <div class="alert alert-warning alert-sm mt-2 py-1 px-2 bont-sm">{{
                                     item_form.non_field_errors|striptags }}</div>
@@ -2101,11 +2338,16 @@ document.addEventListener('DOMContentLoaded', function() {
             const unitPriceInput = rowElement.querySelector('.unit-price-field');
             const quantityInput = rowElement.querySelector('.quantity-field');
             const totalSpan = rowElement.querySelector('.item-total');
+            const vatAmountInput = rowElement.querySelector('input[name$="-vat_amount"]');
             const unitPrice = getNumericValue(unitPriceInput);
             const quantity = getNumericValue(quantityInput);
             const rowTotal = unitPrice * quantity;
             if (totalSpan) {
                 totalSpan.textContent = `${formatCurrency(rowTotal)} {% trans "ریال" %}`;
+            }
+            // به‌روزرسانی فیلد hidden vat_amount برای هر ردیف (مقدار پیش‌فرض 0)
+            if (vatAmountInput && (!vatAmountInput.value || vatAmountInput.value === '')) {
+                vatAmountInput.value = '0';
             }
             return rowTotal;
         }
@@ -2147,6 +2389,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         function updateAllCalculations() {
+            // ============================================
+            // محاسبات به ترتیب استاندارد حسابداری ایران
+            // ============================================
+
+            // مرحله ۱: جمع ردیف‌ها (جمع مبالغ کالا/خدمات)
             let itemsGrandTotal = 0;
             let activeItemCount = 0;
             if (formsetContainer) {
@@ -2159,63 +2406,127 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
             }
 
-            const factorAmount = getNumericValue(factorAmountInput);
-            const difference = factorAmount - itemsGrandTotal;
-            const previousTransactionAmount = {{ previous_transaction_amount
-        }
-    };
-    const adjustedRemainingBudget = ajaxInitialRemainingBudget + previousTransactionAmount - factorAmount;
-    const tolerance = 0.01;
+            // دریافت مقادیر تخفیف و درصد ارزش افزوده
+            const discountInput = document.getElementById('id_discount');
+            const vatPercentageInput = document.getElementById('id_vat_percentage');
+            const vatAmountInput = document.getElementById('id_vat_amount');
 
-    if (displayItemsTotalEl) displayItemsTotalEl.textContent = formatCurrency(itemsGrandTotal);
-    if (itemCountBadge) itemCountBadge.textContent = toPersianDigits(activeItemCount);
-    if (displayFactorTotalEl) displayFactorTotalEl.textContent = formatCurrency(factorAmount);
-    if (displayInitialBudgetEl) displayInitialBudgetEl.textContent = formatCurrency(ajaxInitialRemainingBudget);
-    if (displayRemainingBudgetEl) {
-        displayRemainingBudgetEl.textContent = formatCurrency(adjustedRemainingBudget);
-        displayRemainingBudgetEl.className = 'summary-value ' + (adjustedRemainingBudget < 0 ? 'negative' : 'positive');
-    }
-    if (displayDifferenceEl) {
-        displayDifferenceEl.textContent = formatCurrency(Math.abs(difference));
-        displayDifferenceEl.className = 'summary-value';
-        amountComparisonResultEl.className = 'small mt-1';
-        amountComparisonResultEl.textContent = '';
-        if (Math.abs(difference) < tolerance) {
-            displayDifferenceEl.classList.add('positive');
-            amountComparisonResultEl.textContent = '{% trans "مبالغ مطابقت دارند." %}';
-            amountComparisonResultEl.classList.add('text-success');
-        } else if (difference < 0) {
-            displayDifferenceEl.classList.add('negative');
-            amountComparisonResultEl.textContent = '{% trans "جمع ردیف‌ها > مبلغ فاکتور!" %}';
-            amountComparisonResultEl.classList.add('text-danger');
-        } else {
-            displayDifferenceEl.classList.add('warning');
-            amountComparisonResultEl.textContent = '{% trans "جمع ردیف‌ها < مبلغ فاکتور." %}';
-            amountComparisonResultEl.classList.add('text-warning');
+            const discount = getNumericValue(discountInput) || 0;
+            const vatPercentage = getNumericValue(vatPercentageInput) || 0;
+
+            // مرحله ۲: اعمال تخفیف (اول تخفیف اعمال می‌شود)
+            // مبلغ پس از تخفیف = جمع ردیف‌ها - تخفیف
+            const subtotalAfterDiscount = Math.max(0, itemsGrandTotal - discount);
+
+            // مرحله ۳: محاسبه ارزش افزوده روی مبلغ پس از تخفیف
+            // پایه محاسبه VAT = مبلغ پس از تخفیف (نه مبلغ قبل از تخفیف)
+            let calculatedVatAmount = 0;
+            if (vatPercentage > 0 && subtotalAfterDiscount > 0) {
+                calculatedVatAmount = (subtotalAfterDiscount * vatPercentage) / 100;
+            }
+
+            // مرحله ۴: محاسبه مبلغ نهایی فاکتور
+            // مبلغ نهایی = مبلغ پس از تخفیف + ارزش افزوده
+            const finalAmount = subtotalAfterDiscount + calculatedVatAmount;
+
+            // به‌روزرسانی خودکار فیلد vat_amount اگر کاربر دستی تغییر نداده
+            if (vatAmountInput && !vatAmountInput.dataset.userEdited) {
+                vatAmountInput.value = Math.round(calculatedVatAmount);
+            }
+
+            // به‌روزرسانی خودکار فیلد amount اگر کاربر دستی تغییر نداده
+            if (factorAmountInput && !factorAmountInput.dataset.userEdited) {
+                factorAmountInput.value = Math.round(finalAmount);
+            }
+
+            const factorAmount = getNumericValue(factorAmountInput);
+            // استفاده از VAT وارد شده توسط کاربر یا محاسبه شده
+            const vatAmount = getNumericValue(vatAmountInput) || calculatedVatAmount;
+
+            // محاسبه معکوس: اگر کاربر مبلغ کل فاکتور را دستی وارد کرده و درصد VAT تنظیم شده
+            // در این حالت، از مبلغ نهایی، تخفیف و VAT را محاسبه می‌کنیم
+            let finalAmountForComparison = finalAmount;
+            if (factorAmountInput && factorAmountInput.dataset.userEdited && factorAmount > 0 && vatPercentage > 0 && itemsGrandTotal > 0) {
+                // فرمول استاندارد: مبلغ نهایی = (جمع ردیف‌ها - تخفیف) × (1 + درصد VAT)
+                // پس: جمع ردیف‌ها - تخفیف = مبلغ نهایی / (1 + درصد VAT)
+                const multiplier = 1 + (vatPercentage / 100);
+                const calculatedSubtotalAfterDiscount = factorAmount / multiplier;
+                // محاسبه تخفیف از فرمول: تخفیف = جمع ردیف‌ها - مبلغ پس از تخفیف
+                const calculatedDiscount = itemsGrandTotal - calculatedSubtotalAfterDiscount;
+                // محاسبه VAT بر اساس مبلغ پس از تخفیف (طبق استاندارد حسابداری)
+                const calculatedVatFromFactor = (calculatedSubtotalAfterDiscount * vatPercentage) / 100;
+
+                // اگر تخفیف محاسبه شده معقول است (مثبت و کمتر از جمع ردیف‌ها)
+                if (calculatedDiscount >= 0 && calculatedDiscount <= itemsGrandTotal && discountInput && !discountInput.dataset.userEdited) {
+                    discountInput.value = Math.round(calculatedDiscount);
+                    // محاسبه مجدد با تخفیف جدید
+                    const updatedSubtotalAfterDiscount = Math.max(0, itemsGrandTotal - calculatedDiscount);
+                    const updatedVatAmount = (updatedSubtotalAfterDiscount * vatPercentage) / 100;
+
+                    // به‌روزرسانی خودکار VAT اگر کاربر دستی تغییر نداده
+                    if (vatAmountInput && !vatAmountInput.dataset.userEdited) {
+                        vatAmountInput.value = Math.round(updatedVatAmount);
+                    }
+
+                    finalAmountForComparison = updatedSubtotalAfterDiscount + updatedVatAmount;
+                } else if (vatAmountInput && !vatAmountInput.dataset.userEdited && calculatedVatFromFactor >= 0) {
+                    // اگر تخفیف قابل محاسبه نیست، فقط VAT را به‌روزرسانی کن
+                    vatAmountInput.value = Math.round(calculatedVatFromFactor);
+                    finalAmountForComparison = calculatedSubtotalAfterDiscount + calculatedVatFromFactor;
+                }
+            }
+
+            // محاسبه اختلاف طبق فرمول: جمع ردیف‌ها - (مبلغ فاکتور - ارزش افزوده + تخفیف)
+            const difference = itemsGrandTotal - (factorAmount - vatAmount + discount);
+            const previousTransactionAmount = {{ previous_transaction_amount|default:0 }};
+            const adjustedRemainingBudget = ajaxInitialRemainingBudget + previousTransactionAmount - factorAmount;
+            const tolerance = 0.01;
+
+            if (displayItemsTotalEl) displayItemsTotalEl.textContent = formatCurrency(itemsGrandTotal);
+            if (itemCountBadge) itemCountBadge.textContent = toPersianDigits(activeItemCount);
+            if (displayFactorTotalEl) displayFactorTotalEl.textContent = formatCurrency(finalAmountForComparison);
+            if (displayInitialBudgetEl) displayInitialBudgetEl.textContent = formatCurrency(ajaxInitialRemainingBudget);
+            if (displayRemainingBudgetEl) {
+                displayRemainingBudgetEl.textContent = formatCurrency(adjustedRemainingBudget);
+                displayRemainingBudgetEl.className = 'summary-value ' + (adjustedRemainingBudget < 0 ? 'negative' : 'positive');
+            }
+            if (displayDifferenceEl) {
+                displayDifferenceEl.textContent = formatCurrency(Math.abs(difference));
+                displayDifferenceEl.className = 'summary-value';
+                amountComparisonResultEl.className = 'small mt-1';
+                amountComparisonResultEl.textContent = '';
+                if (Math.abs(difference) < tolerance) {
+                    displayDifferenceEl.classList.add('positive');
+                    amountComparisonResultEl.innerHTML = '<span class="text-success"><i class="fas fa-check-circle"></i> {% trans "جمع ردیف‌ها با مبلغ فاکتور همخوانی دارد" %}</span>';
+                    amountComparisonResultEl.classList.add('text-success');
+                } else {
+                    displayDifferenceEl.classList.add('negative');
+                    amountComparisonResultEl.innerHTML = '<span class="text-danger"><i class="fas fa-exclamation-triangle"></i> {% trans "جمع ردیف‌ها با مبلغ فاکتور مطابقت ندارد!" %}</span>';
+                    amountComparisonResultEl.classList.add('text-danger');
+                }
+            }
+            if (budgetWarningEl) {
+                budgetWarningEl.classList.toggle('d-none', adjustedRemainingBudget >= 0);
+            }
+            if (budgetProgressBarEl && ajaxInitialRemainingBudget > 0) {
+                const percentageUsed = Math.max(0, (factorAmount / ajaxInitialRemainingBudget) * 100);
+                const displayPercentage = Math.min(100, percentageUsed);
+                budgetProgressBarEl.style.width = `${displayPercentage}%`;
+                budgetProgressBarEl.setAttribute('aria-valuenow', percentageUsed.toFixed(2));
+                budgetProgressBarEl.className = 'progress-bar';
+                if (factorAmount > ajaxInitialRemainingBudget) {
+                    budgetProgressBarEl.classList.add('bg-danger');
+                } else if (percentageUsed > 85) {
+                    budgetProgressBarEl.classList.add('bg-warning');
+                } else {
+                    budgetProgressBarEl.classList.add('bg-success');
+                }
+            } else if (budgetProgressBarEl) {
+                budgetProgressBarEl.style.width = '0%';
+                budgetProgressBarEl.setAttribute('aria-valuenow', 0);
+                budgetProgressBarEl.className = 'progress-bar bg-success';
+            }
         }
-    }
-    if (budgetWarningEl) {
-        budgetWarningEl.classList.toggle('d-none', adjustedRemainingBudget >= 0);
-    }
-    if (budgetProgressBarEl && ajaxInitialRemainingBudget > 0) {
-        const percentageUsed = Math.max(0, (factorAmount / ajaxInitialRemainingBudget) * 100);
-        const displayPercentage = Math.min(100, percentageUsed);
-        budgetProgressBarEl.style.width = `${displayPercentage}%`;
-        budgetProgressBarEl.setAttribute('aria-valuenow', percentageUsed.toFixed(2));
-        budgetProgressBarEl.className = 'progress-bar';
-        if (factorAmount > ajaxInitialRemainingBudget) {
-            budgetProgressBarEl.classList.add('bg-danger');
-        } else if (percentageUsed > 85) {
-            budgetProgressBarEl.classList.add('bg-warning');
-        } else {
-            budgetProgressBarEl.classList.add('bg-success');
-        }
-    } else if (budgetProgressBarEl) {
-        budgetProgressBarEl.style.width = '0%';
-        budgetProgressBarEl.setAttribute('aria-valuenow', 0);
-        budgetProgressBarEl.className = 'progress-bar bg-success';
-    }
-    }
 
     // --- تعریف متغیرهای DOM ---
     const form = document.getElementById('factor-form');
@@ -2330,6 +2641,13 @@ document.addEventListener('DOMContentLoaded', function() {
         newRow.innerHTML = newFormHtml;
         formsetContainer.appendChild(newRow);
         formsetTotalForms.value = totalForms + 1;
+
+        // تنظیم مقدار پیش‌فرض برای فیلد hidden vat_amount
+        const vatAmountInput = newRow.querySelector('input[name$="-vat_amount"]');
+        if (vatAmountInput) {
+            vatAmountInput.value = '0';
+        }
+
         attachRowEventListeners(newRow);
         updateRowNumbers();
         updateAllCalculations();
@@ -2575,6 +2893,21 @@ document.addEventListener('DOMContentLoaded', function() {
     // Event listeners برای محاسبه خودکار مبلغ کل فاکتور
     const discountInput = document.getElementById('id_discount');
     const vatPercentageInput = document.getElementById('id_vat_percentage');
+    const vatAmountInput = document.getElementById('id_vat_amount');
+
+    // علامت‌گذاری ویرایش دستی برای فیلدهای amount و vat_amount
+    if (factorAmountInput) {
+        factorAmountInput.addEventListener('input', function () {
+            factorAmountInput.dataset.userEdited = 'true';
+            updateAllCalculations();
+        });
+    }
+    if (vatAmountInput) {
+        vatAmountInput.addEventListener('input', function () {
+            vatAmountInput.dataset.userEdited = 'true';
+            updateAllCalculations();
+        });
+    }
 
     if (discountInput) {
         discountInput.addEventListener('input', function () {
@@ -2588,10 +2921,6 @@ document.addEventListener('DOMContentLoaded', function() {
             maybeUpdateDescription();
         });
     }
-
-    // توجه: factorAmountInput دیگر readonly است و از طریق محاسبات خودکار تنظیم می‌شود
-    // اما برای سازگاری با کد قبلی، listener را نگه می‌داریم
-    if (factorAmountInput) factorAmountInput.addEventListener('input', updateAllCalculations);
 
     function onTankhahChanged() {
         console.log('[onTankhahChanged] Tankhah changed, value:', tankhahSelect ? tankhahSelect.value : 'tankhahSelect is null');
@@ -2704,29 +3033,58 @@ document.addEventListener('DOMContentLoaded', function() {
     if (form) {
         form.addEventListener('submit', function (event) {
             updateAllCalculations();
+
+            // محاسبه مستقیم جمع ردیف‌ها (نه از element نمایشی)
+            let currentItemsTotal = 0;
+            if (formsetContainer) {
+                formsetContainer.querySelectorAll('.item-row').forEach(row => {
+                    const deleteCheckbox = row.querySelector('.delete-item-checkbox');
+                    if (!deleteCheckbox || !deleteCheckbox.checked) {
+                        currentItemsTotal += calculateRowTotal(row);
+                    }
+                });
+            }
+
             const currentFactorAmount = getNumericValue(factorAmountInput);
-            const currentItemsTotal = getNumericValue(displayItemsTotalEl);
-            const previousTransactionAmount = {{ previous_transaction_amount
-        }};
-    const projectedRemaining = ajaxInitialRemainingBudget + previousTransactionAmount - currentFactorAmount;
-    const tolerance = 1;  // تغییر به 1 برای دقت بیشتر با مقادیر整数
-    let errors = [];
-    form.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+            const previousTransactionAmount = {{ previous_transaction_amount|default:0 }};
+            const projectedRemaining = ajaxInitialRemainingBudget + previousTransactionAmount - currentFactorAmount;
+            const tolerance = 1;  // 1 ریال tolerance
+            let errors = [];
+            form.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
 
-    if (isFinite(ajaxInitialRemainingBudget) && projectedRemaining < 0) {
-        errors.push('{% trans "مبلغ کل فاکتور از بودجه باقی‌مانده تنخواه بیشتر است." %}');
-        factorAmountInput?.classList.add('is-invalid');
-    }
+            if (isFinite(ajaxInitialRemainingBudget) && projectedRemaining < 0) {
+                errors.push('{% trans "مبلغ کل فاکتور از بودجه باقی‌مانده تنخواه بیشتر است." %}');
+                factorAmountInput?.classList.add('is-invalid');
+            }
 
-    // محاسبه مجدد برای اطمینان از صحت (شامل ارزش افزوده و تخفیف)
-    const submitDiscount = getNumericValue(document.getElementById('id_discount')) || 0;
-    const submitVatPercentage = getNumericValue(document.getElementById('id_vat_percentage')) || {{ default_vat_percentage }};
-    const submitVatAmount = (currentItemsTotal * submitVatPercentage) / 100;
-    const expectedAmount = currentItemsTotal + submitVatAmount - submitDiscount;
-    const amountDifference = Math.abs(currentFactorAmount - expectedAmount);
+            // محاسبه مجدد برای اطمینان از صحت طبق استاندارد حسابداری: اول تخفیف، بعد VAT
+            const submitDiscountInput = document.getElementById('id_discount');
+            const submitVatPercentageInput = document.getElementById('id_vat_percentage');
+            const submitVatAmountInput = document.getElementById('id_vat_amount');
+
+            const submitDiscount = getNumericValue(submitDiscountInput) || 0;
+            const submitVatPercentage = getNumericValue(submitVatPercentageInput) || 0;
+            const submitVatAmount = getNumericValue(submitVatAmountInput) || 0;
+
+            // محاسبه مبلغ پس از تخفیف
+            const subtotalAfterDiscount = Math.max(0, currentItemsTotal - submitDiscount);
+
+            // محاسبه VAT روی مبلغ پس از تخفیف (اگر VAT به صورت دستی وارد نشده، از درصد محاسبه می‌شود)
+            let calculatedVatAmount = submitVatAmount;
+            if (submitVatPercentage > 0 && subtotalAfterDiscount > 0) {
+                // اگر VAT دستی وارد نشده، از درصد محاسبه کن
+                if (!submitVatAmountInput || !submitVatAmountInput.dataset.userEdited) {
+                    calculatedVatAmount = Math.round((subtotalAfterDiscount * submitVatPercentage) / 100);
+                }
+            }
+
+            // محاسبه اختلاف طبق فرمول: جمع ردیف‌ها - (مبلغ فاکتور - ارزش افزوده + تخفیف)
+            const difference = currentItemsTotal - (currentFactorAmount - calculatedVatAmount + submitDiscount);
+            const amountDifference = Math.abs(difference);
+            const tolerance = 2; // 2 ریال tolerance برای پوشش خطاهای رند کردن
 
     if (amountDifference >= tolerance) {
-        errors.push('{% trans "مبلغ کل فاکتور با محاسبات (جمع ردیف‌ها + ارزش افزوده - تخفیف) همخوانی ندارد." %}');
+        errors.push('{% trans "مبلغ کل فاکتور با محاسبات (جمع ردیف‌ها - تخفیف + ارزش افزوده) همخوانی ندارد." %}');
         factorAmountInput?.classList.add('is-invalid');
     }
     let formsetHasErrors = false;

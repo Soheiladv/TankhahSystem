@@ -197131,3 +197131,1249 @@ INFO 2025-12-27 08:26:24 models remove_inactive_users هیچ کاربر غیرف
 INFO 2025-12-27 08:26:24 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
 INFO 2025-12-27 08:26:49 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
 INFO 2025-12-27 08:26:49 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:26:54 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:26:54 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:27:19 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:27:19 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:27:24 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:27:24 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:27:48 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:27:48 budget_calculations get_tankhah_budget_info Start get_tankhah_budget_info
+INFO 2025-12-27 08:27:48 budget_calculations get_tankhah_budget_info Step 1: Fetching Tankhah with related models
+INFO 2025-12-27 08:27:48 budget_calculations get_tankhah_budget_info Step 2: Calculating budget info
+ERROR 2025-12-27 08:27:48 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+INFO 2025-12-27 08:27:48 budget_calculations get_tankhah_used_budget 💵statuses_considered_as_used=['PAID', 'APPROVED', 'PENDING', 'DRAFT']
+INFO 2025-12-27 08:27:48 budget_calculations get_tankhah_used_budget factors=<QuerySet [<Factor: FAC-TNKH-14041010-ComplexSHC-HHydro-1404-001-14040928-ComplexSHC-0001 (TNKH-14041010-ComplexSHC-HHydro-1404-001)>]>
+ERROR 2025-12-27 08:27:48 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+INFO 2025-12-27 08:27:48 budget_calculations get_tankhah_used_budget 💵statuses_considered_as_used=['PAID', 'APPROVED', 'PENDING', 'DRAFT']
+INFO 2025-12-27 08:27:48 budget_calculations get_tankhah_used_budget factors=<QuerySet [<Factor: FAC-TNKH-14041010-ComplexSHC-HHydro-1404-001-14040928-ComplexSHC-0001 (TNKH-14041010-ComplexSHC-HHydro-1404-001)>]>
+INFO 2025-12-27 08:27:48 budget_calculations get_tankhah_budget_info Step 3: Budget info retrieved for tankhah TNKH-14041010-ComplexSHC-HHydro-1404-001: {'project_name': 'بازسازی مجتمع آبدرمانی سبلان - لوله کشی آبگرم', 'project_budget': '2,000,000,000.00', 'project_consumed': '-1,000,000,000.00', 'project_returned': '0', 'project_remaining': '0', 'tankhah_budget': '1,000,000,000.00', 'tankhah_consumed': '720.00', 'tankhah_remaining': '999,999,280.00', 'budget_period': {'name': 'زمستان 1404', 'start_date': '2025-12-22', 'end_date': '2026-03-20', 'is_locked': False, 'lock_reason': 'دوره بودجه فعال است.', 'progress': 6, 'debug': {'explicit_locked': None, 'computed_locked': False, 'autolock_enabled': True}}, 'allocation': {'locked_percentage': 1.0, 'warning_threshold': 10.0, 'warning_action': 'NOTIFY', 'is_locked': False, 'remaining': '1,000,000,000.00', 'locked_amount': '20,000,000.0000', 'warning_amount': '200,000,000.0000', 'status': {'code': 'normal', 'message': 'وضعیت عادی'}}}
+INFO 2025-12-27 08:27:48 middleware __call__ پاسخ برای /tankhah/get-tankhah-budget-info/ - کد وضعیت: 200
+INFO 2025-12-27 08:27:48 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:27:48 budget_calculations get_tankhah_budget_info Start get_tankhah_budget_info
+INFO 2025-12-27 08:27:48 budget_calculations get_tankhah_budget_info Step 1: Fetching Tankhah with related models
+INFO 2025-12-27 08:27:48 budget_calculations get_tankhah_budget_info Step 2: Calculating budget info
+ERROR 2025-12-27 08:27:48 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+INFO 2025-12-27 08:27:48 budget_calculations get_tankhah_used_budget 💵statuses_considered_as_used=['PAID', 'APPROVED', 'PENDING', 'DRAFT']
+INFO 2025-12-27 08:27:48 budget_calculations get_tankhah_used_budget factors=<QuerySet [<Factor: FAC-TNKH-14041010-ComplexSHC-HHydro-1404-001-14040928-ComplexSHC-0001 (TNKH-14041010-ComplexSHC-HHydro-1404-001)>]>
+ERROR 2025-12-27 08:27:48 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+INFO 2025-12-27 08:27:48 budget_calculations get_tankhah_used_budget 💵statuses_considered_as_used=['PAID', 'APPROVED', 'PENDING', 'DRAFT']
+INFO 2025-12-27 08:27:48 budget_calculations get_tankhah_used_budget factors=<QuerySet [<Factor: FAC-TNKH-14041010-ComplexSHC-HHydro-1404-001-14040928-ComplexSHC-0001 (TNKH-14041010-ComplexSHC-HHydro-1404-001)>]>
+INFO 2025-12-27 08:27:48 budget_calculations get_tankhah_budget_info Step 3: Budget info retrieved for tankhah TNKH-14041010-ComplexSHC-HHydro-1404-001: {'project_name': 'بازسازی مجتمع آبدرمانی سبلان - لوله کشی آبگرم', 'project_budget': '2,000,000,000.00', 'project_consumed': '-1,000,000,000.00', 'project_returned': '0', 'project_remaining': '0', 'tankhah_budget': '1,000,000,000.00', 'tankhah_consumed': '720.00', 'tankhah_remaining': '999,999,280.00', 'budget_period': {'name': 'زمستان 1404', 'start_date': '2025-12-22', 'end_date': '2026-03-20', 'is_locked': False, 'lock_reason': 'دوره بودجه فعال است.', 'progress': 6, 'debug': {'explicit_locked': None, 'computed_locked': False, 'autolock_enabled': True}}, 'allocation': {'locked_percentage': 1.0, 'warning_threshold': 10.0, 'warning_action': 'NOTIFY', 'is_locked': False, 'remaining': '1,000,000,000.00', 'locked_amount': '20,000,000.0000', 'warning_amount': '200,000,000.0000', 'status': {'code': 'normal', 'message': 'وضعیت عادی'}}}
+INFO 2025-12-27 08:27:48 middleware __call__ پاسخ برای /tankhah/get-tankhah-budget-info/ - کد وضعیت: 200
+INFO 2025-12-27 08:27:49 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:27:49 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:27:53 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:27:53 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:28:24 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:28:24 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:28:54 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:28:54 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:29:01 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:29:01 PermissionBase has_required_permissions [PERM_CHECK] User admin is superuser → full access granted.
+INFO 2025-12-27 08:29:01 PermissionBase dispatch [PERM_CHECK] User admin passed base permission check for /tankhah/factor/create/new/
+INFO 2025-12-27 08:29:01 PermissionBase dispatch [PERM_ORG] User admin has access to organizations [1, 2, 3, 4, 5, 6, 7, 8, 9]
+INFO 2025-12-27 08:29:02 middleware __call__ پاسخ برای /tankhah/factor/create/new/ - کد وضعیت: 200
+INFO 2025-12-27 08:29:02 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:29:02 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:29:17 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:29:17 budget_calculations get_tankhah_budget_info Start get_tankhah_budget_info
+INFO 2025-12-27 08:29:17 budget_calculations get_tankhah_budget_info Step 1: Fetching Tankhah with related models
+INFO 2025-12-27 08:29:17 budget_calculations get_tankhah_budget_info Step 2: Calculating budget info
+ERROR 2025-12-27 08:29:17 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+INFO 2025-12-27 08:29:17 budget_calculations get_tankhah_used_budget 💵statuses_considered_as_used=['PAID', 'APPROVED', 'PENDING', 'DRAFT']
+INFO 2025-12-27 08:29:17 budget_calculations get_tankhah_used_budget factors=<QuerySet [<Factor: FAC-TNKH-14041010-ComplexSHC-HHydro-1404-001-14040928-ComplexSHC-0001 (TNKH-14041010-ComplexSHC-HHydro-1404-001)>]>
+ERROR 2025-12-27 08:29:17 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+INFO 2025-12-27 08:29:17 budget_calculations get_tankhah_used_budget 💵statuses_considered_as_used=['PAID', 'APPROVED', 'PENDING', 'DRAFT']
+INFO 2025-12-27 08:29:17 budget_calculations get_tankhah_used_budget factors=<QuerySet [<Factor: FAC-TNKH-14041010-ComplexSHC-HHydro-1404-001-14040928-ComplexSHC-0001 (TNKH-14041010-ComplexSHC-HHydro-1404-001)>]>
+INFO 2025-12-27 08:29:17 budget_calculations get_tankhah_budget_info Step 3: Budget info retrieved for tankhah TNKH-14041010-ComplexSHC-HHydro-1404-001: {'project_name': 'بازسازی مجتمع آبدرمانی سبلان - لوله کشی آبگرم', 'project_budget': '2,000,000,000.00', 'project_consumed': '-1,000,000,000.00', 'project_returned': '0', 'project_remaining': '0', 'tankhah_budget': '1,000,000,000.00', 'tankhah_consumed': '720.00', 'tankhah_remaining': '999,999,280.00', 'budget_period': {'name': 'زمستان 1404', 'start_date': '2025-12-22', 'end_date': '2026-03-20', 'is_locked': False, 'lock_reason': 'دوره بودجه فعال است.', 'progress': 6, 'debug': {'explicit_locked': None, 'computed_locked': False, 'autolock_enabled': True}}, 'allocation': {'locked_percentage': 1.0, 'warning_threshold': 10.0, 'warning_action': 'NOTIFY', 'is_locked': False, 'remaining': '1,000,000,000.00', 'locked_amount': '20,000,000.0000', 'warning_amount': '200,000,000.0000', 'status': {'code': 'normal', 'message': 'وضعیت عادی'}}}
+INFO 2025-12-27 08:29:17 middleware __call__ پاسخ برای /tankhah/get-tankhah-budget-info/ - کد وضعیت: 200
+INFO 2025-12-27 08:29:17 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:29:17 budget_calculations get_tankhah_budget_info Start get_tankhah_budget_info
+INFO 2025-12-27 08:29:17 budget_calculations get_tankhah_budget_info Step 1: Fetching Tankhah with related models
+INFO 2025-12-27 08:29:17 budget_calculations get_tankhah_budget_info Step 2: Calculating budget info
+ERROR 2025-12-27 08:29:17 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+INFO 2025-12-27 08:29:17 budget_calculations get_tankhah_used_budget 💵statuses_considered_as_used=['PAID', 'APPROVED', 'PENDING', 'DRAFT']
+INFO 2025-12-27 08:29:17 budget_calculations get_tankhah_used_budget factors=<QuerySet [<Factor: FAC-TNKH-14041010-ComplexSHC-HHydro-1404-001-14040928-ComplexSHC-0001 (TNKH-14041010-ComplexSHC-HHydro-1404-001)>]>
+ERROR 2025-12-27 08:29:17 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+INFO 2025-12-27 08:29:17 budget_calculations get_tankhah_used_budget 💵statuses_considered_as_used=['PAID', 'APPROVED', 'PENDING', 'DRAFT']
+INFO 2025-12-27 08:29:17 budget_calculations get_tankhah_used_budget factors=<QuerySet [<Factor: FAC-TNKH-14041010-ComplexSHC-HHydro-1404-001-14040928-ComplexSHC-0001 (TNKH-14041010-ComplexSHC-HHydro-1404-001)>]>
+INFO 2025-12-27 08:29:17 budget_calculations get_tankhah_budget_info Step 3: Budget info retrieved for tankhah TNKH-14041010-ComplexSHC-HHydro-1404-001: {'project_name': 'بازسازی مجتمع آبدرمانی سبلان - لوله کشی آبگرم', 'project_budget': '2,000,000,000.00', 'project_consumed': '-1,000,000,000.00', 'project_returned': '0', 'project_remaining': '0', 'tankhah_budget': '1,000,000,000.00', 'tankhah_consumed': '720.00', 'tankhah_remaining': '999,999,280.00', 'budget_period': {'name': 'زمستان 1404', 'start_date': '2025-12-22', 'end_date': '2026-03-20', 'is_locked': False, 'lock_reason': 'دوره بودجه فعال است.', 'progress': 6, 'debug': {'explicit_locked': None, 'computed_locked': False, 'autolock_enabled': True}}, 'allocation': {'locked_percentage': 1.0, 'warning_threshold': 10.0, 'warning_action': 'NOTIFY', 'is_locked': False, 'remaining': '1,000,000,000.00', 'locked_amount': '20,000,000.0000', 'warning_amount': '200,000,000.0000', 'status': {'code': 'normal', 'message': 'وضعیت عادی'}}}
+INFO 2025-12-27 08:29:17 middleware __call__ پاسخ برای /tankhah/get-tankhah-budget-info/ - کد وضعیت: 200
+INFO 2025-12-27 08:29:32 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:29:32 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:29:52 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:29:52 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:30:03 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:30:03 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:30:14 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:30:14 PermissionBase has_required_permissions [PERM_CHECK] User admin is superuser → full access granted.
+INFO 2025-12-27 08:30:14 PermissionBase dispatch [PERM_CHECK] User admin passed base permission check for /tankhah/factor/create/new/
+INFO 2025-12-27 08:30:14 PermissionBase dispatch [PERM_ORG] User admin has access to organizations [1, 2, 3, 4, 5, 6, 7, 8, 9]
+INFO 2025-12-27 08:30:14 middleware __call__ پاسخ برای /tankhah/factor/create/new/ - کد وضعیت: 200
+INFO 2025-12-27 08:30:14 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:30:14 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:30:19 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:30:19 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:30:33 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:30:33 budget_calculations get_tankhah_budget_info Start get_tankhah_budget_info
+INFO 2025-12-27 08:30:33 budget_calculations get_tankhah_budget_info Step 1: Fetching Tankhah with related models
+INFO 2025-12-27 08:30:33 budget_calculations get_tankhah_budget_info Step 2: Calculating budget info
+ERROR 2025-12-27 08:30:33 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+INFO 2025-12-27 08:30:33 budget_calculations get_tankhah_used_budget 💵statuses_considered_as_used=['PAID', 'APPROVED', 'PENDING', 'DRAFT']
+INFO 2025-12-27 08:30:33 budget_calculations get_tankhah_used_budget factors=<QuerySet [<Factor: FAC-TNKH-14041010-ComplexSHC-HHydro-1404-001-14040928-ComplexSHC-0001 (TNKH-14041010-ComplexSHC-HHydro-1404-001)>]>
+ERROR 2025-12-27 08:30:33 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+INFO 2025-12-27 08:30:33 budget_calculations get_tankhah_used_budget 💵statuses_considered_as_used=['PAID', 'APPROVED', 'PENDING', 'DRAFT']
+INFO 2025-12-27 08:30:33 budget_calculations get_tankhah_used_budget factors=<QuerySet [<Factor: FAC-TNKH-14041010-ComplexSHC-HHydro-1404-001-14040928-ComplexSHC-0001 (TNKH-14041010-ComplexSHC-HHydro-1404-001)>]>
+INFO 2025-12-27 08:30:33 budget_calculations get_tankhah_budget_info Step 3: Budget info retrieved for tankhah TNKH-14041010-ComplexSHC-HHydro-1404-001: {'project_name': 'بازسازی مجتمع آبدرمانی سبلان - لوله کشی آبگرم', 'project_budget': '2,000,000,000.00', 'project_consumed': '-1,000,000,000.00', 'project_returned': '0', 'project_remaining': '0', 'tankhah_budget': '1,000,000,000.00', 'tankhah_consumed': '720.00', 'tankhah_remaining': '999,999,280.00', 'budget_period': {'name': 'زمستان 1404', 'start_date': '2025-12-22', 'end_date': '2026-03-20', 'is_locked': False, 'lock_reason': 'دوره بودجه فعال است.', 'progress': 6, 'debug': {'explicit_locked': None, 'computed_locked': False, 'autolock_enabled': True}}, 'allocation': {'locked_percentage': 1.0, 'warning_threshold': 10.0, 'warning_action': 'NOTIFY', 'is_locked': False, 'remaining': '1,000,000,000.00', 'locked_amount': '20,000,000.0000', 'warning_amount': '200,000,000.0000', 'status': {'code': 'normal', 'message': 'وضعیت عادی'}}}
+INFO 2025-12-27 08:30:33 middleware __call__ پاسخ برای /tankhah/get-tankhah-budget-info/ - کد وضعیت: 200
+INFO 2025-12-27 08:30:33 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:30:34 budget_calculations get_tankhah_budget_info Start get_tankhah_budget_info
+INFO 2025-12-27 08:30:34 budget_calculations get_tankhah_budget_info Step 1: Fetching Tankhah with related models
+INFO 2025-12-27 08:30:34 budget_calculations get_tankhah_budget_info Step 2: Calculating budget info
+ERROR 2025-12-27 08:30:34 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+INFO 2025-12-27 08:30:34 budget_calculations get_tankhah_used_budget 💵statuses_considered_as_used=['PAID', 'APPROVED', 'PENDING', 'DRAFT']
+INFO 2025-12-27 08:30:34 budget_calculations get_tankhah_used_budget factors=<QuerySet [<Factor: FAC-TNKH-14041010-ComplexSHC-HHydro-1404-001-14040928-ComplexSHC-0001 (TNKH-14041010-ComplexSHC-HHydro-1404-001)>]>
+ERROR 2025-12-27 08:30:34 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+INFO 2025-12-27 08:30:34 budget_calculations get_tankhah_used_budget 💵statuses_considered_as_used=['PAID', 'APPROVED', 'PENDING', 'DRAFT']
+INFO 2025-12-27 08:30:34 budget_calculations get_tankhah_used_budget factors=<QuerySet [<Factor: FAC-TNKH-14041010-ComplexSHC-HHydro-1404-001-14040928-ComplexSHC-0001 (TNKH-14041010-ComplexSHC-HHydro-1404-001)>]>
+INFO 2025-12-27 08:30:34 budget_calculations get_tankhah_budget_info Step 3: Budget info retrieved for tankhah TNKH-14041010-ComplexSHC-HHydro-1404-001: {'project_name': 'بازسازی مجتمع آبدرمانی سبلان - لوله کشی آبگرم', 'project_budget': '2,000,000,000.00', 'project_consumed': '-1,000,000,000.00', 'project_returned': '0', 'project_remaining': '0', 'tankhah_budget': '1,000,000,000.00', 'tankhah_consumed': '720.00', 'tankhah_remaining': '999,999,280.00', 'budget_period': {'name': 'زمستان 1404', 'start_date': '2025-12-22', 'end_date': '2026-03-20', 'is_locked': False, 'lock_reason': 'دوره بودجه فعال است.', 'progress': 6, 'debug': {'explicit_locked': None, 'computed_locked': False, 'autolock_enabled': True}}, 'allocation': {'locked_percentage': 1.0, 'warning_threshold': 10.0, 'warning_action': 'NOTIFY', 'is_locked': False, 'remaining': '1,000,000,000.00', 'locked_amount': '20,000,000.0000', 'warning_amount': '200,000,000.0000', 'status': {'code': 'normal', 'message': 'وضعیت عادی'}}}
+INFO 2025-12-27 08:30:34 middleware __call__ پاسخ برای /tankhah/get-tankhah-budget-info/ - کد وضعیت: 200
+INFO 2025-12-27 08:30:44 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:30:44 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:31:15 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:31:15 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:31:34 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:31:34 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:31:45 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:31:45 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:32:15 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:32:15 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:32:34 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:32:34 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:32:45 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:32:45 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:33:15 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:33:15 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:33:34 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:33:34 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:33:45 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:33:45 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:34:15 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:34:15 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:34:34 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:34:34 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:34:45 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:34:45 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:35:05 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:35:05 PermissionBase has_required_permissions [PERM_CHECK] User admin is superuser → full access granted.
+INFO 2025-12-27 08:35:05 PermissionBase dispatch [PERM_CHECK] User admin passed base permission check for /tankhah/factor/create/new/
+INFO 2025-12-27 08:35:05 PermissionBase dispatch [PERM_ORG] User admin has access to organizations [1, 2, 3, 4, 5, 6, 7, 8, 9]
+INFO 2025-12-27 08:35:05 middleware __call__ پاسخ برای /tankhah/factor/create/new/ - کد وضعیت: 200
+INFO 2025-12-27 08:35:05 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:35:05 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:35:07 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:35:07 PermissionBase has_required_permissions [PERM_CHECK] User admin is superuser → full access granted.
+INFO 2025-12-27 08:35:07 PermissionBase dispatch [PERM_CHECK] User admin passed base permission check for /tankhah/factor/create/new/
+INFO 2025-12-27 08:35:07 PermissionBase dispatch [PERM_ORG] User admin has access to organizations [1, 2, 3, 4, 5, 6, 7, 8, 9]
+INFO 2025-12-27 08:35:07 middleware __call__ پاسخ برای /tankhah/factor/create/new/ - کد وضعیت: 200
+INFO 2025-12-27 08:35:08 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:35:08 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:35:12 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:35:12 budget_calculations get_tankhah_budget_info Start get_tankhah_budget_info
+INFO 2025-12-27 08:35:12 budget_calculations get_tankhah_budget_info Step 1: Fetching Tankhah with related models
+INFO 2025-12-27 08:35:12 budget_calculations get_tankhah_budget_info Step 2: Calculating budget info
+ERROR 2025-12-27 08:35:12 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+INFO 2025-12-27 08:35:12 budget_calculations get_tankhah_used_budget 💵statuses_considered_as_used=['PAID', 'APPROVED', 'PENDING', 'DRAFT']
+INFO 2025-12-27 08:35:12 budget_calculations get_tankhah_used_budget factors=<QuerySet [<Factor: FAC-TNKH-14041010-ComplexSHC-HHydro-1404-001-14040928-ComplexSHC-0001 (TNKH-14041010-ComplexSHC-HHydro-1404-001)>]>
+ERROR 2025-12-27 08:35:12 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+INFO 2025-12-27 08:35:12 budget_calculations get_tankhah_used_budget 💵statuses_considered_as_used=['PAID', 'APPROVED', 'PENDING', 'DRAFT']
+INFO 2025-12-27 08:35:12 budget_calculations get_tankhah_used_budget factors=<QuerySet [<Factor: FAC-TNKH-14041010-ComplexSHC-HHydro-1404-001-14040928-ComplexSHC-0001 (TNKH-14041010-ComplexSHC-HHydro-1404-001)>]>
+INFO 2025-12-27 08:35:12 budget_calculations get_tankhah_budget_info Step 3: Budget info retrieved for tankhah TNKH-14041010-ComplexSHC-HHydro-1404-001: {'project_name': 'بازسازی مجتمع آبدرمانی سبلان - لوله کشی آبگرم', 'project_budget': '2,000,000,000.00', 'project_consumed': '-1,000,000,000.00', 'project_returned': '0', 'project_remaining': '0', 'tankhah_budget': '1,000,000,000.00', 'tankhah_consumed': '720.00', 'tankhah_remaining': '999,999,280.00', 'budget_period': {'name': 'زمستان 1404', 'start_date': '2025-12-22', 'end_date': '2026-03-20', 'is_locked': False, 'lock_reason': 'دوره بودجه فعال است.', 'progress': 6, 'debug': {'explicit_locked': None, 'computed_locked': False, 'autolock_enabled': True}}, 'allocation': {'locked_percentage': 1.0, 'warning_threshold': 10.0, 'warning_action': 'NOTIFY', 'is_locked': False, 'remaining': '1,000,000,000.00', 'locked_amount': '20,000,000.0000', 'warning_amount': '200,000,000.0000', 'status': {'code': 'normal', 'message': 'وضعیت عادی'}}}
+INFO 2025-12-27 08:35:12 middleware __call__ پاسخ برای /tankhah/get-tankhah-budget-info/ - کد وضعیت: 200
+INFO 2025-12-27 08:35:13 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:35:13 budget_calculations get_tankhah_budget_info Start get_tankhah_budget_info
+INFO 2025-12-27 08:35:13 budget_calculations get_tankhah_budget_info Step 1: Fetching Tankhah with related models
+INFO 2025-12-27 08:35:13 budget_calculations get_tankhah_budget_info Step 2: Calculating budget info
+ERROR 2025-12-27 08:35:13 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+INFO 2025-12-27 08:35:13 budget_calculations get_tankhah_used_budget 💵statuses_considered_as_used=['PAID', 'APPROVED', 'PENDING', 'DRAFT']
+INFO 2025-12-27 08:35:13 budget_calculations get_tankhah_used_budget factors=<QuerySet [<Factor: FAC-TNKH-14041010-ComplexSHC-HHydro-1404-001-14040928-ComplexSHC-0001 (TNKH-14041010-ComplexSHC-HHydro-1404-001)>]>
+ERROR 2025-12-27 08:35:13 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+INFO 2025-12-27 08:35:13 budget_calculations get_tankhah_used_budget 💵statuses_considered_as_used=['PAID', 'APPROVED', 'PENDING', 'DRAFT']
+INFO 2025-12-27 08:35:13 budget_calculations get_tankhah_used_budget factors=<QuerySet [<Factor: FAC-TNKH-14041010-ComplexSHC-HHydro-1404-001-14040928-ComplexSHC-0001 (TNKH-14041010-ComplexSHC-HHydro-1404-001)>]>
+INFO 2025-12-27 08:35:13 budget_calculations get_tankhah_budget_info Step 3: Budget info retrieved for tankhah TNKH-14041010-ComplexSHC-HHydro-1404-001: {'project_name': 'بازسازی مجتمع آبدرمانی سبلان - لوله کشی آبگرم', 'project_budget': '2,000,000,000.00', 'project_consumed': '-1,000,000,000.00', 'project_returned': '0', 'project_remaining': '0', 'tankhah_budget': '1,000,000,000.00', 'tankhah_consumed': '720.00', 'tankhah_remaining': '999,999,280.00', 'budget_period': {'name': 'زمستان 1404', 'start_date': '2025-12-22', 'end_date': '2026-03-20', 'is_locked': False, 'lock_reason': 'دوره بودجه فعال است.', 'progress': 6, 'debug': {'explicit_locked': None, 'computed_locked': False, 'autolock_enabled': True}}, 'allocation': {'locked_percentage': 1.0, 'warning_threshold': 10.0, 'warning_action': 'NOTIFY', 'is_locked': False, 'remaining': '1,000,000,000.00', 'locked_amount': '20,000,000.0000', 'warning_amount': '200,000,000.0000', 'status': {'code': 'normal', 'message': 'وضعیت عادی'}}}
+INFO 2025-12-27 08:35:13 middleware __call__ پاسخ برای /tankhah/get-tankhah-budget-info/ - کد وضعیت: 200
+INFO 2025-12-27 08:35:34 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:35:34 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:35:38 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:35:38 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:35:59 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:35:59 PermissionBase has_required_permissions [PERM_CHECK] User admin is superuser → full access granted.
+INFO 2025-12-27 08:35:59 PermissionBase dispatch [PERM_CHECK] User admin passed base permission check for /tankhah/factor/create/new/
+INFO 2025-12-27 08:35:59 PermissionBase dispatch [PERM_ORG] User admin has access to organizations [1, 2, 3, 4, 5, 6, 7, 8, 9]
+INFO 2025-12-27 08:35:59 middleware __call__ پاسخ برای /tankhah/factor/create/new/ - کد وضعیت: 200
+INFO 2025-12-27 08:36:00 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:36:00 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:36:04 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:36:04 PermissionBase has_required_permissions [PERM_CHECK] User admin is superuser → full access granted.
+INFO 2025-12-27 08:36:04 PermissionBase dispatch [PERM_CHECK] User admin passed base permission check for /tankhah/factor/create/new/
+INFO 2025-12-27 08:36:04 PermissionBase dispatch [PERM_ORG] User admin has access to organizations [1, 2, 3, 4, 5, 6, 7, 8, 9]
+INFO 2025-12-27 08:36:04 middleware __call__ پاسخ برای /tankhah/factor/create/new/ - کد وضعیت: 200
+INFO 2025-12-27 08:36:04 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:36:04 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:36:08 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:36:08 budget_calculations get_tankhah_budget_info Start get_tankhah_budget_info
+INFO 2025-12-27 08:36:08 budget_calculations get_tankhah_budget_info Step 1: Fetching Tankhah with related models
+INFO 2025-12-27 08:36:08 budget_calculations get_tankhah_budget_info Step 2: Calculating budget info
+ERROR 2025-12-27 08:36:08 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+INFO 2025-12-27 08:36:08 budget_calculations get_tankhah_used_budget 💵statuses_considered_as_used=['PAID', 'APPROVED', 'PENDING', 'DRAFT']
+INFO 2025-12-27 08:36:08 budget_calculations get_tankhah_used_budget factors=<QuerySet [<Factor: FAC-TNKH-14041010-ComplexSHC-HHydro-1404-001-14040928-ComplexSHC-0001 (TNKH-14041010-ComplexSHC-HHydro-1404-001)>]>
+ERROR 2025-12-27 08:36:08 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+INFO 2025-12-27 08:36:08 budget_calculations get_tankhah_used_budget 💵statuses_considered_as_used=['PAID', 'APPROVED', 'PENDING', 'DRAFT']
+INFO 2025-12-27 08:36:08 budget_calculations get_tankhah_used_budget factors=<QuerySet [<Factor: FAC-TNKH-14041010-ComplexSHC-HHydro-1404-001-14040928-ComplexSHC-0001 (TNKH-14041010-ComplexSHC-HHydro-1404-001)>]>
+INFO 2025-12-27 08:36:08 budget_calculations get_tankhah_budget_info Step 3: Budget info retrieved for tankhah TNKH-14041010-ComplexSHC-HHydro-1404-001: {'project_name': 'بازسازی مجتمع آبدرمانی سبلان - لوله کشی آبگرم', 'project_budget': '2,000,000,000.00', 'project_consumed': '-1,000,000,000.00', 'project_returned': '0', 'project_remaining': '0', 'tankhah_budget': '1,000,000,000.00', 'tankhah_consumed': '720.00', 'tankhah_remaining': '999,999,280.00', 'budget_period': {'name': 'زمستان 1404', 'start_date': '2025-12-22', 'end_date': '2026-03-20', 'is_locked': False, 'lock_reason': 'دوره بودجه فعال است.', 'progress': 6, 'debug': {'explicit_locked': None, 'computed_locked': False, 'autolock_enabled': True}}, 'allocation': {'locked_percentage': 1.0, 'warning_threshold': 10.0, 'warning_action': 'NOTIFY', 'is_locked': False, 'remaining': '1,000,000,000.00', 'locked_amount': '20,000,000.0000', 'warning_amount': '200,000,000.0000', 'status': {'code': 'normal', 'message': 'وضعیت عادی'}}}
+INFO 2025-12-27 08:36:08 middleware __call__ پاسخ برای /tankhah/get-tankhah-budget-info/ - کد وضعیت: 200
+INFO 2025-12-27 08:36:08 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:36:08 budget_calculations get_tankhah_budget_info Start get_tankhah_budget_info
+INFO 2025-12-27 08:36:08 budget_calculations get_tankhah_budget_info Step 1: Fetching Tankhah with related models
+INFO 2025-12-27 08:36:08 budget_calculations get_tankhah_budget_info Step 2: Calculating budget info
+ERROR 2025-12-27 08:36:08 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+INFO 2025-12-27 08:36:08 budget_calculations get_tankhah_used_budget 💵statuses_considered_as_used=['PAID', 'APPROVED', 'PENDING', 'DRAFT']
+INFO 2025-12-27 08:36:08 budget_calculations get_tankhah_used_budget factors=<QuerySet [<Factor: FAC-TNKH-14041010-ComplexSHC-HHydro-1404-001-14040928-ComplexSHC-0001 (TNKH-14041010-ComplexSHC-HHydro-1404-001)>]>
+ERROR 2025-12-27 08:36:08 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+INFO 2025-12-27 08:36:08 budget_calculations get_tankhah_used_budget 💵statuses_considered_as_used=['PAID', 'APPROVED', 'PENDING', 'DRAFT']
+INFO 2025-12-27 08:36:08 budget_calculations get_tankhah_used_budget factors=<QuerySet [<Factor: FAC-TNKH-14041010-ComplexSHC-HHydro-1404-001-14040928-ComplexSHC-0001 (TNKH-14041010-ComplexSHC-HHydro-1404-001)>]>
+INFO 2025-12-27 08:36:08 budget_calculations get_tankhah_budget_info Step 3: Budget info retrieved for tankhah TNKH-14041010-ComplexSHC-HHydro-1404-001: {'project_name': 'بازسازی مجتمع آبدرمانی سبلان - لوله کشی آبگرم', 'project_budget': '2,000,000,000.00', 'project_consumed': '-1,000,000,000.00', 'project_returned': '0', 'project_remaining': '0', 'tankhah_budget': '1,000,000,000.00', 'tankhah_consumed': '720.00', 'tankhah_remaining': '999,999,280.00', 'budget_period': {'name': 'زمستان 1404', 'start_date': '2025-12-22', 'end_date': '2026-03-20', 'is_locked': False, 'lock_reason': 'دوره بودجه فعال است.', 'progress': 6, 'debug': {'explicit_locked': None, 'computed_locked': False, 'autolock_enabled': True}}, 'allocation': {'locked_percentage': 1.0, 'warning_threshold': 10.0, 'warning_action': 'NOTIFY', 'is_locked': False, 'remaining': '1,000,000,000.00', 'locked_amount': '20,000,000.0000', 'warning_amount': '200,000,000.0000', 'status': {'code': 'normal', 'message': 'وضعیت عادی'}}}
+INFO 2025-12-27 08:36:08 middleware __call__ پاسخ برای /tankhah/get-tankhah-budget-info/ - کد وضعیت: 200
+INFO 2025-12-27 08:36:34 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:36:34 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:36:34 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:36:34 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:37:04 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:37:04 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:37:34 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:37:34 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:37:35 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:37:35 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:38:04 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:38:04 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:38:34 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:38:34 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:38:34 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:38:34 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:39:05 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:39:05 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:39:34 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:39:34 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:39:34 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:39:34 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:40:04 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:40:04 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:40:34 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:40:34 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:40:34 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:40:34 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:41:04 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:41:04 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:41:34 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:41:34 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:41:34 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:41:34 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:42:05 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:42:05 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:42:34 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:42:34 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:42:35 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:42:35 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:43:34 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:43:34 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:43:34 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:43:34 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:43:55 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:43:55 PermissionBase has_required_permissions [PERM_CHECK] User admin is superuser → full access granted.
+INFO 2025-12-27 08:43:55 PermissionBase dispatch [PERM_CHECK] User admin passed base permission check for /tankhah/factor/create/new/
+INFO 2025-12-27 08:43:55 PermissionBase dispatch [PERM_ORG] User admin has access to organizations [1, 2, 3, 4, 5, 6, 7, 8, 9]
+INFO 2025-12-27 08:43:56 middleware __call__ پاسخ برای /tankhah/factor/create/new/ - کد وضعیت: 200
+INFO 2025-12-27 08:43:56 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:43:56 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:43:56 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:43:56 PermissionBase has_required_permissions [PERM_CHECK] User admin is superuser → full access granted.
+INFO 2025-12-27 08:43:56 PermissionBase dispatch [PERM_CHECK] User admin passed base permission check for /tankhah/factor/create/new/
+INFO 2025-12-27 08:43:56 PermissionBase dispatch [PERM_ORG] User admin has access to organizations [1, 2, 3, 4, 5, 6, 7, 8, 9]
+INFO 2025-12-27 08:43:56 middleware __call__ پاسخ برای /tankhah/factor/create/new/ - کد وضعیت: 200
+INFO 2025-12-27 08:43:56 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:43:56 PermissionBase has_required_permissions [PERM_CHECK] User admin is superuser → full access granted.
+INFO 2025-12-27 08:43:56 PermissionBase dispatch [PERM_CHECK] User admin passed base permission check for /tankhah/factor/create/new/
+INFO 2025-12-27 08:43:56 PermissionBase dispatch [PERM_ORG] User admin has access to organizations [1, 2, 3, 4, 5, 6, 7, 8, 9]
+INFO 2025-12-27 08:43:56 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:43:56 middleware __call__ پاسخ برای /tankhah/factor/create/new/ - کد وضعیت: 200
+INFO 2025-12-27 08:43:56 PermissionBase has_required_permissions [PERM_CHECK] User admin is superuser → full access granted.
+INFO 2025-12-27 08:43:56 PermissionBase dispatch [PERM_CHECK] User admin passed base permission check for /tankhah/factor/create/new/
+INFO 2025-12-27 08:43:56 PermissionBase dispatch [PERM_ORG] User admin has access to organizations [1, 2, 3, 4, 5, 6, 7, 8, 9]
+INFO 2025-12-27 08:43:57 middleware __call__ پاسخ برای /tankhah/factor/create/new/ - کد وضعیت: 200
+INFO 2025-12-27 08:43:57 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:43:57 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:44:01 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:44:01 budget_calculations get_tankhah_budget_info Start get_tankhah_budget_info
+INFO 2025-12-27 08:44:01 budget_calculations get_tankhah_budget_info Step 1: Fetching Tankhah with related models
+INFO 2025-12-27 08:44:01 budget_calculations get_tankhah_budget_info Step 2: Calculating budget info
+ERROR 2025-12-27 08:44:01 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+INFO 2025-12-27 08:44:01 budget_calculations get_tankhah_used_budget 💵statuses_considered_as_used=['PAID', 'APPROVED', 'PENDING', 'DRAFT']
+INFO 2025-12-27 08:44:01 budget_calculations get_tankhah_used_budget factors=<QuerySet [<Factor: FAC-TNKH-14041010-ComplexSHC-HHydro-1404-001-14040928-ComplexSHC-0001 (TNKH-14041010-ComplexSHC-HHydro-1404-001)>]>
+ERROR 2025-12-27 08:44:01 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+INFO 2025-12-27 08:44:01 budget_calculations get_tankhah_used_budget 💵statuses_considered_as_used=['PAID', 'APPROVED', 'PENDING', 'DRAFT']
+INFO 2025-12-27 08:44:01 budget_calculations get_tankhah_used_budget factors=<QuerySet [<Factor: FAC-TNKH-14041010-ComplexSHC-HHydro-1404-001-14040928-ComplexSHC-0001 (TNKH-14041010-ComplexSHC-HHydro-1404-001)>]>
+INFO 2025-12-27 08:44:01 budget_calculations get_tankhah_budget_info Step 3: Budget info retrieved for tankhah TNKH-14041010-ComplexSHC-HHydro-1404-001: {'project_name': 'بازسازی مجتمع آبدرمانی سبلان - لوله کشی آبگرم', 'project_budget': '2,000,000,000.00', 'project_consumed': '-1,000,000,000.00', 'project_returned': '0', 'project_remaining': '0', 'tankhah_budget': '1,000,000,000.00', 'tankhah_consumed': '720.00', 'tankhah_remaining': '999,999,280.00', 'budget_period': {'name': 'زمستان 1404', 'start_date': '2025-12-22', 'end_date': '2026-03-20', 'is_locked': False, 'lock_reason': 'دوره بودجه فعال است.', 'progress': 6, 'debug': {'explicit_locked': None, 'computed_locked': False, 'autolock_enabled': True}}, 'allocation': {'locked_percentage': 1.0, 'warning_threshold': 10.0, 'warning_action': 'NOTIFY', 'is_locked': False, 'remaining': '1,000,000,000.00', 'locked_amount': '20,000,000.0000', 'warning_amount': '200,000,000.0000', 'status': {'code': 'normal', 'message': 'وضعیت عادی'}}}
+INFO 2025-12-27 08:44:01 middleware __call__ پاسخ برای /tankhah/get-tankhah-budget-info/ - کد وضعیت: 200
+INFO 2025-12-27 08:44:01 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:44:01 budget_calculations get_tankhah_budget_info Start get_tankhah_budget_info
+INFO 2025-12-27 08:44:01 budget_calculations get_tankhah_budget_info Step 1: Fetching Tankhah with related models
+INFO 2025-12-27 08:44:01 budget_calculations get_tankhah_budget_info Step 2: Calculating budget info
+ERROR 2025-12-27 08:44:01 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+INFO 2025-12-27 08:44:01 budget_calculations get_tankhah_used_budget 💵statuses_considered_as_used=['PAID', 'APPROVED', 'PENDING', 'DRAFT']
+INFO 2025-12-27 08:44:01 budget_calculations get_tankhah_used_budget factors=<QuerySet [<Factor: FAC-TNKH-14041010-ComplexSHC-HHydro-1404-001-14040928-ComplexSHC-0001 (TNKH-14041010-ComplexSHC-HHydro-1404-001)>]>
+ERROR 2025-12-27 08:44:01 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+INFO 2025-12-27 08:44:01 budget_calculations get_tankhah_used_budget 💵statuses_considered_as_used=['PAID', 'APPROVED', 'PENDING', 'DRAFT']
+INFO 2025-12-27 08:44:01 budget_calculations get_tankhah_used_budget factors=<QuerySet [<Factor: FAC-TNKH-14041010-ComplexSHC-HHydro-1404-001-14040928-ComplexSHC-0001 (TNKH-14041010-ComplexSHC-HHydro-1404-001)>]>
+INFO 2025-12-27 08:44:01 budget_calculations get_tankhah_budget_info Step 3: Budget info retrieved for tankhah TNKH-14041010-ComplexSHC-HHydro-1404-001: {'project_name': 'بازسازی مجتمع آبدرمانی سبلان - لوله کشی آبگرم', 'project_budget': '2,000,000,000.00', 'project_consumed': '-1,000,000,000.00', 'project_returned': '0', 'project_remaining': '0', 'tankhah_budget': '1,000,000,000.00', 'tankhah_consumed': '720.00', 'tankhah_remaining': '999,999,280.00', 'budget_period': {'name': 'زمستان 1404', 'start_date': '2025-12-22', 'end_date': '2026-03-20', 'is_locked': False, 'lock_reason': 'دوره بودجه فعال است.', 'progress': 6, 'debug': {'explicit_locked': None, 'computed_locked': False, 'autolock_enabled': True}}, 'allocation': {'locked_percentage': 1.0, 'warning_threshold': 10.0, 'warning_action': 'NOTIFY', 'is_locked': False, 'remaining': '1,000,000,000.00', 'locked_amount': '20,000,000.0000', 'warning_amount': '200,000,000.0000', 'status': {'code': 'normal', 'message': 'وضعیت عادی'}}}
+INFO 2025-12-27 08:44:01 middleware __call__ پاسخ برای /tankhah/get-tankhah-budget-info/ - کد وضعیت: 200
+INFO 2025-12-27 08:44:27 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:44:27 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:44:34 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:44:34 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:44:57 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:44:57 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:45:28 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:45:28 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:45:34 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:45:34 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:45:58 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:45:58 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:46:27 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:46:27 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:46:34 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:46:34 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:46:57 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:46:57 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:47:27 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:47:27 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:47:34 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:47:34 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:47:57 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:47:57 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:48:00 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:48:00 PermissionBase has_required_permissions [PERM_CHECK] User admin is superuser → full access granted.
+INFO 2025-12-27 08:48:00 PermissionBase dispatch [PERM_CHECK] User admin passed base permission check for /tankhah/factor/create/new/
+INFO 2025-12-27 08:48:00 PermissionBase dispatch [PERM_ORG] User admin has access to organizations [1, 2, 3, 4, 5, 6, 7, 8, 9]
+ERROR 2025-12-27 08:48:00 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+INFO 2025-12-27 08:48:00 budget_calculations get_tankhah_used_budget 💵statuses_considered_as_used=['PAID', 'APPROVED', 'PENDING', 'DRAFT']
+INFO 2025-12-27 08:48:00 budget_calculations get_tankhah_used_budget factors=<QuerySet [<Factor: FAC-TNKH-14041010-ComplexSHC-HHydro-1404-001-14040928-ComplexSHC-0001 (TNKH-14041010-ComplexSHC-HHydro-1404-001)>]>
+INFO 2025-12-27 08:48:00 view_Nfactor form_valid شروع form_valid برای کاربر 'admin' و تنخواه 'TNKH-14041010-ComplexSHC-HHydro-1404-001'
+WARNING 2025-12-27 08:48:00 view_Nfactor form_valid فرم‌ست آیتم‌ها نامعتبر است. خطاها: [{'vat_amount': ['This field is required.']}, {'description': ['This field is required.'], 'vat_amount': ['This field is required.'], '__all__': ['لطفاً تمام فیلدهای این ردیف را پر کنید یا آن را حذف کنید.']}]
+WARNING 2025-12-27 08:48:00 view_Nfactor form_invalid فرم نامعتبر برای کاربر 'admin'. خطاها: {}
+INFO 2025-12-27 08:48:00 middleware __call__ پاسخ برای /tankhah/factor/create/new/ - کد وضعیت: 200
+INFO 2025-12-27 08:48:01 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:48:01 budget_calculations get_tankhah_budget_info Start get_tankhah_budget_info
+INFO 2025-12-27 08:48:01 budget_calculations get_tankhah_budget_info Step 1: Fetching Tankhah with related models
+INFO 2025-12-27 08:48:01 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:48:01 budget_calculations get_tankhah_budget_info Step 2: Calculating budget info
+INFO 2025-12-27 08:48:01 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+ERROR 2025-12-27 08:48:01 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+INFO 2025-12-27 08:48:01 budget_calculations get_tankhah_used_budget 💵statuses_considered_as_used=['PAID', 'APPROVED', 'PENDING', 'DRAFT']
+INFO 2025-12-27 08:48:01 budget_calculations get_tankhah_used_budget factors=<QuerySet [<Factor: FAC-TNKH-14041010-ComplexSHC-HHydro-1404-001-14040928-ComplexSHC-0001 (TNKH-14041010-ComplexSHC-HHydro-1404-001)>]>
+ERROR 2025-12-27 08:48:01 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+INFO 2025-12-27 08:48:01 budget_calculations get_tankhah_used_budget 💵statuses_considered_as_used=['PAID', 'APPROVED', 'PENDING', 'DRAFT']
+INFO 2025-12-27 08:48:01 budget_calculations get_tankhah_used_budget factors=<QuerySet [<Factor: FAC-TNKH-14041010-ComplexSHC-HHydro-1404-001-14040928-ComplexSHC-0001 (TNKH-14041010-ComplexSHC-HHydro-1404-001)>]>
+INFO 2025-12-27 08:48:01 budget_calculations get_tankhah_budget_info Step 3: Budget info retrieved for tankhah TNKH-14041010-ComplexSHC-HHydro-1404-001: {'project_name': 'بازسازی مجتمع آبدرمانی سبلان - لوله کشی آبگرم', 'project_budget': '2,000,000,000.00', 'project_consumed': '-1,000,000,000.00', 'project_returned': '0', 'project_remaining': '0', 'tankhah_budget': '1,000,000,000.00', 'tankhah_consumed': '720.00', 'tankhah_remaining': '999,999,280.00', 'budget_period': {'name': 'زمستان 1404', 'start_date': '2025-12-22', 'end_date': '2026-03-20', 'is_locked': False, 'lock_reason': 'دوره بودجه فعال است.', 'progress': 6, 'debug': {'explicit_locked': None, 'computed_locked': False, 'autolock_enabled': True}}, 'allocation': {'locked_percentage': 1.0, 'warning_threshold': 10.0, 'warning_action': 'NOTIFY', 'is_locked': False, 'remaining': '1,000,000,000.00', 'locked_amount': '20,000,000.0000', 'warning_amount': '200,000,000.0000', 'status': {'code': 'normal', 'message': 'وضعیت عادی'}}}
+INFO 2025-12-27 08:48:01 middleware __call__ پاسخ برای /tankhah/get-tankhah-budget-info/ - کد وضعیت: 200
+INFO 2025-12-27 08:48:01 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:48:01 budget_calculations get_tankhah_budget_info Start get_tankhah_budget_info
+INFO 2025-12-27 08:48:01 budget_calculations get_tankhah_budget_info Step 1: Fetching Tankhah with related models
+INFO 2025-12-27 08:48:01 budget_calculations get_tankhah_budget_info Step 2: Calculating budget info
+ERROR 2025-12-27 08:48:01 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+INFO 2025-12-27 08:48:01 budget_calculations get_tankhah_used_budget 💵statuses_considered_as_used=['PAID', 'APPROVED', 'PENDING', 'DRAFT']
+INFO 2025-12-27 08:48:01 budget_calculations get_tankhah_used_budget factors=<QuerySet [<Factor: FAC-TNKH-14041010-ComplexSHC-HHydro-1404-001-14040928-ComplexSHC-0001 (TNKH-14041010-ComplexSHC-HHydro-1404-001)>]>
+ERROR 2025-12-27 08:48:01 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+INFO 2025-12-27 08:48:01 budget_calculations get_tankhah_used_budget 💵statuses_considered_as_used=['PAID', 'APPROVED', 'PENDING', 'DRAFT']
+INFO 2025-12-27 08:48:01 budget_calculations get_tankhah_used_budget factors=<QuerySet [<Factor: FAC-TNKH-14041010-ComplexSHC-HHydro-1404-001-14040928-ComplexSHC-0001 (TNKH-14041010-ComplexSHC-HHydro-1404-001)>]>
+INFO 2025-12-27 08:48:01 budget_calculations get_tankhah_budget_info Step 3: Budget info retrieved for tankhah TNKH-14041010-ComplexSHC-HHydro-1404-001: {'project_name': 'بازسازی مجتمع آبدرمانی سبلان - لوله کشی آبگرم', 'project_budget': '2,000,000,000.00', 'project_consumed': '-1,000,000,000.00', 'project_returned': '0', 'project_remaining': '0', 'tankhah_budget': '1,000,000,000.00', 'tankhah_consumed': '720.00', 'tankhah_remaining': '999,999,280.00', 'budget_period': {'name': 'زمستان 1404', 'start_date': '2025-12-22', 'end_date': '2026-03-20', 'is_locked': False, 'lock_reason': 'دوره بودجه فعال است.', 'progress': 6, 'debug': {'explicit_locked': None, 'computed_locked': False, 'autolock_enabled': True}}, 'allocation': {'locked_percentage': 1.0, 'warning_threshold': 10.0, 'warning_action': 'NOTIFY', 'is_locked': False, 'remaining': '1,000,000,000.00', 'locked_amount': '20,000,000.0000', 'warning_amount': '200,000,000.0000', 'status': {'code': 'normal', 'message': 'وضعیت عادی'}}}
+INFO 2025-12-27 08:48:01 middleware __call__ پاسخ برای /tankhah/get-tankhah-budget-info/ - کد وضعیت: 200
+INFO 2025-12-27 08:48:29 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:48:29 PermissionBase has_required_permissions [PERM_CHECK] User admin is superuser → full access granted.
+INFO 2025-12-27 08:48:29 PermissionBase dispatch [PERM_CHECK] User admin passed base permission check for /tankhah/factor/create/new/
+INFO 2025-12-27 08:48:29 PermissionBase dispatch [PERM_ORG] User admin has access to organizations [1, 2, 3, 4, 5, 6, 7, 8, 9]
+INFO 2025-12-27 08:48:29 middleware __call__ پاسخ برای /tankhah/factor/create/new/ - کد وضعیت: 200
+INFO 2025-12-27 08:48:29 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:48:29 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:48:34 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:48:34 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:48:39 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:48:39 PermissionBase has_required_permissions [PERM_CHECK] User admin is superuser → full access granted.
+INFO 2025-12-27 08:48:39 PermissionBase dispatch [PERM_CHECK] User admin passed base permission check for /tankhah/factor/create/new/
+INFO 2025-12-27 08:48:39 PermissionBase dispatch [PERM_ORG] User admin has access to organizations [1, 2, 3, 4, 5, 6, 7, 8, 9]
+INFO 2025-12-27 08:48:39 middleware __call__ پاسخ برای /tankhah/factor/create/new/ - کد وضعیت: 200
+INFO 2025-12-27 08:48:39 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:48:39 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:48:42 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:48:42 budget_calculations get_tankhah_budget_info Start get_tankhah_budget_info
+INFO 2025-12-27 08:48:42 budget_calculations get_tankhah_budget_info Step 1: Fetching Tankhah with related models
+INFO 2025-12-27 08:48:42 budget_calculations get_tankhah_budget_info Step 2: Calculating budget info
+ERROR 2025-12-27 08:48:42 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+INFO 2025-12-27 08:48:42 budget_calculations get_tankhah_used_budget 💵statuses_considered_as_used=['PAID', 'APPROVED', 'PENDING', 'DRAFT']
+INFO 2025-12-27 08:48:42 budget_calculations get_tankhah_used_budget factors=<QuerySet [<Factor: FAC-TNKH-14041010-ComplexSHC-HHydro-1404-001-14040928-ComplexSHC-0001 (TNKH-14041010-ComplexSHC-HHydro-1404-001)>]>
+ERROR 2025-12-27 08:48:42 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+INFO 2025-12-27 08:48:42 budget_calculations get_tankhah_used_budget 💵statuses_considered_as_used=['PAID', 'APPROVED', 'PENDING', 'DRAFT']
+INFO 2025-12-27 08:48:42 budget_calculations get_tankhah_used_budget factors=<QuerySet [<Factor: FAC-TNKH-14041010-ComplexSHC-HHydro-1404-001-14040928-ComplexSHC-0001 (TNKH-14041010-ComplexSHC-HHydro-1404-001)>]>
+INFO 2025-12-27 08:48:42 budget_calculations get_tankhah_budget_info Step 3: Budget info retrieved for tankhah TNKH-14041010-ComplexSHC-HHydro-1404-001: {'project_name': 'بازسازی مجتمع آبدرمانی سبلان - لوله کشی آبگرم', 'project_budget': '2,000,000,000.00', 'project_consumed': '-1,000,000,000.00', 'project_returned': '0', 'project_remaining': '0', 'tankhah_budget': '1,000,000,000.00', 'tankhah_consumed': '720.00', 'tankhah_remaining': '999,999,280.00', 'budget_period': {'name': 'زمستان 1404', 'start_date': '2025-12-22', 'end_date': '2026-03-20', 'is_locked': False, 'lock_reason': 'دوره بودجه فعال است.', 'progress': 6, 'debug': {'explicit_locked': None, 'computed_locked': False, 'autolock_enabled': True}}, 'allocation': {'locked_percentage': 1.0, 'warning_threshold': 10.0, 'warning_action': 'NOTIFY', 'is_locked': False, 'remaining': '1,000,000,000.00', 'locked_amount': '20,000,000.0000', 'warning_amount': '200,000,000.0000', 'status': {'code': 'normal', 'message': 'وضعیت عادی'}}}
+INFO 2025-12-27 08:48:42 middleware __call__ پاسخ برای /tankhah/get-tankhah-budget-info/ - کد وضعیت: 200
+INFO 2025-12-27 08:48:42 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:48:42 budget_calculations get_tankhah_budget_info Start get_tankhah_budget_info
+INFO 2025-12-27 08:48:42 budget_calculations get_tankhah_budget_info Step 1: Fetching Tankhah with related models
+INFO 2025-12-27 08:48:42 budget_calculations get_tankhah_budget_info Step 2: Calculating budget info
+ERROR 2025-12-27 08:48:42 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+INFO 2025-12-27 08:48:42 budget_calculations get_tankhah_used_budget 💵statuses_considered_as_used=['PAID', 'APPROVED', 'PENDING', 'DRAFT']
+INFO 2025-12-27 08:48:42 budget_calculations get_tankhah_used_budget factors=<QuerySet [<Factor: FAC-TNKH-14041010-ComplexSHC-HHydro-1404-001-14040928-ComplexSHC-0001 (TNKH-14041010-ComplexSHC-HHydro-1404-001)>]>
+ERROR 2025-12-27 08:48:42 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+INFO 2025-12-27 08:48:42 budget_calculations get_tankhah_used_budget 💵statuses_considered_as_used=['PAID', 'APPROVED', 'PENDING', 'DRAFT']
+INFO 2025-12-27 08:48:42 budget_calculations get_tankhah_used_budget factors=<QuerySet [<Factor: FAC-TNKH-14041010-ComplexSHC-HHydro-1404-001-14040928-ComplexSHC-0001 (TNKH-14041010-ComplexSHC-HHydro-1404-001)>]>
+INFO 2025-12-27 08:48:42 budget_calculations get_tankhah_budget_info Step 3: Budget info retrieved for tankhah TNKH-14041010-ComplexSHC-HHydro-1404-001: {'project_name': 'بازسازی مجتمع آبدرمانی سبلان - لوله کشی آبگرم', 'project_budget': '2,000,000,000.00', 'project_consumed': '-1,000,000,000.00', 'project_returned': '0', 'project_remaining': '0', 'tankhah_budget': '1,000,000,000.00', 'tankhah_consumed': '720.00', 'tankhah_remaining': '999,999,280.00', 'budget_period': {'name': 'زمستان 1404', 'start_date': '2025-12-22', 'end_date': '2026-03-20', 'is_locked': False, 'lock_reason': 'دوره بودجه فعال است.', 'progress': 6, 'debug': {'explicit_locked': None, 'computed_locked': False, 'autolock_enabled': True}}, 'allocation': {'locked_percentage': 1.0, 'warning_threshold': 10.0, 'warning_action': 'NOTIFY', 'is_locked': False, 'remaining': '1,000,000,000.00', 'locked_amount': '20,000,000.0000', 'warning_amount': '200,000,000.0000', 'status': {'code': 'normal', 'message': 'وضعیت عادی'}}}
+INFO 2025-12-27 08:48:42 middleware __call__ پاسخ برای /tankhah/get-tankhah-budget-info/ - کد وضعیت: 200
+INFO 2025-12-27 08:49:09 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:49:09 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:49:34 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:49:34 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:49:39 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:49:39 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:50:10 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:50:10 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:50:34 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:50:34 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:50:40 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:50:40 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:51:10 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:51:10 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:51:34 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:51:34 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:51:40 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:51:40 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:52:34 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:52:34 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:52:34 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:52:34 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:53:34 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:53:34 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:53:34 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:53:34 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:54:34 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:54:34 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:54:34 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:54:34 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:55:34 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:55:34 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:55:34 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:55:34 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:55:37 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:55:37 PermissionBase has_required_permissions [PERM_CHECK] User admin is superuser → full access granted.
+INFO 2025-12-27 08:55:37 PermissionBase dispatch [PERM_CHECK] User admin passed base permission check for /tankhah/factor/create/new/
+INFO 2025-12-27 08:55:37 PermissionBase dispatch [PERM_ORG] User admin has access to organizations [1, 2, 3, 4, 5, 6, 7, 8, 9]
+INFO 2025-12-27 08:55:37 middleware __call__ پاسخ برای /tankhah/factor/create/new/ - کد وضعیت: 200
+INFO 2025-12-27 08:55:37 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:55:37 PermissionBase has_required_permissions [PERM_CHECK] User admin is superuser → full access granted.
+INFO 2025-12-27 08:55:37 PermissionBase dispatch [PERM_CHECK] User admin passed base permission check for /tankhah/factor/create/new/
+INFO 2025-12-27 08:55:37 PermissionBase dispatch [PERM_ORG] User admin has access to organizations [1, 2, 3, 4, 5, 6, 7, 8, 9]
+INFO 2025-12-27 08:55:37 middleware __call__ پاسخ برای /tankhah/factor/create/new/ - کد وضعیت: 200
+INFO 2025-12-27 08:55:37 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:55:37 PermissionBase has_required_permissions [PERM_CHECK] User admin is superuser → full access granted.
+INFO 2025-12-27 08:55:37 PermissionBase dispatch [PERM_CHECK] User admin passed base permission check for /tankhah/factor/create/new/
+INFO 2025-12-27 08:55:37 PermissionBase dispatch [PERM_ORG] User admin has access to organizations [1, 2, 3, 4, 5, 6, 7, 8, 9]
+INFO 2025-12-27 08:55:37 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:55:37 PermissionBase has_required_permissions [PERM_CHECK] User admin is superuser → full access granted.
+INFO 2025-12-27 08:55:37 PermissionBase dispatch [PERM_CHECK] User admin passed base permission check for /tankhah/factor/create/new/
+INFO 2025-12-27 08:55:37 PermissionBase dispatch [PERM_ORG] User admin has access to organizations [1, 2, 3, 4, 5, 6, 7, 8, 9]
+INFO 2025-12-27 08:55:38 middleware __call__ پاسخ برای /tankhah/factor/create/new/ - کد وضعیت: 200
+INFO 2025-12-27 08:55:38 middleware __call__ پاسخ برای /tankhah/factor/create/new/ - کد وضعیت: 200
+INFO 2025-12-27 08:55:38 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:55:38 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:55:38 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:55:38 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:55:44 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:55:44 budget_calculations get_tankhah_budget_info Start get_tankhah_budget_info
+INFO 2025-12-27 08:55:44 budget_calculations get_tankhah_budget_info Step 1: Fetching Tankhah with related models
+INFO 2025-12-27 08:55:44 budget_calculations get_tankhah_budget_info Step 2: Calculating budget info
+ERROR 2025-12-27 08:55:44 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+INFO 2025-12-27 08:55:44 budget_calculations get_tankhah_used_budget 💵statuses_considered_as_used=['PAID', 'APPROVED', 'PENDING', 'DRAFT']
+INFO 2025-12-27 08:55:44 budget_calculations get_tankhah_used_budget factors=<QuerySet [<Factor: FAC-TNKH-14041010-ComplexSHC-HHydro-1404-001-14040928-ComplexSHC-0001 (TNKH-14041010-ComplexSHC-HHydro-1404-001)>]>
+ERROR 2025-12-27 08:55:44 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+INFO 2025-12-27 08:55:44 budget_calculations get_tankhah_used_budget 💵statuses_considered_as_used=['PAID', 'APPROVED', 'PENDING', 'DRAFT']
+INFO 2025-12-27 08:55:44 budget_calculations get_tankhah_used_budget factors=<QuerySet [<Factor: FAC-TNKH-14041010-ComplexSHC-HHydro-1404-001-14040928-ComplexSHC-0001 (TNKH-14041010-ComplexSHC-HHydro-1404-001)>]>
+INFO 2025-12-27 08:55:44 budget_calculations get_tankhah_budget_info Step 3: Budget info retrieved for tankhah TNKH-14041010-ComplexSHC-HHydro-1404-001: {'project_name': 'بازسازی مجتمع آبدرمانی سبلان - لوله کشی آبگرم', 'project_budget': '2,000,000,000.00', 'project_consumed': '-1,000,000,000.00', 'project_returned': '0', 'project_remaining': '0', 'tankhah_budget': '1,000,000,000.00', 'tankhah_consumed': '720.00', 'tankhah_remaining': '999,999,280.00', 'budget_period': {'name': 'زمستان 1404', 'start_date': '2025-12-22', 'end_date': '2026-03-20', 'is_locked': False, 'lock_reason': 'دوره بودجه فعال است.', 'progress': 6, 'debug': {'explicit_locked': None, 'computed_locked': False, 'autolock_enabled': True}}, 'allocation': {'locked_percentage': 1.0, 'warning_threshold': 10.0, 'warning_action': 'NOTIFY', 'is_locked': False, 'remaining': '1,000,000,000.00', 'locked_amount': '20,000,000.0000', 'warning_amount': '200,000,000.0000', 'status': {'code': 'normal', 'message': 'وضعیت عادی'}}}
+INFO 2025-12-27 08:55:44 middleware __call__ پاسخ برای /tankhah/get-tankhah-budget-info/ - کد وضعیت: 200
+INFO 2025-12-27 08:55:44 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:55:44 budget_calculations get_tankhah_budget_info Start get_tankhah_budget_info
+INFO 2025-12-27 08:55:44 budget_calculations get_tankhah_budget_info Step 1: Fetching Tankhah with related models
+INFO 2025-12-27 08:55:44 budget_calculations get_tankhah_budget_info Step 2: Calculating budget info
+ERROR 2025-12-27 08:55:44 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+INFO 2025-12-27 08:55:44 budget_calculations get_tankhah_used_budget 💵statuses_considered_as_used=['PAID', 'APPROVED', 'PENDING', 'DRAFT']
+INFO 2025-12-27 08:55:44 budget_calculations get_tankhah_used_budget factors=<QuerySet [<Factor: FAC-TNKH-14041010-ComplexSHC-HHydro-1404-001-14040928-ComplexSHC-0001 (TNKH-14041010-ComplexSHC-HHydro-1404-001)>]>
+ERROR 2025-12-27 08:55:44 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+INFO 2025-12-27 08:55:44 budget_calculations get_tankhah_used_budget 💵statuses_considered_as_used=['PAID', 'APPROVED', 'PENDING', 'DRAFT']
+INFO 2025-12-27 08:55:44 budget_calculations get_tankhah_used_budget factors=<QuerySet [<Factor: FAC-TNKH-14041010-ComplexSHC-HHydro-1404-001-14040928-ComplexSHC-0001 (TNKH-14041010-ComplexSHC-HHydro-1404-001)>]>
+INFO 2025-12-27 08:55:44 budget_calculations get_tankhah_budget_info Step 3: Budget info retrieved for tankhah TNKH-14041010-ComplexSHC-HHydro-1404-001: {'project_name': 'بازسازی مجتمع آبدرمانی سبلان - لوله کشی آبگرم', 'project_budget': '2,000,000,000.00', 'project_consumed': '-1,000,000,000.00', 'project_returned': '0', 'project_remaining': '0', 'tankhah_budget': '1,000,000,000.00', 'tankhah_consumed': '720.00', 'tankhah_remaining': '999,999,280.00', 'budget_period': {'name': 'زمستان 1404', 'start_date': '2025-12-22', 'end_date': '2026-03-20', 'is_locked': False, 'lock_reason': 'دوره بودجه فعال است.', 'progress': 6, 'debug': {'explicit_locked': None, 'computed_locked': False, 'autolock_enabled': True}}, 'allocation': {'locked_percentage': 1.0, 'warning_threshold': 10.0, 'warning_action': 'NOTIFY', 'is_locked': False, 'remaining': '1,000,000,000.00', 'locked_amount': '20,000,000.0000', 'warning_amount': '200,000,000.0000', 'status': {'code': 'normal', 'message': 'وضعیت عادی'}}}
+INFO 2025-12-27 08:55:44 middleware __call__ پاسخ برای /tankhah/get-tankhah-budget-info/ - کد وضعیت: 200
+INFO 2025-12-27 08:56:08 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:56:08 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:56:34 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:56:34 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:56:39 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:56:39 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:57:09 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:57:09 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:57:34 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:57:34 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:57:39 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:57:39 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:58:09 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:58:09 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:58:20 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:58:20 PermissionBase has_required_permissions [PERM_CHECK] User admin is superuser → full access granted.
+INFO 2025-12-27 08:58:20 PermissionBase dispatch [PERM_CHECK] User admin passed base permission check for /tankhah/factor/create/new/
+INFO 2025-12-27 08:58:20 PermissionBase dispatch [PERM_ORG] User admin has access to organizations [1, 2, 3, 4, 5, 6, 7, 8, 9]
+INFO 2025-12-27 08:58:21 middleware __call__ پاسخ برای /tankhah/factor/create/new/ - کد وضعیت: 200
+INFO 2025-12-27 08:58:21 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:58:21 PermissionBase has_required_permissions [PERM_CHECK] User admin is superuser → full access granted.
+INFO 2025-12-27 08:58:21 PermissionBase dispatch [PERM_CHECK] User admin passed base permission check for /tankhah/factor/create/new/
+INFO 2025-12-27 08:58:21 PermissionBase dispatch [PERM_ORG] User admin has access to organizations [1, 2, 3, 4, 5, 6, 7, 8, 9]
+INFO 2025-12-27 08:58:21 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:58:21 PermissionBase has_required_permissions [PERM_CHECK] User admin is superuser → full access granted.
+INFO 2025-12-27 08:58:21 PermissionBase dispatch [PERM_CHECK] User admin passed base permission check for /tankhah/factor/create/new/
+INFO 2025-12-27 08:58:21 PermissionBase dispatch [PERM_ORG] User admin has access to organizations [1, 2, 3, 4, 5, 6, 7, 8, 9]
+INFO 2025-12-27 08:58:21 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:58:21 middleware __call__ پاسخ برای /tankhah/factor/create/new/ - کد وضعیت: 200
+INFO 2025-12-27 08:58:21 PermissionBase has_required_permissions [PERM_CHECK] User admin is superuser → full access granted.
+INFO 2025-12-27 08:58:21 PermissionBase dispatch [PERM_CHECK] User admin passed base permission check for /tankhah/factor/create/new/
+INFO 2025-12-27 08:58:21 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:58:21 PermissionBase dispatch [PERM_ORG] User admin has access to organizations [1, 2, 3, 4, 5, 6, 7, 8, 9]
+INFO 2025-12-27 08:58:21 PermissionBase has_required_permissions [PERM_CHECK] User admin is superuser → full access granted.
+INFO 2025-12-27 08:58:21 PermissionBase dispatch [PERM_CHECK] User admin passed base permission check for /tankhah/factor/create/new/
+INFO 2025-12-27 08:58:21 PermissionBase dispatch [PERM_ORG] User admin has access to organizations [1, 2, 3, 4, 5, 6, 7, 8, 9]
+INFO 2025-12-27 08:58:21 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:58:22 middleware __call__ پاسخ برای /tankhah/factor/create/new/ - کد وضعیت: 200
+INFO 2025-12-27 08:58:22 middleware __call__ پاسخ برای /tankhah/factor/create/new/ - کد وضعیت: 200
+INFO 2025-12-27 08:58:22 middleware __call__ پاسخ برای /tankhah/factor/create/new/ - کد وضعیت: 200
+INFO 2025-12-27 08:58:22 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:58:22 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:58:22 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:58:26 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:58:26 budget_calculations get_tankhah_budget_info Start get_tankhah_budget_info
+INFO 2025-12-27 08:58:26 budget_calculations get_tankhah_budget_info Step 1: Fetching Tankhah with related models
+INFO 2025-12-27 08:58:26 budget_calculations get_tankhah_budget_info Step 2: Calculating budget info
+ERROR 2025-12-27 08:58:27 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+INFO 2025-12-27 08:58:27 budget_calculations get_tankhah_used_budget 💵statuses_considered_as_used=['PAID', 'APPROVED', 'PENDING', 'DRAFT']
+INFO 2025-12-27 08:58:27 budget_calculations get_tankhah_used_budget factors=<QuerySet [<Factor: FAC-TNKH-14041010-ComplexSHC-HHydro-1404-001-14040928-ComplexSHC-0001 (TNKH-14041010-ComplexSHC-HHydro-1404-001)>]>
+ERROR 2025-12-27 08:58:27 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+INFO 2025-12-27 08:58:27 budget_calculations get_tankhah_used_budget 💵statuses_considered_as_used=['PAID', 'APPROVED', 'PENDING', 'DRAFT']
+INFO 2025-12-27 08:58:27 budget_calculations get_tankhah_used_budget factors=<QuerySet [<Factor: FAC-TNKH-14041010-ComplexSHC-HHydro-1404-001-14040928-ComplexSHC-0001 (TNKH-14041010-ComplexSHC-HHydro-1404-001)>]>
+INFO 2025-12-27 08:58:27 budget_calculations get_tankhah_budget_info Step 3: Budget info retrieved for tankhah TNKH-14041010-ComplexSHC-HHydro-1404-001: {'project_name': 'بازسازی مجتمع آبدرمانی سبلان - لوله کشی آبگرم', 'project_budget': '2,000,000,000.00', 'project_consumed': '-1,000,000,000.00', 'project_returned': '0', 'project_remaining': '0', 'tankhah_budget': '1,000,000,000.00', 'tankhah_consumed': '720.00', 'tankhah_remaining': '999,999,280.00', 'budget_period': {'name': 'زمستان 1404', 'start_date': '2025-12-22', 'end_date': '2026-03-20', 'is_locked': False, 'lock_reason': 'دوره بودجه فعال است.', 'progress': 6, 'debug': {'explicit_locked': None, 'computed_locked': False, 'autolock_enabled': True}}, 'allocation': {'locked_percentage': 1.0, 'warning_threshold': 10.0, 'warning_action': 'NOTIFY', 'is_locked': False, 'remaining': '1,000,000,000.00', 'locked_amount': '20,000,000.0000', 'warning_amount': '200,000,000.0000', 'status': {'code': 'normal', 'message': 'وضعیت عادی'}}}
+INFO 2025-12-27 08:58:27 middleware __call__ پاسخ برای /tankhah/get-tankhah-budget-info/ - کد وضعیت: 200
+INFO 2025-12-27 08:58:27 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:58:27 budget_calculations get_tankhah_budget_info Start get_tankhah_budget_info
+INFO 2025-12-27 08:58:27 budget_calculations get_tankhah_budget_info Step 1: Fetching Tankhah with related models
+INFO 2025-12-27 08:58:27 budget_calculations get_tankhah_budget_info Step 2: Calculating budget info
+ERROR 2025-12-27 08:58:27 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+INFO 2025-12-27 08:58:27 budget_calculations get_tankhah_used_budget 💵statuses_considered_as_used=['PAID', 'APPROVED', 'PENDING', 'DRAFT']
+INFO 2025-12-27 08:58:27 budget_calculations get_tankhah_used_budget factors=<QuerySet [<Factor: FAC-TNKH-14041010-ComplexSHC-HHydro-1404-001-14040928-ComplexSHC-0001 (TNKH-14041010-ComplexSHC-HHydro-1404-001)>]>
+ERROR 2025-12-27 08:58:27 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+INFO 2025-12-27 08:58:27 budget_calculations get_tankhah_used_budget 💵statuses_considered_as_used=['PAID', 'APPROVED', 'PENDING', 'DRAFT']
+INFO 2025-12-27 08:58:27 budget_calculations get_tankhah_used_budget factors=<QuerySet [<Factor: FAC-TNKH-14041010-ComplexSHC-HHydro-1404-001-14040928-ComplexSHC-0001 (TNKH-14041010-ComplexSHC-HHydro-1404-001)>]>
+INFO 2025-12-27 08:58:27 budget_calculations get_tankhah_budget_info Step 3: Budget info retrieved for tankhah TNKH-14041010-ComplexSHC-HHydro-1404-001: {'project_name': 'بازسازی مجتمع آبدرمانی سبلان - لوله کشی آبگرم', 'project_budget': '2,000,000,000.00', 'project_consumed': '-1,000,000,000.00', 'project_returned': '0', 'project_remaining': '0', 'tankhah_budget': '1,000,000,000.00', 'tankhah_consumed': '720.00', 'tankhah_remaining': '999,999,280.00', 'budget_period': {'name': 'زمستان 1404', 'start_date': '2025-12-22', 'end_date': '2026-03-20', 'is_locked': False, 'lock_reason': 'دوره بودجه فعال است.', 'progress': 6, 'debug': {'explicit_locked': None, 'computed_locked': False, 'autolock_enabled': True}}, 'allocation': {'locked_percentage': 1.0, 'warning_threshold': 10.0, 'warning_action': 'NOTIFY', 'is_locked': False, 'remaining': '1,000,000,000.00', 'locked_amount': '20,000,000.0000', 'warning_amount': '200,000,000.0000', 'status': {'code': 'normal', 'message': 'وضعیت عادی'}}}
+INFO 2025-12-27 08:58:27 middleware __call__ پاسخ برای /tankhah/get-tankhah-budget-info/ - کد وضعیت: 200
+INFO 2025-12-27 08:58:53 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:58:53 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:59:07 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:59:07 PermissionBase has_required_permissions [PERM_CHECK] User admin is superuser → full access granted.
+INFO 2025-12-27 08:59:07 PermissionBase dispatch [PERM_CHECK] User admin passed base permission check for /tankhah/factor/create/new/
+INFO 2025-12-27 08:59:07 PermissionBase dispatch [PERM_ORG] User admin has access to organizations [1, 2, 3, 4, 5, 6, 7, 8, 9]
+INFO 2025-12-27 08:59:07 middleware __call__ پاسخ برای /tankhah/factor/create/new/ - کد وضعیت: 200
+INFO 2025-12-27 08:59:07 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:59:07 PermissionBase has_required_permissions [PERM_CHECK] User admin is superuser → full access granted.
+INFO 2025-12-27 08:59:07 PermissionBase dispatch [PERM_CHECK] User admin passed base permission check for /tankhah/factor/create/new/
+INFO 2025-12-27 08:59:07 PermissionBase dispatch [PERM_ORG] User admin has access to organizations [1, 2, 3, 4, 5, 6, 7, 8, 9]
+INFO 2025-12-27 08:59:07 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:59:07 PermissionBase has_required_permissions [PERM_CHECK] User admin is superuser → full access granted.
+INFO 2025-12-27 08:59:07 PermissionBase dispatch [PERM_CHECK] User admin passed base permission check for /tankhah/factor/create/new/
+INFO 2025-12-27 08:59:07 middleware __call__ پاسخ برای /tankhah/factor/create/new/ - کد وضعیت: 200
+INFO 2025-12-27 08:59:07 PermissionBase dispatch [PERM_ORG] User admin has access to organizations [1, 2, 3, 4, 5, 6, 7, 8, 9]
+INFO 2025-12-27 08:59:07 middleware __call__ پاسخ برای /tankhah/factor/create/new/ - کد وضعیت: 200
+INFO 2025-12-27 08:59:07 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:59:07 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:59:08 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:59:08 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:59:11 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:59:11 budget_calculations get_tankhah_budget_info Start get_tankhah_budget_info
+INFO 2025-12-27 08:59:11 budget_calculations get_tankhah_budget_info Step 1: Fetching Tankhah with related models
+INFO 2025-12-27 08:59:11 budget_calculations get_tankhah_budget_info Step 2: Calculating budget info
+ERROR 2025-12-27 08:59:11 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+INFO 2025-12-27 08:59:11 budget_calculations get_tankhah_used_budget 💵statuses_considered_as_used=['PAID', 'APPROVED', 'PENDING', 'DRAFT']
+INFO 2025-12-27 08:59:11 budget_calculations get_tankhah_used_budget factors=<QuerySet [<Factor: FAC-TNKH-14041010-ComplexSHC-HHydro-1404-001-14040928-ComplexSHC-0001 (TNKH-14041010-ComplexSHC-HHydro-1404-001)>]>
+ERROR 2025-12-27 08:59:11 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+INFO 2025-12-27 08:59:11 budget_calculations get_tankhah_used_budget 💵statuses_considered_as_used=['PAID', 'APPROVED', 'PENDING', 'DRAFT']
+INFO 2025-12-27 08:59:11 budget_calculations get_tankhah_used_budget factors=<QuerySet [<Factor: FAC-TNKH-14041010-ComplexSHC-HHydro-1404-001-14040928-ComplexSHC-0001 (TNKH-14041010-ComplexSHC-HHydro-1404-001)>]>
+INFO 2025-12-27 08:59:11 budget_calculations get_tankhah_budget_info Step 3: Budget info retrieved for tankhah TNKH-14041010-ComplexSHC-HHydro-1404-001: {'project_name': 'بازسازی مجتمع آبدرمانی سبلان - لوله کشی آبگرم', 'project_budget': '2,000,000,000.00', 'project_consumed': '-1,000,000,000.00', 'project_returned': '0', 'project_remaining': '0', 'tankhah_budget': '1,000,000,000.00', 'tankhah_consumed': '720.00', 'tankhah_remaining': '999,999,280.00', 'budget_period': {'name': 'زمستان 1404', 'start_date': '2025-12-22', 'end_date': '2026-03-20', 'is_locked': False, 'lock_reason': 'دوره بودجه فعال است.', 'progress': 6, 'debug': {'explicit_locked': None, 'computed_locked': False, 'autolock_enabled': True}}, 'allocation': {'locked_percentage': 1.0, 'warning_threshold': 10.0, 'warning_action': 'NOTIFY', 'is_locked': False, 'remaining': '1,000,000,000.00', 'locked_amount': '20,000,000.0000', 'warning_amount': '200,000,000.0000', 'status': {'code': 'normal', 'message': 'وضعیت عادی'}}}
+INFO 2025-12-27 08:59:11 middleware __call__ پاسخ برای /tankhah/get-tankhah-budget-info/ - کد وضعیت: 200
+INFO 2025-12-27 08:59:11 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:59:11 budget_calculations get_tankhah_budget_info Start get_tankhah_budget_info
+INFO 2025-12-27 08:59:11 budget_calculations get_tankhah_budget_info Step 1: Fetching Tankhah with related models
+INFO 2025-12-27 08:59:11 budget_calculations get_tankhah_budget_info Step 2: Calculating budget info
+ERROR 2025-12-27 08:59:11 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+INFO 2025-12-27 08:59:11 budget_calculations get_tankhah_used_budget 💵statuses_considered_as_used=['PAID', 'APPROVED', 'PENDING', 'DRAFT']
+INFO 2025-12-27 08:59:11 budget_calculations get_tankhah_used_budget factors=<QuerySet [<Factor: FAC-TNKH-14041010-ComplexSHC-HHydro-1404-001-14040928-ComplexSHC-0001 (TNKH-14041010-ComplexSHC-HHydro-1404-001)>]>
+ERROR 2025-12-27 08:59:11 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+INFO 2025-12-27 08:59:11 budget_calculations get_tankhah_used_budget 💵statuses_considered_as_used=['PAID', 'APPROVED', 'PENDING', 'DRAFT']
+INFO 2025-12-27 08:59:11 budget_calculations get_tankhah_used_budget factors=<QuerySet [<Factor: FAC-TNKH-14041010-ComplexSHC-HHydro-1404-001-14040928-ComplexSHC-0001 (TNKH-14041010-ComplexSHC-HHydro-1404-001)>]>
+INFO 2025-12-27 08:59:11 budget_calculations get_tankhah_budget_info Step 3: Budget info retrieved for tankhah TNKH-14041010-ComplexSHC-HHydro-1404-001: {'project_name': 'بازسازی مجتمع آبدرمانی سبلان - لوله کشی آبگرم', 'project_budget': '2,000,000,000.00', 'project_consumed': '-1,000,000,000.00', 'project_returned': '0', 'project_remaining': '0', 'tankhah_budget': '1,000,000,000.00', 'tankhah_consumed': '720.00', 'tankhah_remaining': '999,999,280.00', 'budget_period': {'name': 'زمستان 1404', 'start_date': '2025-12-22', 'end_date': '2026-03-20', 'is_locked': False, 'lock_reason': 'دوره بودجه فعال است.', 'progress': 6, 'debug': {'explicit_locked': None, 'computed_locked': False, 'autolock_enabled': True}}, 'allocation': {'locked_percentage': 1.0, 'warning_threshold': 10.0, 'warning_action': 'NOTIFY', 'is_locked': False, 'remaining': '1,000,000,000.00', 'locked_amount': '20,000,000.0000', 'warning_amount': '200,000,000.0000', 'status': {'code': 'normal', 'message': 'وضعیت عادی'}}}
+INFO 2025-12-27 08:59:11 middleware __call__ پاسخ برای /tankhah/get-tankhah-budget-info/ - کد وضعیت: 200
+INFO 2025-12-27 08:59:38 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:59:38 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 08:59:56 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:59:56 PermissionBase has_required_permissions [PERM_CHECK] User admin is superuser → full access granted.
+INFO 2025-12-27 08:59:56 PermissionBase dispatch [PERM_CHECK] User admin passed base permission check for /tankhah/factor/create/new/
+INFO 2025-12-27 08:59:56 PermissionBase dispatch [PERM_ORG] User admin has access to organizations [1, 2, 3, 4, 5, 6, 7, 8, 9]
+ERROR 2025-12-27 08:59:56 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+INFO 2025-12-27 08:59:56 budget_calculations get_tankhah_used_budget 💵statuses_considered_as_used=['PAID', 'APPROVED', 'PENDING', 'DRAFT']
+INFO 2025-12-27 08:59:56 budget_calculations get_tankhah_used_budget factors=<QuerySet [<Factor: FAC-TNKH-14041010-ComplexSHC-HHydro-1404-001-14040928-ComplexSHC-0001 (TNKH-14041010-ComplexSHC-HHydro-1404-001)>]>
+INFO 2025-12-27 08:59:56 view_Nfactor form_valid شروع form_valid برای کاربر 'admin' و تنخواه 'TNKH-14041010-ComplexSHC-HHydro-1404-001'
+WARNING 2025-12-27 08:59:56 view_Nfactor form_valid فرم‌ست آیتم‌ها نامعتبر است. خطاها: [{'vat_amount': ['This field is required.']}, {'description': ['This field is required.'], 'vat_amount': ['This field is required.'], '__all__': ['لطفاً تمام فیلدهای این ردیف را پر کنید یا آن را حذف کنید.']}]
+WARNING 2025-12-27 08:59:56 view_Nfactor form_invalid فرم نامعتبر برای کاربر 'admin'. خطاها: {}
+INFO 2025-12-27 08:59:57 middleware __call__ پاسخ برای /tankhah/factor/create/new/ - کد وضعیت: 200
+INFO 2025-12-27 08:59:57 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:59:57 budget_calculations get_tankhah_budget_info Start get_tankhah_budget_info
+INFO 2025-12-27 08:59:57 budget_calculations get_tankhah_budget_info Step 1: Fetching Tankhah with related models
+INFO 2025-12-27 08:59:57 budget_calculations get_tankhah_budget_info Step 2: Calculating budget info
+INFO 2025-12-27 08:59:57 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:59:57 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+ERROR 2025-12-27 08:59:57 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+INFO 2025-12-27 08:59:57 budget_calculations get_tankhah_used_budget 💵statuses_considered_as_used=['PAID', 'APPROVED', 'PENDING', 'DRAFT']
+INFO 2025-12-27 08:59:57 budget_calculations get_tankhah_used_budget factors=<QuerySet [<Factor: FAC-TNKH-14041010-ComplexSHC-HHydro-1404-001-14040928-ComplexSHC-0001 (TNKH-14041010-ComplexSHC-HHydro-1404-001)>]>
+ERROR 2025-12-27 08:59:57 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+INFO 2025-12-27 08:59:57 budget_calculations get_tankhah_used_budget 💵statuses_considered_as_used=['PAID', 'APPROVED', 'PENDING', 'DRAFT']
+INFO 2025-12-27 08:59:57 budget_calculations get_tankhah_used_budget factors=<QuerySet [<Factor: FAC-TNKH-14041010-ComplexSHC-HHydro-1404-001-14040928-ComplexSHC-0001 (TNKH-14041010-ComplexSHC-HHydro-1404-001)>]>
+INFO 2025-12-27 08:59:57 budget_calculations get_tankhah_budget_info Step 3: Budget info retrieved for tankhah TNKH-14041010-ComplexSHC-HHydro-1404-001: {'project_name': 'بازسازی مجتمع آبدرمانی سبلان - لوله کشی آبگرم', 'project_budget': '2,000,000,000.00', 'project_consumed': '-1,000,000,000.00', 'project_returned': '0', 'project_remaining': '0', 'tankhah_budget': '1,000,000,000.00', 'tankhah_consumed': '720.00', 'tankhah_remaining': '999,999,280.00', 'budget_period': {'name': 'زمستان 1404', 'start_date': '2025-12-22', 'end_date': '2026-03-20', 'is_locked': False, 'lock_reason': 'دوره بودجه فعال است.', 'progress': 6, 'debug': {'explicit_locked': None, 'computed_locked': False, 'autolock_enabled': True}}, 'allocation': {'locked_percentage': 1.0, 'warning_threshold': 10.0, 'warning_action': 'NOTIFY', 'is_locked': False, 'remaining': '1,000,000,000.00', 'locked_amount': '20,000,000.0000', 'warning_amount': '200,000,000.0000', 'status': {'code': 'normal', 'message': 'وضعیت عادی'}}}
+INFO 2025-12-27 08:59:57 middleware __call__ پاسخ برای /tankhah/get-tankhah-budget-info/ - کد وضعیت: 200
+INFO 2025-12-27 08:59:57 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 08:59:57 budget_calculations get_tankhah_budget_info Start get_tankhah_budget_info
+INFO 2025-12-27 08:59:57 budget_calculations get_tankhah_budget_info Step 1: Fetching Tankhah with related models
+INFO 2025-12-27 08:59:57 budget_calculations get_tankhah_budget_info Step 2: Calculating budget info
+ERROR 2025-12-27 08:59:57 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+INFO 2025-12-27 08:59:57 budget_calculations get_tankhah_used_budget 💵statuses_considered_as_used=['PAID', 'APPROVED', 'PENDING', 'DRAFT']
+INFO 2025-12-27 08:59:57 budget_calculations get_tankhah_used_budget factors=<QuerySet [<Factor: FAC-TNKH-14041010-ComplexSHC-HHydro-1404-001-14040928-ComplexSHC-0001 (TNKH-14041010-ComplexSHC-HHydro-1404-001)>]>
+ERROR 2025-12-27 08:59:57 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+INFO 2025-12-27 08:59:57 budget_calculations get_tankhah_used_budget 💵statuses_considered_as_used=['PAID', 'APPROVED', 'PENDING', 'DRAFT']
+INFO 2025-12-27 08:59:57 budget_calculations get_tankhah_used_budget factors=<QuerySet [<Factor: FAC-TNKH-14041010-ComplexSHC-HHydro-1404-001-14040928-ComplexSHC-0001 (TNKH-14041010-ComplexSHC-HHydro-1404-001)>]>
+INFO 2025-12-27 08:59:57 budget_calculations get_tankhah_budget_info Step 3: Budget info retrieved for tankhah TNKH-14041010-ComplexSHC-HHydro-1404-001: {'project_name': 'بازسازی مجتمع آبدرمانی سبلان - لوله کشی آبگرم', 'project_budget': '2,000,000,000.00', 'project_consumed': '-1,000,000,000.00', 'project_returned': '0', 'project_remaining': '0', 'tankhah_budget': '1,000,000,000.00', 'tankhah_consumed': '720.00', 'tankhah_remaining': '999,999,280.00', 'budget_period': {'name': 'زمستان 1404', 'start_date': '2025-12-22', 'end_date': '2026-03-20', 'is_locked': False, 'lock_reason': 'دوره بودجه فعال است.', 'progress': 6, 'debug': {'explicit_locked': None, 'computed_locked': False, 'autolock_enabled': True}}, 'allocation': {'locked_percentage': 1.0, 'warning_threshold': 10.0, 'warning_action': 'NOTIFY', 'is_locked': False, 'remaining': '1,000,000,000.00', 'locked_amount': '20,000,000.0000', 'warning_amount': '200,000,000.0000', 'status': {'code': 'normal', 'message': 'وضعیت عادی'}}}
+INFO 2025-12-27 08:59:57 middleware __call__ پاسخ برای /tankhah/get-tankhah-budget-info/ - کد وضعیت: 200
+INFO 2025-12-27 09:00:28 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 09:00:28 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 09:00:58 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 09:00:58 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 09:01:28 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 09:01:28 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 09:01:58 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 09:01:58 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 09:02:28 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 09:02:28 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 21:33:18 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 21:33:18 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 21:33:27 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 21:33:27 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 21:33:35 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 21:33:36 PermissionBase has_required_permissions [PERM_CHECK] User admin is superuser → full access granted.
+INFO 2025-12-27 21:33:36 PermissionBase dispatch [PERM_CHECK] User admin passed base permission check for /tankhah/factor/create/new/
+INFO 2025-12-27 21:33:36 PermissionBase dispatch [PERM_ORG] User admin has access to organizations [1, 2, 3, 4, 5, 6, 7, 8, 9]
+ERROR 2025-12-27 21:33:36 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+INFO 2025-12-27 21:33:36 budget_calculations get_tankhah_used_budget 💵statuses_considered_as_used=['PAID', 'APPROVED', 'PENDING', 'DRAFT']
+INFO 2025-12-27 21:33:36 budget_calculations get_tankhah_used_budget factors=<QuerySet [<Factor: FAC-TNKH-14041010-ComplexSHC-HHydro-1404-001-14040928-ComplexSHC-0001 (TNKH-14041010-ComplexSHC-HHydro-1404-001)>]>
+INFO 2025-12-27 21:33:36 view_Nfactor form_valid شروع form_valid برای کاربر 'admin' و تنخواه 'TNKH-14041010-ComplexSHC-HHydro-1404-001'
+WARNING 2025-12-27 21:33:36 view_Nfactor form_valid فرم‌ست آیتم‌ها نامعتبر است. خطاها: [{'vat_amount': ['This field is required.']}, {'description': ['This field is required.'], 'vat_amount': ['This field is required.'], '__all__': ['لطفاً تمام فیلدهای این ردیف را پر کنید یا آن را حذف کنید.']}]
+WARNING 2025-12-27 21:33:36 view_Nfactor form_invalid فرم نامعتبر برای کاربر 'admin'. خطاها: {}
+INFO 2025-12-27 21:33:36 middleware __call__ پاسخ برای /tankhah/factor/create/new/ - کد وضعیت: 200
+INFO 2025-12-27 21:33:36 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 21:33:36 budget_calculations get_tankhah_budget_info Start get_tankhah_budget_info
+INFO 2025-12-27 21:33:36 budget_calculations get_tankhah_budget_info Step 1: Fetching Tankhah with related models
+INFO 2025-12-27 21:33:36 budget_calculations get_tankhah_budget_info Step 2: Calculating budget info
+INFO 2025-12-27 21:33:36 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+ERROR 2025-12-27 21:33:36 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+INFO 2025-12-27 21:33:36 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 21:33:36 budget_calculations get_tankhah_used_budget 💵statuses_considered_as_used=['PAID', 'APPROVED', 'PENDING', 'DRAFT']
+INFO 2025-12-27 21:33:36 budget_calculations get_tankhah_used_budget factors=<QuerySet [<Factor: FAC-TNKH-14041010-ComplexSHC-HHydro-1404-001-14040928-ComplexSHC-0001 (TNKH-14041010-ComplexSHC-HHydro-1404-001)>]>
+ERROR 2025-12-27 21:33:36 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+INFO 2025-12-27 21:33:36 budget_calculations get_tankhah_used_budget 💵statuses_considered_as_used=['PAID', 'APPROVED', 'PENDING', 'DRAFT']
+INFO 2025-12-27 21:33:36 budget_calculations get_tankhah_used_budget factors=<QuerySet [<Factor: FAC-TNKH-14041010-ComplexSHC-HHydro-1404-001-14040928-ComplexSHC-0001 (TNKH-14041010-ComplexSHC-HHydro-1404-001)>]>
+INFO 2025-12-27 21:33:36 budget_calculations get_tankhah_budget_info Step 3: Budget info retrieved for tankhah TNKH-14041010-ComplexSHC-HHydro-1404-001: {'project_name': 'بازسازی مجتمع آبدرمانی سبلان - لوله کشی آبگرم', 'project_budget': '2,000,000,000.00', 'project_consumed': '-1,000,000,000.00', 'project_returned': '0', 'project_remaining': '0', 'tankhah_budget': '1,000,000,000.00', 'tankhah_consumed': '720.00', 'tankhah_remaining': '999,999,280.00', 'budget_period': {'name': 'زمستان 1404', 'start_date': '2025-12-22', 'end_date': '2026-03-20', 'is_locked': False, 'lock_reason': 'دوره بودجه فعال است.', 'progress': 6, 'debug': {'explicit_locked': None, 'computed_locked': False, 'autolock_enabled': True}}, 'allocation': {'locked_percentage': 1.0, 'warning_threshold': 10.0, 'warning_action': 'NOTIFY', 'is_locked': False, 'remaining': '1,000,000,000.00', 'locked_amount': '20,000,000.0000', 'warning_amount': '200,000,000.0000', 'status': {'code': 'normal', 'message': 'وضعیت عادی'}}}
+INFO 2025-12-27 21:33:36 middleware __call__ پاسخ برای /tankhah/get-tankhah-budget-info/ - کد وضعیت: 200
+INFO 2025-12-27 21:33:36 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 21:33:36 budget_calculations get_tankhah_budget_info Start get_tankhah_budget_info
+INFO 2025-12-27 21:33:36 budget_calculations get_tankhah_budget_info Step 1: Fetching Tankhah with related models
+INFO 2025-12-27 21:33:36 budget_calculations get_tankhah_budget_info Step 2: Calculating budget info
+ERROR 2025-12-27 21:33:36 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+INFO 2025-12-27 21:33:36 budget_calculations get_tankhah_used_budget 💵statuses_considered_as_used=['PAID', 'APPROVED', 'PENDING', 'DRAFT']
+INFO 2025-12-27 21:33:36 budget_calculations get_tankhah_used_budget factors=<QuerySet [<Factor: FAC-TNKH-14041010-ComplexSHC-HHydro-1404-001-14040928-ComplexSHC-0001 (TNKH-14041010-ComplexSHC-HHydro-1404-001)>]>
+ERROR 2025-12-27 21:33:36 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+INFO 2025-12-27 21:33:36 budget_calculations get_tankhah_used_budget 💵statuses_considered_as_used=['PAID', 'APPROVED', 'PENDING', 'DRAFT']
+INFO 2025-12-27 21:33:36 budget_calculations get_tankhah_used_budget factors=<QuerySet [<Factor: FAC-TNKH-14041010-ComplexSHC-HHydro-1404-001-14040928-ComplexSHC-0001 (TNKH-14041010-ComplexSHC-HHydro-1404-001)>]>
+INFO 2025-12-27 21:33:36 budget_calculations get_tankhah_budget_info Step 3: Budget info retrieved for tankhah TNKH-14041010-ComplexSHC-HHydro-1404-001: {'project_name': 'بازسازی مجتمع آبدرمانی سبلان - لوله کشی آبگرم', 'project_budget': '2,000,000,000.00', 'project_consumed': '-1,000,000,000.00', 'project_returned': '0', 'project_remaining': '0', 'tankhah_budget': '1,000,000,000.00', 'tankhah_consumed': '720.00', 'tankhah_remaining': '999,999,280.00', 'budget_period': {'name': 'زمستان 1404', 'start_date': '2025-12-22', 'end_date': '2026-03-20', 'is_locked': False, 'lock_reason': 'دوره بودجه فعال است.', 'progress': 6, 'debug': {'explicit_locked': None, 'computed_locked': False, 'autolock_enabled': True}}, 'allocation': {'locked_percentage': 1.0, 'warning_threshold': 10.0, 'warning_action': 'NOTIFY', 'is_locked': False, 'remaining': '1,000,000,000.00', 'locked_amount': '20,000,000.0000', 'warning_amount': '200,000,000.0000', 'status': {'code': 'normal', 'message': 'وضعیت عادی'}}}
+INFO 2025-12-27 21:33:37 middleware __call__ پاسخ برای /tankhah/get-tankhah-budget-info/ - کد وضعیت: 200
+INFO 2025-12-27 21:36:23 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 21:36:23 PermissionBase has_required_permissions [PERM_CHECK] User admin is superuser → full access granted.
+INFO 2025-12-27 21:36:23 PermissionBase dispatch [PERM_CHECK] User admin passed base permission check for /tankhah/factor/create/new/
+INFO 2025-12-27 21:36:23 PermissionBase dispatch [PERM_ORG] User admin has access to organizations [1, 2, 3, 4, 5, 6, 7, 8, 9]
+ERROR 2025-12-27 21:36:23 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+INFO 2025-12-27 21:36:23 budget_calculations get_tankhah_used_budget 💵statuses_considered_as_used=['PAID', 'APPROVED', 'PENDING', 'DRAFT']
+INFO 2025-12-27 21:36:23 budget_calculations get_tankhah_used_budget factors=<QuerySet [<Factor: FAC-TNKH-14041010-ComplexSHC-HHydro-1404-001-14040928-ComplexSHC-0001 (TNKH-14041010-ComplexSHC-HHydro-1404-001)>]>
+INFO 2025-12-27 21:36:23 view_Nfactor form_valid شروع form_valid برای کاربر 'admin' و تنخواه 'TNKH-14041010-ComplexSHC-HHydro-1404-001'
+WARNING 2025-12-27 21:36:23 view_Nfactor form_valid فرم‌ست آیتم‌ها نامعتبر است. خطاها: [{'vat_amount': ['This field is required.']}, {'description': ['This field is required.'], 'vat_amount': ['This field is required.'], '__all__': ['لطفاً تمام فیلدهای این ردیف را پر کنید یا آن را حذف کنید.']}]
+WARNING 2025-12-27 21:36:23 view_Nfactor form_invalid فرم نامعتبر برای کاربر 'admin'. خطاها: {}
+INFO 2025-12-27 21:36:23 middleware __call__ پاسخ برای /tankhah/factor/create/new/ - کد وضعیت: 200
+INFO 2025-12-27 21:36:24 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 21:36:24 budget_calculations get_tankhah_budget_info Start get_tankhah_budget_info
+INFO 2025-12-27 21:36:24 budget_calculations get_tankhah_budget_info Step 1: Fetching Tankhah with related models
+INFO 2025-12-27 21:36:24 budget_calculations get_tankhah_budget_info Step 2: Calculating budget info
+INFO 2025-12-27 21:36:24 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+ERROR 2025-12-27 21:36:24 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+INFO 2025-12-27 21:36:24 budget_calculations get_tankhah_used_budget 💵statuses_considered_as_used=['PAID', 'APPROVED', 'PENDING', 'DRAFT']
+INFO 2025-12-27 21:36:24 budget_calculations get_tankhah_used_budget factors=<QuerySet [<Factor: FAC-TNKH-14041010-ComplexSHC-HHydro-1404-001-14040928-ComplexSHC-0001 (TNKH-14041010-ComplexSHC-HHydro-1404-001)>]>
+INFO 2025-12-27 21:36:24 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+ERROR 2025-12-27 21:36:24 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+INFO 2025-12-27 21:36:24 budget_calculations get_tankhah_used_budget 💵statuses_considered_as_used=['PAID', 'APPROVED', 'PENDING', 'DRAFT']
+INFO 2025-12-27 21:36:24 budget_calculations get_tankhah_used_budget factors=<QuerySet [<Factor: FAC-TNKH-14041010-ComplexSHC-HHydro-1404-001-14040928-ComplexSHC-0001 (TNKH-14041010-ComplexSHC-HHydro-1404-001)>]>
+INFO 2025-12-27 21:36:24 budget_calculations get_tankhah_budget_info Step 3: Budget info retrieved for tankhah TNKH-14041010-ComplexSHC-HHydro-1404-001: {'project_name': 'بازسازی مجتمع آبدرمانی سبلان - لوله کشی آبگرم', 'project_budget': '2,000,000,000.00', 'project_consumed': '-1,000,000,000.00', 'project_returned': '0', 'project_remaining': '0', 'tankhah_budget': '1,000,000,000.00', 'tankhah_consumed': '720.00', 'tankhah_remaining': '999,999,280.00', 'budget_period': {'name': 'زمستان 1404', 'start_date': '2025-12-22', 'end_date': '2026-03-20', 'is_locked': False, 'lock_reason': 'دوره بودجه فعال است.', 'progress': 6, 'debug': {'explicit_locked': None, 'computed_locked': False, 'autolock_enabled': True}}, 'allocation': {'locked_percentage': 1.0, 'warning_threshold': 10.0, 'warning_action': 'NOTIFY', 'is_locked': False, 'remaining': '1,000,000,000.00', 'locked_amount': '20,000,000.0000', 'warning_amount': '200,000,000.0000', 'status': {'code': 'normal', 'message': 'وضعیت عادی'}}}
+INFO 2025-12-27 21:36:24 middleware __call__ پاسخ برای /tankhah/get-tankhah-budget-info/ - کد وضعیت: 200
+INFO 2025-12-27 21:36:24 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 21:36:24 budget_calculations get_tankhah_budget_info Start get_tankhah_budget_info
+INFO 2025-12-27 21:36:24 budget_calculations get_tankhah_budget_info Step 1: Fetching Tankhah with related models
+INFO 2025-12-27 21:36:24 budget_calculations get_tankhah_budget_info Step 2: Calculating budget info
+ERROR 2025-12-27 21:36:24 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+INFO 2025-12-27 21:36:24 budget_calculations get_tankhah_used_budget 💵statuses_considered_as_used=['PAID', 'APPROVED', 'PENDING', 'DRAFT']
+INFO 2025-12-27 21:36:24 budget_calculations get_tankhah_used_budget factors=<QuerySet [<Factor: FAC-TNKH-14041010-ComplexSHC-HHydro-1404-001-14040928-ComplexSHC-0001 (TNKH-14041010-ComplexSHC-HHydro-1404-001)>]>
+ERROR 2025-12-27 21:36:24 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+INFO 2025-12-27 21:36:24 budget_calculations get_tankhah_used_budget 💵statuses_considered_as_used=['PAID', 'APPROVED', 'PENDING', 'DRAFT']
+INFO 2025-12-27 21:36:24 budget_calculations get_tankhah_used_budget factors=<QuerySet [<Factor: FAC-TNKH-14041010-ComplexSHC-HHydro-1404-001-14040928-ComplexSHC-0001 (TNKH-14041010-ComplexSHC-HHydro-1404-001)>]>
+INFO 2025-12-27 21:36:24 budget_calculations get_tankhah_budget_info Step 3: Budget info retrieved for tankhah TNKH-14041010-ComplexSHC-HHydro-1404-001: {'project_name': 'بازسازی مجتمع آبدرمانی سبلان - لوله کشی آبگرم', 'project_budget': '2,000,000,000.00', 'project_consumed': '-1,000,000,000.00', 'project_returned': '0', 'project_remaining': '0', 'tankhah_budget': '1,000,000,000.00', 'tankhah_consumed': '720.00', 'tankhah_remaining': '999,999,280.00', 'budget_period': {'name': 'زمستان 1404', 'start_date': '2025-12-22', 'end_date': '2026-03-20', 'is_locked': False, 'lock_reason': 'دوره بودجه فعال است.', 'progress': 6, 'debug': {'explicit_locked': None, 'computed_locked': False, 'autolock_enabled': True}}, 'allocation': {'locked_percentage': 1.0, 'warning_threshold': 10.0, 'warning_action': 'NOTIFY', 'is_locked': False, 'remaining': '1,000,000,000.00', 'locked_amount': '20,000,000.0000', 'warning_amount': '200,000,000.0000', 'status': {'code': 'normal', 'message': 'وضعیت عادی'}}}
+INFO 2025-12-27 21:36:24 middleware __call__ پاسخ برای /tankhah/get-tankhah-budget-info/ - کد وضعیت: 200
+INFO 2025-12-27 21:36:29 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 21:36:29 PermissionBase has_required_permissions [PERM_CHECK] User admin is superuser → full access granted.
+INFO 2025-12-27 21:36:29 PermissionBase dispatch [PERM_CHECK] User admin passed base permission check for /tankhah/factor/create/new/
+INFO 2025-12-27 21:36:29 PermissionBase dispatch [PERM_ORG] User admin has access to organizations [1, 2, 3, 4, 5, 6, 7, 8, 9]
+INFO 2025-12-27 21:36:29 middleware __call__ پاسخ برای /tankhah/factor/create/new/ - کد وضعیت: 200
+INFO 2025-12-27 21:36:29 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 21:36:29 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 21:36:37 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 21:36:37 budget_calculations get_tankhah_budget_info Start get_tankhah_budget_info
+INFO 2025-12-27 21:36:37 budget_calculations get_tankhah_budget_info Step 1: Fetching Tankhah with related models
+INFO 2025-12-27 21:36:37 budget_calculations get_tankhah_budget_info Step 2: Calculating budget info
+ERROR 2025-12-27 21:36:37 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+INFO 2025-12-27 21:36:37 budget_calculations get_tankhah_used_budget 💵statuses_considered_as_used=['PAID', 'APPROVED', 'PENDING', 'DRAFT']
+INFO 2025-12-27 21:36:37 budget_calculations get_tankhah_used_budget factors=<QuerySet [<Factor: FAC-TNKH-14041010-ComplexSHC-HHydro-1404-001-14040928-ComplexSHC-0001 (TNKH-14041010-ComplexSHC-HHydro-1404-001)>]>
+ERROR 2025-12-27 21:36:37 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+INFO 2025-12-27 21:36:37 budget_calculations get_tankhah_used_budget 💵statuses_considered_as_used=['PAID', 'APPROVED', 'PENDING', 'DRAFT']
+INFO 2025-12-27 21:36:37 budget_calculations get_tankhah_used_budget factors=<QuerySet [<Factor: FAC-TNKH-14041010-ComplexSHC-HHydro-1404-001-14040928-ComplexSHC-0001 (TNKH-14041010-ComplexSHC-HHydro-1404-001)>]>
+INFO 2025-12-27 21:36:37 budget_calculations get_tankhah_budget_info Step 3: Budget info retrieved for tankhah TNKH-14041010-ComplexSHC-HHydro-1404-001: {'project_name': 'بازسازی مجتمع آبدرمانی سبلان - لوله کشی آبگرم', 'project_budget': '2,000,000,000.00', 'project_consumed': '-1,000,000,000.00', 'project_returned': '0', 'project_remaining': '0', 'tankhah_budget': '1,000,000,000.00', 'tankhah_consumed': '720.00', 'tankhah_remaining': '999,999,280.00', 'budget_period': {'name': 'زمستان 1404', 'start_date': '2025-12-22', 'end_date': '2026-03-20', 'is_locked': False, 'lock_reason': 'دوره بودجه فعال است.', 'progress': 6, 'debug': {'explicit_locked': None, 'computed_locked': False, 'autolock_enabled': True}}, 'allocation': {'locked_percentage': 1.0, 'warning_threshold': 10.0, 'warning_action': 'NOTIFY', 'is_locked': False, 'remaining': '1,000,000,000.00', 'locked_amount': '20,000,000.0000', 'warning_amount': '200,000,000.0000', 'status': {'code': 'normal', 'message': 'وضعیت عادی'}}}
+INFO 2025-12-27 21:36:37 middleware __call__ پاسخ برای /tankhah/get-tankhah-budget-info/ - کد وضعیت: 200
+INFO 2025-12-27 21:36:37 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 21:36:37 budget_calculations get_tankhah_budget_info Start get_tankhah_budget_info
+INFO 2025-12-27 21:36:37 budget_calculations get_tankhah_budget_info Step 1: Fetching Tankhah with related models
+INFO 2025-12-27 21:36:37 budget_calculations get_tankhah_budget_info Step 2: Calculating budget info
+ERROR 2025-12-27 21:36:37 budget_calculations get_project_remaining_budget خطای بحرانی در محاسبه بودجه باقی‌مانده پروژه 11: module 'budgets.BudgetAllocation' has no attribute 'objects'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 781, in get_project_remaining_budget
+    allocations_qs = BudgetAllocation.objects.filter(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'budgets.BudgetAllocation' has no attribute 'objects'
+INFO 2025-12-27 21:36:37 budget_calculations get_tankhah_used_budget 💵statuses_considered_as_used=['PAID', 'APPROVED', 'PENDING', 'DRAFT']
+INFO 2025-12-27 21:36:37 budget_calculations get_tankhah_used_budget factors=<QuerySet [<Factor: FAC-TNKH-14041010-ComplexSHC-HHydro-1404-001-14040928-ComplexSHC-0001 (TNKH-14041010-ComplexSHC-HHydro-1404-001)>]>
+ERROR 2025-12-27 21:36:37 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+INFO 2025-12-27 21:36:37 budget_calculations get_tankhah_used_budget 💵statuses_considered_as_used=['PAID', 'APPROVED', 'PENDING', 'DRAFT']
+INFO 2025-12-27 21:36:37 budget_calculations get_tankhah_used_budget factors=<QuerySet [<Factor: FAC-TNKH-14041010-ComplexSHC-HHydro-1404-001-14040928-ComplexSHC-0001 (TNKH-14041010-ComplexSHC-HHydro-1404-001)>]>
+INFO 2025-12-27 21:36:37 budget_calculations get_tankhah_budget_info Step 3: Budget info retrieved for tankhah TNKH-14041010-ComplexSHC-HHydro-1404-001: {'project_name': 'بازسازی مجتمع آبدرمانی سبلان - لوله کشی آبگرم', 'project_budget': '2,000,000,000.00', 'project_consumed': '-1,000,000,000.00', 'project_returned': '0', 'project_remaining': '0', 'tankhah_budget': '1,000,000,000.00', 'tankhah_consumed': '720.00', 'tankhah_remaining': '999,999,280.00', 'budget_period': {'name': 'زمستان 1404', 'start_date': '2025-12-22', 'end_date': '2026-03-20', 'is_locked': False, 'lock_reason': 'دوره بودجه فعال است.', 'progress': 6, 'debug': {'explicit_locked': None, 'computed_locked': False, 'autolock_enabled': True}}, 'allocation': {'locked_percentage': 1.0, 'warning_threshold': 10.0, 'warning_action': 'NOTIFY', 'is_locked': False, 'remaining': '1,000,000,000.00', 'locked_amount': '20,000,000.0000', 'warning_amount': '200,000,000.0000', 'status': {'code': 'normal', 'message': 'وضعیت عادی'}}}
+INFO 2025-12-27 21:36:37 middleware __call__ پاسخ برای /tankhah/get-tankhah-budget-info/ - کد وضعیت: 200
+INFO 2025-12-27 21:36:59 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 21:36:59 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 21:37:05 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 21:37:05 PermissionBase has_required_permissions [PERM_CHECK] User admin is superuser → full access granted.
+INFO 2025-12-27 21:37:05 PermissionBase dispatch [PERM_CHECK] User admin passed base permission check for /tankhah/factor/create/new/
+INFO 2025-12-27 21:37:05 PermissionBase dispatch [PERM_ORG] User admin has access to organizations [1, 2, 3, 4, 5, 6, 7, 8, 9]
+ERROR 2025-12-27 21:37:05 budget_calculations get_tankhah_remaining_budget Error calculating remaining for Tankhah 29: 'BudgetAllocation' object has no attribute 'budget_allocation'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 298, in get_tankhah_remaining_budget
+    allocation = tankhah.project_budget_allocation.budget_allocation
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
+INFO 2025-12-27 21:37:05 budget_calculations get_tankhah_used_budget 💵statuses_considered_as_used=['PAID', 'APPROVED', 'PENDING', 'DRAFT']
+INFO 2025-12-27 21:37:05 budget_calculations get_tankhah_used_budget factors=<QuerySet [<Factor: FAC-TNKH-14041010-ComplexSHC-HHydro-1404-001-14040928-ComplexSHC-0001 (TNKH-14041010-ComplexSHC-HHydro-1404-001)>]>
+INFO 2025-12-27 21:37:05 view_Nfactor form_valid شروع form_valid برای کاربر 'admin' و تنخواه 'TNKH-14041010-ComplexSHC-HHydro-1404-001'
+INFO 2025-12-27 21:37:05 view_Nfactor form_valid مجموع مبلغ آیتم‌ها: 100
+INFO 2025-12-27 21:37:05 budget_calculations get_committed_budget Calculated COMMITTED budget for Tankhah PK 29: 0.00
+INFO 2025-12-27 21:37:05 budget_calculations get_available_budget Available budget for Tankhah PK 29: Initial(1000000000.00) - Paid(0.00) - Committed(0.00) = 1000000000.00
+INFO 2025-12-27 21:37:05 view_Nfactor form_valid مبلغ فاکتور: 100, بودجه در دسترس تنخواه: 1000000000.00
+INFO 2025-12-27 21:37:05 view_Nfactor form_valid فاکتور 90 با وضعیت DRAFT ذخیره شد
+INFO 2025-12-27 21:37:05 models save Calculated amount for FactorItem pk=None: 100
+INFO 2025-12-27 21:37:05 models save FactorItem saved successfully (pk=113). Amount=100, VAT: 10.00, Status=پیش‌نویس
+INFO 2025-12-27 21:37:05 view_Nfactor form_valid 1 آیتم ذخیره شد
+INFO 2025-12-27 21:37:05 view_Nfactor form_valid 0 فایل ذخیره شد
+INFO 2025-12-27 21:37:05 middleware __call__ پاسخ برای /tankhah/factor/create/new/ - کد وضعیت: 302
+INFO 2025-12-27 21:37:05 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 21:37:05 PermissionBase has_required_permissions [PERM_CHECK] User admin is superuser → full access granted.
+INFO 2025-12-27 21:37:05 PermissionBase dispatch [PERM_CHECK] User admin passed base permission check for /tankhah/factors/
+INFO 2025-12-27 21:37:05 PermissionBase dispatch [PERM_ORG] User admin has access to organizations [1, 2, 3, 4, 5, 6, 7, 8, 9]
+INFO 2025-12-27 21:37:05 View_Factor_list get_queryset [FACTOR_LIST] شروع دریافت لیست فاکتورها برای کاربر: admin
+INFO 2025-12-27 21:37:05 View_Factor_list get_queryset [FACTOR_LIST] کاربر admin دسترسی کامل دارد. دریافت همه فاکتورها.
+INFO 2025-12-27 21:37:05 View_Factor_list get_queryset [FACTOR_LIST] تعداد اولیه فاکتورها: 2
+INFO 2025-12-27 21:37:05 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] شروع ایجاد context برای کاربر: admin
+INFO 2025-12-27 21:37:05 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] پردازش 2 فاکتور برای گروه‌بندی
+INFO 2025-12-27 21:37:05 check_user_access check_user_factor_access کاربر admin دسترسی کامل دارد.
+ERROR 2025-12-27 21:37:05 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+INFO 2025-12-27 21:37:05 check_user_access check_user_factor_access کاربر admin دسترسی کامل دارد.
+ERROR 2025-12-27 21:37:05 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+INFO 2025-12-27 21:37:05 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] گروه‌بندی تکمیل شد. 1 سازمان، 2 فاکتور، مبلغ کل: 820.00
+INFO 2025-12-27 21:37:05 middleware __call__ پاسخ برای /tankhah/factors/ - کد وضعیت: 200
+INFO 2025-12-27 21:37:06 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 21:37:06 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 21:37:28 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 21:37:28 PermissionBase has_required_permissions [PERM_CHECK] User admin is superuser → full access granted.
+INFO 2025-12-27 21:37:28 PermissionBase dispatch [PERM_CHECK] User admin passed base permission check for /tankhah/factor/create/new/
+INFO 2025-12-27 21:37:28 PermissionBase dispatch [PERM_ORG] User admin has access to organizations [1, 2, 3, 4, 5, 6, 7, 8, 9]
+INFO 2025-12-27 21:37:28 middleware __call__ پاسخ برای /tankhah/factor/create/new/ - کد وضعیت: 200
+INFO 2025-12-27 21:37:28 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 21:37:29 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 21:37:58 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 21:37:59 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 21:38:29 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 21:38:29 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 21:38:59 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 21:38:59 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 21:39:29 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 21:39:29 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 21:39:59 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 21:39:59 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 21:48:59 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 21:48:59 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 21:49:28 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 21:49:29 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 21:49:29 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 21:49:29 PermissionBase has_required_permissions [PERM_CHECK] User admin is superuser → full access granted.
+INFO 2025-12-27 21:49:29 PermissionBase dispatch [PERM_CHECK] User admin passed base permission check for /tankhah/factors/
+INFO 2025-12-27 21:49:29 PermissionBase dispatch [PERM_ORG] User admin has access to organizations [1, 2, 3, 4, 5, 6, 7, 8, 9]
+INFO 2025-12-27 21:49:29 View_Factor_list get_queryset [FACTOR_LIST] شروع دریافت لیست فاکتورها برای کاربر: admin
+INFO 2025-12-27 21:49:29 View_Factor_list get_queryset [FACTOR_LIST] کاربر admin دسترسی کامل دارد. دریافت همه فاکتورها.
+INFO 2025-12-27 21:49:29 View_Factor_list get_queryset [FACTOR_LIST] تعداد اولیه فاکتورها: 2
+INFO 2025-12-27 21:49:29 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] شروع ایجاد context برای کاربر: admin
+INFO 2025-12-27 21:49:29 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] پردازش 2 فاکتور برای گروه‌بندی
+INFO 2025-12-27 21:49:29 check_user_access check_user_factor_access کاربر admin دسترسی کامل دارد.
+ERROR 2025-12-27 21:49:29 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+INFO 2025-12-27 21:49:29 check_user_access check_user_factor_access کاربر admin دسترسی کامل دارد.
+ERROR 2025-12-27 21:49:29 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+INFO 2025-12-27 21:49:29 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] گروه‌بندی تکمیل شد. 1 سازمان، 2 فاکتور، مبلغ کل: 820.00
+INFO 2025-12-27 21:49:29 middleware __call__ پاسخ برای /tankhah/factors/ - کد وضعیت: 200
+INFO 2025-12-27 21:49:30 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 21:49:30 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 21:49:47 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 21:49:48 middleware __call__ پاسخ برای /inbox/notifications/mark-as-read/154/ - کد وضعیت: 302
+INFO 2025-12-27 21:49:48 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 21:49:48 middleware __call__ پاسخ برای /inbox/notifications/inbox/ - کد وضعیت: 200
+INFO 2025-12-27 21:49:48 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 21:49:48 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 21:49:51 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 21:49:51 middleware __call__ پاسخ برای /inbox/notifications/inbox/ - کد وضعیت: 200
+INFO 2025-12-27 21:49:51 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 21:49:51 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 21:49:53 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 21:49:53 middleware __call__ پاسخ برای /inbox/notifications/inbox/ - کد وضعیت: 200
+INFO 2025-12-27 21:49:53 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 21:49:53 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 21:50:00 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 21:50:00 views get_chart_data [CHART_DATA] شروع get_chart_data - start_date: None, end_date: None, org: None, project: None
+INFO 2025-12-27 21:50:00 views get_chart_data [CHART_DATA] تعداد تخصیص‌های اولیه: 2
+INFO 2025-12-27 21:50:00 views get_chart_data [CHART_DATA] org_budget query - تعداد: 2
+INFO 2025-12-27 21:50:00 views get_chart_data [CHART_DATA] org_budget - دفتر مرکزی شرکت توسعه گردشگری ایران: 12750000000.00
+INFO 2025-12-27 21:50:00 views get_chart_data [CHART_DATA] org_budget - مجتمع آبدرمانی سبلان: 2000000000.00
+INFO 2025-12-27 21:50:01 middleware __call__ پاسخ برای / - کد وضعیت: 200
+INFO 2025-12-27 21:50:01 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 21:50:01 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 21:50:04 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 21:50:04 PermissionBase has_required_permissions [PERM_CHECK] User admin is superuser → full access granted.
+INFO 2025-12-27 21:50:04 PermissionBase dispatch [PERM_CHECK] User admin passed base permission check for /tankhah/factors/
+INFO 2025-12-27 21:50:04 PermissionBase dispatch [PERM_ORG] User admin has access to organizations [1, 2, 3, 4, 5, 6, 7, 8, 9]
+INFO 2025-12-27 21:50:04 View_Factor_list get_queryset [FACTOR_LIST] شروع دریافت لیست فاکتورها برای کاربر: admin
+INFO 2025-12-27 21:50:04 View_Factor_list get_queryset [FACTOR_LIST] کاربر admin دسترسی کامل دارد. دریافت همه فاکتورها.
+INFO 2025-12-27 21:50:04 View_Factor_list get_queryset [FACTOR_LIST] تعداد اولیه فاکتورها: 2
+INFO 2025-12-27 21:50:04 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] شروع ایجاد context برای کاربر: admin
+INFO 2025-12-27 21:50:04 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] پردازش 2 فاکتور برای گروه‌بندی
+INFO 2025-12-27 21:50:04 check_user_access check_user_factor_access کاربر admin دسترسی کامل دارد.
+ERROR 2025-12-27 21:50:04 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+INFO 2025-12-27 21:50:04 check_user_access check_user_factor_access کاربر admin دسترسی کامل دارد.
+ERROR 2025-12-27 21:50:04 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+INFO 2025-12-27 21:50:04 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] گروه‌بندی تکمیل شد. 1 سازمان، 2 فاکتور، مبلغ کل: 820.00
+INFO 2025-12-27 21:50:05 middleware __call__ پاسخ برای /tankhah/factors/ - کد وضعیت: 200
+INFO 2025-12-27 21:50:05 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 21:50:05 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 21:50:12 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 21:50:12 PermissionBase has_required_permissions [PERM_CHECK] User admin is superuser → full access granted.
+INFO 2025-12-27 21:50:12 PermissionBase dispatch [PERM_CHECK] User admin passed base permission check for /tankhah/factor/90/perform-action/
+INFO 2025-12-27 21:50:12 PermissionBase dispatch [PERM_ORG] User admin has access to organizations [1, 2, 3, 4, 5, 6, 7, 8, 9]
+INFO 2025-12-27 21:50:12 budget_calculations get_committed_budget Calculated COMMITTED budget for Tankhah PK 29: 0.00
+INFO 2025-12-27 21:50:12 budget_calculations get_committed_budget Calculated COMMITTED budget for Tankhah PK 29: 0.00
+INFO 2025-12-27 21:50:12 budget_calculations get_available_budget Available budget for Tankhah PK 29: Initial(1000000000.00) - Paid(0.00) - Committed(0.00) = 1000000000.00
+INFO 2025-12-27 21:50:13 views_FactorDetail get_user_allowed_transitions User admin allowed transitions: ['ارسال برای تایید']
+INFO 2025-12-27 21:50:13 views_FactorDetail get_context_data [FACTOR_DETAIL] factor=90 status=DRAFT org=6 path_len=3 allowed_len=1 next_users_steps=3
+INFO 2025-12-27 21:50:13 middleware __call__ پاسخ برای /tankhah/factor/90/perform-action/ - کد وضعیت: 200
+INFO 2025-12-27 21:50:13 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 21:50:13 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 21:50:20 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 21:50:20 PermissionBase has_required_permissions [PERM_CHECK] User admin is superuser → full access granted.
+INFO 2025-12-27 21:50:20 PermissionBase dispatch [PERM_CHECK] User admin passed base permission check for /tankhah/factor/89/perform-action/
+INFO 2025-12-27 21:50:20 PermissionBase dispatch [PERM_ORG] User admin has access to organizations [1, 2, 3, 4, 5, 6, 7, 8, 9]
+INFO 2025-12-27 21:50:20 budget_calculations get_committed_budget Calculated COMMITTED budget for Tankhah PK 29: 0.00
+INFO 2025-12-27 21:50:20 budget_calculations get_committed_budget Calculated COMMITTED budget for Tankhah PK 29: 0.00
+INFO 2025-12-27 21:50:20 budget_calculations get_available_budget Available budget for Tankhah PK 29: Initial(1000000000.00) - Paid(0.00) - Committed(0.00) = 1000000000.00
+INFO 2025-12-27 21:50:21 views_FactorDetail get_user_allowed_transitions User admin allowed transitions: ['ارسال برای تایید']
+INFO 2025-12-27 21:50:21 views_FactorDetail get_context_data [FACTOR_DETAIL] factor=89 status=DRAFT org=6 path_len=3 allowed_len=1 next_users_steps=3
+INFO 2025-12-27 21:50:21 middleware __call__ پاسخ برای /tankhah/factor/89/perform-action/ - کد وضعیت: 200
+INFO 2025-12-27 21:50:21 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 21:50:21 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 21:50:26 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 21:50:26 PermissionBase has_required_permissions [PERM_CHECK] User admin is superuser → full access granted.
+INFO 2025-12-27 21:50:26 PermissionBase dispatch [PERM_CHECK] User admin passed base permission check for /tankhah/factors/
+INFO 2025-12-27 21:50:26 PermissionBase dispatch [PERM_ORG] User admin has access to organizations [1, 2, 3, 4, 5, 6, 7, 8, 9]
+INFO 2025-12-27 21:50:26 View_Factor_list get_queryset [FACTOR_LIST] شروع دریافت لیست فاکتورها برای کاربر: admin
+INFO 2025-12-27 21:50:26 View_Factor_list get_queryset [FACTOR_LIST] کاربر admin دسترسی کامل دارد. دریافت همه فاکتورها.
+INFO 2025-12-27 21:50:26 View_Factor_list get_queryset [FACTOR_LIST] تعداد اولیه فاکتورها: 2
+INFO 2025-12-27 21:50:26 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] شروع ایجاد context برای کاربر: admin
+INFO 2025-12-27 21:50:26 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] پردازش 2 فاکتور برای گروه‌بندی
+INFO 2025-12-27 21:50:26 check_user_access check_user_factor_access کاربر admin دسترسی کامل دارد.
+ERROR 2025-12-27 21:50:26 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+INFO 2025-12-27 21:50:26 check_user_access check_user_factor_access کاربر admin دسترسی کامل دارد.
+ERROR 2025-12-27 21:50:26 check_user_access check_user_factor_access خطا در بررسی دسترسی کاربر admin: name 'AccessRule' is not defined
+INFO 2025-12-27 21:50:26 View_Factor_list get_context_data [FACTOR_LIST_CONTEXT] گروه‌بندی تکمیل شد. 1 سازمان، 2 فاکتور، مبلغ کل: 820.00
+INFO 2025-12-27 21:50:26 middleware __call__ پاسخ برای /tankhah/factors/ - کد وضعیت: 200
+INFO 2025-12-27 21:50:26 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 21:50:26 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 21:50:57 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 21:50:57 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 21:51:27 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 21:51:27 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
+INFO 2025-12-27 21:51:57 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-12-27 21:51:57 middleware __call__ پاسخ برای /inbox/notifications/api/list/ - کد وضعیت: 200
